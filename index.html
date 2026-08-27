@@ -451,7 +451,8 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 <div class="hdr">
   <div><h1 id="hdr-title">📋 Informe de Inspección Técnica de Obra</h1><p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>
   <div class="hdr-btns">
-    <button class="hbtn hbtn-nuevo" onclick="nuevoFormulario()" title="Nuevo informe — limpia el formulario">🆕 <span>Nuevo</span></button>
+    <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Cierra este informe y prepara el siguiente, conservando torre, empresa y personal">➡️ <span>Siguiente apto.</span></button>
+  <button class="hbtn hbtn-nuevo" onclick="nuevoFormulario()" title="Nuevo informe — limpia todo el formulario">🆕 <span>Nuevo</span></button>
     <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guardar o actualizar borrador localmente">💾 <span>Guardar Borrador</span></button>
     <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Ver informes almacenados localmente">📁 <span>Guardados</span></button>
     <button class="hbtn hbtn-finalizar" onclick="finalizarInforme()" title="Finalizar informe, guardar, incrementar correlativo y volver a la pantalla de inicio">✅ <span>Finalizar</span></button>
@@ -736,6 +737,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 
     <div class="m-btns">
       <button class="m-btn m-cancel" onclick="closeSavedModal()">Cerrar</button>
+      <button class="m-btn m-confirm" onclick="enviarPendientes()">📤 Enviar todos los pendientes</button>
     </div>
   </div>
 </div>
@@ -787,12 +789,50 @@ function _marcarCambio(){
   _tempAutoguardado = setTimeout(autoguardar, 2000);
 }
 
+// Un informe «tiene contenido» si ya se evaluó algo. Mientras solo se esté
+// llenando el encabezado no hay nada que proteger, y así no se generan
+// borradores sueltos cada vez que se toca la torre o el piso.
+function _tieneContenido(d){
+  if(!d) return false;
+  if(String(d.obs_general || '').trim()) return true;
+  if((d.fotos && Object.keys(d.fotos).some(k => (d.fotos[k]||[]).some(Boolean)))) return true;
+  if(d.fotobs && Object.values(d.fotobs).some(v => String(v||'').trim())) return true;
+  if(d.noInspeccionados && d.noInspeccionados.length) return true;
+  if(!d.partidas) return false;
+  return Object.keys(d.partidas).some(function(k){
+    const v = d.partidas[k];
+    if(Array.isArray(v)) return v.some(function(f){ return f && (f.pr || f.ej || f.ev); });
+    if(v && typeof v === 'object') return !!(v.pct || String(v.obs||'').trim());
+    return false;
+  });
+}
+
+// El número identifica al informe. Si cambia mientras se edita un borrador que
+// ya tiene contenido, es OTRO informe: el anterior se conserva y este empieza
+// su propia ficha.
+let _numeroDelBorrador = null;
+
+function _separarSiCambioElInforme(){
+  if(currentEditingIndex === null) return;
+  const numeroAhora = document.getElementById('nro-display')?.textContent || '';
+  if(!_numeroDelBorrador || _numeroDelBorrador === numeroAhora) return;
+  const lista = getSavedReports();
+  const anterior = lista[currentEditingIndex];
+  if(anterior && _tieneContenido(anterior)){
+    currentEditingIndex = null;          // el siguiente guardado crea ficha nueva
+    showToast('📄 El informe anterior quedó guardado aparte', 'ok');
+  }
+  _numeroDelBorrador = numeroAhora;
+}
+
 function autoguardar(){
   try {
     if(typeof getTorreActual !== 'function') return;
     const t = getTorreActual();
     if(!t || t === '—') return;            // todavía no hay nada que valga la pena
+    _separarSiCambioElInforme();
     saveDraft(true);
+    _numeroDelBorrador = document.getElementById('nro-display')?.textContent || null;
     _hayCambiosSinGuardar = false;
     _pintarEstadoGuardado(new Date());
   } catch(e) { /* si no hay espacio, saveDraft ya avisa */ }
@@ -1810,6 +1850,19 @@ function getFormData(){
   return d;
 }
 
+// Deja constancia de qué informes ya se fueron, para no reenviarlos por
+// descuido y crear copias -r2 en Drive.
+function _marcarComoEnviado(nro){
+  try{
+    const lista = getSavedReports();
+    let cambio = false;
+    lista.forEach(function(b){
+      if(b && b.nro === nro && !b.enviado){ b.enviado = new Date().toLocaleString(); cambio = true; }
+    });
+    if(cambio) localStorage.setItem('garmel_reports_list', JSON.stringify(lista));
+  }catch(e){}
+}
+
 function getSavedReports() {
   try {
     return JSON.parse(localStorage.getItem('garmel_reports_list') || '[]');
@@ -1818,6 +1871,7 @@ function getSavedReports() {
 
 function saveDraft(silencioso){
   try{
+    if(!silencioso) _separarSiCambioElInforme();
     const data = getFormData();
     const list = getSavedReports();
     if(currentEditingIndex !== null && list[currentEditingIndex]) {
@@ -1860,6 +1914,7 @@ function renderSavedList() {
         <span class="saved-item-title">${item.nro || 'Sin Correlativo'} (${item.formType === 'hitos' ? 'Hitos' : 'Detallado'})</span>
         <span class="saved-item-sub">📍 Torre: ${item.torre || '—'} | Apto: ${item.apto || '—'}</span>
         <span class="saved-item-sub">📅 Guardado: ${item.timestamp}</span>
+        <span class="saved-item-sub" style="color:${item.enviado ? '#2e7d32' : '#e65100'};font-weight:700">${item.enviado ? '✅ Enviado ' + item.enviado : '⏳ Sin enviar'}</span>
       </div>
       <div class="saved-item-actions">
         <button class="s-btn s-btn-load" onclick="loadDraftData(${index})">📂 Cargar para Editar</button>
@@ -1877,6 +1932,7 @@ function loadDraftData(index) {
 
   formType = d.formType || 'detallado';
   setAmbito(d.ambito || 'apartamento');
+  _numeroDelBorrador = d.nro || null;
   hitosNoInspeccionados = {};
   (d.noInspeccionados || []).forEach(function(pid){
     hitosNoInspeccionados[pid] = true;
@@ -2013,6 +2069,30 @@ function deleteSavedReport(index) {
   showToast('🗑️ Informe eliminado de la lista', 'ok');
 }
 
+// Cierra el informe actual y deja el formulario listo para el siguiente
+// apartamento de la misma torre: conserva convenio, empresa, residente,
+// inspector, torre y estatus, y limpia solo lo que cambia.
+function siguienteApartamento(){
+  const falta = camposFaltantes();
+  if(falta.length && !confirm(_avisarFaltantes(falta) +
+      '\n\n¿Guardar así y pasar al siguiente apartamento?')) return;
+
+  saveDraft();                       // el informe actual queda con su propia ficha
+  currentEditingIndex = null;        // el siguiente no lo pisa
+  _numeroDelBorrador = null;
+
+  document.getElementById('apto').value = '';
+  document.getElementById('obs_general').value = '';
+  document.getElementById('obs_sp').value = '';
+  hitosNoInspeccionados = {};
+  initAppContent();                  // redibuja los hitos vacíos
+  updateNroInforme();
+
+  const apto = document.getElementById('apto');
+  if(apto){ apto.focus(); }
+  showToast('➡️ Informe guardado. Listo para el siguiente apartamento', 'ok');
+}
+
 function nuevoFormulario() {
   if(!confirm('¿Desea iniciar un nuevo informe? Se limpiarán los campos actuales.')) return;
   currentEditingIndex = null;
@@ -2031,6 +2111,7 @@ function nuevoFormulario() {
   document.querySelectorAll('.ck-lbl').forEach(l=>{l.classList.remove('on'); l.querySelector('input').checked=false;});
   document.querySelectorAll('.ag-btn').forEach(b=>b.classList.remove('on'));
   hitosNoInspeccionados = {};
+  _numeroDelBorrador = null;
   initAppContent();
   updateNroInforme();
   showToast('🆕 Formulario limpio para nuevo registro', 'ok');
@@ -2116,6 +2197,7 @@ async function probarClave(){
     } else {
       localStorage.setItem('garmel_clave_envio', clave);
       refrescarEstadoClave();
+      _marcarComoEnviado(datos.nro);
       logEl.textContent += '✅ Clave correcta. Este teléfono quedó configurado.';
       showToast('✅ Teléfono configurado', 'ok');
     }
@@ -2132,8 +2214,58 @@ function closeSend() {
 }
 
 function sendSavedDirect(index) {
+  const b = getSavedReports()[index];
+  if(b && b.enviado && !confirm('Este informe ya se envió el ' + b.enviado +
+      '.\n\nVolver a enviarlo creará una copia en Drive. ¿Continuar?')) return;
   loadDraftData(index);
   openSend();
+}
+
+// ── 26 · Enviar todo lo pendiente de una vez ────────────────────────────
+// Al volver a la oficina con doce informes, mandarlos de a uno es tedioso y se
+// queda alguno por el camino.
+async function enviarPendientes(){
+  const clave = localStorage.getItem('garmel_clave_envio') || '';
+  if(!clave){ alert('Este teléfono todavía no está configurado. Abra Enviar y escriba la clave una vez.'); return; }
+
+  const lista = getSavedReports();
+  const pendientes = lista.map(function(b,i){ return {b:b, i:i}; })
+                          .filter(function(x){ return x.b && !x.b.enviado; });
+  if(!pendientes.length){ showToast('No hay informes sin enviar', 'ok'); return; }
+  if(!confirm('Se van a enviar ' + pendientes.length + ' informe(s) sin enviar. ¿Continuar?')) return;
+
+  let bien = 0, mal = 0;
+  for(const x of pendientes){
+    showToast('Enviando ' + (bien + mal + 1) + ' de ' + pendientes.length + '…', 'ok');
+    const ok = await _enviarUno(x.b, clave);
+    if(ok){ bien++; } else { mal++; }
+  }
+  renderSavedList();
+  alert('Enviados: ' + bien + '\nCon problemas: ' + mal +
+        (mal ? '\n\nLos que fallaron siguen guardados y se pueden reintentar.' : ''));
+}
+
+// Envía un borrador ya guardado, sin cargarlo en pantalla.
+async function _enviarUno(b, clave){
+  try{
+    const fotos = [];
+    if(b.fotos) Object.keys(b.fotos).forEach(function(pid){
+      (b.fotos[pid]||[]).forEach(function(src, fi){
+        if(src) fotos.push({ nombre: pid + '-' + (fi+1), dato: src });
+      });
+    });
+    const sector = (typeof SECTOR_POR_CONVENIO !== 'undefined' && SECTOR_POR_CONVENIO[b.convenio]) || 'XX';
+    const r = await fetch(RELEVO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave: clave, numero: b.nro, sector: sector,
+                             torre: b.torre, ambito: b.ambito || 'apartamento',
+                             datos: b, fotos: fotos })
+    });
+    const res = await r.json();
+    if(res.ok){ _marcarComoEnviado(b.nro); return true; }
+    return false;
+  }catch(e){ return false; }
 }
 
 const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQiGp3CCZmIWTnsWBD0KEw5quMkexDcBieUESBkmTspqAsvjoXQ/exec';

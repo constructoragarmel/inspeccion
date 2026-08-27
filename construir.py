@@ -988,6 +988,227 @@ s = sustituir(s,
   <div class="sec-lbl">📍 Ubicación</div>""",
  "22k· leyenda de B / R / M / N-A")
 
+
+# ── 23. Un borrador pertenece a su número de informe ──────────────────────
+# El fallo: si el inspector terminaba el apartamento 04 y cambiaba al 05 sin
+# tocar «Nuevo», el autoguardado seguía escribiendo en el MISMO borrador y el
+# 04 se destruía, en silencio. Y pasa justo en el caso normal: sin señal no
+# puede enviar entre apartamentos, así que el borrador es lo único que existe.
+
+# 23a · ¿Tiene el informe algo que perder?
+s = sustituir(s,
+ """function autoguardar(){""",
+ """// Un informe «tiene contenido» si ya se evaluó algo. Mientras solo se esté
+// llenando el encabezado no hay nada que proteger, y así no se generan
+// borradores sueltos cada vez que se toca la torre o el piso.
+function _tieneContenido(d){
+  if(!d) return false;
+  if(String(d.obs_general || '').trim()) return true;
+  if((d.fotos && Object.keys(d.fotos).some(k => (d.fotos[k]||[]).some(Boolean)))) return true;
+  if(d.fotobs && Object.values(d.fotobs).some(v => String(v||'').trim())) return true;
+  if(d.noInspeccionados && d.noInspeccionados.length) return true;
+  if(!d.partidas) return false;
+  return Object.keys(d.partidas).some(function(k){
+    const v = d.partidas[k];
+    if(Array.isArray(v)) return v.some(function(f){ return f && (f.pr || f.ej || f.ev); });
+    if(v && typeof v === 'object') return !!(v.pct || String(v.obs||'').trim());
+    return false;
+  });
+}
+
+// El número identifica al informe. Si cambia mientras se edita un borrador que
+// ya tiene contenido, es OTRO informe: el anterior se conserva y este empieza
+// su propia ficha.
+let _numeroDelBorrador = null;
+
+function _separarSiCambioElInforme(){
+  if(currentEditingIndex === null) return;
+  const numeroAhora = document.getElementById('nro-display')?.textContent || '';
+  if(!_numeroDelBorrador || _numeroDelBorrador === numeroAhora) return;
+  const lista = getSavedReports();
+  const anterior = lista[currentEditingIndex];
+  if(anterior && _tieneContenido(anterior)){
+    currentEditingIndex = null;          // el siguiente guardado crea ficha nueva
+    showToast('📄 El informe anterior quedó guardado aparte', 'ok');
+  }
+  _numeroDelBorrador = numeroAhora;
+}
+
+function autoguardar(){""",
+ "23a· separar el borrador cuando cambia el informe")
+
+s = sustituir(s,
+ """    if(!t || t === '—') return;            // todavía no hay nada que valga la pena
+    saveDraft(true);""",
+ """    if(!t || t === '—') return;            // todavía no hay nada que valga la pena
+    _separarSiCambioElInforme();
+    saveDraft(true);
+    _numeroDelBorrador = document.getElementById('nro-display')?.textContent || null;""",
+ "23b· el autoguardado respeta la separación")
+
+s = sustituir(s,
+ """function saveDraft(silencioso){
+  try{""",
+ """function saveDraft(silencioso){
+  try{
+    if(!silencioso) _separarSiCambioElInforme();""",
+ "23c· el guardado a mano también")
+
+s = sustituir(s,
+ """  hitosNoInspeccionados = {};
+  (d.noInspeccionados || []).forEach(function(pid){""",
+ """  _numeroDelBorrador = d.nro || null;
+  hitosNoInspeccionados = {};
+  (d.noInspeccionados || []).forEach(function(pid){""",
+ "23d· al abrir un borrador se recuerda a qué informe pertenece")
+
+s = sustituir(s,
+ """  hitosNoInspeccionados = {};
+  initAppContent();""",
+ """  hitosNoInspeccionados = {};
+  _numeroDelBorrador = null;
+  initAppContent();""",
+ "23e· «Nuevo» olvida el informe anterior")
+
+# ── 24. «Guardar y siguiente apartamento» ─────────────────────────────────
+# De los nueve campos del encabezado, siete se repiten en todo el recorrido de
+# una torre. Veinte apartamentos son 180 campos escritos, de los cuales 140
+# sobran.
+s = sustituir(s,
+ """  <button class="hbtn hbtn-nuevo" onclick="nuevoFormulario()" title="Nuevo informe — limpia el formulario">🆕 <span>Nuevo</span></button>""",
+ """  <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Cierra este informe y prepara el siguiente, conservando torre, empresa y personal">➡️ <span>Siguiente apto.</span></button>
+  <button class="hbtn hbtn-nuevo" onclick="nuevoFormulario()" title="Nuevo informe — limpia todo el formulario">🆕 <span>Nuevo</span></button>""",
+ "24a· botón de siguiente apartamento")
+
+s = sustituir(s,
+ """function nuevoFormulario() {""",
+ """// Cierra el informe actual y deja el formulario listo para el siguiente
+// apartamento de la misma torre: conserva convenio, empresa, residente,
+// inspector, torre y estatus, y limpia solo lo que cambia.
+function siguienteApartamento(){
+  const falta = camposFaltantes();
+  if(falta.length && !confirm(_avisarFaltantes(falta) +
+      '\\n\\n¿Guardar así y pasar al siguiente apartamento?')) return;
+
+  saveDraft();                       // el informe actual queda con su propia ficha
+  currentEditingIndex = null;        // el siguiente no lo pisa
+  _numeroDelBorrador = null;
+
+  document.getElementById('apto').value = '';
+  document.getElementById('obs_general').value = '';
+  document.getElementById('obs_sp').value = '';
+  hitosNoInspeccionados = {};
+  initAppContent();                  // redibuja los hitos vacíos
+  updateNroInforme();
+
+  const apto = document.getElementById('apto');
+  if(apto){ apto.focus(); }
+  showToast('➡️ Informe guardado. Listo para el siguiente apartamento', 'ok');
+}
+
+function nuevoFormulario() {""",
+ "24b· lógica de siguiente apartamento")
+
+# ── 25. Saber cuál ya se envió ────────────────────────────────────────────
+s = sustituir(s,
+ """      localStorage.setItem('garmel_clave_envio', clave);
+      refrescarEstadoClave();""",
+ """      localStorage.setItem('garmel_clave_envio', clave);
+      refrescarEstadoClave();
+      _marcarComoEnviado(datos.nro);""",
+ "25a· marcar el borrador como enviado")
+
+s = sustituir(s,
+ """function getSavedReports() {""",
+ """// Deja constancia de qué informes ya se fueron, para no reenviarlos por
+// descuido y crear copias -r2 en Drive.
+function _marcarComoEnviado(nro){
+  try{
+    const lista = getSavedReports();
+    let cambio = false;
+    lista.forEach(function(b){
+      if(b && b.nro === nro && !b.enviado){ b.enviado = new Date().toLocaleString(); cambio = true; }
+    });
+    if(cambio) localStorage.setItem('garmel_reports_list', JSON.stringify(lista));
+  }catch(e){}
+}
+
+function getSavedReports() {""",
+ "25b· registrar el envío en el borrador")
+
+s = sustituir(s,
+ """        <span class="saved-item-sub">📅 Guardado: ${item.timestamp}</span>""",
+ """        <span class="saved-item-sub">📅 Guardado: ${item.timestamp}</span>
+        <span class="saved-item-sub" style="color:${item.enviado ? '#2e7d32' : '#e65100'};font-weight:700">${item.enviado ? '✅ Enviado ' + item.enviado : '⏳ Sin enviar'}</span>""",
+ "25c· la lista muestra qué se envió y qué no")
+
+s = sustituir(s,
+ """function sendSavedDirect(index) {
+  loadDraftData(index);
+  openSend();
+}""",
+ """function sendSavedDirect(index) {
+  const b = getSavedReports()[index];
+  if(b && b.enviado && !confirm('Este informe ya se envió el ' + b.enviado +
+      '.\\n\\nVolver a enviarlo creará una copia en Drive. ¿Continuar?')) return;
+  loadDraftData(index);
+  openSend();
+}
+
+// ── 26 · Enviar todo lo pendiente de una vez ────────────────────────────
+// Al volver a la oficina con doce informes, mandarlos de a uno es tedioso y se
+// queda alguno por el camino.
+async function enviarPendientes(){
+  const clave = localStorage.getItem('garmel_clave_envio') || '';
+  if(!clave){ alert('Este teléfono todavía no está configurado. Abra Enviar y escriba la clave una vez.'); return; }
+
+  const lista = getSavedReports();
+  const pendientes = lista.map(function(b,i){ return {b:b, i:i}; })
+                          .filter(function(x){ return x.b && !x.b.enviado; });
+  if(!pendientes.length){ showToast('No hay informes sin enviar', 'ok'); return; }
+  if(!confirm('Se van a enviar ' + pendientes.length + ' informe(s) sin enviar. ¿Continuar?')) return;
+
+  let bien = 0, mal = 0;
+  for(const x of pendientes){
+    showToast('Enviando ' + (bien + mal + 1) + ' de ' + pendientes.length + '…', 'ok');
+    const ok = await _enviarUno(x.b, clave);
+    if(ok){ bien++; } else { mal++; }
+  }
+  renderSavedList();
+  alert('Enviados: ' + bien + '\\nCon problemas: ' + mal +
+        (mal ? '\\n\\nLos que fallaron siguen guardados y se pueden reintentar.' : ''));
+}
+
+// Envía un borrador ya guardado, sin cargarlo en pantalla.
+async function _enviarUno(b, clave){
+  try{
+    const fotos = [];
+    if(b.fotos) Object.keys(b.fotos).forEach(function(pid){
+      (b.fotos[pid]||[]).forEach(function(src, fi){
+        if(src) fotos.push({ nombre: pid + '-' + (fi+1), dato: src });
+      });
+    });
+    const sector = (typeof SECTOR_POR_CONVENIO !== 'undefined' && SECTOR_POR_CONVENIO[b.convenio]) || 'XX';
+    const r = await fetch(RELEVO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave: clave, numero: b.nro, sector: sector,
+                             torre: b.torre, ambito: b.ambito || 'apartamento',
+                             datos: b, fotos: fotos })
+    });
+    const res = await r.json();
+    if(res.ok){ _marcarComoEnviado(b.nro); return true; }
+    return false;
+  }catch(e){ return false; }
+}""",
+ "25d· avisar al reenviar, y enviar todos los pendientes")
+
+s = sustituir(s,
+ """      <button class="m-btn m-cancel" onclick="closeSavedModal()">Cerrar</button>""",
+ """      <button class="m-btn m-cancel" onclick="closeSavedModal()">Cerrar</button>
+      <button class="m-btn m-confirm" onclick="enviarPendientes()">📤 Enviar todos los pendientes</button>""",
+ "26· botón de enviar todos los pendientes")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar

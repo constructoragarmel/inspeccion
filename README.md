@@ -37,6 +37,26 @@ informe** — sirve para dejar teléfonos listos en la oficina sin inventar info
 > **La clave nunca va dentro de este repositorio**, que es público. Si se filtra, se cambia en las
 > propiedades del script del relevo y se reenvía el enlace de configuración.
 
+## El recorrido de una torre
+
+**Un informe = un apartamento, una fecha, un inspector.** Seis apartamentos del piso 3 son seis informes.
+
+De los nueve campos del encabezado, **siete se repiten** en todo el recorrido. Por eso el botón
+**➡️ Siguiente apto.**: cierra el informe actual con su propia ficha, conserva convenio, empresa,
+residente, inspector, torre y estatus, y limpia solo el apartamento y la evaluación.
+
+> **Cambiar de apartamento ya no pisa el informe anterior.** Un borrador pertenece a su número: si el
+> número cambia y el informe anterior tenía contenido, el anterior se conserva y el nuevo abre su propia
+> ficha. Antes se destruía en silencio — y ocurría en el caso normal, porque sin señal no se puede enviar
+> entre apartamentos y el borrador es lo único que existe.
+
+Para lo de **toda la torre** —estructura, ascensores, áreas comunes— se cambia el ámbito a 🏢 Torre:
+desaparecen piso y apartamento, quedan los hitos 1 y 7, y el número sale `EZ-T05-TORRE-…`.
+
+Al volver con señal, **📤 Enviar todos los pendientes** manda de una vez los que falten. La lista de
+guardados marca cada uno como **✅ Enviado** o **⏳ Sin enviar**, y avisa antes de reenviar algo que ya se
+fue, para no crear copias `-r2` en Drive.
+
 ## Cómo se usa en campo
 
 1. Abrir el enlace **una vez con señal**. El teléfono se guarda una copia.
