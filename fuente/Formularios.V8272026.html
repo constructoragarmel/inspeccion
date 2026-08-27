@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>Informe de Inspección Técnica — GARMEL</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a237e;--blue2:#1565c0;--blue-l:#e8eaf6;
+  --green:#2e7d32;--green-l:#e8f5e9;
+  --yellow:#f57f17;--red:#c62828;--orange:#e65100;
+  --gray:#546e7a;--shadow:0 2px 10px rgba(0,0,0,.08);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;font-size:14px}
+
+/* PANTALLA DE INICIO (WELCOME SCREEN) */
+#welcome-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0d1b2a 0%, #1a237e 50%, #1565c0 100%);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+#welcome-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.welcome-card {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 550px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+.welcome-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+.welcome-divider {
+  width: 1px;
+  height: 45px;
+  background: rgba(255, 255, 255, 0.3);
+}
+.welcome-title {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  color: #ffffff;
+}
+.welcome-subtitle {
+  font-size: 13px;
+  color: #b0bec5;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+.welcome-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 30px;
+  text-align: left;
+}
+@media (max-width: 480px) {
+  .welcome-features { grid-template-columns: 1fr; }
+  .welcome-card { padding: 25px 20px; }
+}
+.welcome-feat-item {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.welcome-btn {
+  background: linear-gradient(135deg, #43a047, #2e7d32);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 32px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+  transition: all 0.2s ease;
+  width: 100%;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+.welcome-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(46, 125, 50, 0.6);
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+
+.form-selector-welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* STICKY HEADER */
+.hdr{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:200;box-shadow:0 3px 14px rgba(0,0,0,.3)}
+.hdr h1{font-size:16px;font-weight:800}
+.hdr p{font-size:11px;opacity:.7;margin-top:1px}
+.hdr-btns{display:flex;gap:7px;flex-wrap:wrap}
+.hbtn{padding:7px 13px;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s}
+.hbtn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.hbtn-nuevo{background:rgba(105,240,174,.25);color:#fff;border:1px solid rgba(105,240,174,.4)}
+.hbtn-save{background:rgba(255,255,255,.2);color:#fff}
+.hbtn-saved-list{background:rgba(255,193,7,.3);color:#fff;border:1px solid rgba(255,193,7,.5)}
+.hbtn-send{background:#43a047;color:#fff}
+.hbtn-pdf{background:var(--orange);color:#fff}
+.hbtn-finalizar{background:#8e24aa;color:#fff;border:1px solid rgba(255,255,255,.3)}
+
+/* LOGO BAR (print) */
+.logo-bar{background:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--blue-l)}
+.logo-box{display:flex;align-items:center;gap:14px}
+.logo-placeholder{width:80px;height:60px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;cursor:pointer;text-align:center;position:relative;overflow:hidden;flex-shrink:0}
+.logo-placeholder img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.logo-placeholder input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.logo-text h2{font-size:17px;font-weight:900;color:var(--blue)}
+.logo-text p{font-size:11px;color:#666;margin-top:2px}
+.doc-info{text-align:right;font-size:11px;color:#666;line-height:1.7}
+.doc-info strong{color:var(--blue);font-size:12px}
+
+/* FORM CARD */
+.meta-card{background:#fff;padding:18px 22px;border-bottom:3px solid var(--blue-l)}
+.sec-lbl{font-size:10px;font-weight:800;text-transform:uppercase;color:var(--blue);letter-spacing:.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--blue-l)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin-bottom:14px}
+@media(max-width:700px){.grid3,.grid4,.grid2{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:3px}
+.field.full{grid-column:1/-1}
+.field label{font-size:10px;text-transform:uppercase;font-weight:700;color:#666;letter-spacing:.4px}
+.field input,.field select,.field textarea{border:1.5px solid #ddd;border-radius:7px;padding:7px 10px;font-size:13px;background:#fafafa;width:100%;transition:border-color .2s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue2);background:#fff}
+.field textarea{resize:vertical;min-height:80px;display:block;}
+.field-note{font-size:10px;color:#aaa;margin-top:2px}
+
+/* DYNAMIC MULTI-INPUTS */
+.multi-input-row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+.multi-input-row input, .multi-input-row select{flex:1}
+.btn-remove-item{background:#ffebee;color:var(--red);border:1px solid #ffcdd2;border-radius:6px;width:30px;height:30px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.btn-add-item{background:var(--blue-l);color:var(--blue);border:1px solid #c5cae9;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-top:4px}
+
+/* CHECKBOXES */
+.ck-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}
+.ck-lbl{display:flex;align-items:center;gap:5px;background:#f5f7ff;border:1.5px solid #e0e4ff;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;user-select:none}
+.ck-lbl:hover{background:var(--blue-l);border-color:var(--blue2)}
+.ck-lbl input{display:none}
+.ck-lbl.on{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* SECTION DIVIDER */
+.sec-div{background:var(--blue-l);color:var(--blue);font-size:12px;font-weight:800;text-transform:uppercase;padding:9px 22px;letter-spacing:.7px;border-top:2px solid #c5cae9;border-bottom:2px solid #c5cae9}
+
+/* CONTENT */
+.content{padding:14px 18px;max-width:1440px;margin:0 auto}
+@media(max-width:700px){.content{padding:8px}}
+
+/* PARTIDA */
+.partida{background:#fff;border-radius:10px;margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;border-left:5px solid #ccc}
+.p-hdr{padding:11px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.p-hdr-l{display:flex;align-items:center;gap:9px}
+.p-hdr h2{font-size:13px;font-weight:800;color:#fff}
+.pct-bdg{background:rgba(255,255,255,.25);color:#fff;font-weight:900;font-size:14px;padding:3px 11px;border-radius:20px;min-width:52px;text-align:center}
+.arrow{color:#fff;font-size:15px;transition:transform .2s}
+.partida.collapsed .arrow{transform:rotate(-90deg)}
+.partida.collapsed .p-body{display:none}
+.p-body{padding:0 0 12px}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:640px}
+thead th{padding:7px 9px;font-size:10px;text-transform:uppercase;font-weight:800;color:#fff;text-align:center;border-right:1px solid rgba(255,255,255,.15);letter-spacing:.3px}
+thead th:nth-child(2){text-align:left;padding-left:13px}
+tbody tr{border-bottom:1px solid #f0f0f0;transition:background .1s}
+tbody tr:hover{background:#fafbff}
+tbody tr.extra-row{background:#fffde7}
+td.n{text-align:center;font-weight:800;color:#bbb;font-size:11px;width:34px}
+td.desc{text-align:left;padding-left:13px;font-size:12px;font-weight:500;min-width:160px}
+td.desc input{width:100%;border:1px solid #e0e0e0;border-radius:5px;padding:4px 7px;font-size:12px;background:#fff8e1}
+td.desc input:focus{outline:none;border-color:var(--yellow)}
+.num{width:68px;border:1.5px solid #e0e0e0;border-radius:6px;padding:5px;font-size:12px;text-align:center;transition:border-color .2s}
+.num:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 2px rgba(21,101,192,.1)}
+.falt-cell{font-weight:700;font-size:12px}
+.pct-cell{min-width:78px}
+.pv{font-weight:800;font-size:13px;margin-bottom:2px}
+.bar-bg{height:5px;background:#eee;border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .4s,background .4s}
+.g{color:#2e7d32}.y{color:#f57f17}.r{color:#c62828}
+.bg{background:#43a047}.by{background:#fbc02d}.br{background:#e53935}
+.ev{display:flex;gap:3px;justify-content:center}
+.ev-btn{padding:4px 9px;border:1.5px solid #ddd;border-radius:11px;font-size:11px;font-weight:800;cursor:pointer;background:#f5f5f5;color:#bbb;transition:all .12s}
+.ev-btn:hover{transform:scale(1.08)}
+.ev-btn.B.on{background:#2e7d32;border-color:#2e7d32;color:#fff}
+.ev-btn.R.on{background:#f57f17;border-color:#f57f17;color:#fff}
+.ev-btn.M.on{background:#c62828;border-color:#c62828;color:#fff}
+
+/* ADD ROW BTN */
+.add-row-btn{margin:8px 16px 4px;padding:6px 14px;background:#f5f7ff;border:1.5px dashed #c5cae9;border-radius:7px;color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;width:calc(100% - 32px);text-align:left;transition:all .15s}
+.add-row-btn:hover{background:var(--blue-l);border-color:var(--blue2)}
+
+/* FOTO SECTION */
+.foto-sec{margin:10px 16px 4px;padding:12px 14px;background:#f8f9ff;border-radius:8px;border:1.5px solid #e0e4ff}
+.foto-sec-title{font-size:11px;font-weight:800;color:var(--blue);text-transform:uppercase;margin-bottom:8px;letter-spacing:.4px}
+.foto-grid{display:flex;gap:10px;flex-wrap:wrap}
+.foto-slot{width:90px;height:70px;border:2px dashed #c5cae9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;cursor:pointer;position:relative;overflow:hidden;flex-shrink:0;text-align:center;background:#fff;transition:border-color .15s}
+.foto-slot:hover{border-color:var(--blue2)}
+.foto-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.foto-slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.foto-remove{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:2}
+.foto-slot:hover .foto-remove{display:flex}
+.foto-obs{margin-top:8px}
+.foto-obs textarea{width:100%;border:1.5px solid #ddd;border-radius:6px;padding:6px 10px;font-size:12px;resize:vertical;min-height:60px;}
+
+/* PARTIDA FOOTER */
+.p-foot{display:flex;align-items:center;gap:12px;padding:9px 16px 2px;border-top:2px solid #f0f0f0;margin-top:6px}
+.p-foot-lbl{font-size:11px;color:#666;font-weight:700;white-space:nowrap}
+.p-foot-bar{flex:1}
+.p-foot-bar .bar-bg{height:8px}
+.p-foot-pct{font-size:19px;font-weight:900;min-width:50px;text-align:right}
+
+/* SERVICIOS PÚBLICOS */
+.sp-card{background:#fff;border-radius:10px;margin-bottom:14px;box-shadow:var(--shadow);padding:18px 20px}
+.sp-card h3{font-size:13px;font-weight:800;color:var(--blue);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+
+/* MEMORIA TORRE */
+.memoria-card{background:#fff;border-radius:10px;padding:18px 22px;margin-bottom:14px;box-shadow:var(--shadow)}
+.memoria-card h3{font-size:13px;font-weight:800;color:var(--blue);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.memoria-table-wrap{overflow-x:auto;margin-bottom:10px}
+.memoria-table{width:100%;border-collapse:collapse;font-size:12px}
+.memoria-table th, .memoria-table td{border:1px solid #ddd;padding:6px 8px;text-align:center}
+.memoria-table th{background:var(--blue-l);color:var(--blue)}
+
+/* RESUMEN */
+.resumen{background:#fff;border-radius:10px;padding:18px 22px;margin-bottom:14px;box-shadow:var(--shadow)}
+.resumen h2{font-size:14px;font-weight:800;color:var(--blue);margin-bottom:14px;padding-bottom:9px;border-bottom:2px solid var(--blue-l)}
+.res-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.res-name{font-size:12px;font-weight:700;min-width:210px}
+.res-bar{flex:1}
+.res-bar .bar-bg{height:9px}
+.res-pct{font-size:14px;font-weight:900;min-width:48px;text-align:right}
+
+/* TOTAL */
+.total-card{border-radius:10px;padding:22px;margin-bottom:14px;text-align:center;color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue2));box-shadow:0 6px 20px rgba(26,35,126,.3)}
+.total-card h2{font-size:12px;opacity:.8;letter-spacing:.5px;margin-bottom:5px}
+.total-num{font-size:52px;font-weight:900;line-height:1;letter-spacing:-2px}
+.total-bar-bg{height:11px;background:rgba(255,255,255,.2);border-radius:6px;margin:12px auto 0;max-width:340px;overflow:hidden}
+.total-bar-fill{height:100%;border-radius:6px;background:#69f0ae;transition:width .6s}
+
+/* OBS GENERAL */
+.obs-card{background:#fff;border-radius:10px;padding:18px 22px;margin-bottom:14px;box-shadow:var(--shadow)}
+.obs-card h3{font-size:13px;font-weight:800;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.obs-card textarea{width:100%;border:1.5px solid #ddd;border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;min-height:120px;display:block;}
+.obs-card textarea:focus{outline:none;border-color:var(--blue2)}
+
+/* MODAL & OVERLAYS */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:26px;max-width:550px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+.modal h3{font-size:16px;font-weight:800;color:var(--blue);margin-bottom:6px}
+.modal p{font-size:12px;color:#555;margin-bottom:14px;line-height:1.6}
+.modal label{font-size:10px;font-weight:700;text-transform:uppercase;color:#666;display:block;margin-bottom:4px}
+.modal input{width:100%;border:2px solid #ddd;border-radius:7px;padding:9px 12px;font-size:12px;font-family:monospace;margin-bottom:12px}
+.modal input:focus{outline:none;border-color:var(--blue2)}
+.m-btns{display:flex;gap:8px}
+.m-btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer}
+.m-cancel{background:#f0f0f0;color:#555}
+.m-confirm{background:var(--green);color:#fff}
+.m-log{background:#0d0d0d;border-radius:7px;padding:11px;font-family:monospace;font-size:11px;color:#69f0ae;margin-top:10px;display:none;max-height:140px;overflow-y:auto;white-space:pre-wrap;line-height:1.6}
+
+/* ESTILOS LISTA GUARDADOS LOCALMENTE */
+.saved-list-container { max-height: 320px; overflow-y: auto; margin: 12px 0; border: 1px solid #e0e0e0; border-radius: 8px; }
+.saved-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; background: #fafafa; }
+.saved-item:last-child { border-bottom: none; }
+.saved-item-info { display: flex; flex-direction: column; gap: 2px; }
+.saved-item-title { font-weight: 800; font-size: 13px; color: var(--blue); }
+.saved-item-sub { font-size: 11px; color: #666; }
+.saved-item-actions { display: flex; gap: 6px; }
+.s-btn { border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; cursor: pointer; }
+.s-btn-load { background: var(--blue-l); color: var(--blue); }
+.s-btn-send { background: var(--green); color: #fff; }
+.s-btn-del { background: #ffebee; color: var(--red); }
+
+/* TOAST */
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(80px);background:#323338;color:#fff;padding:11px 18px;border-radius:10px;font-size:12px;font-weight:700;opacity:0;transition:all .35s;z-index:999;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.ok{background:var(--green)}
+.toast.err{background:var(--red)}
+
+/* AGENTES TOGGLE BUTTONS */
+.ag-btn{
+  display:inline-flex;align-items:center;padding:7px 14px;
+  background:#f5f7ff;border:2px solid #e0e4ff;border-radius:8px;
+  cursor:pointer;font-size:12px;font-weight:700;color:#444;
+  transition:all .15s;user-select:none;
+}
+.ag-btn:hover{background:var(--blue-l);border-color:var(--blue2);}
+.ag-btn.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+/* PRINT */
+@media print{
+  #welcome-screen{display:none!important}
+  .hdr-btns,.arrow,.add-row-btn,#mode-bar,.hbtn,
+  .foto-slot input[type=file],.foto-rm,.ev-btn:not(.on),
+  .overlay,.toast,#pdf-overlay,.modal,
+  button:not(.ev-btn.on){display:none!important}
+  body{background:#fff!important;font-size:11px;color:#000}
+  .hdr{position:static!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;padding:10px 16px}
+  .hdr h1{font-size:14px}.hdr p{font-size:10px}
+  .logo-bar{padding:10px 16px;border-bottom:2px solid #1a237e}
+  .logo-bar h2{font-size:14px}
+  .meta-card{padding:12px 16px}
+  .content{padding:8px 12px;max-width:100%}
+  .partida.collapsed .p-body{display:block!important}
+  .partida{
+    box-shadow:none!important;
+    border:1px solid #ccc!important;
+    margin-bottom:8px;
+    page-break-inside:avoid;
+    border-radius:0!important;
+  }
+  .p-hdr{padding:6px 10px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .p-hdr h2{font-size:11px}
+  .tbl-wrap{overflow:visible!important}
+  table{
+    width:100%!important;
+    border-collapse:collapse;
+    font-size:9px;
+    min-width:0!important;
+    table-layout:fixed;
+  }
+  thead th{
+    padding:4px 5px!important;
+    font-size:8px!important;
+    print-color-adjust:exact;
+    -webkit-print-color-adjust:exact;
+    white-space:normal!important;
+    word-break:break-word;
+  }
+  tbody td{
+    padding:3px 5px!important;
+    font-size:9px!important;
+    word-break:break-word;
+    white-space:normal!important;
+  }
+  td.desc{min-width:0!important;max-width:none!important}
+  td.desc input{
+    border:none!important;background:transparent!important;
+    font-size:9px;width:100%;padding:0;
+  }
+  .num{border:none!important;background:transparent!important;font-size:9px;width:40px!important}
+  table col, table td:nth-child(1){width:22px!important}
+  table td:nth-child(2){width:30%!important}
+  table td:nth-child(3),table td:nth-child(4),table td:nth-child(5){width:10%!important}
+  table td:nth-child(6){width:12%!important}
+  table td:nth-child(7){width:12%!important}
+  .bar-bg{display:none}
+  .pv{font-size:9px!important}
+  .p-foot{padding:4px 10px}
+  .p-foot-pct{font-size:14px}
+  .foto-sec{padding:6px 10px;margin:4px 10px}
+  .foto-grid{flex-wrap:wrap}
+  .foto-slot{width:80px!important;height:65px!important}
+  .foto-slot span{display:none}
+  .resumen{box-shadow:none!important;border:1px solid #ccc!important;margin-bottom:8px}
+  .total-card{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .partida{page-break-inside:avoid}
+  .resumen,.total-card,.obs-card,.sp-card{page-break-inside:avoid}
+  .grid3,.grid4,.grid2{display:grid!important}
+  @page{margin:12mm 10mm;size:A4 portrait}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<!-- PANTALLA DE INICIO (WELCOME SCREEN) -->
+<div id="welcome-screen">
+  <div class="welcome-card">
+    <div class="welcome-logos">
+      <div style="text-align:center">
+        <svg width="50" height="40" viewBox="0 0 60 48" xmlns="http://www.w3.org/2000/svg">
+          <text x="30" y="36" font-family="Georgia,serif" font-size="38" font-weight="bold" fill="#ffffff" text-anchor="middle">C</text>
+          <text x="34" y="31" font-family="Georgia,serif" font-size="22" font-weight="bold" fill="#ffffff" text-anchor="middle">G</text>
+        </svg>
+      </div>
+      <div class="welcome-divider"></div>
+      <div style="text-align:center">
+        <svg width="35" height="32" viewBox="0 0 42 38" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="2,2 14,2 21,34 8,34" fill="#FDB913"/>
+          <polygon points="13,2 29,2 21,34 13,25" fill="#002D72"/>
+          <polygon points="27,2 40,2 33,34 21,34" fill="#C8102E"/>
+          <circle cx="21" cy="7" r="2.6" fill="white"/>
+        </svg>
+      </div>
+    </div>
+    <h1 class="welcome-title">CONSTRUCTORA GARMEL</h1>
+    <p class="welcome-subtitle">Sistema Digital de Evaluación de Avance y Control de Inspecciones Técnicas de Obra</p>
+    
+    <div class="welcome-features">
+      <div class="welcome-feat-item">📋 <span>Evaluación por Partidas (Hitos)</span></div>
+      <div class="welcome-feat-item">📤 <span>Sincronización monday.com</span></div>
+      <div class="welcome-feat-item">📷 <span>Registro de Fotografías</span></div>
+      <div class="welcome-feat-item">🖨️ <span>Exportación a PDF</span></div>
+    </div>
+
+    <div class="form-selector-welcome">
+      <label style="font-size:11px; font-weight:700; text-transform:uppercase; color:#b0bec5; text-align:left;">Seleccione el formulario a utilizar:</label>
+      <button class="welcome-btn" onclick="startApp('detallado')">📊 Formulario Detallado (Hitos y Subitems del Excel)</button>
+      <button class="welcome-btn" style="background: linear-gradient(135deg, #1565c0, #0d47a1);" onclick="startApp('hitos')">👷 Formulario Simplificado por Hitos (Inspectores)</button>
+    </div>
+  </div>
+</div>
+
+<!-- STICKY NAV -->
+<div class="hdr">
+  <div><h1 id="hdr-title">📋 Informe de Inspección Técnica de Obra</h1><p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>
+  <div class="hdr-btns">
+    <button class="hbtn hbtn-nuevo" onclick="nuevoFormulario()" title="Nuevo informe — limpia el formulario">🆕 <span>Nuevo</span></button>
+    <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guardar o actualizar borrador localmente">💾 <span>Guardar Borrador</span></button>
+    <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Ver informes almacenados localmente">📁 <span>Guardados</span></button>
+    <button class="hbtn hbtn-finalizar" onclick="finalizarInforme()" title="Finalizar informe, guardar, incrementar correlativo y volver a la pantalla de inicio">✅ <span>Finalizar</span></button>
+    <button class="hbtn hbtn-send" onclick="openSend()">📤 <span>Enviar</span></button>
+    <button class="hbtn hbtn-pdf" onclick="window.print()">🖨️ <span>PDF</span></button>
+    <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" title="Activar modo de prueba — el correlativo NO se incrementa" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3)">🧪 <span>Prueba</span></button>
+    <button class="hbtn hbtn-reset" onclick="resetCorrelativo()" title="Reiniciar correlativo" style="background:rgba(255,200,0,.2);border:1px solid rgba(255,200,0,.3)">🔄 <span>Reiniciar N°</span></button>
+  </div>
+</div>
+
+<!-- MODO DE USO -->
+<div id="mode-bar" style="background:#fff;padding:10px 22px;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--blue-l);flex-wrap:wrap">
+  <span style="font-size:11px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.5px">Modo:</span>
+  <button id="btnInspector" onclick="setModeUI('inspector')" style="padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#e65100;color:#fff">👷 Inspector</button>
+  <button id="btnPlanif" onclick="setModeUI('planificacion')" style="padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666">📊 Gerencia de Planificación</button>
+  <span id="mode-badge" style="padding:3px 12px;border-radius:12px;font-size:11px;font-weight:700;background:#fff3e0;color:#e65100;border:1px solid #ffcc80">Inspector: ingresa cantidades ejecutadas · Proyectada solo la ve Planificación</span>
+</div>
+
+<!-- LOGO BAR -->
+<div class="logo-bar">
+  <div style="display:flex;align-items:center;gap:18px">
+    <div style="text-align:center">
+      <svg width="60" height="48" viewBox="0 0 60 48" xmlns="http://www.w3.org/2000/svg">
+        <text x="30" y="36" font-family="Georgia,serif" font-size="38" font-weight="bold" fill="#000" text-anchor="middle">C</text>
+        <text x="34" y="31" font-family="Georgia,serif" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">G</text>
+      </svg>
+      <div style="font-family:Georgia,serif;font-size:8px;color:#333;letter-spacing:.4px;white-space:nowrap">CONSTRUCTORA GARMEL, C.A.</div>
+    </div>
+    <div style="width:1px;height:50px;background:#e0e0e0"></div>
+    <div style="text-align:center">
+      <svg width="42" height="38" viewBox="0 0 42 38" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="2,2 14,2 21,34 8,34" fill="#FDB913"/>
+        <polygon points="13,2 29,2 21,34 13,25" fill="#002D72"/>
+        <polygon points="27,2 40,2 33,34 21,34" fill="#C8102E"/>
+        <circle cx="21" cy="7" r="2.6" fill="white"/>
+      </svg>
+      <div style="font-family:Arial,sans-serif;font-size:7.5px;line-height:1.3;text-align:center;margin-top:1px">
+        <span style="color:#C8102E;font-weight:800;display:block">GRAN MISIÓN</span>
+        <span style="color:#002D72;font-weight:700;display:block">VIVIENDA VENEZUELA</span>
+      </div>
+    </div>
+    <div style="width:1px;height:50px;background:#e0e0e0"></div>
+    <div>
+      <h2 id="logo-title" style="font-size:16px;font-weight:900;color:var(--blue)">INFORME DE INSPECCIÓN TÉCNICA</h2>
+      <p id="logo-sub" style="font-size:10px;color:#888;margin-top:2px">Gerencia GARMEL · Evaluación por Hitos y Subitems</p>
+    </div>
+  </div>
+  <div class="doc-info">
+    <strong id="doc-num" style="font-family:monospace;font-size:11px;color:var(--blue);display:block">GARMEL-2026-001-—-—</strong>
+    Fecha: <span id="doc-fecha">—</span><br>
+    Torre: <span id="doc-torre">—</span>
+  </div>
+</div>
+
+<!-- DATOS GENERALES -->
+<div class="meta-card">
+  <div class="sec-lbl">📋 Identificación del Proyecto</div>
+  <div class="grid3">
+    <div class="field">
+      <label>Fecha de inspección *</label>
+      <input type="date" id="fecha" onchange="updateDocInfo()">
+    </div>
+    <div class="field">
+      <label>N° de Informe <span style="color:#2e7d32;font-size:9px">● Auto-generado</span></label>
+      <div id="nro-display" style="padding:7px 10px;border-radius:7px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:1.5px solid #a5d6a7;font-size:12px;font-weight:800;color:#1b5e20;font-family:monospace;letter-spacing:.4px">GARMEL-2026-001-—-—</div>
+      <span style="font-size:10px;color:#aaa;margin-top:2px;display:block">Formato: GARMEL-AÑO-NRO-Torre-Apto</span>
+    </div>
+    <div class="field">
+      <label>Convenio *</label>
+      <select id="convenio" onchange="filtrarPorConvenio()">
+        <option value="">— Seleccione —</option>
+        <option>Convenio Chinos</option>
+        <option>Convenio Rusos</option>
+        <option>Convenio Bielorusos</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="sec-lbl">🏗️ Empresa y Personal</div>
+  <div class="grid3">
+    <div class="field">
+      <label>Empresa ejecutora *</label>
+      <select id="empresa" onchange="autoResidenteConv()">
+        <option value="">— Seleccione —</option>
+        <option>ALNAVIC, C.A.</option>
+        <option>AROA, C.A.</option>
+        <option>BELZARUBEZHSTORY, S.A.</option>
+        <option>CIVIKA PRO, C.A.</option>
+        <option>CONSTRUCTORA 5010, C.A.</option>
+        <option>CONSTRUCTORA SB 86, C.A.</option>
+        <option>CONSTRUCTORA VIALPA, C.A.</option>
+        <option>DRIJECAE, C.A.</option>
+        <option>GRUPO TEPUY, C.A.</option>
+        <option>ING & ARQ 1111, C.A.</option>
+        <option>JVR INGENIERÍA C,A.</option>
+        <option>MASTER REFORMAS RR, C.A.</option>
+        <option>PROCODIMA, C.A.</option>
+        <option>RACAR INGENIEROS, C.A.</option>
+        <option>RÍO LIMÓN, C.A.</option>
+        <option>THAISSA MM INVERSIONES, C.A.</option>
+        <option>TSURU, C.A.</option>
+        <option>ZERPA CONSTRUCCIONES, C.A.</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Ingeniero(s) residente(s) *</label>
+      <div id="residentes-container"></div>
+      <button type="button" class="btn-add-item" onclick="addResidenteField()">＋ Agregar Residente</button>
+      <span class="field-note">Se vincula automáticamente a la empresa o permite ingreso manual persistente</span>
+    </div>
+    <div class="field">
+      <label>Ingeniero(s) inspector(es) *</label>
+      <div id="inspectores-container"></div>
+      <button type="button" class="btn-add-item" onclick="addInspectorField()">＋ Agregar Inspector</button>
+    </div>
+  </div>
+
+  <div class="sec-lbl">📍 Ubicación</div>
+  <div class="grid4">
+    <div class="field">
+      <label>Torre *</label>
+      <select id="torre" onchange="handleTorreChange()">
+        <option value="">— Seleccione —</option>
+        <option>D-08</option>
+        <option>J-07</option>
+        <option>J-08</option>
+        <option>J-09</option>
+        <option>J-10</option>
+        <option>J-11</option>
+        <option>J-12</option>
+        <option>T-01</option>
+        <option>T-02</option>
+        <option>T-03</option>
+        <option>T-04</option>
+        <option>T-05</option>
+        <option>T-06</option>
+        <option>T-07</option>
+        <option>T-08</option>
+        <option>T-09</option>
+        <option>T-10</option>
+        <option>T-11</option>
+        <option>T-12</option>
+        <option>T-13</option>
+        <option>T-14</option>
+        <option>T-15</option>
+        <option>T-16</option>
+        <option>T-17</option>
+        <option>T-18</option>
+        <option>T-19</option>
+        <option>T-38</option>
+        <option>T-39</option>
+        <option>T-45</option>
+        <option>T-46</option>
+        <option>T-47</option>
+        <option>T-48</option>
+        <option>T-49</option>
+        <option>T-50</option>
+        <option>T-51</option>
+        <option>T-52</option>
+        <option>T-53</option>
+        <option>T-54</option>
+        <option>T-55</option>
+        <option>T-56</option>
+        <option>T-57</option>
+        <option>T-58</option>
+        <option value="NO_REG" style="color:#e65100;font-weight:700">⚠️ No registrada — ingresar manualmente</option>
+      </select>
+      <div id="torre-manual-wrap" style="display:none;margin-top:6px;position:relative;z-index:10">
+        <input type="text" id="torre-manual" placeholder="Nombre de la torre..." oninput="updateNroInforme()" style="width:100%;border:1.5px solid #ff9800;border-radius:7px;padding:7px 10px;font-size:13px;background:#fff8e1">
+        <span style="font-size:10px;color:#f57f17;margin-top:2px;display:block">⚠️ Torre no registrada en monday.com</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Piso *</label>
+      <select id="piso" onchange="updateDocInfo()">
+        <option value="">— Seleccione —</option>
+        <option>Piso 00</option>
+        <option>Piso 01</option>
+        <option>Piso 02</option>
+        <option>Piso 03</option>
+        <option>Piso 04</option>
+        <option>Piso 05</option>
+        <option>Piso 06</option>
+        <option>Piso 07</option>
+        <option>Piso 08</option>
+        <option>Piso 09</option>
+        <option>Piso 10</option>
+        <option>Piso 11</option>
+        <option>Piso 12</option>
+        <option>Piso 13</option>
+        <option>Piso 14</option>
+        <option>Piso 15</option>
+        <option>Piso 16</option>
+        <option>Piso 17</option>
+        <option>Piso 18</option>
+        <option>Piso 19</option>
+        <option>Piso 20</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>N° Apartamento *</label>
+      <input type="text" id="apto" placeholder="Ej: 4B" oninput="updateDocInfo()">
+    </div>
+    <div class="field">
+      <label>Estatus de la obra *</label>
+      <div class="ck-group" id="estatus">
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="En progreso">En progreso</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Iniciada">Iniciada</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Finalizada">Finalizada</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Pendiente">Pendiente</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Paralizada">Paralizada</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN EVALUACIÓN -->
+<div class="sec-div">📊 EVALUACIÓN DE AVANCE POR HITOS Y SUBITEMS</div>
+<div class="content" id="main-content"></div>
+
+<!-- SERVICIOS PÚBLICOS -->
+<div class="content">
+<div class="sp-card">
+  <h3>🔌 Agentes de Contacto — Servicios Públicos</h3>
+  <div class="field" style="margin-bottom:12px">
+    <label>Organismos presentes / notificados</label>
+    <div class="ck-group" id="agentes">
+      <div class="ag-btn" data-val="CORPOELEC" onclick="toggleAg(this)">CORPOELEC</div>
+      <div class="ag-btn" data-val="HIDROVEN" onclick="toggleAg(this)">HIDROVEN</div>
+      <div class="ag-btn" data-val="PDVSA GAS" onclick="toggleAg(this)">PDVSA GAS</div>
+      <div class="ag-btn" data-val="CANTV" onclick="toggleAg(this)">CANTV</div>
+    </div>
+  </div>
+  <div class="field">
+    <label>Observaciones — Servicios Públicos</label>
+    <textarea id="obs_sp" placeholder="Registre novedades, compromisos o incidencias con organismos de servicios públicos..."></textarea>
+  </div>
+</div>
+</div>
+
+<!-- MEMORIA TÉCNICA POR TORRE -->
+<div class="content">
+<div class="memoria-card">
+  <h3>🏗️ Memoria Técnica y Consolidado por Torre</h3>
+  <p style="font-size:12px;color:#666;margin-bottom:10px">Agregue o registre los apartamentos evaluados para calcular la memoria y el avance global de la torre actual.</p>
+  <div class="memoria-table-wrap">
+    <table class="memoria-table">
+      <thead>
+        <tr>
+          <th>Torre</th>
+          <th>Piso / Apto</th>
+          <th>% Avance Parcial</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="memoria-tbody"></tbody>
+    </table>
+  </div>
+  <button type="button" class="btn-add-item" onclick="agregarApartamentoAMemoria()">＋ Registrar Avance de este Apto a la Torre</button>
+  <div style="margin-top:12px;font-weight:800;font-size:13px;color:var(--blue)" id="memoria-global-txt">Avance Global de la Torre: —</div>
+</div>
+</div>
+
+<!-- RESUMEN + TOTAL -->
+<div class="content" id="resumen-content"></div>
+
+<!-- OBSERVACIONES GENERALES -->
+<div class="content">
+<div class="obs-card">
+  <h3>📝 Observaciones y Sugerencias Generales</h3>
+  <textarea id="obs_general" placeholder="Registre aquí observaciones generales sobre el estado de la obra, recomendaciones técnicas, compromisos de seguimiento o cualquier aspecto relevante para el informe..."></textarea>
+</div>
+</div>
+
+<!-- MODAL INFORMES GUARDADOS LOCALMENTE -->
+<div class="overlay" id="savedOverlay">
+  <div class="modal">
+    <h3>📁 Informes Guardados Localmente</h3>
+    <p>Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo directamente a monday.com.</p>
+    
+    <div class="saved-list-container" id="savedListContent"></div>
+
+    <div class="m-btns">
+      <button class="m-btn m-cancel" onclick="closeSavedModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEND MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>📤 Enviar a monday.com</h3>
+    <p>Ingresa tu API token para registrar este informe en el tablero <strong>Formulario de Inspecciones</strong>.</p>
+    <label>monday.com API Token</label>
+    <input type="text" id="mondayToken" placeholder="eyJhbGci..." spellcheck="false">
+    <div class="m-btns">
+      <button class="m-btn m-cancel" onclick="closeSend()">Cancelar</button>
+      <button class="m-btn m-confirm" id="btn-enviar-monday" onclick="sendToMonday()">📤 Enviar ahora</button>
+    </div>
+    <div class="m-log" id="sendLog"></div>
+  </div>
+</div>
+
+<!-- PDF OVERLAY -->
+<div id="pdf-overlay">
+  <div class="spinner"></div>
+  <h3 id="pdf-status" style="font-size:16px;font-weight:800;margin-bottom:4px">Generando PDF...</h3>
+  <p id="pdf-substatus" style="font-size:12px;opacity:.8">Procesando vista de impresión</p>
+  <div class="pdf-progress-bar"><div class="pdf-progress-fill" id="pdf-bar"></div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// INICIO & WELCOME SCREEN FUNCTION (CON SELECTOR DE FORMULARIO)
+// ═══════════════════════════════════════════════
+let formType = 'detallado'; // 'detallado' u 'hitos'
+
+function startApp(tipo = 'detallado') {
+  formType = tipo;
+  const welcome = document.getElementById('welcome-screen');
+  if (welcome) {
+    welcome.classList.add('hidden');
+  }
+  setupFormTypeUI();
+  initAppContent();
+}
+
+function setupFormTypeUI() {
+  const hdrTitle = document.getElementById('hdr-title');
+  const hdrSub = document.getElementById('hdr-sub');
+  const logoTitle = document.getElementById('logo-title');
+  const logoSub = document.getElementById('logo-sub');
+  
+  if (formType === 'hitos') {
+    if (hdrTitle) hdrTitle.textContent = '📋 Informe de Inspección por Hitos (Simplificado)';
+    if (hdrSub) hdrSub.textContent = 'Sistema GARMEL · Evaluación por Porcentajes Generales en Obra';
+    if (logoTitle) logoTitle.textContent = 'INFORME DE INSPECCIÓN POR HITOS';
+    if (logoSub) logoSub.textContent = 'Gerencia GARMEL · Evaluación Visual y Porcentual';
+  } else {
+    if (hdrTitle) hdrTitle.textContent = '📋 Informe de Inspección Técnica de Obra';
+    if (hdrSub) hdrSub.textContent = 'Sistema GARMEL · Evaluación por Hitos y Subitems del Excel';
+    if (logoTitle) logoTitle.textContent = 'INFORME DE INSPECCIÓN TÉCNICA';
+    if (logoSub) logoSub.textContent = 'Gerencia GARMEL · Evaluación por Hitos y Subitems';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// DATA & STATE (ADAPTADO A HITOS Y SUBITEMS DEL EXCEL GARMEL)
+// ═══════════════════════════════════════════════
+const INSPECTORES_DB = [
+  "Edenil Narvaez (CIV-150422)",
+  "Skarlet Gómez (CIV-317442)",
+  "Christian Fricke (CIV-184558)",
+  "Genesis Córdobes (CIV-307057)",
+  "Charbel Abdul (CIV-NC)",
+  "Martha Azcarte (CIV-87616)",
+  "Leidy Villamizar (CIV-258266)",
+  "Gabriel Barrios (CIV-NC)"
+];
+
+const EMPRESA_RESIDENTE = {"ALNAVIC, C.A.": "ING. ANTONIO CUICAS", "AROA, C.A.": "", "BELZARUBEZHSTORY, S.A.": "ING. FELIX PINTO", "CIVIKA PRO, C.A.": "", "CONSTRUCTORA 5010, C.A.": "ING. JOSE MARTINEZ", "CONSTRUCTORA SB 86, C.A.": "ING. JULIO LUQUEZ", "CONSTRUCTORA VIALPA, C.A.": "ING. ADRIAN OLIVARES", "DRIJECAE, C.A.": "", "GRUPO TEPUY, C.A.": "", "ING & ARQ 1111, C.A.": "ING. JHOANNY LOPEZ", "JVR INGENIERÍA C,A.": "ING. JUAN COLMENARES / ARQ. EVER AVENDAÑO", "MASTER REFORMAS RR, C.A.": "ING. ERICK MARTINEZ", "PROCODIMA, C.A.": "ING. LEONARDO TORRES", "RACAR INGENIEROS, C.A.": "ING. GERARDO ARGARIN", "RÍO LIMÓN, C.A.": "ING. HARRY ARTEAGA", "THAISSA MM INVERSIONES, C.A.": "ING. MANUEL PAEZ", "TSURU, C.A.": "MILTON RODRIGUEZ", "ZERPA CONSTRUCCIONES, C.A.": "ING. IVAN MEDINA"};
+
+// Estructura actualizada con los hitos y subitems del Excel del proyecto
+const PARTIDAS = [
+  {
+    "id": "hito_estructura", 
+    "nombre": "HITO 1: ESTRUCTURA Y OBRA GRUESA", 
+    "icon": "🏛️", 
+    "color": "#546e7a", 
+    "items": ["Fundaciones y losa de fundación", "Columnas y pantallas de concreto", "Vigas de carga y entrepiso", "Losa de techo / azotea", "Mampostería y paredes de tablilla / bloque", "Impermeabilización de losa"]
+  }, 
+  {
+    "id": "hito_enlucido", 
+    "nombre": "HITO 2: REVESTIMIENTOS Y ENLUCIDOS", 
+    "icon": "🧱", 
+    "color": "#3f51b5", 
+    "items": ["Friso interno en paredes y techos", "Friso externo y fachada", "Preparación de superfícies para acabado", "Yeso o revestimiento decorativo"]
+  },
+  {
+    "id": "hito_arq", 
+    "nombre": "HITO 3: ARQUITECTURA Y CARPINTERÍA", 
+    "icon": "🚪", 
+    "color": "#0097a7", 
+    "items": ["Marco y puerta principal", "Cerradura y herrajes puerta principal", "Marcos y puertas internas (habitaciones y baños)", "Cerraduras puertas internas", "Ventanas panorámicas y marcos", "Cerámicas de piso (habitaciones y área social)", "Cerámicas y revestimiento de paredes de baño", "Cerámicas de cocina y lavadero"]
+  }, 
+  {
+    "id": "hito_sanitarias", 
+    "nombre": "HITO 4: INSTALACIONES SANITARIAS", 
+    "icon": "🔧", 
+    "color": "#e65100", 
+    "items": ["Piezas sanitarias (W.C, lavamanos, lavaplatos, batea)", "Griferías de baños y cocina", "Puntos de agua fría y caliente", "Bajantes de aguas negras y pluviales", "Pruebas de presión y estanqueidad"]
+  }, 
+  {
+    "id": "hito_electricidad", 
+    "nombre": "HITO 5: INSTALACIONES ELÉCTRICAS", 
+    "icon": "⚡", 
+    "color": "#bf360c", 
+    "items": ["Tablero principal y breakers de protección", "Cableado general en tuberías", "Tomacorrientes e interruptores", "Salidas y puntos para iluminación", "Puntos de timbre y comunicaciones"]
+  }, 
+  {
+    "id": "hito_gas_incendio", 
+    "nombre": "HITO 6: GAS Y CONTRA INCENDIO", 
+    "icon": "🔥", 
+    "color": "#c62828", 
+    "items": ["Red matriz y puntos de gas doméstico", "Válvulas de corte y seguridad de gas", "Sistema de rociadores (sprinklers)", "Gabinetes contra incendio y extintores", "Detectores de humo"]
+  }, 
+  {
+    "id": "hito_mecanicas", 
+    "nombre": "HITO 7: INSTALACIONES MECÁNICAS Y ÁREAS COMUNES", 
+    "icon": "⚙️", 
+    "color": "#2e7d32", 
+    "items": ["Montaje y prueba de ascensores", "Sistema hidroneumático y bombas de agua", "Sistema de bombeo pluvial y achique", "Ventilación mecánica en sótanos/ductos", "Acabados finales de áreas comunes y lobby"]
+  }
+];
+
+const CONVENIO_DATA = {"Convenio Bielorusos": {"empresas": {"ALNAVIC, C.A.": "ING. ANTONIO CUICAS", "BELZARUBEZHSTORY, S.A.": "ING. FELIX PINTO", "CIVIKA PRO, C.A.": "", "DRIJECAE, C.A.": "", "GRUPO TEPUY, C.A.": "", "PROCODIMA, C.A.": "ING. LEONARDO TORRES", "RÍO LIMÓN, C.A.": "ING. HARRY ARTEAGA", "THAISSA MM INVERSIONES, C.A.": "ING. MANUEL PAEZ"}, "torres": ["T-17", "T-18", "T-19", "T-45", "T-46", "T-47", "T-48", "T-49", "T-5", "T-50", "T-51", "T-52", "T-53", "T-54", "T-55", "T-56", "T-57", "T-58", "T-6", "T-7", "T-8"]}, "Convenio Rusos": {"empresas": {"AROA, C.A.": "", "CONSTRUCTORA 5010, C.A.": "ING. JOSE MARTINEZ", "JVR INGENIERÍA C,A.": "ING. JUAN COLMENARES / ARQ. EVER AVENDAÑO", "MASTER REFORMAS RR, C.A.": "ING. ERICK MARTINEZ", "TSURU, C.A.": "MILTON RODRIGUEZ", "ZERPA CONSTRUCCIONES, C.A.": "ING. IVAN MEDINA"}, "torres": ["T-01", "T-02", "T-03", "T-04", "T-07", "T-09", "T-10", "T-11", "T-12", "T-13", "T-14", "T-15", "T-16", "T-38", "T-39"]}, "Convenio Chinos": {"empresas": {"CONSTRUCTORA SB 86, C.A.": "ING. JULIO LUQUEZ", "CONSTRUCTORA VIALPA, C.A.": "ING. ADRIAN OLIVARES", "ING & ARQ 1111, C.A.": "ING. JHOANNY LOPEZ", "RACAR INGENIEROS, C.A.": "ING. GERARDO ARGARIN"}, "torres": ["D-08", "J-07", "J-08", "J-09", "J-10", "J-11", "J-12", "T-04"]}};
+
+const BOARD_ID = '18427790814';
+var INFORMES_BOARD = '18427793795';
+var INFORMES_FILE_COL = 'file_mm6gtav2';
+var GROUP_MAP_PDF = {"Convenio Bielorusos":"group_mm6j9pbr","Convenio Rusos":"group_mm6j6m1g","Convenio Chinos":"group_mm6js7c2"};
+var GROUP_TO_CONV_MAP = {'group_mm6j9pbr':'Convenio Bielorusos','group_mm6j6m1g':'Convenio Rusos','group_mm6js7c2':'Convenio Chinos'};
+
+let reportCounter = parseInt(localStorage.getItem('garmel_cnt') || '0');
+let TEST_MODE = false;
+const extraRows = {};  
+let memoriaTorreData = []; 
+let currentEditingIndex = null; 
+
+// ═══════════════════════════════════════════════
+// GESTIÓN DE RESIDENTES E INSPECTORES MÚLTIPLES
+// ═══════════════════════════════════════════════
+function addResidenteField(val = '') {
+  const container = document.getElementById('residentes-container');
+  const row = document.createElement('div');
+  row.className = 'multi-input-row';
+  row.innerHTML = `
+    <input type="text" class="residente-input" placeholder="Nombre y credencial del residente..." value="${val}">
+    <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function addInspectorField(selectedVal = '') {
+  const container = document.getElementById('inspectores-container');
+  const row = document.createElement('div');
+  row.className = 'multi-input-row';
+  
+  let optionsHtml = '<option value="">— Seleccione Inspector —</option>';
+  let isCustom = true;
+  INSPECTORES_DB.forEach(insp => {
+    const isSelected = (selectedVal === insp);
+    if (isSelected) isCustom = false;
+    optionsHtml += `<option value="${insp}" ${isSelected ? 'selected' : ''}>${insp}</option>`;
+  });
+  optionsHtml += `<option value="OTRO" ${isCustom && selectedVal ? 'selected' : ''}>⚠️ Otro / Ingresar manualmente</option>`;
+
+  row.innerHTML = `
+    <select class="inspector-select" onchange="handleInspectorSelectChange(this)">
+      ${optionsHtml}
+    </select>
+    <input type="text" class="inspector-manual" placeholder="Nombre y CIV..." value="${isCustom && selectedVal ? selectedVal : ''}" style="${isCustom && selectedVal ? '' : 'display:none;'} margin-top:2px">
+    <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function handleInspectorSelectChange(sel) {
+  const manualInput = sel.parentElement.querySelector('.inspector-manual');
+  if (sel.value === 'OTRO') {
+    manualInput.style.display = 'block';
+    manualInput.value = '';
+    manualInput.focus();
+  } else {
+    manualInput.style.display = 'none';
+    manualInput.value = sel.value;
+  }
+}
+
+function getInspectoresValues() {
+  const rows = document.querySelectorAll('#inspectores-container .multi-input-row');
+  let list = [];
+  rows.forEach(r => {
+    const sel = r.querySelector('.inspector-select');
+    const man = r.querySelector('.inspector-manual');
+    let val = (sel.value === 'OTRO') ? man.value.trim() : sel.value;
+    if (val) list.push(val);
+  });
+  return list;
+}
+
+function getResidentesValues() {
+  const rows = document.querySelectorAll('#residentes-container .multi-input-row');
+  let list = [];
+  rows.forEach(r => {
+    const input = r.querySelector('.residente-input');
+    if (input && input.value.trim()) list.push(input.value.trim());
+  });
+  return list;
+}
+
+// ═══════════════════════════════════════════════
+// MEMORIA TÉCNICA POR TORRE
+// ═══════════════════════════════════════════════
+function agregarApartamentoAMemoria() {
+  const torre = getTorreActual();
+  const piso = document.getElementById('piso').value;
+  const apto = document.getElementById('apto').value.trim();
+  const totalTxt = document.getElementById('total-num').textContent;
+  const avanceNum = parseFloat(totalTxt) || 0;
+
+  if (!torre || torre === '—' || !apto) {
+    showToast('⚠️ Seleccione la Torre e ingrese el N° de Apartamento para registrar en memoria', 'err');
+    return;
+  }
+
+  const existingIdx = memoriaTorreData.findIndex(m => m.torre === torre && m.piso === piso && m.apto === apto);
+  if (existingIdx >= 0) {
+    memoriaTorreData[existingIdx].avance = avanceNum;
+    showToast(`Actualizado avance para ${torre} - ${piso} Apto ${apto}`, 'ok');
+  } else {
+    memoriaTorreData.push({ torre, piso, apto, avance: avanceNum });
+    showToast(`Registrado ${torre} - ${piso} Apto ${apto} en memoria de torre`, 'ok');
+  }
+  renderMemoriaTable();
+}
+
+function renderMemoriaTable() {
+  const tbody = document.getElementById('memoria-tbody');
+  const torreActual = getTorreActual();
+  const filtered = memoriaTorreData.filter(m => m.torre === torreActual);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="color:#888;padding:10px">No hay apartamentos registrados para la torre ${torreActual}.</td></tr>`;
+    document.getElementById('memoria-global-txt').textContent = 'Avance Global de la Torre: —';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((m, idx) => `
+    <tr>
+      <td><strong>${m.torre}</strong></td>
+      <td>${m.piso} · Apto ${m.apto}</td>
+      <td><strong>${m.avance}%</strong></td>
+      <td><button type="button" class="s-btn s-btn-del" onclick="eliminarDeMemoria(${idx})">🗑️</button></td>
+    </tr>
+  `).join('');
+
+  const sum = filtered.reduce((acc, curr) => acc + curr.avance, 0);
+  const prom = Math.round(sum / filtered.length);
+  document.getElementById('memoria-global-txt').textContent = `Avance Global de la Torre (${torreActual}): ${prom}% (${filtered.length} apartamentos evaluados)`;
+}
+
+function eliminarDeMemoria(idx) {
+  memoriaTorreData.splice(idx, 1);
+  renderMemoriaTable();
+  showToast('Registro eliminado de la memoria', 'ok');
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS & UI
+// ═══════════════════════════════════════════════
+function pCls(p){return p>=80?{n:'g',b:'bg'}:p>=50?{n:'y',b:'by'}:{n:'r',b:'br'}}
+
+function toggleCk(el, single=false){
+  const g=el.closest('.ck-group');
+  if(single) g.querySelectorAll('.ck-lbl').forEach(l=>l.classList.remove('on'));
+  el.classList.toggle('on');
+  el.querySelector('input').checked=el.classList.contains('on');
+}
+
+function toggleAg(el) { el.classList.toggle('on'); }
+function getAgentesValues() { return Array.from(document.querySelectorAll('#agentes .ag-btn.on')).map(el=>el.dataset.val); }
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+(type||'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function toggleTestMode() {
+  TEST_MODE = !TEST_MODE;
+  const btn = document.getElementById('btn-test');
+  if(TEST_MODE) {
+    btn.style.background = '#c62828'; btn.style.borderColor = '#c62828';
+    showToast('🧪 Modo Prueba ACTIVADO — El correlativo no aumentará', 'err');
+  } else {
+    btn.style.background = 'rgba(255,255,255,.15)'; btn.style.borderColor = 'rgba(255,255,255,.3)';
+    showToast('Modo normal activado', 'ok');
+  }
+}
+
+function resetCorrelativo() {
+  if(confirm('¿Desea reiniciar el correlativo de informes a 001?')) {
+    reportCounter = 0;
+    localStorage.setItem('garmel_cnt', '0');
+    updateNroInforme();
+    showToast('🔄 Correlativo reiniciado', 'ok');
+  }
+}
+
+function getTorreActual() {
+  const sel = document.getElementById('torre');
+  if (!sel) return '—';
+  return sel.value === 'NO_REG'
+    ? (document.getElementById('torre-manual')?.value?.trim() || 'SIN-REG')
+    : (sel.value || '—');
+}
+
+function updateNroInforme() {
+  const yr    = new Date().getFullYear();
+  const cnt   = String(reportCounter + 1).padStart(3, '0');
+  const torre = getTorreActual();
+  const apto  = document.getElementById('apto')?.value?.trim() || '—';
+  const nro   = 'GARMEL-' + yr + '-' + cnt + '-' + torre + '-' + apto;
+  const el    = document.getElementById('nro-display');
+  if (el) el.textContent = nro;
+  const docNum = document.getElementById('doc-num');
+  if (docNum) docNum.textContent = 'Informe N°: ' + nro;
+  const docTorre = document.getElementById('doc-torre');
+  if (docTorre) docTorre.textContent = [torre, document.getElementById('piso')?.value, apto].filter(Boolean).join(' · ') || '—';
+}
+
+function updateDocInfo(){
+  document.getElementById('doc-fecha').textContent = document.getElementById('fecha').value || '—';
+  updateNroInforme();
+  renderMemoriaTable();
+}
+
+function filtrarPorConvenio() {
+  const conv   = document.getElementById('convenio').value;
+  const empSel = document.getElementById('empresa');
+  const torSel = document.getElementById('torre');
+
+  const prevEmp = empSel.value;
+  const prevTor = torSel.value;
+
+  empSel.innerHTML = '<option value="">— Seleccione —</option>';
+  torSel.innerHTML = '<option value="">— Seleccione —</option>';
+
+  if (conv && CONVENIO_DATA[conv]) {
+    const cdata = CONVENIO_DATA[conv];
+    Object.keys(cdata.empresas).forEach(emp => {
+      const opt = document.createElement('option');
+      opt.value = emp; opt.textContent = emp;
+      empSel.appendChild(opt);
+    });
+    cdata.torres.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      torSel.appendChild(opt);
+    });
+  } else {
+    const allEmpresas = [], allTorres = [];
+    Object.values(CONVENIO_DATA).forEach(cd => {
+      Object.keys(cd.empresas).forEach(e => { if (!allEmpresas.includes(e)) allEmpresas.push(e); });
+      cd.torres.forEach(t => { if (!allTorres.includes(t)) allTorres.push(t); });
+    });
+    allEmpresas.sort().forEach(emp => {
+      const opt = document.createElement('option');
+      opt.value = emp; opt.textContent = emp;
+      empSel.appendChild(opt);
+    });
+    allTorres.sort().forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      torSel.appendChild(opt);
+    });
+  }
+
+  const noReg = document.createElement('option');
+  noReg.value = 'NO_REG';
+  noReg.textContent = '⚠️ No registrada — ingresar manualmente';
+  noReg.style.color = '#e65100';
+  noReg.style.fontWeight = '700';
+  torSel.appendChild(noReg);
+
+  if (prevEmp && Array.from(empSel.options).some(o => o.value === prevEmp)) empSel.value = prevEmp;
+  else empSel.value = '';
+
+  if (prevTor && Array.from(torSel.options).some(o => o.value === prevTor)) torSel.value = prevTor;
+  else torSel.value = '';
+
+  autoResidenteConv();
+  updateNroInforme();
+}
+
+function autoResidenteConv() {
+  const conv  = document.getElementById('convenio').value;
+  const emp   = document.getElementById('empresa').value;
+  let res = '';
+  if (conv && CONVENIO_DATA[conv] && emp) res = CONVENIO_DATA[conv].empresas[emp] || '';
+  if (!res && emp) {
+    Object.values(CONVENIO_DATA).forEach(cd => { if(!res && cd.empresas && cd.empresas[emp] !== undefined) res = cd.empresas[emp] || ''; });
+  }
+  if (!res && emp) res = EMPRESA_RESIDENTE[emp] || '';
+
+  const container = document.getElementById('residentes-container');
+  if (container.children.length === 0 || (container.children.length === 1 && container.querySelector('input').value === '')) {
+    container.innerHTML = '';
+    if (res) {
+      res.split('/').forEach(rName => addResidenteField(rName.trim()));
+    } else {
+      addResidenteField('');
+    }
+  }
+}
+
+function handleTorreChange() {
+  const val  = document.getElementById('torre').value;
+  const wrap = document.getElementById('torre-manual-wrap');
+  if (wrap) {
+    wrap.style.display = (val === 'NO_REG') ? 'block' : 'none';
+    if (val === 'NO_REG') setTimeout(() => document.getElementById('torre-manual')?.focus(), 50);
+  }
+  updateNroInforme();
+  renderMemoriaTable();
+}
+
+let currentMode = 'inspector';
+function setModeUI(mode) {
+  currentMode = mode;
+  const bi = document.getElementById('btnInspector');
+  const bp = document.getElementById('btnPlanif');
+  const badge = document.getElementById('mode-badge');
+  if (mode === 'inspector') {
+    if (bi) { bi.style.background = '#e65100'; bi.style.borderColor = '#e65100'; bi.style.color = '#fff'; }
+    if (bp) { bp.style.background = '#f5f5f5'; bp.style.borderColor = '#e0e0e0'; bp.style.color = '#666'; }
+    if (badge) {
+      badge.style.background = '#fff3e0'; badge.style.color = '#e65100'; badge.style.borderColor = '#ffcc80';
+      badge.textContent = 'Inspector: ingresa cantidades ejecutadas · Proyectada solo la ve Planificación';
+    }
+    document.querySelectorAll('th.col-proyectada, td.col-proyectada').forEach(el => el.style.display = 'none');
+  } else {
+    if (bi) { bi.style.background = '#f5f5f5'; bi.style.borderColor = '#e0e0e0'; bi.style.color = '#666'; }
+    if (bp) { bp.style.background = 'var(--blue)'; bp.style.borderColor = 'var(--blue)'; bp.style.color = '#fff'; }
+    if (badge) {
+      badge.style.background = 'var(--blue-l)'; badge.style.color = 'var(--blue)'; badge.style.borderColor = '#c5cae9';
+      badge.textContent = 'Planificación: acceso completo — cantidades proyectadas y métricas de avance';
+    }
+    document.querySelectorAll('th.col-proyectada, td.col-proyectada').forEach(el => el.style.display = '');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// CONSTRUCTOR DINÁMICO DE CONTENIDO (DETALLADO VS HITOS)
+// ═══════════════════════════════════════════════
+function initAppContent() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = '';
+
+  if (formType === 'hitos') {
+    PARTIDAS.forEach(p => {
+      const d = document.createElement('div');
+      d.className = 'partida'; d.id = 'p_' + p.id;
+      d.style.borderLeftColor = p.color;
+      d.innerHTML = `
+        <div class="p-hdr" style="background:${p.color}" onclick="toggleP('${p.id}')">
+          <div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre} (Evaluación por Hitos)</h2></div>
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="pct-bdg" id="badge_${p.id}">0%</div>
+            <span class="arrow">▼</span>
+          </div>
+        </div>
+        <div class="p-body">
+          <div style="padding:14px 16px;">
+            <div class="field" style="margin-bottom:12px;">
+              <label>Porcentaje general de avance en este hito (${p.nombre}) *</label>
+              <input type="number" class="num hito-pct-input" min="0" max="100" id="hitopct_${p.id}" data-p="${p.id}" oninput="recalcHito('${p.id}')" placeholder="0-100" style="width:120px; font-weight:bold; font-size:14px;">
+            </div>
+            <div class="field">
+              <label>Observaciones visuales de obra — ${p.nombre}</label>
+              <textarea id="hitoobs_${p.id}" placeholder="Describa brevemente los subitems inspeccionados de forma somera en este hito..."></textarea>
+            </div>
+          </div>
+          <div class="foto-sec">
+            <div class="foto-sec-title">📷 Fotografías — ${p.nombre} (máx. 3)</div>
+            <div class="foto-grid" id="fotos_${p.id}">
+              ${[0,1,2].map(fi=>`
+                <div class="foto-slot" id="fslot_${p.id}_${fi}">
+                  <span>📷<br>Foto ${fi+1}</span>
+                  <img id="fimg_${p.id}_${fi}" style="display:none">
+                  <input type="file" accept="image/*" onchange="loadFoto('${p.id}',${fi},this)">
+                  <button class="foto-remove" onclick="removeFoto('${p.id}',${fi})">✕</button>
+                </div>`).join('')}
+            </div>
+            <div class="foto-obs">
+              <textarea id="fotobs_${p.id}" placeholder="Observación sobre las fotografías de este hito..."></textarea>
+            </div>
+          </div>
+          <div class="p-foot">
+            <div class="p-foot-lbl">% Avance Hito</div>
+            <div class="p-foot-bar"><div class="bar-bg"><div class="bar-fill" id="fbar_${p.id}" style="width:0%;background:${p.color}"></div></div></div>
+            <div class="p-foot-pct g" id="fpct_${p.id}">—</div>
+          </div>
+        </div>`;
+      main.appendChild(d);
+    });
+
+  } else {
+    PARTIDAS.forEach(p => {
+      const rows = p.items.map((item,i)=>{
+        const rid=`${p.id}_${i}`;
+        return `<tr>
+          <td class="n">${i+1}</td>
+          <td class="desc">${item}</td>
+          <td class="col-proyectada"><input type="number" class="num" min="0" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>
+          <td><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>
+          <td><div class="ev">
+            <button class="ev-btn B" data-rid="${rid}" onclick="setEv(this)">B</button>
+            <button class="ev-btn R" data-rid="${rid}" onclick="setEv(this)">R</button>
+            <button class="ev-btn M" data-rid="${rid}" onclick="setEv(this)">M</button>
+          </div></td>
+          <td class="falt-cell" id="flt_${rid}" style="color:#aaa">—</td>
+          <td class="pct-cell" id="pct_${rid}"><span style="color:#ccc">—</span></td>
+        </tr>`;
+      }).join('');
+
+      const extraId = `extra_${p.id}`;
+      const d=document.createElement('div');
+      d.className='partida'; d.id='p_'+p.id;
+      d.style.borderLeftColor=p.color;
+      d.innerHTML=`
+        <div class="p-hdr" style="background:${p.color}" onclick="toggleP('${p.id}')">
+          <div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre}</h2></div>
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="pct-bdg" id="badge_${p.id}">—</div>
+            <span class="arrow">▼</span>
+          </div>
+        </div>
+        <div class="p-body">
+          <div class="tbl-wrap"><table>
+            <thead style="background:${p.color}">
+              <tr>
+                <th style="width:34px">N°</th>
+                <th style="text-align:left;padding-left:13px">Subitem / Descripción</th>
+                <th class="col-proyectada">Cant.<br>Proyectada</th>
+                <th>Cant.<br>Ejecutada</th>
+                <th>Evaluación<br>B / R / M</th>
+                <th>Cant.<br>Faltante</th>
+                <th>%<br>Avance</th>
+              </tr>
+            </thead>
+            <tbody id="tbody_${p.id}">${rows}</tbody>
+            <tbody id="${extraId}"></tbody>
+          </table></div>
+          <button class="add-row-btn" onclick="addRow('${p.id}')">＋ Agregar subitem adicional</button>
+          <div class="foto-sec">
+            <div class="foto-sec-title">📷 Fotografías — ${p.nombre} (máx. 3)</div>
+            <div class="foto-grid" id="fotos_${p.id}">
+              ${[0,1,2].map(fi=>`
+                <div class="foto-slot" id="fslot_${p.id}_${fi}">
+                  <span>📷<br>Foto ${fi+1}</span>
+                  <img id="fimg_${p.id}_${fi}" style="display:none">
+                  <input type="file" accept="image/*" onchange="loadFoto('${p.id}',${fi},this)">
+                  <button class="foto-remove" onclick="removeFoto('${p.id}',${fi})">✕</button>
+                </div>`).join('')}
+            </div>
+            <div class="foto-obs">
+              <textarea id="fotobs_${p.id}" placeholder="Observación sobre las fotografías de ${p.nombre}..."></textarea>
+            </div>
+          </div>
+          <div class="p-foot">
+            <div class="p-foot-lbl">% Avance Hito</div>
+            <div class="p-foot-bar"><div class="bar-bg"><div class="bar-fill" id="fbar_${p.id}" style="width:0%;background:${p.color}"></div></div></div>
+            <div class="p-foot-pct g" id="fpct_${p.id}">—</div>
+          </div>
+        </div>`;
+      main.appendChild(d);
+    });
+  }
+
+  const rc=document.getElementById('resumen-content');
+  rc.innerHTML=`
+  <div class="resumen">
+    <h2>📊 Resumen por Hito</h2>
+    ${PARTIDAS.map(p=>`
+      <div class="res-row">
+        <div class="res-name">${p.icon} ${p.nombre}</div>
+        <div class="res-bar"><div class="bar-bg"><div class="bar-fill" id="rbar_${p.id}" style="width:0%;background:${p.color}"></div></div></div>
+        <div class="res-pct g" id="rpct_${p.id}">—</div>
+      </div>`).join('')}
+  </div>
+  <div class="total-card">
+    <h2>% AVANCE GENERAL DE LA TORRE / APARTAMENTO</h2>
+    <div class="total-num" id="total-num">—</div>
+    <div style="font-size:11px;opacity:.7;margin-top:3px">Promedio ponderado de los hitos y subitems</div>
+    <div class="total-bar-bg"><div class="total-bar-fill" id="total-bar" style="width:0%"></div></div>
+  </div>`;
+
+  if(document.getElementById('inspectores-container').children.length === 0) addInspectorField();
+  if(document.getElementById('residentes-container').children.length === 0) addResidenteField();
+  
+  if(formType === 'hitos') {
+    const mb = document.getElementById('mode-bar');
+    if(mb) mb.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// CÁLCULOS PARA EL MODO HITOS
+// ═══════════════════════════════════════════════
+function recalcHito(pid) {
+  const inp = document.getElementById('hitopct_' + pid);
+  let val = parseFloat(inp.value) || 0;
+  if(val > 100) val = 100;
+  if(val < 0) val = 0;
+
+  const cls = pCls(val);
+  const txt = val + '%';
+
+  ['badge_', 'fpct_', 'rpct_'].forEach(pfx => {
+    const el = document.getElementById(pfx + pid);
+    if(!el) return;
+    el.textContent = txt;
+    el.className = el.className.replace(/ [gyr] /g, '').trim() + ' ' + cls.n;
+  });
+
+  ['fbar_', 'rbar_'].forEach(pfx => {
+    const el = document.getElementById(pfx + pid);
+    if(el) el.style.width = val + '%';
+  });
+
+  recalcTotal();
+}
+
+// ═══════════════════════════════════════════════
+// CALCULATIONS (DETALLADO)
+// ═══════════════════════════════════════════════
+function recalcRow(inp){
+  const rid=inp.dataset.rid, pid=inp.dataset.p;
+  const pr=parseFloat(document.getElementById('pr_'+rid)?.value)||0;
+  const ej=parseFloat(document.getElementById('ej_'+rid)?.value)||0;
+  const falt=Math.max(0,pr-ej);
+  const fltEl=document.getElementById('flt_'+rid);
+  if(pr>0||ej>0){
+    fltEl.textContent=falt;
+    fltEl.style.color=falt>0?'#e65100':'#2e7d32';
+  } else {
+    fltEl.textContent='—'; fltEl.style.color='#aaa';
+  }
+  const pctEl=document.getElementById('pct_'+rid);
+  if(pr>0){
+    const pct=Math.min(100,Math.round((ej/pr)*100));
+    const cls=pCls(pct);
+    pctEl.innerHTML=`<div class="pv ${cls.n}">${pct}%</div><div class="bar-bg"><div class="bar-fill ${cls.b}" style="width:${pct}%"></div></div>`;
+  } else if(ej>0) {
+    pctEl.innerHTML=`<div class="pv g">✓</div>`;
+  } else {
+    pctEl.innerHTML='<span style="color:#ccc">—</span>';
+  }
+  recalcP(pid);
+}
+
+function recalcP(pid){
+  if(formType === 'hitos') return;
+  const all=[...document.querySelectorAll(`[data-p="${pid}"][id^="pr_"]`)];
+  let sumPct=0,cnt=0;
+  all.forEach(inp=>{
+    const rid=inp.dataset.rid;
+    const pr=parseFloat(inp.value)||0;
+    const ej=parseFloat(document.getElementById('ej_'+rid)?.value)||0;
+    if(pr>0){sumPct+=Math.min(100,Math.round((ej/pr)*100));cnt++;}
+  });
+  const pct=cnt>0?Math.round(sumPct/cnt):null;
+  const txt=pct!==null?pct+'%':'—';
+  const cls=pct!==null?pCls(pct):null;
+
+  ['badge_','fpct_','rpct_'].forEach(pfx=>{
+    const el=document.getElementById(pfx+pid);
+    if(!el)return;
+    el.textContent=txt;
+    if(cls){el.className=el.className.replace(/ [gyr] /g,'').trim()+' '+cls.n;}
+  });
+  ['fbar_','rbar_'].forEach(pfx=>{
+    const el=document.getElementById(pfx+pid);
+    if(el) el.style.width=(pct||0)+'%';
+  });
+  recalcTotal();
+}
+
+function recalcTotal(){
+  let sum=0,cnt=0;
+  PARTIDAS.forEach(p=>{
+    const t=document.getElementById('fpct_'+p.id)?.textContent;
+    if(t&&t!=='—'){sum+=parseInt(t);cnt++;}
+  });
+  const pct=cnt>0?Math.round(sum/cnt):null;
+  const el=document.getElementById('total-num');
+  const bar=document.getElementById('total-bar');
+  if(pct!==null){
+    el.textContent=pct+'%';
+    bar.style.width=pct+'%';
+    bar.style.background=pct>=80?'#69f0ae':pct>=50?'#ffd740':'#ff5252';
+  } else {
+    el.textContent='—'; bar.style.width='0%';
+  }
+}
+
+function toggleP(id){document.getElementById('p_'+id).classList.toggle('collapsed');}
+
+function setEv(btn){
+  const rid=btn.dataset.rid;
+  const isAlreadyOn = btn.classList.contains('on');
+  document.querySelectorAll(`.ev-btn[data-rid="${rid}"]`).forEach(b=>b.classList.remove('on'));
+  if (!isAlreadyOn) {
+    btn.classList.add('on');
+  }
+}
+
+function addRow(pid, customDesc='', customPr='', customEj='', customEv=''){
+  if(formType === 'hitos') return;
+  if(!extraRows[pid]) extraRows[pid]=[];
+  const pObj = PARTIDAS.find(p=>p.id===pid);
+  const idx = pObj.items.length + extraRows[pid].length;
+  const rid=`${pid}_extra_${idx}`;
+  extraRows[pid].push({desc:customDesc,pr:customPr,ej:customEj,ev:customEv});
+
+  const tbody=document.getElementById('extra_'+pid);
+  const tr=document.createElement('tr');
+  tr.className='extra-row';
+  tr.id='row_'+rid;
+  tr.dataset.rid=rid;
+  tr.innerHTML=`
+    <td class="n" style="position:relative">
+      <button onclick="deleteExtraRow('${rid}','${pid}')" title="Eliminar subitem" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#ffebee;border:1px solid #ffcdd2;color:#c62828;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;line-height:1;padding:0;display:flex;align-items:center;justify-content:center">✕</button>
+    </td>
+    <td class="desc"><input type="text" placeholder="Descripción del subitem..." id="desc_${rid}" value="${customDesc}" oninput="saveExtraDesc('${pid}',${extraRows[pid].length-1},this.value)"></td>
+    <td class="col-proyectada"><input type="number" class="num" min="0" id="pr_${rid}" data-rid="${rid}" data-p="${pid}" value="${customPr}" oninput="recalcRow(this)" placeholder="0"></td>
+    <td><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${pid}" value="${customEj}" oninput="recalcRow(this)" placeholder="0"></td>
+    <td><div class="ev">
+      <button class="ev-btn B ${customEv==='B'?'on':''}" data-rid="${rid}" onclick="setEv(this)">B</button>
+      <button class="ev-btn R ${customEv==='R'?'on':''}" data-rid="${rid}" onclick="setEv(this)">R</button>
+      <button class="ev-btn M ${customEv==='M'?'on':''}" data-rid="${rid}" onclick="setEv(this)">M</button>
+    </div></td>
+    <td class="falt-cell" id="flt_${rid}" style="color:#aaa">—</td>
+    <td class="pct-cell" id="pct_${rid}"><span style="color:#ccc">—</span></td>`;
+  tbody.appendChild(tr);
+  if(currentMode==='inspector'){
+    tr.querySelectorAll('.col-proyectada').forEach(el=>el.style.display='none');
+  }
+  if(customPr || customEj) {
+    recalcRow(document.getElementById('pr_'+rid)||document.getElementById('ej_'+rid));
+  }
+}
+
+function saveExtraDesc(pid,idx,val){
+  if(extraRows[pid]&&extraRows[pid][idx]) extraRows[pid][idx].desc=val;
+}
+
+function deleteExtraRow(rid, pid) {
+  const tr = document.getElementById('row_' + rid);
+  if(tr) tr.remove();
+  recalcP(pid);
+}
+
+function loadFoto(pid,fi,inp){
+  const file=inp.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=document.getElementById(`fimg_${pid}_${fi}`);
+    img.src=e.target.result; img.style.display='block';
+    const slot=document.getElementById(`fslot_${pid}_${fi}`);
+    slot.querySelector('span').style.display='none';
+  };
+  r.readAsDataURL(file);
+}
+
+function removeFoto(pid,fi){
+  const img=document.getElementById(`fimg_${pid}_${fi}`);
+  const slot=document.getElementById(`fslot_${pid}_${fi}`);
+  img.src=''; img.style.display='none';
+  slot.querySelector('span').style.display='';
+  slot.querySelector('input').value='';
+}
+
+// ═══════════════════════════════════════════════
+// STORAGE & MODIFICATION OF DRAFTS
+// ═══════════════════════════════════════════════
+function getFormData(){
+  function gv(id){ const el=document.getElementById(id); return el ? (el.value||el.textContent||'') : ''; }
+  const d={
+    id: currentEditingIndex !== null ? getSavedReports()[currentEditingIndex].id : ('draft_' + Date.now()),
+    formType: formType,
+    timestamp: new Date().toLocaleString(),
+    fecha:gv('fecha'),
+    nro:gv('nro-display'),
+    convenio:gv('convenio'),
+    empresa:gv('empresa'),
+    residentes:getResidentesValues(),
+    inspectores:getInspectoresValues(),
+    torre:getTorreActual(),
+    piso:gv('piso'),
+    apto:gv('apto'),
+    obs_sp:gv('obs_sp'),
+    obs_general:document.getElementById('obs_general').value,
+    agentes:getAgentesValues(),
+    estatus:[...document.querySelectorAll('#estatus .ck-lbl.on')].map(l=>l.querySelector('input').value),
+    partidas:{}, extraRows: extraRows
+  };
+  
+  if (formType === 'hitos') {
+    PARTIDAS.forEach(p => {
+      d.partidas[p.id] = {
+        pct: document.getElementById('hitopct_' + p.id)?.value || '',
+        obs: document.getElementById('hitoobs_' + p.id)?.value || ''
+      };
+    });
+  } else {
+    PARTIDAS.forEach(p=>{
+      d.partidas[p.id]=p.items.map((_,i)=>{
+        const rid=`${p.id}_${i}`;
+        const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
+        return {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};
+      });
+      d.partidas[p.id+'_extra']=(extraRows[p.id]||[]).map((row,i)=>{
+        const idx=p.items.length+i; const rid=`${p.id}_extra_${idx}`;
+        const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
+        return {desc:document.getElementById('desc_'+rid)?.value||row.desc||'',pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};
+      });
+    });
+  }
+  return d;
+}
+
+function getSavedReports() {
+  try {
+    return JSON.parse(localStorage.getItem('garmel_reports_list') || '[]');
+  } catch(e) { return []; }
+}
+
+function saveDraft(){
+  try{
+    const data = getFormData();
+    const list = getSavedReports();
+    if(currentEditingIndex !== null && list[currentEditingIndex]) {
+      list[currentEditingIndex] = data;
+      showToast('✅ Borrador modificado y actualizado con éxito', 'ok');
+    } else {
+      list.unshift(data);
+      currentEditingIndex = 0;
+      showToast('✅ Nuevo borrador guardado localmente','ok');
+    }
+    localStorage.setItem('garmel_reports_list', JSON.stringify(list));
+  } catch(e){
+    showToast('❌ Error al guardar: ' + e.message, 'err');
+  }
+}
+
+function openSavedModal() {
+  renderSavedList();
+  document.getElementById('savedOverlay').classList.add('open');
+}
+
+function closeSavedModal() {
+  document.getElementById('savedOverlay').classList.remove('open');
+}
+
+function renderSavedList() {
+  const container = document.getElementById('savedListContent');
+  const list = getSavedReports();
+  if (list.length === 0) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:#888;font-size:12px">No hay informes almacenados localmente.</div>';
+    return;
+  }
+
+  container.innerHTML = list.map((item, index) => `
+    <div class="saved-item">
+      <div class="saved-item-info">
+        <span class="saved-item-title">${item.nro || 'Sin Correlativo'} (${item.formType === 'hitos' ? 'Hitos' : 'Detallado'})</span>
+        <span class="saved-item-sub">📍 Torre: ${item.torre || '—'} | Apto: ${item.apto || '—'}</span>
+        <span class="saved-item-sub">📅 Guardado: ${item.timestamp}</span>
+      </div>
+      <div class="saved-item-actions">
+        <button class="s-btn s-btn-load" onclick="loadDraftData(${index})">📂 Cargar para Editar</button>
+        <button class="s-btn s-btn-send" onclick="sendSavedDirect(${index})">📤 Enviar</button>
+        <button class="s-btn s-btn-del" onclick="deleteSavedReport(${index})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function loadDraftData(index) {
+  const list = getSavedReports();
+  const d = list[index];
+  if (!d) return;
+
+  formType = d.formType || 'detallado';
+  setupFormTypeUI();
+  initAppContent();
+
+  currentEditingIndex = index;
+
+  ['fecha','convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(id=>{
+    const el=document.getElementById(id); if(el&&d[id]!==undefined) el.value=d[id];
+  });
+  if(d.convenio) filtrarPorConvenio();
+  if(d.empresa) document.getElementById('empresa').value = d.empresa;
+  
+  const resContainer = document.getElementById('residentes-container');
+  resContainer.innerHTML = '';
+  if (d.residentes && d.residentes.length > 0) {
+    d.residentes.forEach(r => addResidenteField(r));
+  } else {
+    addResidenteField('');
+  }
+
+  const inspContainer = document.getElementById('inspectores-container');
+  inspContainer.innerHTML = '';
+  if (d.inspectores && d.inspectores.length > 0) {
+    d.inspectores.forEach(i => addInspectorField(i));
+  } else {
+    addInspectorField('');
+  }
+
+  const torSel = document.getElementById('torre');
+  if (torSel) {
+    const exists = Array.from(torSel.options).some(o => o.value === d.torre);
+    if (exists) {
+      torSel.value = d.torre;
+    } else {
+      torSel.value = 'NO_REG';
+      document.getElementById('torre-manual-wrap').style.display = 'block';
+      document.getElementById('torre-manual').value = d.torre;
+    }
+  }
+
+  if(d.agentes) {
+    document.querySelectorAll('#agentes .ag-btn').forEach(btn => {
+      if(d.agentes.includes(btn.dataset.val)) btn.classList.add('on');
+      else btn.classList.remove('on');
+    });
+  }
+
+  if(d.estatus) {
+    document.querySelectorAll('#estatus .ck-lbl').forEach(lbl => {
+      const val = lbl.querySelector('input').value;
+      if(d.estatus.includes(val)) {
+        lbl.classList.add('on');
+        lbl.querySelector('input').checked = true;
+      } else {
+        lbl.classList.remove('on');
+        lbl.querySelector('input').checked = false;
+      }
+    });
+  }
+
+  if (d.partidas) {
+    if (formType === 'hitos') {
+      Object.keys(d.partidas).forEach(pid => {
+        const pData = d.partidas[pid];
+        const inp = document.getElementById('hitopct_' + pid);
+        if (inp && pData.pct !== undefined) {
+          inp.value = pData.pct;
+          recalcHito(pid);
+        }
+        const obs = document.getElementById('hitoobs_' + pid);
+        if (obs && pData.obs !== undefined) obs.value = pData.obs;
+      });
+    } else {
+      Object.keys(d.partidas).forEach(pid => {
+        if(pid.endsWith('_extra')) return;
+        const arr = d.partidas[pid];
+        if(Array.isArray(arr)) {
+          arr.forEach((item, i) => {
+            const rid = `${pid}_${i}`;
+            const prInp = document.getElementById('pr_'+rid);
+            const ejInp = document.getElementById('ej_'+rid);
+            if(prInp && item.pr !== undefined) prInp.value = item.pr;
+            if(ejInp && item.ej !== undefined) ejInp.value = item.ej;
+            if(item.ev) {
+              const b = document.querySelector(`.ev-btn[data-rid="${rid}"].${item.ev}`);
+              if(b) setEv(b);
+            }
+            if(prInp || ejInp) recalcRow(prInp || ejInp);
+          });
+        }
+      });
+      if(d.extraRows) {
+        Object.keys(d.extraRows).forEach(pid => {
+          const rows = d.extraRows[pid];
+          if(Array.isArray(rows)) {
+            rows.forEach(r => {
+              addRow(pid, r.desc, r.pr, r.ej, r.ev);
+            });
+          }
+        });
+      }
+    }
+  }
+
+  const el = document.getElementById('nro-display');
+  if(el && d.nro) el.textContent = d.nro;
+  
+  closeSavedModal();
+  showToast('📂 Borrador cargado correctamente para edición', 'ok');
+}
+
+function deleteSavedReport(index) {
+  if(!confirm('¿Desea eliminar este informe guardado?')) return;
+  const list = getSavedReports();
+  list.splice(index, 1);
+  localStorage.setItem('garmel_reports_list', JSON.stringify(list));
+  if(currentEditingIndex === index) currentEditingIndex = null;
+  else if(currentEditingIndex > index) currentEditingIndex--;
+  renderSavedList();
+  showToast('🗑️ Informe eliminado de la lista', 'ok');
+}
+
+function nuevoFormulario() {
+  if(!confirm('¿Desea iniciar un nuevo informe? Se limpiarán los campos actuales.')) return;
+  currentEditingIndex = null;
+  document.getElementById('fecha').value = '';
+  document.getElementById('convenio').value = '';
+  document.getElementById('empresa').value = '';
+  document.getElementById('torre').value = '';
+  document.getElementById('piso').value = '';
+  document.getElementById('apto').value = '';
+  document.getElementById('obs_sp').value = '';
+  document.getElementById('obs_general').value = '';
+  document.getElementById('residentes-container').innerHTML = '';
+  document.getElementById('inspectores-container').innerHTML = '';
+  addResidenteField();
+  addInspectorField();
+  document.querySelectorAll('.ck-lbl').forEach(l=>{l.classList.remove('on'); l.querySelector('input').checked=false;});
+  document.querySelectorAll('.ag-btn').forEach(b=>b.classList.remove('on'));
+  initAppContent();
+  updateNroInforme();
+  showToast('🆕 Formulario limpio para nuevo registro', 'ok');
+}
+
+function finalizarInforme() {
+  if(!TEST_MODE) {
+    reportCounter++;
+    localStorage.setItem('garmel_cnt', String(reportCounter));
+  }
+  showToast('✅ ¡Informe finalizado con éxito!', 'ok');
+  setTimeout(() => {
+    const welcome = document.getElementById('welcome-screen');
+    if(welcome) welcome.classList.remove('hidden');
+  }, 1200);
+}
+
+function openSend() {
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeSend() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function sendSavedDirect(index) {
+  loadDraftData(index);
+  openSend();
+}
+
+async function sendToMonday() {
+  const token = document.getElementById('mondayToken').value.trim();
+  const logEl = document.getElementById('sendLog');
+  const btn = document.getElementById('btn-enviar-monday');
+  
+  if(!token) {
+    alert('Por favor ingrese su token de monday.com');
+    return;
+  }
+  
+  logEl.style.display = 'block';
+  logEl.textContent = 'Conectando con monday.com...\n';
+  btn.disabled = true;
+
+  try {
+    const data = getFormData();
+    logEl.textContent += `Empresa: ${data.empresa} | Torre: ${data.torre}\n`;
+    logEl.textContent += `Datos procesados correctamente. Enviando...\n`;
+
+    const query = `mutation ($boardId: ID!, $itemName: String!, $columnValues: JSON) {
+      create_item (board_id: $boardId, item_name: $itemName, column_values: $columnValues) { id }
+    }`;
+    
+    const vars = {
+      boardId: BOARD_ID,
+      itemName: data.nro || `Informe ${data.torre}-${data.apto}`,
+      columnValues: JSON.stringify({
+        text: data.convenio,
+        text0: data.empresa,
+        text1: data.torre + ' ' + data.piso + ' ' + data.apto
+      })
+    };
+
+    const response = await fetch('https://api.monday.com/v2', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token
+      },
+      body: JSON.stringify({ query, variables: vars })
+    });
+
+    const result = await response.json();
+    if(result.errors) {
+      throw new Error(result.errors[0].message);
+    }
+
+    logEl.textContent += `✅ ¡Enviado con éxito a monday.com! (Item ID: ${result.data.create_item.id})\n`;
+    showToast('📤 Enviado a monday.com correctamente', 'ok');
+  } catch(e) {
+    logEl.textContent += `❌ Error: ${e.message}\n`;
+    showToast('❌ Error en el envío', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Inicialización general al cargar
+window.onload = function() {
+  const today = new Date().toISOString().split('T')[0];
+  const f = document.getElementById('fecha');
+  if(f) f.value = today;
+  updateDocInfo();
+};
+</script>
+</body>
+</html>

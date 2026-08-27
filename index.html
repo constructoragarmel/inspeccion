@@ -104,11 +104,19 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
   transition: all 0.2s ease;
   width: 100%;
   letter-spacing: 0.5px;
+  margin-bottom: 10px;
 }
 .welcome-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(46, 125, 50, 0.6);
   background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+
+.form-selector-welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
 }
 
 /* STICKY HEADER */
@@ -123,8 +131,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 .hbtn-saved-list{background:rgba(255,193,7,.3);color:#fff;border:1px solid rgba(255,193,7,.5)}
 .hbtn-send{background:#43a047;color:#fff}
 .hbtn-pdf{background:var(--orange);color:#fff}
+.hbtn-finalizar{background:#8e24aa;color:#fff;border:1px solid rgba(255,255,255,.3)}
 
-/* LOGO HEADER (print) */
+/* LOGO BAR (print) */
 .logo-bar{background:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--blue-l)}
 .logo-box{display:flex;align-items:center;gap:14px}
 .logo-placeholder{width:80px;height:60px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;cursor:pointer;text-align:center;position:relative;overflow:hidden;flex-shrink:0}
@@ -418,23 +427,28 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     <p class="welcome-subtitle">Sistema Digital de Evaluación de Avance y Control de Inspecciones Técnicas de Obra</p>
     
     <div class="welcome-features">
-      <div class="welcome-feat-item">📋 <span>Evaluación por Partidas</span></div>
+      <div class="welcome-feat-item">📋 <span>Evaluación por Partidas (Hitos)</span></div>
       <div class="welcome-feat-item">📶 <span>Funciona sin señal</span></div>
       <div class="welcome-feat-item">📷 <span>Registro de Fotografías</span></div>
       <div class="welcome-feat-item">🖨️ <span>Exportación a PDF</span></div>
     </div>
 
-    <button class="welcome-btn" onclick="startApp()">🚀 Iniciar Formulario</button>
+    <div class="form-selector-welcome">
+      <label style="font-size:11px; font-weight:700; text-transform:uppercase; color:#b0bec5; text-align:left;">Seleccione el formulario a utilizar:</label>
+      <button class="welcome-btn" onclick="startApp('detallado')">📊 Formulario Detallado (Hitos y Subitems del Excel)</button>
+      <button class="welcome-btn" style="background: linear-gradient(135deg, #1565c0, #0d47a1);" onclick="startApp('hitos')">👷 Formulario Simplificado por Hitos (Inspectores)</button>
+    </div>
   </div>
 </div>
 
 <!-- STICKY NAV -->
 <div class="hdr">
-  <div><h1>📋 Informe de Inspección Técnica de Obra</h1><p>Sistema GARMEL · Evaluación de Avance por Partidas</p></div>
+  <div><h1 id="hdr-title">📋 Informe de Inspección Técnica de Obra</h1><p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>
   <div class="hdr-btns">
     <button class="hbtn hbtn-nuevo" onclick="nuevoFormulario()" title="Nuevo informe — limpia el formulario">🆕 <span>Nuevo</span></button>
     <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guardar o actualizar borrador localmente">💾 <span>Guardar Borrador</span></button>
     <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Ver informes almacenados localmente">📁 <span>Guardados</span></button>
+    <button class="hbtn hbtn-finalizar" onclick="finalizarInforme()" title="Finalizar informe, guardar, incrementar correlativo y volver a la pantalla de inicio">✅ <span>Finalizar</span></button>
     <button class="hbtn hbtn-send" onclick="openSend()">📤 <span>Enviar</span></button>
     <button class="hbtn hbtn-pdf" onclick="window.print()">🖨️ <span>PDF</span></button>
     <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" title="Activar modo de prueba — el correlativo NO se incrementa" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3)">🧪 <span>Prueba</span></button>
@@ -458,8 +472,8 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     <img src="data:image/png;base64,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" alt="Gran Misión Vivienda Venezuela" style="height:52px;width:auto;flex-shrink:0">
     <div style="width:1px;height:50px;background:#e0e0e0"></div>
     <div>
-      <h2 style="font-size:16px;font-weight:900;color:var(--blue)">INFORME DE INSPECCIÓN TÉCNICA</h2>
-      <p style="font-size:10px;color:#888;margin-top:2px">Gerencia GARMEL · Evaluación de Avance por Partidas</p>
+      <h2 id="logo-title" style="font-size:16px;font-weight:900;color:var(--blue)">INFORME DE INSPECCIÓN TÉCNICA</h2>
+      <p id="logo-sub" style="font-size:10px;color:#888;margin-top:2px">Gerencia GARMEL · Evaluación por Hitos y Subitems</p>
     </div>
   </div>
   <div class="doc-info">
@@ -521,22 +535,26 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     </div>
     <div class="field">
       <label>Ingeniero(s) residente(s) *</label>
-      <div id="residentes-container">
-        <!-- Generado dinámicamente -->
-      </div>
+      <div id="residentes-container"></div>
       <button type="button" class="btn-add-item" onclick="addResidenteField()">＋ Agregar Residente</button>
       <span class="field-note">Se vincula automáticamente a la empresa o permite ingreso manual persistente</span>
     </div>
     <div class="field">
       <label>Ingeniero(s) inspector(es) *</label>
-      <div id="inspectores-container">
-        <!-- Generado dinámicamente -->
-      </div>
+      <div id="inspectores-container"></div>
       <button type="button" class="btn-add-item" onclick="addInspectorField()">＋ Agregar Inspector</button>
     </div>
   </div>
 
   <div class="sec-lbl">📍 Ubicación</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px">
+    <span style="font-size:12px;font-weight:700;color:#555">ÁMBITO DEL INFORME:</span>
+    <button type="button" id="btnAmbApto" onclick="setAmbito('apartamento')"
+      style="padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#e65100;color:#fff">🚪 Apartamento</button>
+    <button type="button" id="btnAmbTorre" onclick="setAmbito('torre')"
+      style="padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666">🏢 Torre completa</button>
+    <span id="ambito-nota" style="font-size:11px;color:#888"></span>
+  </div>
   <div class="grid4">
     <div class="field">
       <label>Torre *</label>
@@ -588,7 +606,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
       </select>
       <div id="torre-manual-wrap" style="display:none;margin-top:6px;position:relative;z-index:10">
         <input type="text" id="torre-manual" placeholder="Nombre de la torre..." oninput="updateNroInforme()" style="width:100%;border:1.5px solid #ff9800;border-radius:7px;padding:7px 10px;font-size:13px;background:#fff8e1">
-        <span style="font-size:10px;color:#f57f17;margin-top:2px;display:block">⚠️ Torre no registrada en monday.com</span>
+        <span style="font-size:10px;color:#f57f17;margin-top:2px;display:block">⚠️ Torre no registrada en el maestro</span>
       </div>
     </div>
     <div class="field">
@@ -636,7 +654,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 </div>
 
 <!-- SECCIÓN EVALUACIÓN -->
-<div class="sec-div">📊 EVALUACIÓN DE AVANCE POR PARTIDAS</div>
+<div class="sec-div">📊 EVALUACIÓN DE AVANCE POR HITOS Y SUBITEMS</div>
 <div class="content" id="main-content"></div>
 
 <!-- SERVICIOS PÚBLICOS -->
@@ -674,9 +692,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
           <th>Acciones</th>
         </tr>
       </thead>
-      <tbody id="memoria-tbody">
-        <!-- Dinámico -->
-      </tbody>
+      <tbody id="memoria-tbody"></tbody>
     </table>
   </div>
   <button type="button" class="btn-add-item" onclick="agregarApartamentoAMemoria()">＋ Registrar Avance de este Apto a la Torre</button>
@@ -699,11 +715,9 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 <div class="overlay" id="savedOverlay">
   <div class="modal">
     <h3>📁 Informes Guardados Localmente</h3>
-    <p>Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo directamente a monday.com.</p>
+    <p>Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo.</p>
     
-    <div class="saved-list-container" id="savedListContent">
-      <!-- Se genera dinámicamente -->
-    </div>
+    <div class="saved-list-container" id="savedListContent"></div>
 
     <div class="m-btns">
       <button class="m-btn m-cancel" onclick="closeSavedModal()">Cerrar</button>
@@ -714,13 +728,14 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 <!-- SEND MODAL -->
 <div class="overlay" id="overlay">
   <div class="modal">
-    <h3>📤 Enviar a monday.com</h3>
-    <p>Ingresa tu API token para registrar este informe en el tablero <strong>Formulario de Inspecciones</strong>.</p>
-    <label>monday.com API Token</label>
-    <input type="text" id="mondayToken" placeholder="eyJhbGci..." spellcheck="false">
+    <h3>📤 Enviar informe</h3>
+    <p>Se archiva en la carpeta de Drive de la torre y queda anotado en el registro.
+       <strong>La clave se escribe una sola vez en este teléfono.</strong></p>
+    <label>Clave de envío</label>
+    <input type="password" id="claveEnvio" placeholder="La que le dieron en la oficina" spellcheck="false" autocomplete="off">
     <div class="m-btns">
       <button class="m-btn m-cancel" onclick="closeSend()">Cancelar</button>
-      <button class="m-btn m-confirm" id="btn-enviar-monday" onclick="avisoEnvioManual()">📤 Enviar ahora</button>
+      <button class="m-btn m-confirm" id="btn-enviar-relevo" onclick="enviarAlRelevo()">📤 Enviar ahora</button>
     </div>
     <div class="m-log" id="sendLog"></div>
   </div>
@@ -738,17 +753,82 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 
 <script>
 // ═══════════════════════════════════════════════
-// INICIO & WELCOME SCREEN FUNCTION
+// INICIO & WELCOME SCREEN FUNCTION (CON SELECTOR DE FORMULARIO)
 // ═══════════════════════════════════════════════
-function startApp() {
+let formType = 'detallado'; // 'detallado' u 'hitos'
+
+// ── ÁMBITO DEL INFORME ─────────────────────────────────────────────────────
+// Qué hito se evalúa por torre y cuál por apartamento es criterio de
+// ingeniería (ADR-0017). Esta lista es lo único que hay que cambiar si el
+// ingeniero responsable decide otro reparto.
+const HITOS_DE_TORRE = ['hito_estructura', 'hito_mecanicas'];
+let ambito = 'apartamento';   // 'apartamento' u 'torre'
+
+function setAmbito(a){
+  ambito = (a === 'torre') ? 'torre' : 'apartamento';
+  const esTorre = (ambito === 'torre');
+
+  const on  = 'padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#e65100;color:#fff';
+  const off = 'padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666';
+  const bA = document.getElementById('btnAmbApto'), bT = document.getElementById('btnAmbTorre');
+  if(bA) bA.style.cssText = esTorre ? off : on;
+  if(bT) bT.style.cssText = esTorre ? on  : off;
+
+  // Piso y apartamento solo aplican al informe de vivienda.
+  ['piso','apto'].forEach(id=>{
+    const el = document.getElementById(id);
+    const campo = el ? el.closest('.field') : null;
+    if(campo) campo.style.display = esTorre ? 'none' : '';
+    if(el && esTorre) el.value = '';
+  });
+
+  // Se muestran solo los hitos del ámbito elegido.
+  if (typeof PARTIDAS !== 'undefined') PARTIDAS.forEach(p=>{
+    const bloque = document.getElementById('p_' + p.id);
+    if(!bloque) return;
+    const deTorre = HITOS_DE_TORRE.indexOf(p.id) >= 0;
+    bloque.style.display = (deTorre === esTorre) ? '' : 'none';
+  });
+
+  const nota = document.getElementById('ambito-nota');
+  if(nota) nota.textContent = esTorre
+    ? 'Estructura, ascensores y áreas comunes — no aplica a una vivienda'
+    : 'Acabados, carpintería e instalaciones de la vivienda';
+
+  updateDocInfo();
+}
+
+function startApp(tipo = 'detallado') {
+  formType = tipo;
   const welcome = document.getElementById('welcome-screen');
   if (welcome) {
     welcome.classList.add('hidden');
   }
+  setupFormTypeUI();
+  initAppContent();
+}
+
+function setupFormTypeUI() {
+  const hdrTitle = document.getElementById('hdr-title');
+  const hdrSub = document.getElementById('hdr-sub');
+  const logoTitle = document.getElementById('logo-title');
+  const logoSub = document.getElementById('logo-sub');
+  
+  if (formType === 'hitos') {
+    if (hdrTitle) hdrTitle.textContent = '📋 Informe de Inspección por Hitos (Simplificado)';
+    if (hdrSub) hdrSub.textContent = 'Sistema GARMEL · Evaluación por Porcentajes Generales en Obra';
+    if (logoTitle) logoTitle.textContent = 'INFORME DE INSPECCIÓN POR HITOS';
+    if (logoSub) logoSub.textContent = 'Gerencia GARMEL · Evaluación Visual y Porcentual';
+  } else {
+    if (hdrTitle) hdrTitle.textContent = '📋 Informe de Inspección Técnica de Obra';
+    if (hdrSub) hdrSub.textContent = 'Sistema GARMEL · Evaluación por Hitos y Subitems del Excel';
+    if (logoTitle) logoTitle.textContent = 'INFORME DE INSPECCIÓN TÉCNICA';
+    if (logoSub) logoSub.textContent = 'Gerencia GARMEL · Evaluación por Hitos y Subitems';
+  }
 }
 
 // ═══════════════════════════════════════════════
-// DATA & STATE
+// DATA & STATE (ADAPTADO A HITOS Y SUBITEMS DEL EXCEL GARMEL)
 // ═══════════════════════════════════════════════
 const INSPECTORES_DB = [
   "Edenil Narvaez (CIV-150422)",
@@ -763,7 +843,58 @@ const INSPECTORES_DB = [
 
 const EMPRESA_RESIDENTE = {"ALNAVIC, C.A.": "ING. ANTONIO CUICAS", "AROA, C.A.": "", "BELZARUBEZHSTORY, S.A.": "ING. FELIX PINTO", "CIVIKA PRO, C.A.": "", "CONSTRUCTORA 5010, C.A.": "ING. JOSE MARTINEZ", "CONSTRUCTORA SB 86, C.A.": "ING. JULIO LUQUEZ", "CONSTRUCTORA VIALPA, C.A.": "ING. ADRIAN OLIVARES", "DRIJECAE, C.A.": "", "GRUPO TEPUY, C.A.": "", "ING & ARQ 1111, C.A.": "ING. JHOANNY LOPEZ", "JVR INGENIERÍA C,A.": "ING. JUAN COLMENARES / ARQ. EVER AVENDAÑO", "MASTER REFORMAS RR, C.A.": "ING. ERICK MARTINEZ", "PROCODIMA, C.A.": "ING. LEONARDO TORRES", "RACAR INGENIEROS, C.A.": "ING. GERARDO ARGARIN", "RÍO LIMÓN, C.A.": "ING. HARRY ARTEAGA", "THAISSA MM INVERSIONES, C.A.": "ING. MANUEL PAEZ", "TSURU, C.A.": "MILTON RODRIGUEZ", "ZERPA CONSTRUCCIONES, C.A.": "ING. IVAN MEDINA"};
 
-const PARTIDAS = [{"id": "estructura", "nombre": "ESTRUCTURA", "icon": "🏛️", "color": "#546e7a", "items": ["Paredes / tabiquería", "Revestimiento de fachada", "Losa / techo", "Columnas / vigas"]}, {"id": "arquitectura", "nombre": "ARQUITECTURA", "icon": "🚪", "color": "#3f51b5", "items": ["Marco puerta principal", "Puerta principal", "Cerradura puerta principal", "Marcos puertas internas", "Puertas habitaciones", "Cerraduras habitaciones", "Puertas baño", "Cerraduras baños", "Cerámicas piso baño", "Cerámicas pared baño", "Cerámica cocina", "Cerámica lavadero", "Centro pisos", "Rejas en jardinera", "Brocal de ducha", "Ventanas", "Marcos ventanas"]}, {"id": "sanitarias", "nombre": "INSTALACIONES SANITARIAS", "icon": "🔧", "color": "#0097a7", "items": ["W.C", "Canilla W.C", "Tapa W.C", "Lavamanos", "Grifería lavamanos", "Canilla lavamanos", "Grifería ducha", "Centro pisos baños", "Tapón de registro", "Descarga pared lavamanos", "Lavaplatos", "Grifería lavaplatos", "Descarga lavaplatos", "Canilla lavaplatos", "Centro pisos cocina", "Tapón registro cocina", "Batea", "Grifería batea", "Descarga batea", "Grifería lavadora", "Pto. descarga lavadora", "Centro pisos lavandería", "Tapón registro lavandería", "Pto. agua fría", "Pto. agua caliente", "Batea (varios)", "Grifo batea"]}, {"id": "electricidad", "nombre": "ELECTRICIDAD", "icon": "⚡", "color": "#e65100", "items": ["Tablero principal", "Tapa tablero", "Breakers simple 20 amp", "Breakers simple 30 amp", "Breakers doble 30 amp", "Lámparas", "Tomacorrientes", "Interruptores simples", "Interruptores dobles", "Interruptor timbre"]}, {"id": "gas", "nombre": "GAS", "icon": "🔥", "color": "#bf360c", "items": ["Puntos de gas", "Válvula gas"]}, {"id": "incendio", "nombre": "CONTRA INCENDIO", "icon": "🧯", "color": "#c62828", "items": ["Rociadores (sprinklers)", "Gabinetes contra incendio", "Detectores de humo", "Extintor"]}, {"id": "mecanicas", "nombre": "INSTALACIONES MECÁNICAS", "icon": "⚙️", "color": "#2e7d32", "items": ["Ascensor", "Bomba de agua presurizada", "Sistema de bombeo pluvial", "Ventilación mecánica"]}];
+// Estructura actualizada con los hitos y subitems del Excel del proyecto
+const PARTIDAS = [
+  {
+    "id": "hito_estructura", 
+    "nombre": "HITO 1: ESTRUCTURA Y OBRA GRUESA", 
+    "icon": "🏛️", 
+    "color": "#546e7a", 
+    "items": ["Fundaciones y losa de fundación", "Columnas y pantallas de concreto", "Vigas de carga y entrepiso", "Losa de techo / azotea", "Mampostería y paredes de tablilla / bloque", "Impermeabilización de losa"]
+  }, 
+  {
+    "id": "hito_enlucido", 
+    "nombre": "HITO 2: REVESTIMIENTOS Y ENLUCIDOS", 
+    "icon": "🧱", 
+    "color": "#3f51b5", 
+    "items": ["Friso interno en paredes y techos", "Friso externo y fachada", "Preparación de superfícies para acabado", "Yeso o revestimiento decorativo"]
+  },
+  {
+    "id": "hito_arq", 
+    "nombre": "HITO 3: ARQUITECTURA Y CARPINTERÍA", 
+    "icon": "🚪", 
+    "color": "#0097a7", 
+    "items": ["Marco y puerta principal", "Cerradura y herrajes puerta principal", "Marcos y puertas internas (habitaciones y baños)", "Cerraduras puertas internas", "Ventanas panorámicas y marcos", "Cerámicas de piso (habitaciones y área social)", "Cerámicas y revestimiento de paredes de baño", "Cerámicas de cocina y lavadero"]
+  }, 
+  {
+    "id": "hito_sanitarias", 
+    "nombre": "HITO 4: INSTALACIONES SANITARIAS", 
+    "icon": "🔧", 
+    "color": "#e65100", 
+    "items": ["Piezas sanitarias (W.C, lavamanos, lavaplatos, batea)", "Griferías de baños y cocina", "Puntos de agua fría y caliente", "Bajantes de aguas negras y pluviales", "Pruebas de presión y estanqueidad"]
+  }, 
+  {
+    "id": "hito_electricidad", 
+    "nombre": "HITO 5: INSTALACIONES ELÉCTRICAS", 
+    "icon": "⚡", 
+    "color": "#bf360c", 
+    "items": ["Tablero principal y breakers de protección", "Cableado general en tuberías", "Tomacorrientes e interruptores", "Salidas y puntos para iluminación", "Puntos de timbre y comunicaciones"]
+  }, 
+  {
+    "id": "hito_gas_incendio", 
+    "nombre": "HITO 6: GAS Y CONTRA INCENDIO", 
+    "icon": "🔥", 
+    "color": "#c62828", 
+    "items": ["Red matriz y puntos de gas doméstico", "Válvulas de corte y seguridad de gas", "Sistema de rociadores (sprinklers)", "Gabinetes contra incendio y extintores", "Detectores de humo"]
+  }, 
+  {
+    "id": "hito_mecanicas", 
+    "nombre": "HITO 7: INSTALACIONES MECÁNICAS Y ÁREAS COMUNES", 
+    "icon": "⚙️", 
+    "color": "#2e7d32", 
+    "items": ["Montaje y prueba de ascensores", "Sistema hidroneumático y bombas de agua", "Sistema de bombeo pluvial y achique", "Ventilación mecánica en sótanos/ductos", "Acabados finales de áreas comunes y lobby"]
+  }
+];
 
 const CONVENIO_DATA = {"Convenio Bielorusos": {"empresas": {"ALNAVIC, C.A.": "ING. ANTONIO CUICAS", "BELZARUBEZHSTORY, S.A.": "ING. FELIX PINTO", "CIVIKA PRO, C.A.": "", "DRIJECAE, C.A.": "", "GRUPO TEPUY, C.A.": "", "PROCODIMA, C.A.": "ING. LEONARDO TORRES", "RÍO LIMÓN, C.A.": "ING. HARRY ARTEAGA", "THAISSA MM INVERSIONES, C.A.": "ING. MANUEL PAEZ"}, "torres": ["T-17", "T-18", "T-19", "T-45", "T-46", "T-47", "T-48", "T-49", "T-5", "T-50", "T-51", "T-52", "T-53", "T-54", "T-55", "T-56", "T-57", "T-58", "T-6", "T-7", "T-8"]}, "Convenio Rusos": {"empresas": {"AROA, C.A.": "", "CONSTRUCTORA 5010, C.A.": "ING. JOSE MARTINEZ", "JVR INGENIERÍA C,A.": "ING. JUAN COLMENARES / ARQ. EVER AVENDAÑO", "MASTER REFORMAS RR, C.A.": "ING. ERICK MARTINEZ", "TSURU, C.A.": "MILTON RODRIGUEZ", "ZERPA CONSTRUCCIONES, C.A.": "ING. IVAN MEDINA"}, "torres": ["T-01", "T-02", "T-03", "T-04", "T-07", "T-09", "T-10", "T-11", "T-12", "T-13", "T-14", "T-15", "T-16", "T-38", "T-39"]}, "Convenio Chinos": {"empresas": {"CONSTRUCTORA SB 86, C.A.": "ING. JULIO LUQUEZ", "CONSTRUCTORA VIALPA, C.A.": "ING. ADRIAN OLIVARES", "ING & ARQ 1111, C.A.": "ING. JHOANNY LOPEZ", "RACAR INGENIEROS, C.A.": "ING. GERARDO ARGARIN"}, "torres": ["D-08", "J-07", "J-08", "J-09", "J-10", "J-11", "J-12", "T-04"]}};
 
@@ -775,9 +906,9 @@ var GROUP_TO_CONV_MAP = {'group_mm6j9pbr':'Convenio Bielorusos','group_mm6j6m1g'
 
 let reportCounter = parseInt(localStorage.getItem('garmel_cnt') || '0');
 let TEST_MODE = false;
-const extraRows = {};  // {pid: [{desc,pr,ej,ev}]}
-let memoriaTorreData = []; // Memoria por torre
-let currentEditingIndex = null; // Índice del borrador actual cargado para permitir actualización
+const extraRows = {};  
+let memoriaTorreData = []; 
+let currentEditingIndex = null; 
 
 // ═══════════════════════════════════════════════
 // GESTIÓN DE RESIDENTES E INSPECTORES MÚLTIPLES
@@ -1001,8 +1132,9 @@ function updateNroInforme() {
   const fv     = document.getElementById('fecha')?.value || '';
   const fecha  = /^\d{4}-\d{2}-\d{2}$/.test(fv) ? fv.slice(2).replace(/-/g, '') : '------';
   const inic   = getInicialesInspector();
+  const bloque = (ambito === 'torre') ? 'TORRE' : ('P' + piso + 'A' + apto);
   const nro    = (TEST_MODE ? 'PRUEBA-' : '') +
-                 [sector, torre, 'P' + piso + 'A' + apto, fecha, inic].join('-');
+                 [sector, torre, bloque, fecha, inic].join('-');
   const el    = document.getElementById('nro-display');
   if (el) el.textContent = nro;
   const docNum = document.getElementById('doc-num');
@@ -1017,9 +1149,6 @@ function updateDocInfo(){
   renderMemoriaTable();
 }
 
-// ═══════════════════════════════════════════════
-// DYNAMIC FILTERS & MODES
-// ═══════════════════════════════════════════════
 function filtrarPorConvenio() {
   const conv   = document.getElementById('convenio').value;
   const empSel = document.getElementById('empresa');
@@ -1136,107 +1265,191 @@ function setModeUI(mode) {
 }
 
 // ═══════════════════════════════════════════════
-// BUILD PARTIDAS & DOM (REQUERIMIENTO 1: ORDEN DE COLUMNAS)
+// CONSTRUCTOR DINÁMICO DE CONTENIDO (DETALLADO VS HITOS)
 // ═══════════════════════════════════════════════
-function buildPartida(p){
-  const rows = p.items.map((item,i)=>{
-    const rid=`${p.id}_${i}`;
-    return `<tr>
-      <td class="n">${i+1}</td>
-      <td class="desc">${item}</td>
-      <td class="col-proyectada"><input type="number" class="num" min="0" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>
-      <td><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>
-      <td><div class="ev">
-        <button class="ev-btn B" data-rid="${rid}" onclick="setEv(this)">B</button>
-        <button class="ev-btn R" data-rid="${rid}" onclick="setEv(this)">R</button>
-        <button class="ev-btn M" data-rid="${rid}" onclick="setEv(this)">M</button>
-      </div></td>
-      <td class="falt-cell" id="flt_${rid}" style="color:#aaa">—</td>
-      <td class="pct-cell" id="pct_${rid}"><span style="color:#ccc">—</span></td>
-    </tr>`;
-  }).join('');
+function initAppContent() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = '';
 
-  const extraId = `extra_${p.id}`;
+  if (formType === 'hitos') {
+    PARTIDAS.forEach(p => {
+      const d = document.createElement('div');
+      d.className = 'partida'; d.id = 'p_' + p.id;
+      d.style.borderLeftColor = p.color;
+      d.innerHTML = `
+        <div class="p-hdr" style="background:${p.color}" onclick="toggleP('${p.id}')">
+          <div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre} (Evaluación por Hitos)</h2></div>
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="pct-bdg" id="badge_${p.id}">0%</div>
+            <span class="arrow">▼</span>
+          </div>
+        </div>
+        <div class="p-body">
+          <div style="padding:14px 16px;">
+            <div class="field" style="margin-bottom:12px;">
+              <label>Porcentaje general de avance en este hito (${p.nombre}) *</label>
+              <input type="number" class="num hito-pct-input" min="0" max="100" id="hitopct_${p.id}" data-p="${p.id}" oninput="recalcHito('${p.id}')" placeholder="0-100" style="width:120px; font-weight:bold; font-size:14px;">
+            </div>
+            <div class="field">
+              <label>Observaciones visuales de obra — ${p.nombre}</label>
+              <textarea id="hitoobs_${p.id}" placeholder="Describa brevemente los subitems inspeccionados de forma somera en este hito..."></textarea>
+            </div>
+          </div>
+          <div class="foto-sec">
+            <div class="foto-sec-title">📷 Fotografías — ${p.nombre} (máx. 3)</div>
+            <div class="foto-grid" id="fotos_${p.id}">
+              ${[0,1,2].map(fi=>`
+                <div class="foto-slot" id="fslot_${p.id}_${fi}">
+                  <span>📷<br>Foto ${fi+1}</span>
+                  <img id="fimg_${p.id}_${fi}" style="display:none">
+                  <input type="file" accept="image/*" onchange="loadFoto('${p.id}',${fi},this)">
+                  <button class="foto-remove" onclick="removeFoto('${p.id}',${fi})">✕</button>
+                </div>`).join('')}
+            </div>
+            <div class="foto-obs">
+              <textarea id="fotobs_${p.id}" placeholder="Observación sobre las fotografías de este hito..."></textarea>
+            </div>
+          </div>
+          <div class="p-foot">
+            <div class="p-foot-lbl">% Avance Hito</div>
+            <div class="p-foot-bar"><div class="bar-bg"><div class="bar-fill" id="fbar_${p.id}" style="width:0%;background:${p.color}"></div></div></div>
+            <div class="p-foot-pct g" id="fpct_${p.id}">—</div>
+          </div>
+        </div>`;
+      main.appendChild(d);
+    });
 
-  return `<div class="tbl-wrap"><table>
-    <thead style="background:${p.color}">
-      <tr>
-        <th style="width:34px">N°</th>
-        <th style="text-align:left;padding-left:13px">Descripción</th>
-        <th class="col-proyectada">Cant.<br>Proyectada</th>
-        <th>Cant.<br>Ejecutada</th>
-        <th>Evaluación<br>B / R / M</th>
-        <th>Cant.<br>Faltante</th>
-        <th>%<br>Avance</th>
-      </tr>
-    </thead>
-    <tbody id="tbody_${p.id}">${rows}</tbody>
-    <tbody id="${extraId}"></tbody>
-  </table></div>
-  <button class="add-row-btn" onclick="addRow('${p.id}')">＋ Agregar ítem en campo</button>
-  <div class="foto-sec">
-    <div class="foto-sec-title">📷 Fotografías — ${p.nombre} (máx. 3)</div>
-    <div class="foto-grid" id="fotos_${p.id}">
-      ${[0,1,2].map(fi=>`
-        <div class="foto-slot" id="fslot_${p.id}_${fi}">
-          <span>📷<br>Foto ${fi+1}</span>
-          <img id="fimg_${p.id}_${fi}" style="display:none">
-          <input type="file" accept="image/*" onchange="loadFoto('${p.id}',${fi},this)">
-          <button class="foto-remove" onclick="removeFoto('${p.id}',${fi})">✕</button>
-        </div>`).join('')}
-    </div>
-    <div class="foto-obs">
-      <textarea id="fotobs_${p.id}" placeholder="Observación sobre las fotografías de ${p.nombre}..."></textarea>
-    </div>
+  } else {
+    PARTIDAS.forEach(p => {
+      const rows = p.items.map((item,i)=>{
+        const rid=`${p.id}_${i}`;
+        return `<tr>
+          <td class="n">${i+1}</td>
+          <td class="desc">${item}</td>
+          <td class="col-proyectada"><input type="number" class="num" min="0" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>
+          <td><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>
+          <td><div class="ev">
+            <button class="ev-btn B" data-rid="${rid}" onclick="setEv(this)">B</button>
+            <button class="ev-btn R" data-rid="${rid}" onclick="setEv(this)">R</button>
+            <button class="ev-btn M" data-rid="${rid}" onclick="setEv(this)">M</button>
+          </div></td>
+          <td class="falt-cell" id="flt_${rid}" style="color:#aaa">—</td>
+          <td class="pct-cell" id="pct_${rid}"><span style="color:#ccc">—</span></td>
+        </tr>`;
+      }).join('');
+
+      const extraId = `extra_${p.id}`;
+      const d=document.createElement('div');
+      d.className='partida'; d.id='p_'+p.id;
+      d.style.borderLeftColor=p.color;
+      d.innerHTML=`
+        <div class="p-hdr" style="background:${p.color}" onclick="toggleP('${p.id}')">
+          <div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre}</h2></div>
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="pct-bdg" id="badge_${p.id}">—</div>
+            <span class="arrow">▼</span>
+          </div>
+        </div>
+        <div class="p-body">
+          <div class="tbl-wrap"><table>
+            <thead style="background:${p.color}">
+              <tr>
+                <th style="width:34px">N°</th>
+                <th style="text-align:left;padding-left:13px">Subitem / Descripción</th>
+                <th class="col-proyectada">Cant.<br>Proyectada</th>
+                <th>Cant.<br>Ejecutada</th>
+                <th>Evaluación<br>B / R / M</th>
+                <th>Cant.<br>Faltante</th>
+                <th>%<br>Avance</th>
+              </tr>
+            </thead>
+            <tbody id="tbody_${p.id}">${rows}</tbody>
+            <tbody id="${extraId}"></tbody>
+          </table></div>
+          <button class="add-row-btn" onclick="addRow('${p.id}')">＋ Agregar subitem adicional</button>
+          <div class="foto-sec">
+            <div class="foto-sec-title">📷 Fotografías — ${p.nombre} (máx. 3)</div>
+            <div class="foto-grid" id="fotos_${p.id}">
+              ${[0,1,2].map(fi=>`
+                <div class="foto-slot" id="fslot_${p.id}_${fi}">
+                  <span>📷<br>Foto ${fi+1}</span>
+                  <img id="fimg_${p.id}_${fi}" style="display:none">
+                  <input type="file" accept="image/*" onchange="loadFoto('${p.id}',${fi},this)">
+                  <button class="foto-remove" onclick="removeFoto('${p.id}',${fi})">✕</button>
+                </div>`).join('')}
+            </div>
+            <div class="foto-obs">
+              <textarea id="fotobs_${p.id}" placeholder="Observación sobre las fotografías de ${p.nombre}..."></textarea>
+            </div>
+          </div>
+          <div class="p-foot">
+            <div class="p-foot-lbl">% Avance Hito</div>
+            <div class="p-foot-bar"><div class="bar-bg"><div class="bar-fill" id="fbar_${p.id}" style="width:0%;background:${p.color}"></div></div></div>
+            <div class="p-foot-pct g" id="fpct_${p.id}">—</div>
+          </div>
+        </div>`;
+      main.appendChild(d);
+    });
+  }
+
+  const rc=document.getElementById('resumen-content');
+  rc.innerHTML=`
+  <div class="resumen">
+    <h2>📊 Resumen por Hito</h2>
+    ${PARTIDAS.map(p=>`
+      <div class="res-row">
+        <div class="res-name">${p.icon} ${p.nombre}</div>
+        <div class="res-bar"><div class="bar-bg"><div class="bar-fill" id="rbar_${p.id}" style="width:0%;background:${p.color}"></div></div></div>
+        <div class="res-pct g" id="rpct_${p.id}">—</div>
+      </div>`).join('')}
   </div>
-  <div class="p-foot">
-    <div class="p-foot-lbl">% Avance</div>
-    <div class="p-foot-bar"><div class="bar-bg"><div class="bar-fill" id="fbar_${p.id}" style="width:0%;background:${p.color}"></div></div></div>
-    <div class="p-foot-pct g" id="fpct_${p.id}">—</div>
+  <div class="total-card">
+    <h2>% AVANCE GENERAL DE LA TORRE / APARTAMENTO</h2>
+    <div class="total-num" id="total-num">—</div>
+    <div style="font-size:11px;opacity:.7;margin-top:3px">Promedio ponderado de los hitos y subitems</div>
+    <div class="total-bar-bg"><div class="total-bar-fill" id="total-bar" style="width:0%"></div></div>
   </div>`;
+
+  if(document.getElementById('inspectores-container').children.length === 0) addInspectorField();
+  if(document.getElementById('residentes-container').children.length === 0) addResidenteField();
+  
+  if(formType === 'hitos') {
+    const mb = document.getElementById('mode-bar');
+    if(mb) mb.style.display = 'none';
+  }
+
+  setAmbito(ambito);
 }
 
-const main=document.getElementById('main-content');
-PARTIDAS.forEach(p=>{
-  const d=document.createElement('div');
-  d.className='partida'; d.id='p_'+p.id;
-  d.style.borderLeftColor=p.color;
-  d.innerHTML=`
-    <div class="p-hdr" style="background:${p.color}" onclick="toggleP('${p.id}')">
-      <div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre}</h2></div>
-      <div style="display:flex;align-items:center;gap:9px">
-        <div class="pct-bdg" id="badge_${p.id}">—</div>
-        <span class="arrow">▼</span>
-      </div>
-    </div>
-    <div class="p-body">${buildPartida(p)}</div>`;
-  main.appendChild(d);
-});
+// ═══════════════════════════════════════════════
+// CÁLCULOS PARA EL MODO HITOS
+// ═══════════════════════════════════════════════
+function recalcHito(pid) {
+  const inp = document.getElementById('hitopct_' + pid);
+  let val = parseFloat(inp.value) || 0;
+  if(val > 100) val = 100;
+  if(val < 0) val = 0;
 
-const rc=document.getElementById('resumen-content');
-rc.innerHTML=`
-<div class="resumen">
-  <h2>📊 Resumen por Partida</h2>
-  ${PARTIDAS.map(p=>`
-    <div class="res-row">
-      <div class="res-name">${p.icon} ${p.nombre}</div>
-      <div class="res-bar"><div class="bar-bg"><div class="bar-fill" id="rbar_${p.id}" style="width:0%;background:${p.color}"></div></div></div>
-      <div class="res-pct g" id="rpct_${p.id}">—</div>
-    </div>`).join('')}
-</div>
-<div class="total-card">
-  <h2>% AVANCE GENERAL DE LA OBRA</h2>
-  <div class="total-num" id="total-num">—</div>
-  <div style="font-size:11px;opacity:.7;margin-top:3px">Promedio ponderado de las 7 partidas</div>
-  <div class="total-bar-bg"><div class="total-bar-fill" id="total-bar" style="width:0%"></div></div>
-</div>`;
+  const cls = pCls(val);
+  const txt = val + '%';
 
-// Inicializar un inspector por defecto
-addInspectorField();
-addResidenteField();
+  ['badge_', 'fpct_', 'rpct_'].forEach(pfx => {
+    const el = document.getElementById(pfx + pid);
+    if(!el) return;
+    el.textContent = txt;
+    el.className = el.className.replace(/ [gyr] /g, '').trim() + ' ' + cls.n;
+  });
+
+  ['fbar_', 'rbar_'].forEach(pfx => {
+    const el = document.getElementById(pfx + pid);
+    if(el) el.style.width = val + '%';
+  });
+
+  recalcTotal();
+}
 
 // ═══════════════════════════════════════════════
-// CALCULATIONS
+// CALCULATIONS (DETALLADO)
 // ═══════════════════════════════════════════════
 function recalcRow(inp){
   const rid=inp.dataset.rid, pid=inp.dataset.p;
@@ -1264,6 +1477,7 @@ function recalcRow(inp){
 }
 
 function recalcP(pid){
+  if(formType === 'hitos') return;
   const all=[...document.querySelectorAll(`[data-p="${pid}"][id^="pr_"]`)];
   let sumPct=0,cnt=0;
   all.forEach(inp=>{
@@ -1309,7 +1523,6 @@ function recalcTotal(){
 
 function toggleP(id){document.getElementById('p_'+id).classList.toggle('collapsed');}
 
-// (REQUERIMIENTO 2: DESSELECCIÓN DE OPCIONES B, M, R)
 function setEv(btn){
   const rid=btn.dataset.rid;
   const isAlreadyOn = btn.classList.contains('on');
@@ -1319,10 +1532,8 @@ function setEv(btn){
   }
 }
 
-// ═══════════════════════════════════════════════
-// EXTRA ROWS
-// ═══════════════════════════════════════════════
 function addRow(pid, customDesc='', customPr='', customEj='', customEv=''){
+  if(formType === 'hitos') return;
   if(!extraRows[pid]) extraRows[pid]=[];
   const pObj = PARTIDAS.find(p=>p.id===pid);
   const idx = pObj.items.length + extraRows[pid].length;
@@ -1336,9 +1547,9 @@ function addRow(pid, customDesc='', customPr='', customEj='', customEv=''){
   tr.dataset.rid=rid;
   tr.innerHTML=`
     <td class="n" style="position:relative">
-      <button onclick="deleteExtraRow('${rid}','${pid}')" title="Eliminar ítem" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#ffebee;border:1px solid #ffcdd2;color:#c62828;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;line-height:1;padding:0;display:flex;align-items:center;justify-content:center">✕</button>
+      <button onclick="deleteExtraRow('${rid}','${pid}')" title="Eliminar subitem" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#ffebee;border:1px solid #ffcdd2;color:#c62828;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;line-height:1;padding:0;display:flex;align-items:center;justify-content:center">✕</button>
     </td>
-    <td class="desc"><input type="text" placeholder="Descripción del ítem..." id="desc_${rid}" value="${customDesc}" oninput="saveExtraDesc('${pid}',${extraRows[pid].length-1},this.value)"></td>
+    <td class="desc"><input type="text" placeholder="Descripción del subitem..." id="desc_${rid}" value="${customDesc}" oninput="saveExtraDesc('${pid}',${extraRows[pid].length-1},this.value)"></td>
     <td class="col-proyectada"><input type="number" class="num" min="0" id="pr_${rid}" data-rid="${rid}" data-p="${pid}" value="${customPr}" oninput="recalcRow(this)" placeholder="0"></td>
     <td><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${pid}" value="${customEj}" oninput="recalcRow(this)" placeholder="0"></td>
     <td><div class="ev">
@@ -1367,9 +1578,6 @@ function deleteExtraRow(rid, pid) {
   recalcP(pid);
 }
 
-// ═══════════════════════════════════════════════
-// FOTOS & MEDIA
-// ═══════════════════════════════════════════════
 const MAX_FOTO_PX = 1280;      // lado mayor tras reducir
 const CALIDAD_FOTO = 0.72;     // suficiente para respaldo de inspección
 
@@ -1423,6 +1631,8 @@ function getFormData(){
   function gv(id){ const el=document.getElementById(id); return el ? (el.value||el.textContent||'') : ''; }
   const d={
     id: currentEditingIndex !== null ? getSavedReports()[currentEditingIndex].id : ('draft_' + Date.now()),
+    formType: formType,
+    ambito: ambito,
     timestamp: new Date().toLocaleString(),
     fecha:gv('fecha'),
     nro:gv('nro-display'),
@@ -1440,23 +1650,39 @@ function getFormData(){
     partidas:{}, extraRows: extraRows,
     fotos:{}, fotobs:{}
   };
+
+  // Las fotografías y las observaciones por partida entran al borrador en los
+  // dos modos de llenado. Antes no entraban —getFormData no las recogía— y por
+  // eso se perdían al guardar y volver.
   PARTIDAS.forEach(p=>{
     d.fotobs[p.id] = document.getElementById('fotobs_'+p.id)?.value || '';
     d.fotos[p.id]  = [0,1,2].map(fi=>{
       const im = document.getElementById(`fimg_${p.id}_${fi}`);
       return (im && im.src && im.src.indexOf('data:') === 0) ? im.src : '';
     });
-    d.partidas[p.id]=p.items.map((_,i)=>{
-      const rid=`${p.id}_${i}`;
-      const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
-      return {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};
-    });
-    d.partidas[p.id+'_extra']=(extraRows[p.id]||[]).map((row,i)=>{
-      const idx=p.items.length+i; const rid=`${p.id}_extra_${idx}`;
-      const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
-      return {desc:document.getElementById('desc_'+rid)?.value||row.desc||'',pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};
-    });
   });
+  
+  if (formType === 'hitos') {
+    PARTIDAS.forEach(p => {
+      d.partidas[p.id] = {
+        pct: document.getElementById('hitopct_' + p.id)?.value || '',
+        obs: document.getElementById('hitoobs_' + p.id)?.value || ''
+      };
+    });
+  } else {
+    PARTIDAS.forEach(p=>{
+      d.partidas[p.id]=p.items.map((_,i)=>{
+        const rid=`${p.id}_${i}`;
+        const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
+        return {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};
+      });
+      d.partidas[p.id+'_extra']=(extraRows[p.id]||[]).map((row,i)=>{
+        const idx=p.items.length+i; const rid=`${p.id}_extra_${idx}`;
+        const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
+        return {desc:document.getElementById('desc_'+rid)?.value||row.desc||'',pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};
+      });
+    });
+  }
   return d;
 }
 
@@ -1507,7 +1733,7 @@ function renderSavedList() {
   container.innerHTML = list.map((item, index) => `
     <div class="saved-item">
       <div class="saved-item-info">
-        <span class="saved-item-title">${item.nro || 'Sin Correlativo'}</span>
+        <span class="saved-item-title">${item.nro || 'Sin Correlativo'} (${item.formType === 'hitos' ? 'Hitos' : 'Detallado'})</span>
         <span class="saved-item-sub">📍 Torre: ${item.torre || '—'} | Apto: ${item.apto || '—'}</span>
         <span class="saved-item-sub">📅 Guardado: ${item.timestamp}</span>
       </div>
@@ -1525,7 +1751,11 @@ function loadDraftData(index) {
   const d = list[index];
   if (!d) return;
 
-  nuevoFormulario();
+  formType = d.formType || 'detallado';
+  setAmbito(d.ambito || 'apartamento');
+  setupFormTypeUI();
+  initAppContent();
+
   currentEditingIndex = index;
 
   ['fecha','convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(id=>{
@@ -1550,45 +1780,85 @@ function loadDraftData(index) {
     addInspectorField('');
   }
 
-  if(d.torre) {
-    const sel = document.getElementById('torre');
-    if(Array.from(sel.options).some(o=>o.value===d.torre)) {
-      sel.value = d.torre;
+  const torSel = document.getElementById('torre');
+  if (torSel) {
+    const exists = Array.from(torSel.options).some(o => o.value === d.torre);
+    if (exists) {
+      torSel.value = d.torre;
     } else {
-      sel.value = 'NO_REG';
-      handleTorreChange();
-      const tm = document.getElementById('torre-manual');
-      if(tm) tm.value = d.torre;
+      torSel.value = 'NO_REG';
+      document.getElementById('torre-manual-wrap').style.display = 'block';
+      document.getElementById('torre-manual').value = d.torre;
     }
   }
 
-  (d.agentes||[]).forEach(v=>{
-    const btn=document.querySelector(`#agentes .ag-btn[data-val="${v}"]`);
-    if(btn) btn.classList.add('on');
-  });
-  (d.estatus||[]).forEach(v=>document.querySelectorAll('#estatus .ck-lbl').forEach(l=>{
-    if(l.querySelector('input').value===v){l.classList.add('on');l.querySelector('input').checked=true;}
-  }));
-
-  if(d.partidas) PARTIDAS.forEach(p=>{
-    (d.partidas[p.id]||[]).forEach((row,i)=>{
-      const rid=`${p.id}_${i}`;
-      if(document.getElementById('pr_'+rid)) document.getElementById('pr_'+rid).value=row.pr;
-      if(document.getElementById('ej_'+rid)) document.getElementById('ej_'+rid).value=row.ej;
-      if(row.ev){
-        const btn=document.querySelector(`.ev-btn.${row.ev}[data-rid="${rid}"]`);
-        if(btn){document.querySelectorAll(`.ev-btn[data-rid="${rid}"]`).forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
-      }
-      if(row.pr||row.ej) recalcRow(document.getElementById('pr_'+rid)||document.getElementById('ej_'+rid));
+  if(d.agentes) {
+    document.querySelectorAll('#agentes .ag-btn').forEach(btn => {
+      if(d.agentes.includes(btn.dataset.val)) btn.classList.add('on');
+      else btn.classList.remove('on');
     });
+  }
 
-    if(d.partidas[p.id+'_extra']) {
-      d.partidas[p.id+'_extra'].forEach(ext => {
-        addRow(p.id, ext.desc, ext.pr, ext.ej, ext.ev);
+  if(d.estatus) {
+    document.querySelectorAll('#estatus .ck-lbl').forEach(lbl => {
+      const val = lbl.querySelector('input').value;
+      if(d.estatus.includes(val)) {
+        lbl.classList.add('on');
+        lbl.querySelector('input').checked = true;
+      } else {
+        lbl.classList.remove('on');
+        lbl.querySelector('input').checked = false;
+      }
+    });
+  }
+
+  if (d.partidas) {
+    if (formType === 'hitos') {
+      Object.keys(d.partidas).forEach(pid => {
+        const pData = d.partidas[pid];
+        const inp = document.getElementById('hitopct_' + pid);
+        if (inp && pData.pct !== undefined) {
+          inp.value = pData.pct;
+          recalcHito(pid);
+        }
+        const obs = document.getElementById('hitoobs_' + pid);
+        if (obs && pData.obs !== undefined) obs.value = pData.obs;
       });
+    } else {
+      Object.keys(d.partidas).forEach(pid => {
+        if(pid.endsWith('_extra')) return;
+        const arr = d.partidas[pid];
+        if(Array.isArray(arr)) {
+          arr.forEach((item, i) => {
+            const rid = `${pid}_${i}`;
+            const prInp = document.getElementById('pr_'+rid);
+            const ejInp = document.getElementById('ej_'+rid);
+            if(prInp && item.pr !== undefined) prInp.value = item.pr;
+            if(ejInp && item.ej !== undefined) ejInp.value = item.ej;
+            if(item.ev) {
+              const b = document.querySelector(`.ev-btn[data-rid="${rid}"].${item.ev}`);
+              if(b) setEv(b);
+            }
+            if(prInp || ejInp) recalcRow(prInp || ejInp);
+          });
+        }
+      });
+      if(d.extraRows) {
+        Object.keys(d.extraRows).forEach(pid => {
+          const rows = d.extraRows[pid];
+          if(Array.isArray(rows)) {
+            rows.forEach(r => {
+              addRow(pid, r.desc, r.pr, r.ej, r.ev);
+            });
+          }
+        });
+      }
     }
-  });
+  }
 
+  const el = document.getElementById('nro-display');
+  if(el && d.nro) el.textContent = d.nro;
+  
   PARTIDAS.forEach(p=>{
     if(d.fotobs && d.fotobs[p.id] !== undefined){
       const t = document.getElementById('fotobs_'+p.id);
@@ -1599,72 +1869,53 @@ function loadDraftData(index) {
     }
   });
 
-  updateDocInfo();
   closeSavedModal();
-  showToast('📂 Borrador cargado. Puede modificarlo y hacer clic en Guardar Borrador.', 'ok');
-}
-
-function sendSavedDirect(index) {
-  loadDraftData(index);
-  openSend();
+  showToast('📂 Borrador cargado correctamente para edición', 'ok');
 }
 
 function deleteSavedReport(index) {
-  if (confirm('¿Desea eliminar este informe guardado?')) {
-    const list = getSavedReports();
-    list.splice(index, 1);
-    localStorage.setItem('garmel_reports_list', JSON.stringify(list));
-    if(currentEditingIndex === index) currentEditingIndex = null;
-    renderSavedList();
-    showToast('🗑️ Informe eliminado', 'ok');
-  }
+  if(!confirm('¿Desea eliminar este informe guardado?')) return;
+  const list = getSavedReports();
+  list.splice(index, 1);
+  localStorage.setItem('garmel_reports_list', JSON.stringify(list));
+  if(currentEditingIndex === index) currentEditingIndex = null;
+  else if(currentEditingIndex > index) currentEditingIndex--;
+  renderSavedList();
+  showToast('🗑️ Informe eliminado de la lista', 'ok');
 }
 
 function nuevoFormulario() {
+  if(!confirm('¿Desea iniciar un nuevo informe? Se limpiarán los campos actuales.')) return;
   currentEditingIndex = null;
-  var f=document.getElementById('fecha'); if(f) f.valueAsDate=new Date();
-  ['convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(function(id){
-    var e=document.getElementById(id);if(e)e.value='';
-  });
+  document.getElementById('fecha').value = '';
+  document.getElementById('convenio').value = '';
+  document.getElementById('empresa').value = '';
+  document.getElementById('torre').value = '';
+  document.getElementById('piso').value = '';
+  document.getElementById('apto').value = '';
+  document.getElementById('obs_sp').value = '';
+  document.getElementById('obs_general').value = '';
+  document.getElementById('residentes-container').innerHTML = '';
+  document.getElementById('inspectores-container').innerHTML = '';
+  addResidenteField();
+  addInspectorField();
+  document.querySelectorAll('.ck-lbl').forEach(l=>{l.classList.remove('on'); l.querySelector('input').checked=false;});
+  document.querySelectorAll('.ag-btn').forEach(b=>b.classList.remove('on'));
+  initAppContent();
+  updateNroInforme();
+  showToast('🆕 Formulario limpio para nuevo registro', 'ok');
+}
 
-  const resContainer = document.getElementById('residentes-container');
-  resContainer.innerHTML = '';
-  addResidenteField('');
-
-  const inspContainer = document.getElementById('inspectores-container');
-  inspContainer.innerHTML = '';
-  addInspectorField('');
-
-  var tSel=document.getElementById('torre'); if(tSel)tSel.value='';
-  var tw=document.getElementById('torre-manual-wrap'); if(tw)tw.style.display='none';
-  var tm=document.getElementById('torre-manual'); if(tm)tm.value='';
-  
-  document.querySelectorAll('#estatus .ck-lbl').forEach(function(l){
-    l.classList.remove('on');var c=l.querySelector('input');if(c)c.checked=false;
-  });
-  document.querySelectorAll('#agentes .ag-btn').forEach(function(b){b.classList.remove('on');});
-
-  PARTIDAS.forEach(function(p){
-    p.items.forEach(function(_,i){
-      var rid=p.id+'_'+i;
-      var pr=document.getElementById('pr_'+rid), ej=document.getElementById('ej_'+rid);
-      var fl=document.getElementById('flt_'+rid), pc=document.getElementById('pct_'+rid);
-      if(pr)pr.value=''; if(ej)ej.value='';
-      if(fl){fl.textContent='—';fl.style.color='#aaa';} if(pc)pc.innerHTML='<span style="color:#ccc">—</span>';
-      document.querySelectorAll('.ev-btn[data-rid="'+rid+'"]').forEach(function(b){b.classList.remove('on');});
-    });
-    var xTbody=document.getElementById('extra_'+p.id);
-    if(xTbody) xTbody.innerHTML='';
-    extraRows[p.id] = [];
-    [0,1,2].forEach(fi=>removeFoto(p.id, fi));
-    const fotObs = document.getElementById(`fotobs_${p.id}`);
-    if(fotObs) fotObs.value = '';
-    recalcP(p.id);
-  });
-
-  filtrarPorConvenio();
-  updateDocInfo();
-  showToast('✨ Formulario listo para nueva inspección','ok');
+function finalizarInforme() {
+  if(!TEST_MODE) {
+    reportCounter++;
+    localStorage.setItem('garmel_cnt', String(reportCounter));
+  }
+  showToast('✅ ¡Informe finalizado con éxito!', 'ok');
+  setTimeout(() => {
+    const welcome = document.getElementById('welcome-screen');
+    if(welcome) welcome.classList.remove('hidden');
+  }, 1200);
 }
 
 // ═══════════════════════════════════════════════
@@ -1692,37 +1943,92 @@ function _restaurarTrasImpresion(){
 window.addEventListener('beforeprint', _prepararImpresion);
 window.addEventListener('afterprint', _restaurarTrasImpresion);
 
-// ═══════════════════════════════════════════════
-// MONDAY INTEGRATION & PDF GENERATION
-// ═══════════════════════════════════════════════
-function openSend(){
+function openSend() {
+  const c = document.getElementById('claveEnvio');
+  if(c) c.value = localStorage.getItem('garmel_clave_envio') || '';
   document.getElementById('overlay').classList.add('open');
 }
 
-// El envío automático todavía no está montado. Hasta que lo esté, el circuito
-// es: generar el PDF y subirlo a la carpeta de Drive de la torre.
-function avisoEnvioManual(){
-  closeSend();
-  alert('El envío automático todavía no está disponible.\n\n' +
-        'Por ahora:\n' +
-        '1. Toque el botón 🖨️ PDF\n' +
-        '2. Elija «Guardar como PDF»\n' +
-        '3. Suba ese archivo a la carpeta de Drive de la torre\n\n' +
-        'El borrador queda guardado en este teléfono.');
+function closeSend() {
+  document.getElementById('overlay').classList.remove('open');
 }
-function closeSend(){document.getElementById('overlay').classList.remove('open');}
 
-function pdfProgress(pct, status, sub) {
-  var bar  = document.getElementById('pdf-bar');
-  var st   = document.getElementById('pdf-status');
-  var sub2 = document.getElementById('pdf-substatus');
-  if (bar)  bar.style.width = pct + '%';
-  if (st && status)   st.textContent = status;
-  if (sub2 && sub !== undefined) sub2.textContent = sub;
+function sendSavedDirect(index) {
+  loadDraftData(index);
+  openSend();
 }
-function showPdfOverlay(show) {
-  var ov = document.getElementById('pdf-overlay');
-  if (ov) ov.style.display = show ? 'flex' : 'none';
+
+const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQiGp3CCZmIWTnsWBD0KEw5quMkexDcBieUESBkmTspqAsvjoXQ/exec';
+
+// Recoge las fotografías tal como quedaron tras reducirse, con un nombre que
+// dice de qué hito son.
+function _fotosParaEnviar(){
+  const out = [];
+  if (typeof PARTIDAS === 'undefined') return out;
+  PARTIDAS.forEach(p=>{
+    [0,1,2].forEach(fi=>{
+      const im = document.getElementById(`fimg_${p.id}_${fi}`);
+      if(im && im.src && im.src.indexOf('data:') === 0){
+        out.push({ nombre: p.id + '-' + (fi + 1), dato: im.src });
+      }
+    });
+  });
+  return out;
+}
+
+async function enviarAlRelevo() {
+  const clave = (document.getElementById('claveEnvio').value || '').trim();
+  const logEl = document.getElementById('sendLog');
+  const btn   = document.getElementById('btn-enviar-relevo');
+
+  if(!clave){ alert('Escriba la clave de envío.'); return; }
+
+  const datos = getFormData();
+  if(!getTorreActual() || getTorreActual() === '—'){
+    alert('Falta la torre. Sin torre no se puede archivar el informe.');
+    return;
+  }
+
+  const fotos = _fotosParaEnviar();
+  logEl.style.display = 'block';
+  logEl.textContent = 'Enviando ' + datos.nro + '…\n' +
+                      fotos.length + ' fotografía(s)\n';
+  btn.disabled = true;
+
+  try {
+    // Content-Type de texto plano a propósito: evita la verificación previa de
+    // CORS, que Apps Script no responde.
+    const r = await fetch(RELEVO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        clave:  clave,
+        numero: datos.nro,
+        sector: getSectorActual(),
+        torre:  getTorreActual(),
+        ambito: ambito,
+        datos:  datos,
+        fotos:  fotos
+      })
+    });
+    const res = await r.json();
+
+    if(res.ok){
+      localStorage.setItem('garmel_clave_envio', clave);
+      logEl.textContent += '✅ Archivado en Drive\n' + (res.archivos || []).join('\n');
+      showToast('✅ Informe enviado y archivado', 'ok');
+      closeSend();
+    } else {
+      logEl.textContent += '❌ ' + (res.error || 'Error desconocido');
+      showToast('❌ ' + (res.error || 'No se pudo enviar'), 'err');
+    }
+  } catch(e) {
+    logEl.textContent += '❌ Sin conexión o el relevo no responde: ' + e.message +
+      '\nEl borrador sigue guardado en este teléfono. Intente de nuevo con señal.';
+    showToast('❌ No se pudo enviar. El borrador no se perdió', 'err');
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -1736,6 +2042,14 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });
   });
 }
+
+// Inicialización general al cargar
+window.onload = function() {
+  const today = new Date().toISOString().split('T')[0];
+  const f = document.getElementById('fecha');
+  if(f) f.value = today;
+  updateDocInfo();
+};
 </script>
 </body>
 </html>

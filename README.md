@@ -65,6 +65,22 @@ Así se sabe siempre qué se le tocó al trabajo de Skarlet y por qué.
 Hay que **subir el número de `VERSION` en `sw.js`**. Es lo que hace que los teléfonos se traigan la
 copia nueva la próxima vez que tengan internet. Si no se sube, siguen abriendo la vieja.
 
+## Los siete hitos y el ámbito del informe
+
+La inspección se estructura en **siete hitos con 38 ítems**, aprobados por la **Ing. Beatriz Sevilla**
+(ADR-0017 del repositorio de contexto), en sustitución de las 7 partidas y 68 ítems anteriores.
+
+Hay **dos modos de llenado** —detallado con subítems, y simplificado con un porcentaje y una observación
+por hito— y **dos ámbitos**:
+
+| Ámbito | Hitos que muestra | Piso y apartamento |
+| --- | --- | --- |
+| 🚪 **Apartamento** | 2 Revestimientos · 3 Arquitectura · 4 Sanitarias · 5 Eléctricas · 6 Gas e incendio | obligatorios |
+| 🏢 **Torre completa** | 1 Estructura · 7 Mecánicas y áreas comunes | no aplican |
+
+No se inspecciona un ascensor en el apartamento 3-A. **Qué hito va en qué ámbito es criterio de
+ingeniería**: se cambia en la lista `HITOS_DE_TORRE`, que es una sola línea en `construir.py`.
+
 ## Qué se corrigió respecto del original
 
 | | Qué pasaba | Qué se hizo |
@@ -76,7 +92,8 @@ copia nueva la próxima vez que tengan internet. Si no se sube, siguen abriendo 
 | **Número de informe** | Contador por teléfono, sin sector: se repetía | Compuesto (ver arriba) |
 | **Logos** | Una «C» y una «G» dibujadas a mano, y el emblema oficial aproximado con polígonos | Logos reales |
 | **Fotos en el PDF** | Salían de 80×65 px, ilegibles | Un tercio del ancho de página; los recuadros vacíos no se imprimen |
-| **Botón «Enviar»** | Llamaba a una función inexistente: no pasaba nada | Explica el circuito manual mientras el envío automático no esté montado |
+| **Botón «Enviar»** | Enviaba a monday.com, que ADR-0014 no adoptó | Envía al [relevo](../relevo-drive/) de Garmel, que archiva en Drive |
+| **Ámbito del informe** | Los hitos de torre y de apartamento en una sola lista | Selector de ámbito; el número lleva `TORRE` cuando corresponde |
 
 ## Lo que todavía no hace
 

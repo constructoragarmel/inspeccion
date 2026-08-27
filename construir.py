@@ -10,7 +10,7 @@ deja de encontrar su ancla, el script falla en vez de producir un archivo a medi
 import base64, os, re, sys
 
 RAIZ = os.path.dirname(os.path.abspath(__file__))
-ORIG = os.path.join(RAIZ, "fuente", "Formulario Garmel.V8262026.html")
+ORIG = os.path.join(RAIZ, "fuente", "Formularios.V8272026.html")
 SALIDA = os.path.join(RAIZ, "index.html")
 LOGOS = os.path.join(RAIZ, "recursos")
 
@@ -64,7 +64,7 @@ s = sustituir(s, s[ini_w:fin_w],
 # Eran una «C» y una «G» dibujadas a mano, y un emblema oficial aproximado
 # con tres polígonos de colores. Van al PDF, así que son la cara del informe.
 ini_l = s.index('<div style="display:flex;align-items:center;gap:18px">\n    <div style="text-align:center">')
-fin_l = s.index('<div>\n      <h2 style="font-size:16px;font-weight:900;color:var(--blue)">INFORME DE INSPECCIÓN TÉCNICA</h2>')
+fin_l = s.index('<div>\n      <h2 id="logo-title"')
 s = sustituir(s, s[ini_l:fin_l],
  '<div style="display:flex;align-items:center;gap:18px">\n'
  '    <img src="' + LOGO_GARMEL + '" alt="Constructora Garmel, C.A." '
@@ -136,26 +136,27 @@ function loadFoto(pid,fi,inp){
 # no las recogía, así que no es que se perdieran al sincronizar — nunca entraban.
 s = sustituir(s,
 """    partidas:{}, extraRows: extraRows
-  };
-  PARTIDAS.forEach(p=>{
-    d.partidas[p.id]=p.items.map((_,i)=>{""",
+  };""",
 """    partidas:{}, extraRows: extraRows,
     fotos:{}, fotobs:{}
   };
+
+  // Las fotografías y las observaciones por partida entran al borrador en los
+  // dos modos de llenado. Antes no entraban —getFormData no las recogía— y por
+  // eso se perdían al guardar y volver.
   PARTIDAS.forEach(p=>{
     d.fotobs[p.id] = document.getElementById('fotobs_'+p.id)?.value || '';
     d.fotos[p.id]  = [0,1,2].map(fi=>{
       const im = document.getElementById(`fimg_${p.id}_${fi}`);
       return (im && im.src && im.src.indexOf('data:') === 0) ? im.src : '';
     });
-    d.partidas[p.id]=p.items.map((_,i)=>{""",
+  });""",
  "5· guardar fotos y observaciones en el borrador")
 
 # ── 6. …y vuelven al abrir el borrador ──────────────────────────────────────
 s = sustituir(s,
-"""  updateDocInfo();
-  closeSavedModal();
-  showToast('📂 Borrador cargado. Puede modificarlo y hacer clic en Guardar Borrador.', 'ok');""",
+"""  closeSavedModal();
+  showToast('📂 Borrador cargado correctamente para edición', 'ok');""",
 """  PARTIDAS.forEach(p=>{
     if(d.fotobs && d.fotobs[p.id] !== undefined){
       const t = document.getElementById('fotobs_'+p.id);
@@ -166,9 +167,8 @@ s = sustituir(s,
     }
   });
 
-  updateDocInfo();
   closeSavedModal();
-  showToast('📂 Borrador cargado. Puede modificarlo y hacer clic en Guardar Borrador.', 'ok');""",
+  showToast('📂 Borrador cargado correctamente para edición', 'ok');""",
  "6· restaurar fotos y observaciones al abrir el borrador")
 
 # ── 7. Aviso claro si el teléfono se queda sin espacio ──────────────────────
@@ -261,33 +261,8 @@ s = sustituir(s,
  '<!-- Botón «Reiniciar N°» retirado: el número ya no depende de un contador. -->',
  "12· retirar el botón de reiniciar correlativo")
 
-# ── 14. El botón «Enviar» no fallaba en silencio, ahora dice qué hacer ──────
-# En esta versión `sendToMonday()` no existe: el botón llamaba a una función
-# ausente y no pasaba nada. Mientras el envío automático no esté montado, dice
-# en voz alta cuál es el paso que sí funciona.
-s = sustituir(s,
- """      <button class="m-btn m-confirm" id="btn-enviar-monday" onclick="sendToMonday()">📤 Enviar ahora</button>""",
- """      <button class="m-btn m-confirm" id="btn-enviar-monday" onclick="avisoEnvioManual()">📤 Enviar ahora</button>""",
- "14a· el botón de enviar deja de llamar a una función inexistente")
+# (el envío se rehace entero más abajo, cambio 17)
 
-s = sustituir(s,
- """function openSend(){document.getElementById('overlay').classList.add('open');const t=localStorage.getItem('monday_token');if(t)document.getElementById('mondayToken').value=t;}""",
- """function openSend(){
-  document.getElementById('overlay').classList.add('open');
-}
-
-// El envío automático todavía no está montado. Hasta que lo esté, el circuito
-// es: generar el PDF y subirlo a la carpeta de Drive de la torre.
-function avisoEnvioManual(){
-  closeSend();
-  alert('El envío automático todavía no está disponible.\\n\\n' +
-        'Por ahora:\\n' +
-        '1. Toque el botón 🖨️ PDF\\n' +
-        '2. Elija «Guardar como PDF»\\n' +
-        '3. Suba ese archivo a la carpeta de Drive de la torre\\n\\n' +
-        'El borrador queda guardado en este teléfono.');
-}""",
- "14b· instrucción clara en lugar de un botón mudo")
 
 # ── 15. Las fotografías salían del tamaño de una estampilla en el PDF ───────
 # En pantalla los recuadros son de 90x70 px, y el PDF los imprimía igual: la
@@ -316,9 +291,10 @@ s = sustituir(s,
 # Marcar los recuadros vacíos justo antes de imprimir, y ajustar la altura de
 # las observaciones para que no salgan cortadas en el PDF.
 s = sustituir(s,
- """// ═══════════════════════════════════════════════
-// MONDAY INTEGRATION & PDF GENERATION""",
- """// ═══════════════════════════════════════════════
+"""function openSend() {
+  document.getElementById('overlay').classList.add('open');
+}""",
+"""// ═══════════════════════════════════════════════
 // PREPARAR EL DOCUMENTO ANTES DE IMPRIMIR
 // Un recuadro de foto vacío no debe salir en el informe, y un cuadro de
 // observaciones con barra de desplazamiento sale cortado en el PDF.
@@ -343,22 +319,250 @@ function _restaurarTrasImpresion(){
 window.addEventListener('beforeprint', _prepararImpresion);
 window.addEventListener('afterprint', _restaurarTrasImpresion);
 
-// ═══════════════════════════════════════════════
-// MONDAY INTEGRATION & PDF GENERATION""",
+function openSend() {
+  document.getElementById('overlay').classList.add('open');
+}""",
  "15b· preparar fotos y observaciones antes de imprimir")
+
+
+# ── 16. Ámbito del informe: torre o apartamento ─────────────────────────────
+# Los hitos 1 y 7 son de torre —no se inspecciona un ascensor en el apartamento
+# 3-A— y el resto son de apartamento (ADR-0017). El formulario pregunta el
+# ámbito y muestra solo los hitos que aplican; piso y apartamento dejan de ser
+# obligatorios cuando el informe es de torre.
+s = sustituir(s,
+ """  <div class="sec-lbl">📍 Ubicación</div>""",
+ """  <div class="sec-lbl">📍 Ubicación</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px">
+    <span style="font-size:12px;font-weight:700;color:#555">ÁMBITO DEL INFORME:</span>
+    <button type="button" id="btnAmbApto" onclick="setAmbito('apartamento')"
+      style="padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#e65100;color:#fff">🚪 Apartamento</button>
+    <button type="button" id="btnAmbTorre" onclick="setAmbito('torre')"
+      style="padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666">🏢 Torre completa</button>
+    <span id="ambito-nota" style="font-size:11px;color:#888"></span>
+  </div>""",
+ "16a· selector de ámbito en la ficha de ubicación")
+
+s = sustituir(s,
+ """let formType = 'detallado'; // 'detallado' u 'hitos'""",
+ """let formType = 'detallado'; // 'detallado' u 'hitos'
+
+// ── ÁMBITO DEL INFORME ─────────────────────────────────────────────────────
+// Qué hito se evalúa por torre y cuál por apartamento es criterio de
+// ingeniería (ADR-0017). Esta lista es lo único que hay que cambiar si el
+// ingeniero responsable decide otro reparto.
+const HITOS_DE_TORRE = ['hito_estructura', 'hito_mecanicas'];
+let ambito = 'apartamento';   // 'apartamento' u 'torre'
+
+function setAmbito(a){
+  ambito = (a === 'torre') ? 'torre' : 'apartamento';
+  const esTorre = (ambito === 'torre');
+
+  const on  = 'padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#e65100;color:#fff';
+  const off = 'padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666';
+  const bA = document.getElementById('btnAmbApto'), bT = document.getElementById('btnAmbTorre');
+  if(bA) bA.style.cssText = esTorre ? off : on;
+  if(bT) bT.style.cssText = esTorre ? on  : off;
+
+  // Piso y apartamento solo aplican al informe de vivienda.
+  ['piso','apto'].forEach(id=>{
+    const el = document.getElementById(id);
+    const campo = el ? el.closest('.field') : null;
+    if(campo) campo.style.display = esTorre ? 'none' : '';
+    if(el && esTorre) el.value = '';
+  });
+
+  // Se muestran solo los hitos del ámbito elegido.
+  if (typeof PARTIDAS !== 'undefined') PARTIDAS.forEach(p=>{
+    const bloque = document.getElementById('p_' + p.id);
+    if(!bloque) return;
+    const deTorre = HITOS_DE_TORRE.indexOf(p.id) >= 0;
+    bloque.style.display = (deTorre === esTorre) ? '' : 'none';
+  });
+
+  const nota = document.getElementById('ambito-nota');
+  if(nota) nota.textContent = esTorre
+    ? 'Estructura, ascensores y áreas comunes — no aplica a una vivienda'
+    : 'Acabados, carpintería e instalaciones de la vivienda';
+
+  updateDocInfo();
+}""",
+ "16b· lógica del ámbito")
+
+# El número ya no da por hecho que hay apartamento.
+s = sustituir(s,
+ """  const nro    = (TEST_MODE ? 'PRUEBA-' : '') +
+                 [sector, torre, 'P' + piso + 'A' + apto, fecha, inic].join('-');""",
+ """  const bloque = (ambito === 'torre') ? 'TORRE' : ('P' + piso + 'A' + apto);
+  const nro    = (TEST_MODE ? 'PRUEBA-' : '') +
+                 [sector, torre, bloque, fecha, inic].join('-');""",
+ "16c· el número admite informes de torre")
+
+# El ámbito viaja en el borrador y vuelve al abrirlo.
+s = sustituir(s,
+ """    formType: formType,
+    timestamp: new Date().toLocaleString(),""",
+ """    formType: formType,
+    ambito: ambito,
+    timestamp: new Date().toLocaleString(),""",
+ "16d· el ámbito entra al borrador")
+
+s = sustituir(s,
+ """  formType = d.formType || 'detallado';""",
+ """  formType = d.formType || 'detallado';
+  setAmbito(d.ambito || 'apartamento');""",
+ "16e· el ámbito vuelve al abrir el borrador")
+
+
+# ── 17. El envío va al relevo de Garmel, no a monday.com ───────────────────
+# ADR-0014 fijó Smartsheet como plataforma y no adoptó Monday. El envío pasa al
+# relevo, que archiva en Drive y anota la fila del registro. La DIRECCIÓN va
+# aquí porque sin la clave no sirve de nada; la CLAVE la escribe el inspector
+# una vez en su teléfono y NO se versiona (ADR-0015).
+s = sustituir(s,
+ """    <h3>📤 Enviar a monday.com</h3>
+    <p>Ingresa tu API token para registrar este informe en el tablero <strong>Formulario de Inspecciones</strong>.</p>
+    <label>monday.com API Token</label>
+    <input type="text" id="mondayToken" placeholder="eyJhbGci..." spellcheck="false">
+    <div class="m-btns">
+      <button class="m-btn m-cancel" onclick="closeSend()">Cancelar</button>
+      <button class="m-btn m-confirm" id="btn-enviar-monday" onclick="sendToMonday()">📤 Enviar ahora</button>
+    </div>""",
+ """    <h3>📤 Enviar informe</h3>
+    <p>Se archiva en la carpeta de Drive de la torre y queda anotado en el registro.
+       <strong>La clave se escribe una sola vez en este teléfono.</strong></p>
+    <label>Clave de envío</label>
+    <input type="password" id="claveEnvio" placeholder="La que le dieron en la oficina" spellcheck="false" autocomplete="off">
+    <div class="m-btns">
+      <button class="m-btn m-cancel" onclick="closeSend()">Cancelar</button>
+      <button class="m-btn m-confirm" id="btn-enviar-relevo" onclick="enviarAlRelevo()">📤 Enviar ahora</button>
+    </div>""",
+ "17a· la ventana de envío pide la clave, no un token de Monday")
+
+s = sustituir(s,
+ """function openSend() {
+  document.getElementById('overlay').classList.add('open');
+}""",
+ """function openSend() {
+  const c = document.getElementById('claveEnvio');
+  if(c) c.value = localStorage.getItem('garmel_clave_envio') || '';
+  document.getElementById('overlay').classList.add('open');
+}""",
+ "17b· la clave guardada se recuerda en el teléfono")
+
+# Se reemplaza la función entera de envío a Monday.
+ini = s.index("async function sendToMonday() {")
+fin = s.index("// Inicialización general al cargar")
+s = sustituir(s, s[ini:fin],
+ """const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQiGp3CCZmIWTnsWBD0KEw5quMkexDcBieUESBkmTspqAsvjoXQ/exec';
+
+// Recoge las fotografías tal como quedaron tras reducirse, con un nombre que
+// dice de qué hito son.
+function _fotosParaEnviar(){
+  const out = [];
+  if (typeof PARTIDAS === 'undefined') return out;
+  PARTIDAS.forEach(p=>{
+    [0,1,2].forEach(fi=>{
+      const im = document.getElementById(`fimg_${p.id}_${fi}`);
+      if(im && im.src && im.src.indexOf('data:') === 0){
+        out.push({ nombre: p.id + '-' + (fi + 1), dato: im.src });
+      }
+    });
+  });
+  return out;
+}
+
+async function enviarAlRelevo() {
+  const clave = (document.getElementById('claveEnvio').value || '').trim();
+  const logEl = document.getElementById('sendLog');
+  const btn   = document.getElementById('btn-enviar-relevo');
+
+  if(!clave){ alert('Escriba la clave de envío.'); return; }
+
+  const datos = getFormData();
+  if(!getTorreActual() || getTorreActual() === '—'){
+    alert('Falta la torre. Sin torre no se puede archivar el informe.');
+    return;
+  }
+
+  const fotos = _fotosParaEnviar();
+  logEl.style.display = 'block';
+  logEl.textContent = 'Enviando ' + datos.nro + '…\\n' +
+                      fotos.length + ' fotografía(s)\\n';
+  btn.disabled = true;
+
+  try {
+    // Content-Type de texto plano a propósito: evita la verificación previa de
+    // CORS, que Apps Script no responde.
+    const r = await fetch(RELEVO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        clave:  clave,
+        numero: datos.nro,
+        sector: getSectorActual(),
+        torre:  getTorreActual(),
+        ambito: ambito,
+        datos:  datos,
+        fotos:  fotos
+      })
+    });
+    const res = await r.json();
+
+    if(res.ok){
+      localStorage.setItem('garmel_clave_envio', clave);
+      logEl.textContent += '✅ Archivado en Drive\\n' + (res.archivos || []).join('\\n');
+      showToast('✅ Informe enviado y archivado', 'ok');
+      closeSend();
+    } else {
+      logEl.textContent += '❌ ' + (res.error || 'Error desconocido');
+      showToast('❌ ' + (res.error || 'No se pudo enviar'), 'err');
+    }
+  } catch(e) {
+    logEl.textContent += '❌ Sin conexión o el relevo no responde: ' + e.message +
+      '\\nEl borrador sigue guardado en este teléfono. Intente de nuevo con señal.';
+    showToast('❌ No se pudo enviar. El borrador no se perdió', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+""", "17c· enviar al relevo en lugar de a monday.com")
+
+
+# ── 18. Dos textos de la interfaz que todavía nombraban a monday.com ───────
+s = sustituir(s, "⚠️ Torre no registrada en monday.com",
+ "⚠️ Torre no registrada en el maestro", "18a· aviso de torre no registrada")
+
+s = sustituir(s,
+ "Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo directamente a monday.com.",
+ "Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo.",
+ "18b· texto de la lista de guardados")
+
+
+# ── 19. Aplicar el ámbito al terminar de dibujar el formulario ─────────────
+# Sin esto, al abrir se ven los siete hitos, incluidos los de torre, hasta que
+# alguien toca el selector.
+s = sustituir(s,
+ """  if(formType === 'hitos') {
+    const mb = document.getElementById('mode-bar');
+    if(mb) mb.style.display = 'none';
+  }
+}""",
+ """  if(formType === 'hitos') {
+    const mb = document.getElementById('mode-bar');
+    if(mb) mb.style.display = 'none';
+  }
+
+  setAmbito(ambito);
+}""",
+ "19· aplicar el ámbito al dibujar el formulario")
 
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
-"""function showPdfOverlay(show) {
-  var ov = document.getElementById('pdf-overlay');
-  if (ov) ov.style.display = show ? 'flex' : 'none';
-}""",
-"""function showPdfOverlay(show) {
-  var ov = document.getElementById('pdf-overlay');
-  if (ov) ov.style.display = show ? 'flex' : 'none';
-}
-
-// ═══════════════════════════════════════════════
+"""// Inicialización general al cargar
+window.onload = function() {""",
+"""// ═══════════════════════════════════════════════
 // FUNCIONAMIENTO SIN SEÑAL
 // El navegador se guarda una copia la primera vez que se abre con internet.
 // A partir de ahí abre sin señal, indefinidamente, y se actualiza solo cuando
@@ -368,7 +572,10 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });
   });
-}""",
+}
+
+// Inicialización general al cargar
+window.onload = function() {""",
  "13· registrar el service worker")
 
 open(SALIDA, "w", encoding="utf-8").write(s)
