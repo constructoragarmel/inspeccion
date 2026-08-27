@@ -218,6 +218,12 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .ev-btn.B.on{background:#2e7d32;border-color:#2e7d32;color:#fff}
 .ev-btn.R.on{background:#f57f17;border-color:#f57f17;color:#fff}
 .ev-btn.M.on{background:#c62828;border-color:#c62828;color:#fff}
+.no-insp-tgl{cursor:pointer;font-size:15px;opacity:.45;padding:0 4px;user-select:none;color:#fff}
+.no-insp-tgl.on{opacity:1;background:rgba(0,0,0,.28);border-radius:6px}
+.partida.no-inspeccionada .p-body{opacity:.38;pointer-events:none}
+.partida.no-inspeccionada .p-hdr h2::after{content:' · NO INSPECCIONADO';font-size:10px;opacity:.85}
+.ev-btn.NA{border-color:#bdbdbd}
+.ev-btn.NA.on{background:#757575;border-color:#757575;color:#fff}
 
 /* ADD ROW BTN */
 .add-row-btn{margin:8px 16px 4px;padding:6px 14px;background:#f5f7ff;border:1.5px dashed #c5cae9;border-radius:7px;color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;width:calc(100% - 32px);text-align:left;transition:all .15s}
@@ -450,7 +456,9 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Ver informes almacenados localmente">📁 <span>Guardados</span></button>
     <button class="hbtn hbtn-finalizar" onclick="finalizarInforme()" title="Finalizar informe, guardar, incrementar correlativo y volver a la pantalla de inicio">✅ <span>Finalizar</span></button>
     <button class="hbtn hbtn-send" onclick="openSend()">📤 <span>Enviar</span></button>
-    <button class="hbtn hbtn-pdf" onclick="window.print()">🖨️ <span>PDF</span></button>
+    <button class="hbtn hbtn-pdf" onclick="imprimirInforme()">🖨️ <span>PDF</span></button>
+  <span id="estado-guardado" style="font-size:11px;font-weight:700;color:#999;align-self:center;margin-left:4px"></span>
+  <span id="estado-conexion" style="font-size:11px;font-weight:700;align-self:center;margin-left:8px"></span>
     <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" title="Activar modo de prueba — el correlativo NO se incrementa" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3)">🧪 <span>Prueba</span></button>
     <!-- Botón «Reiniciar N°» retirado: el número ya no depende de un contador. -->
   </div>
@@ -546,6 +554,13 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     </div>
   </div>
 
+  <div style="background:#f5f7ff;border:1px solid #e0e4ff;border-radius:8px;padding:8px 12px;margin:0 0 12px;font-size:11px;color:#444;line-height:1.6">
+    <strong style="color:#1a237e">Escala de evaluación:</strong>
+    <b>B</b> = ejecutado conforme, sin observaciones ·
+    <b>R</b> = ejecutado con defectos subsanables, requiere corrección ·
+    <b>M</b> = mal ejecutado o inservible, requiere rehacer ·
+    <b>N/A</b> = no aplica o no se pudo verificar — <em>no cuenta para el promedio</em>
+  </div>
   <div class="sec-lbl">📍 Ubicación</div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px">
     <span style="font-size:12px;font-weight:700;color:#555">ÁMBITO DEL INFORME:</span>
@@ -758,6 +773,64 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 // INICIO & WELCOME SCREEN FUNCTION (CON SELECTOR DE FORMULARIO)
 // ═══════════════════════════════════════════════
 let formType = 'detallado'; // 'detallado' u 'hitos'
+
+// ── AUTOGUARDADO ───────────────────────────────────────────────────────────
+// Guarda solo, en el mismo borrador, dos segundos después del último cambio y
+// cada medio minuto. No crea un borrador por cada tecla: reutiliza el que está
+// en edición, igual que el botón de guardar.
+let _hayCambiosSinGuardar = false;
+let _tempAutoguardado = null;
+
+function _marcarCambio(){
+  _hayCambiosSinGuardar = true;
+  clearTimeout(_tempAutoguardado);
+  _tempAutoguardado = setTimeout(autoguardar, 2000);
+}
+
+function autoguardar(){
+  try {
+    if(typeof getTorreActual !== 'function') return;
+    const t = getTorreActual();
+    if(!t || t === '—') return;            // todavía no hay nada que valga la pena
+    saveDraft(true);
+    _hayCambiosSinGuardar = false;
+    _pintarEstadoGuardado(new Date());
+  } catch(e) { /* si no hay espacio, saveDraft ya avisa */ }
+}
+
+function _pintarEstadoGuardado(cuando){
+  const el = document.getElementById('estado-guardado');
+  if(!el) return;
+  const hh = String(cuando.getHours()).padStart(2,'0');
+  const mm = String(cuando.getMinutes()).padStart(2,'0');
+  el.textContent = '💾 guardado ' + hh + ':' + mm;
+  el.style.color = '#2e7d32';
+}
+
+document.addEventListener('input',  _marcarCambio, true);
+document.addEventListener('change', _marcarCambio, true);
+setInterval(function(){ if(_hayCambiosSinGuardar) autoguardar(); }, 30000);
+
+window.addEventListener('beforeunload', function(e){
+  if(_hayCambiosSinGuardar){ e.preventDefault(); e.returnValue = ''; }
+});
+
+// ── CONEXIÓN ───────────────────────────────────────────────────────────────
+// El inspector necesita saber si «Enviar» va a funcionar antes de tocarlo.
+function _pintarConexion(){
+  const el = document.getElementById('estado-conexion');
+  if(!el) return;
+  if(navigator.onLine){
+    el.textContent = '● en línea';
+    el.style.color = '#2e7d32';
+  } else {
+    el.textContent = '● sin señal — el informe queda guardado aquí';
+    el.style.color = '#e65100';
+  }
+}
+window.addEventListener('online',  _pintarConexion);
+window.addEventListener('offline', _pintarConexion);
+window.addEventListener('load',    _pintarConexion);
 
 // ── CONFIGURACIÓN DEL TELÉFONO ─────────────────────────────────────────────
 // Se abre una sola vez un enlace con  #clave=...  y este teléfono queda
@@ -1300,6 +1373,8 @@ function initAppContent() {
         <div class="p-hdr" style="background:${p.color}" onclick="toggleP('${p.id}')">
           <div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre} (Evaluación por Hitos)</h2></div>
           <div style="display:flex;align-items:center;gap:9px">
+            <span class="no-insp-tgl" id="noinsp_${p.id}" onclick="event.stopPropagation();toggleNoInspeccionado('${p.id}')"
+                  title="Marcar el hito como no inspeccionado en esta visita">⊘</span>
             <div class="pct-bdg" id="badge_${p.id}">0%</div>
             <span class="arrow">▼</span>
           </div>
@@ -1318,11 +1393,11 @@ function initAppContent() {
           <div class="foto-sec">
             <div class="foto-sec-title">📷 Fotografías — ${p.nombre} (máx. 3)</div>
             <div class="foto-grid" id="fotos_${p.id}">
-              ${[0,1,2].map(fi=>`
+              ${[0,1,2,3,4,5].map(fi=>`
                 <div class="foto-slot" id="fslot_${p.id}_${fi}">
                   <span>📷<br>Foto ${fi+1}</span>
                   <img id="fimg_${p.id}_${fi}" style="display:none">
-                  <input type="file" accept="image/*" onchange="loadFoto('${p.id}',${fi},this)">
+                  <input type="file" accept="image/*" capture="environment" onchange="loadFoto('${p.id}',${fi},this)">
                   <button class="foto-remove" onclick="removeFoto('${p.id}',${fi})">✕</button>
                 </div>`).join('')}
             </div>
@@ -1352,6 +1427,7 @@ function initAppContent() {
             <button class="ev-btn B" data-rid="${rid}" onclick="setEv(this)">B</button>
             <button class="ev-btn R" data-rid="${rid}" onclick="setEv(this)">R</button>
             <button class="ev-btn M" data-rid="${rid}" onclick="setEv(this)">M</button>
+            <button class="ev-btn NA" data-rid="${rid}" onclick="setEv(this)" title="No aplica o no se pudo verificar — no cuenta para el promedio">N/A</button>
           </div></td>
           <td class="falt-cell" id="flt_${rid}" style="color:#aaa">—</td>
           <td class="pct-cell" id="pct_${rid}"><span style="color:#ccc">—</span></td>
@@ -1390,11 +1466,11 @@ function initAppContent() {
           <div class="foto-sec">
             <div class="foto-sec-title">📷 Fotografías — ${p.nombre} (máx. 3)</div>
             <div class="foto-grid" id="fotos_${p.id}">
-              ${[0,1,2].map(fi=>`
+              ${[0,1,2,3,4,5].map(fi=>`
                 <div class="foto-slot" id="fslot_${p.id}_${fi}">
                   <span>📷<br>Foto ${fi+1}</span>
                   <img id="fimg_${p.id}_${fi}" style="display:none">
-                  <input type="file" accept="image/*" onchange="loadFoto('${p.id}',${fi},this)">
+                  <input type="file" accept="image/*" capture="environment" onchange="loadFoto('${p.id}',${fi},this)">
                   <button class="foto-remove" onclick="removeFoto('${p.id}',${fi})">✕</button>
                 </div>`).join('')}
             </div>
@@ -1498,10 +1574,13 @@ function recalcRow(inp){
 
 function recalcP(pid){
   if(formType === 'hitos') return;
+  if(hitosNoInspeccionados[pid]) return;
   const all=[...document.querySelectorAll(`[data-p="${pid}"][id^="pr_"]`)];
   let sumPct=0,cnt=0;
   all.forEach(inp=>{
     const rid=inp.dataset.rid;
+    // Un ítem marcado N/A no entra al promedio: no es un cero, es «no cuenta».
+    if(document.querySelector(`.ev-btn.NA.on[data-rid="${rid}"]`)) return;
     const pr=parseFloat(inp.value)||0;
     const ej=parseFloat(document.getElementById('ej_'+rid)?.value)||0;
     if(pr>0){sumPct+=Math.min(100,Math.round((ej/pr)*100));cnt++;}
@@ -1521,6 +1600,30 @@ function recalcP(pid){
     if(el) el.style.width=(pct||0)+'%';
   });
   recalcTotal();
+}
+
+// Un hito no inspeccionado no vale cero: vale «no se sabe». Se apaga, no
+// aporta al promedio de la torre, y queda registrado como tal en el informe.
+let hitosNoInspeccionados = {};
+
+function toggleNoInspeccionado(pid){
+  hitosNoInspeccionados[pid] = !hitosNoInspeccionados[pid];
+  _pintarNoInspeccionado(pid);
+  recalcTotal();
+  _marcarCambio();
+}
+
+function _pintarNoInspeccionado(pid){
+  const activo = !!hitosNoInspeccionados[pid];
+  const bloque = document.getElementById('p_' + pid);
+  const tgl    = document.getElementById('noinsp_' + pid);
+  if(bloque) bloque.classList.toggle('no-inspeccionada', activo);
+  if(tgl)    tgl.classList.toggle('on', activo);
+  ['badge_','fpct_','rpct_'].forEach(function(pfx){
+    const el = document.getElementById(pfx + pid);
+    if(el && activo) el.textContent = '—';
+  });
+  if(!activo && typeof recalcP === 'function') recalcP(pid);
 }
 
 function recalcTotal(){
@@ -1653,6 +1756,7 @@ function getFormData(){
     id: currentEditingIndex !== null ? getSavedReports()[currentEditingIndex].id : ('draft_' + Date.now()),
     formType: formType,
     ambito: ambito,
+    noInspeccionados: Object.keys(hitosNoInspeccionados).filter(k=>hitosNoInspeccionados[k]),
     timestamp: new Date().toLocaleString(),
     fecha:gv('fecha'),
     nro:gv('nro-display'),
@@ -1676,7 +1780,7 @@ function getFormData(){
   // eso se perdían al guardar y volver.
   PARTIDAS.forEach(p=>{
     d.fotobs[p.id] = document.getElementById('fotobs_'+p.id)?.value || '';
-    d.fotos[p.id]  = [0,1,2].map(fi=>{
+    d.fotos[p.id]  = [0,1,2,3,4,5].map(fi=>{
       const im = document.getElementById(`fimg_${p.id}_${fi}`);
       return (im && im.src && im.src.indexOf('data:') === 0) ? im.src : '';
     });
@@ -1712,17 +1816,17 @@ function getSavedReports() {
   } catch(e) { return []; }
 }
 
-function saveDraft(){
+function saveDraft(silencioso){
   try{
     const data = getFormData();
     const list = getSavedReports();
     if(currentEditingIndex !== null && list[currentEditingIndex]) {
       list[currentEditingIndex] = data;
-      showToast('✅ Borrador modificado y actualizado con éxito', 'ok');
+      if(!silencioso) showToast('✅ Borrador modificado y actualizado con éxito', 'ok');
     } else {
       list.unshift(data);
       currentEditingIndex = 0;
-      showToast('✅ Nuevo borrador guardado localmente','ok');
+      if(!silencioso) showToast('✅ Nuevo borrador guardado localmente','ok');
     }
     localStorage.setItem('garmel_reports_list', JSON.stringify(list));
   } catch(e){
@@ -1773,6 +1877,11 @@ function loadDraftData(index) {
 
   formType = d.formType || 'detallado';
   setAmbito(d.ambito || 'apartamento');
+  hitosNoInspeccionados = {};
+  (d.noInspeccionados || []).forEach(function(pid){
+    hitosNoInspeccionados[pid] = true;
+    _pintarNoInspeccionado(pid);
+  });
   setupFormTypeUI();
   initAppContent();
 
@@ -1921,6 +2030,7 @@ function nuevoFormulario() {
   addInspectorField();
   document.querySelectorAll('.ck-lbl').forEach(l=>{l.classList.remove('on'); l.querySelector('input').checked=false;});
   document.querySelectorAll('.ag-btn').forEach(b=>b.classList.remove('on'));
+  hitosNoInspeccionados = {};
   initAppContent();
   updateNroInforme();
   showToast('🆕 Formulario limpio para nuevo registro', 'ok');
@@ -2034,7 +2144,7 @@ function _fotosParaEnviar(){
   const out = [];
   if (typeof PARTIDAS === 'undefined') return out;
   PARTIDAS.forEach(p=>{
-    [0,1,2].forEach(fi=>{
+    [0,1,2,3,4,5].forEach(fi=>{
       const im = document.getElementById(`fimg_${p.id}_${fi}`);
       if(im && im.src && im.src.indexOf('data:') === 0){
         out.push({ nombre: p.id + '-' + (fi + 1), dato: im.src });
@@ -2044,7 +2154,48 @@ function _fotosParaEnviar(){
   return out;
 }
 
+// Devuelve la lista de campos obligatorios que faltan, según el ámbito.
+function camposFaltantes(){
+  const falta = [];
+  const simple = [['fecha','Fecha de inspección'], ['convenio','Convenio'],
+                  ['empresa','Empresa ejecutora'], ['torre','Torre']];
+  simple.forEach(function(par){
+    const el = document.getElementById(par[0]);
+    if(!el || !String(el.value || '').trim()) falta.push(par[1]);
+  });
+  if(document.getElementById('torre')?.value === 'NO_REG' &&
+     !String(document.getElementById('torre-manual')?.value || '').trim()){
+    falta.push('Nombre de la torre');
+  }
+  if(ambito !== 'torre'){
+    if(!String(document.getElementById('piso')?.value || '')) falta.push('Piso');
+    if(!String(document.getElementById('apto')?.value || '').trim()) falta.push('N° de apartamento');
+  }
+  if(typeof getResidentesValues === 'function' && !getResidentesValues().length) falta.push('Ingeniero residente');
+  if(typeof getInspectoresValues === 'function' && !getInspectoresValues().length) falta.push('Ingeniero inspector');
+  if(!document.querySelectorAll('#estatus .ck-lbl.on').length) falta.push('Estatus de la obra');
+  return falta;
+}
+
+function _avisarFaltantes(falta){
+  return 'Faltan estos datos obligatorios:\n\n  ·  ' + falta.join('\n  ·  ');
+}
+
+// El PDF avisa pero deja seguir: a veces se imprime un informe a medias a
+// propósito. El envío no, porque lo que se archiva mal se queda mal.
+function imprimirInforme(){
+  const falta = camposFaltantes();
+  if(falta.length && !confirm(_avisarFaltantes(falta) + '\n\n¿Generar el PDF de todos modos?')) return;
+  window.print();
+}
+
 async function enviarAlRelevo() {
+  const falta = camposFaltantes();
+  if(falta.length){
+    alert(_avisarFaltantes(falta) + '\n\nEl número del informe se arma con estos datos, ' +
+          'así que sin ellos quedaría mal archivado.');
+    return;
+  }
   const clave = (document.getElementById('claveEnvio').value || '').trim();
   const logEl = document.getElementById('sendLog');
   const btn   = document.getElementById('btn-enviar-relevo');
@@ -2052,11 +2203,6 @@ async function enviarAlRelevo() {
   if(!clave){ alert('Escriba la clave de envío.'); return; }
 
   const datos = getFormData();
-  if(!getTorreActual() || getTorreActual() === '—'){
-    alert('Falta la torre. Sin torre no se puede archivar el informe.');
-    return;
-  }
-
   const fotos = _fotosParaEnviar();
   logEl.style.display = 'block';
   logEl.textContent = 'Enviando ' + datos.nro + '…\n' +

@@ -102,6 +102,19 @@ por hito— y **dos ámbitos**:
 No se inspecciona un ascensor en el apartamento 3-A. **Qué hito va en qué ámbito es criterio de
 ingeniería**: se cambia en la lista `HITOS_DE_TORRE`, que es una sola línea en `construir.py`.
 
+## Lo que protege el trabajo en campo
+
+| | Por qué |
+| --- | --- |
+| **Autoguardado** cada 2 s tras el último cambio y cada 30 s | En un teléfono con poca memoria el navegador descarta la pestaña en segundo plano. Antes solo guardaba el botón, a mano, y lo perdido no se notaba hasta abrir y ver el formulario en blanco |
+| **Aviso al salir** con cambios sin guardar | Lo mismo, por la otra puerta |
+| **Validación** de los 8 campos obligatorios | El número del informe se compone de ellos: sin torre queda `XX-T---P--A---------` y así se archiva para siempre. Un dato malo se corrige; un identificador malo contamina todo lo que cuelga de él |
+| **`N/A` y «hito no inspeccionado»** | Un cero significa *no está construido*. «No pude entrar» y «esta torre no tiene ascensor» no son ceros: **no cuentan para el promedio**. Sin esto, todo consolidado nace sesgado hacia abajo |
+| **Indicador de conexión** | El inspector sabe si «Enviar» va a funcionar antes de tocarlo |
+| **La cámara, no la galería** | `capture="environment"` — un atributo, diez personas todos los días |
+| **Seis fotografías por hito** | Tres se quedaban cortas para una patología. Ahora pesan 24 KB, no 3 MB |
+| **Leyenda de B / R / M** | No estaba escrita en ninguna parte. Diez inspectores calificando con criterios distintos alimentan la misma escala |
+
 ## Qué se corrigió respecto del original
 
 | | Qué pasaba | Qué se hizo |

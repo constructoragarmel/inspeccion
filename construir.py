@@ -673,6 +673,321 @@ s = sustituir(s,
       logEl.textContent += '✅ Archivado en Drive\\n'""",
  "20d· el indicador se actualiza tras un envío bueno")
 
+
+# ── 21. Trabajo de campo: no perder lo escrito, no dejar salir un informe a
+#        medias, y distinguir «cero» de «no lo pude ver» ───────────────────
+
+# 21a · Autoguardado. Antes solo guardaba el botón, a mano. En un teléfono con
+# poca memoria el navegador descarta la pestaña en segundo plano y se pierde
+# todo lo escrito, en silencio y sin que nadie lo note hasta abrir y ver
+# el formulario en blanco.
+s = sustituir(s,
+ """// ── CONFIGURACIÓN DEL TELÉFONO ─────────────────────────────────────────────""",
+ """// ── AUTOGUARDADO ───────────────────────────────────────────────────────────
+// Guarda solo, en el mismo borrador, dos segundos después del último cambio y
+// cada medio minuto. No crea un borrador por cada tecla: reutiliza el que está
+// en edición, igual que el botón de guardar.
+let _hayCambiosSinGuardar = false;
+let _tempAutoguardado = null;
+
+function _marcarCambio(){
+  _hayCambiosSinGuardar = true;
+  clearTimeout(_tempAutoguardado);
+  _tempAutoguardado = setTimeout(autoguardar, 2000);
+}
+
+function autoguardar(){
+  try {
+    if(typeof getTorreActual !== 'function') return;
+    const t = getTorreActual();
+    if(!t || t === '—') return;            // todavía no hay nada que valga la pena
+    saveDraft(true);
+    _hayCambiosSinGuardar = false;
+    _pintarEstadoGuardado(new Date());
+  } catch(e) { /* si no hay espacio, saveDraft ya avisa */ }
+}
+
+function _pintarEstadoGuardado(cuando){
+  const el = document.getElementById('estado-guardado');
+  if(!el) return;
+  const hh = String(cuando.getHours()).padStart(2,'0');
+  const mm = String(cuando.getMinutes()).padStart(2,'0');
+  el.textContent = '💾 guardado ' + hh + ':' + mm;
+  el.style.color = '#2e7d32';
+}
+
+document.addEventListener('input',  _marcarCambio, true);
+document.addEventListener('change', _marcarCambio, true);
+setInterval(function(){ if(_hayCambiosSinGuardar) autoguardar(); }, 30000);
+
+window.addEventListener('beforeunload', function(e){
+  if(_hayCambiosSinGuardar){ e.preventDefault(); e.returnValue = ''; }
+});
+
+// ── CONEXIÓN ───────────────────────────────────────────────────────────────
+// El inspector necesita saber si «Enviar» va a funcionar antes de tocarlo.
+function _pintarConexion(){
+  const el = document.getElementById('estado-conexion');
+  if(!el) return;
+  if(navigator.onLine){
+    el.textContent = '● en línea';
+    el.style.color = '#2e7d32';
+  } else {
+    el.textContent = '● sin señal — el informe queda guardado aquí';
+    el.style.color = '#e65100';
+  }
+}
+window.addEventListener('online',  _pintarConexion);
+window.addEventListener('offline', _pintarConexion);
+window.addEventListener('load',    _pintarConexion);
+
+// ── CONFIGURACIÓN DEL TELÉFONO ─────────────────────────────────────────────""",
+ "21a· autoguardado y estado de conexión")
+
+# El autoguardado no debe gritar un aviso cada dos segundos.
+s = sustituir(s,
+ """function saveDraft(){
+  try{""",
+ """function saveDraft(silencioso){
+  try{""",
+ "21b· saveDraft admite guardar en silencio")
+
+s = sustituir(s,
+ """      showToast('✅ Borrador modificado y actualizado con éxito', 'ok');""",
+ """      if(!silencioso) showToast('✅ Borrador modificado y actualizado con éxito', 'ok');""",
+ "21c· sin aviso al autoguardar (modificado)")
+
+s = sustituir(s,
+ """      showToast('✅ Nuevo borrador guardado localmente','ok');""",
+ """      if(!silencioso) showToast('✅ Nuevo borrador guardado localmente','ok');""",
+ "21d· sin aviso al autoguardar (nuevo)")
+
+# 21e · Los dos indicadores, en la barra superior donde siempre se ven.
+s = sustituir(s,
+ """  <button class="hbtn hbtn-pdf" onclick="window.print()">🖨️ <span>PDF</span></button>""",
+ """  <button class="hbtn hbtn-pdf" onclick="imprimirInforme()">🖨️ <span>PDF</span></button>
+  <span id="estado-guardado" style="font-size:11px;font-weight:700;color:#999;align-self:center;margin-left:4px"></span>
+  <span id="estado-conexion" style="font-size:11px;font-weight:700;align-self:center;margin-left:8px"></span>""",
+ "21e· indicadores de guardado y de conexión en la barra")
+
+# 21f · Validación. Nueve campos marcados con * y nada los comprobaba. Importa
+# más que antes porque el número del informe se compone de ellos: un informe sin
+# torre se archiva como XX-T---P--A--------- y eso ya no se arregla.
+s = sustituir(s,
+ """async function enviarAlRelevo() {""",
+ """// Devuelve la lista de campos obligatorios que faltan, según el ámbito.
+function camposFaltantes(){
+  const falta = [];
+  const simple = [['fecha','Fecha de inspección'], ['convenio','Convenio'],
+                  ['empresa','Empresa ejecutora'], ['torre','Torre']];
+  simple.forEach(function(par){
+    const el = document.getElementById(par[0]);
+    if(!el || !String(el.value || '').trim()) falta.push(par[1]);
+  });
+  if(document.getElementById('torre')?.value === 'NO_REG' &&
+     !String(document.getElementById('torre-manual')?.value || '').trim()){
+    falta.push('Nombre de la torre');
+  }
+  if(ambito !== 'torre'){
+    if(!String(document.getElementById('piso')?.value || '')) falta.push('Piso');
+    if(!String(document.getElementById('apto')?.value || '').trim()) falta.push('N° de apartamento');
+  }
+  if(typeof getResidentesValues === 'function' && !getResidentesValues().length) falta.push('Ingeniero residente');
+  if(typeof getInspectoresValues === 'function' && !getInspectoresValues().length) falta.push('Ingeniero inspector');
+  if(!document.querySelectorAll('#estatus .ck-lbl.on').length) falta.push('Estatus de la obra');
+  return falta;
+}
+
+function _avisarFaltantes(falta){
+  return 'Faltan estos datos obligatorios:\\n\\n  ·  ' + falta.join('\\n  ·  ');
+}
+
+// El PDF avisa pero deja seguir: a veces se imprime un informe a medias a
+// propósito. El envío no, porque lo que se archiva mal se queda mal.
+function imprimirInforme(){
+  const falta = camposFaltantes();
+  if(falta.length && !confirm(_avisarFaltantes(falta) + '\\n\\n¿Generar el PDF de todos modos?')) return;
+  window.print();
+}
+
+async function enviarAlRelevo() {
+  const falta = camposFaltantes();
+  if(falta.length){
+    alert(_avisarFaltantes(falta) + '\\n\\nEl número del informe se arma con estos datos, ' +
+          'así que sin ellos quedaría mal archivado.');
+    return;
+  }""",
+ "21f· validación de los campos obligatorios")
+
+# Ya no hace falta la comprobación suelta de torre que había dentro del envío.
+s = sustituir(s,
+ """  const datos = getFormData();
+  if(!getTorreActual() || getTorreActual() === '—'){
+    alert('Falta la torre. Sin torre no se puede archivar el informe.');
+    return;
+  }
+
+  const fotos = _fotosParaEnviar();""",
+ """  const datos = getFormData();
+  const fotos = _fotosParaEnviar();""",
+ "21g· quitar la comprobación de torre, ya cubierta")
+
+# 21h · Seis huecos de fotografía en vez de tres. Ahora que pesan 24 KB y no
+# 3 MB, tres se quedaban cortos para una patología o para la estructura.
+s = s.replace("[0,1,2].map(fi=>", "[0,1,2,3,4,5].map(fi=>")
+s = s.replace("[0,1,2].forEach(fi=>", "[0,1,2,3,4,5].forEach(fi=>")
+cambios.append("21h· seis fotografías por hito en vez de tres")
+
+# 21i · La cámara, no la galería. Un atributo.
+s = sustituir(s,
+ """<input type="file" accept="image/*" onchange="loadFoto('${p.id}',${fi},this)">""",
+ """<input type="file" accept="image/*" capture="environment" onchange="loadFoto('${p.id}',${fi},this)">""",
+ "21i· la foto abre la cámara y no la galería", n=2)
+
+
+# ── 22. «No inspeccionado» y «no aplica» dejan de ser un cero ─────────────
+# Hoy, si el inspector no pudo entrar a un apartamento o la torre no tiene
+# ascensor, la única salida es dejarlo en cero — y cero significa «no está
+# construido». Todo promedio que suba a la torre, a la zona y al tablero
+# ejecutivo queda sesgado hacia abajo, y nadie puede distinguir una obra
+# atrasada de una obra no inspeccionada.
+
+# 22a · A nivel de ítem: un cuarto botón junto a B / R / M.
+s = sustituir(s,
+ """<button class="ev-btn M" data-rid="${rid}" onclick="setEv(this)">M</button>""",
+ """<button class="ev-btn M" data-rid="${rid}" onclick="setEv(this)">M</button>
+            <button class="ev-btn NA" data-rid="${rid}" onclick="setEv(this)" title="No aplica o no se pudo verificar — no cuenta para el promedio">N/A</button>""",
+ "22a· botón N/A junto a B/R/M")
+
+s = sustituir(s,
+ """.ev-btn.M.on{background:#c62828;border-color:#c62828;color:#fff}""",
+ """.ev-btn.M.on{background:#c62828;border-color:#c62828;color:#fff}
+.ev-btn.NA{border-color:#bdbdbd}
+.ev-btn.NA.on{background:#757575;border-color:#757575;color:#fff}""",
+ "22b· estilo del botón N/A")
+
+# 22c · A nivel de hito: un interruptor en la cabecera, para cuando no se llegó
+# a inspeccionar el hito entero.
+s = sustituir(s,
+ """          <div style="display:flex;align-items:center;gap:9px">
+            <div class="pct-bdg" id="badge_${p.id}">0%</div>""",
+ """          <div style="display:flex;align-items:center;gap:9px">
+            <span class="no-insp-tgl" id="noinsp_${p.id}" onclick="event.stopPropagation();toggleNoInspeccionado('${p.id}')"
+                  title="Marcar el hito como no inspeccionado en esta visita">⊘</span>
+            <div class="pct-bdg" id="badge_${p.id}">0%</div>""",
+ "22c· interruptor de hito no inspeccionado")
+
+s = sustituir(s,
+ """.ev-btn.NA{border-color:#bdbdbd}""",
+ """.no-insp-tgl{cursor:pointer;font-size:15px;opacity:.45;padding:0 4px;user-select:none;color:#fff}
+.no-insp-tgl.on{opacity:1;background:rgba(0,0,0,.28);border-radius:6px}
+.partida.no-inspeccionada .p-body{opacity:.38;pointer-events:none}
+.partida.no-inspeccionada .p-hdr h2::after{content:' · NO INSPECCIONADO';font-size:10px;opacity:.85}
+.ev-btn.NA{border-color:#bdbdbd}""",
+ "22d· estilo del hito no inspeccionado")
+
+# 22e · La lógica, y lo que de verdad importa: que no cuenten en el promedio.
+s = sustituir(s,
+ """function recalcTotal(){""",
+ """// Un hito no inspeccionado no vale cero: vale «no se sabe». Se apaga, no
+// aporta al promedio de la torre, y queda registrado como tal en el informe.
+let hitosNoInspeccionados = {};
+
+function toggleNoInspeccionado(pid){
+  hitosNoInspeccionados[pid] = !hitosNoInspeccionados[pid];
+  _pintarNoInspeccionado(pid);
+  recalcTotal();
+  _marcarCambio();
+}
+
+function _pintarNoInspeccionado(pid){
+  const activo = !!hitosNoInspeccionados[pid];
+  const bloque = document.getElementById('p_' + pid);
+  const tgl    = document.getElementById('noinsp_' + pid);
+  if(bloque) bloque.classList.toggle('no-inspeccionada', activo);
+  if(tgl)    tgl.classList.toggle('on', activo);
+  ['badge_','fpct_','rpct_'].forEach(function(pfx){
+    const el = document.getElementById(pfx + pid);
+    if(el && activo) el.textContent = '—';
+  });
+  if(!activo && typeof recalcP === 'function') recalcP(pid);
+}
+
+function recalcTotal(){""",
+ "22e· lógica del hito no inspeccionado")
+
+# El promedio de la torre ya excluye los hitos que muestran «—», así que basta
+# con que un hito apagado muestre «—». Pero el promedio del hito sí tiene que
+# saltarse los ítems marcados N/A.
+s = sustituir(s,
+ """  all.forEach(inp=>{
+    const rid=inp.dataset.rid;
+    const pr=parseFloat(inp.value)||0;
+    const ej=parseFloat(document.getElementById('ej_'+rid)?.value)||0;
+    if(pr>0){sumPct+=Math.min(100,Math.round((ej/pr)*100));cnt++;}
+  });""",
+ """  all.forEach(inp=>{
+    const rid=inp.dataset.rid;
+    // Un ítem marcado N/A no entra al promedio: no es un cero, es «no cuenta».
+    if(document.querySelector(`.ev-btn.NA.on[data-rid="${rid}"]`)) return;
+    const pr=parseFloat(inp.value)||0;
+    const ej=parseFloat(document.getElementById('ej_'+rid)?.value)||0;
+    if(pr>0){sumPct+=Math.min(100,Math.round((ej/pr)*100));cnt++;}
+  });""",
+ "22f· los ítems N/A no entran al promedio del hito")
+
+s = sustituir(s,
+ """function recalcP(pid){
+  if(formType === 'hitos') return;""",
+ """function recalcP(pid){
+  if(formType === 'hitos') return;
+  if(hitosNoInspeccionados[pid]) return;""",
+ "22g· un hito apagado no recalcula")
+
+# 22h · Viaja en el borrador y vuelve al abrirlo.
+s = sustituir(s,
+ """    formType: formType,
+    ambito: ambito,""",
+ """    formType: formType,
+    ambito: ambito,
+    noInspeccionados: Object.keys(hitosNoInspeccionados).filter(k=>hitosNoInspeccionados[k]),""",
+ "22h· los hitos no inspeccionados entran al borrador")
+
+s = sustituir(s,
+ """  setAmbito(d.ambito || 'apartamento');""",
+ """  setAmbito(d.ambito || 'apartamento');
+  hitosNoInspeccionados = {};
+  (d.noInspeccionados || []).forEach(function(pid){
+    hitosNoInspeccionados[pid] = true;
+    _pintarNoInspeccionado(pid);
+  });""",
+ "22i· vuelven al abrir el borrador")
+
+# 22j · Y se limpian al empezar un informe nuevo. `initAppContent` redibuja los
+# hitos, así que basta con vaciar el registro antes de que vuelva a pintarlos.
+s = sustituir(s,
+ """  initAppContent();
+  updateNroInforme();
+  showToast('🆕 Formulario limpio para nuevo registro', 'ok');""",
+ """  hitosNoInspeccionados = {};
+  initAppContent();
+  updateNroInforme();
+  showToast('🆕 Formulario limpio para nuevo registro', 'ok');""",
+ "22j· se limpian al empezar un informe nuevo")
+
+# 22k · Y una leyenda de qué significa cada letra, que no existía en ninguna parte.
+s = sustituir(s,
+ """  <div class="sec-lbl">📍 Ubicación</div>""",
+ """  <div style="background:#f5f7ff;border:1px solid #e0e4ff;border-radius:8px;padding:8px 12px;margin:0 0 12px;font-size:11px;color:#444;line-height:1.6">
+    <strong style="color:#1a237e">Escala de evaluación:</strong>
+    <b>B</b> = ejecutado conforme, sin observaciones ·
+    <b>R</b> = ejecutado con defectos subsanables, requiere corrección ·
+    <b>M</b> = mal ejecutado o inservible, requiere rehacer ·
+    <b>N/A</b> = no aplica o no se pudo verificar — <em>no cuenta para el promedio</em>
+  </div>
+  <div class="sec-lbl">📍 Ubicación</div>""",
+ "22k· leyenda de B / R / M / N-A")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
