@@ -558,6 +558,121 @@ s = sustituir(s,
 }""",
  "19· aplicar el ámbito al dibujar el formulario")
 
+
+# ── 20. Configuración del teléfono sin que el inspector escriba nada ───────
+# El enlace de configuración lleva la clave después del #, que NO sale del
+# teléfono: no viaja al servidor, no queda en registros de GitHub. Se guarda y
+# se borra de la barra de direcciones en el acto.
+s = sustituir(s,
+ """let formType = 'detallado'; // 'detallado' u 'hitos'""",
+ """let formType = 'detallado'; // 'detallado' u 'hitos'
+
+// ── CONFIGURACIÓN DEL TELÉFONO ─────────────────────────────────────────────
+// Se abre una sola vez un enlace con  #clave=...  y este teléfono queda
+// configurado para siempre. El inspector no escribe nada nunca.
+// Lo que va después del # no se envía al servidor: solo lo ve el navegador.
+(function configurarDesdeEnlace(){
+  try {
+    const m = (location.hash || '').match(/[#&]clave=([^&]+)/);
+    if(!m) return;
+    const clave = decodeURIComponent(m[1]).trim();
+    if(clave) localStorage.setItem('garmel_clave_envio', clave);
+    // Se borra de la barra de direcciones para que no quede a la vista.
+    history.replaceState(null, '', location.pathname + location.search);
+    window.addEventListener('load', function(){
+      if(typeof showToast === 'function') showToast('✅ Este teléfono quedó configurado', 'ok');
+    });
+  } catch(e) { /* sin almacenamiento disponible */ }
+})();""",
+ "20a· el enlace de configuración deja la clave en el teléfono")
+
+# Indicador y botón de prueba en la ventana de envío.
+s = sustituir(s,
+ """    <label>Clave de envío</label>
+    <input type="password" id="claveEnvio" placeholder="La que le dieron en la oficina" spellcheck="false" autocomplete="off">
+    <div class="m-btns">
+      <button class="m-btn m-cancel" onclick="closeSend()">Cancelar</button>
+      <button class="m-btn m-confirm" id="btn-enviar-relevo" onclick="enviarAlRelevo()">📤 Enviar ahora</button>
+    </div>""",
+ """    <div id="estado-clave" style="font-size:12px;font-weight:700;margin:4px 0 10px"></div>
+    <label>Clave de envío</label>
+    <input type="password" id="claveEnvio" placeholder="La que le dieron en la oficina" spellcheck="false" autocomplete="off">
+    <div class="m-btns">
+      <button class="m-btn m-cancel" onclick="closeSend()">Cancelar</button>
+      <button class="m-btn m-cancel" id="btn-probar-clave" onclick="probarClave()">🔑 Probar clave</button>
+      <button class="m-btn m-confirm" id="btn-enviar-relevo" onclick="enviarAlRelevo()">📤 Enviar ahora</button>
+    </div>""",
+ "20b· indicador de configuración y botón de probar clave")
+
+s = sustituir(s,
+ """function openSend() {
+  const c = document.getElementById('claveEnvio');
+  if(c) c.value = localStorage.getItem('garmel_clave_envio') || '';
+  document.getElementById('overlay').classList.add('open');
+}""",
+ """function openSend() {
+  refrescarEstadoClave();
+  document.getElementById('overlay').classList.add('open');
+}
+
+function refrescarEstadoClave(){
+  const guardada = localStorage.getItem('garmel_clave_envio') || '';
+  const c = document.getElementById('claveEnvio');
+  if(c) c.value = guardada;
+  const e = document.getElementById('estado-clave');
+  if(e){
+    e.textContent = guardada ? '✓ Este teléfono está configurado'
+                             : '⚠️ Este teléfono todavía no está configurado';
+    e.style.color = guardada ? '#2e7d32' : '#e65100';
+  }
+}
+
+// Comprueba la clave contra el relevo sin enviar ningún informe, para poder
+// dejar un teléfono listo en la oficina.
+// El relevo comprueba la clave ANTES que cualquier otra cosa, así que
+// cualquier respuesta distinta de «Clave incorrecta» significa que pasó.
+async function probarClave(){
+  const clave = (document.getElementById('claveEnvio').value || '').trim();
+  const logEl = document.getElementById('sendLog');
+  const btn   = document.getElementById('btn-probar-clave');
+  if(!clave){ alert('Escriba la clave para probarla.'); return; }
+
+  logEl.style.display = 'block';
+  logEl.textContent = 'Comprobando la clave…\\n';
+  btn.disabled = true;
+  try {
+    const r = await fetch(RELEVO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave: clave, prueba: true })
+    });
+    const res = await r.json();
+    if(res.error === 'Clave incorrecta'){
+      logEl.textContent += '❌ Esa clave no es la correcta.';
+      showToast('❌ Clave incorrecta', 'err');
+    } else {
+      localStorage.setItem('garmel_clave_envio', clave);
+      refrescarEstadoClave();
+      logEl.textContent += '✅ Clave correcta. Este teléfono quedó configurado.';
+      showToast('✅ Teléfono configurado', 'ok');
+    }
+  } catch(e) {
+    logEl.textContent += '❌ No se pudo comprobar: ' + e.message + '\\nHace falta señal para esto.';
+    showToast('❌ Sin conexión para comprobar', 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}""",
+ "20c· comprobar la clave sin enviar un informe")
+
+s = sustituir(s,
+ """      localStorage.setItem('garmel_clave_envio', clave);
+      logEl.textContent += '✅ Archivado en Drive\\n'""",
+ """      localStorage.setItem('garmel_clave_envio', clave);
+      refrescarEstadoClave();
+      logEl.textContent += '✅ Archivado en Drive\\n'""",
+ "20d· el indicador se actualiza tras un envío bueno")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar

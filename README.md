@@ -16,6 +16,27 @@ qué mira un inspector, en qué orden, y con qué escala lo evalúa.
 Este repositorio **no la rehace**: la traduce a un sitio bajo control de Garmel y corrige los
 defectos que le impedían usarse en obra. El archivo original se conserva intacto en `fuente/`.
 
+## Cómo se configura un teléfono
+
+**El inspector no escribe ninguna clave, nunca.** Se le manda **una sola vez** un enlace de configuración:
+
+```
+https://constructoragarmel.github.io/inspeccion/#clave=LA-CLAVE
+```
+
+Lo toca, y ese teléfono queda configurado para siempre. El formulario guarda la clave y **la borra de la
+barra de direcciones en el acto**. De ahí en adelante usa el enlace normal.
+
+Lo que va después del `#` **no sale del teléfono**: los navegadores no lo envían al servidor, así que no
+queda en ningún registro de GitHub.
+
+En la ventana de envío se ve **✓ Este teléfono está configurado** o **⚠️ todavía no está configurado**, y
+hay un botón **🔑 Probar clave** que la comprueba contra el relevo y la guarda **sin enviar ningún
+informe** — sirve para dejar teléfonos listos en la oficina sin inventar informes de prueba.
+
+> **La clave nunca va dentro de este repositorio**, que es público. Si se filtra, se cambia en las
+> propiedades del script del relevo y se reenvía el enlace de configuración.
+
 ## Cómo se usa en campo
 
 1. Abrir el enlace **una vez con señal**. El teléfono se guarda una copia.

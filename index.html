@@ -731,10 +731,12 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     <h3>📤 Enviar informe</h3>
     <p>Se archiva en la carpeta de Drive de la torre y queda anotado en el registro.
        <strong>La clave se escribe una sola vez en este teléfono.</strong></p>
+    <div id="estado-clave" style="font-size:12px;font-weight:700;margin:4px 0 10px"></div>
     <label>Clave de envío</label>
     <input type="password" id="claveEnvio" placeholder="La que le dieron en la oficina" spellcheck="false" autocomplete="off">
     <div class="m-btns">
       <button class="m-btn m-cancel" onclick="closeSend()">Cancelar</button>
+      <button class="m-btn m-cancel" id="btn-probar-clave" onclick="probarClave()">🔑 Probar clave</button>
       <button class="m-btn m-confirm" id="btn-enviar-relevo" onclick="enviarAlRelevo()">📤 Enviar ahora</button>
     </div>
     <div class="m-log" id="sendLog"></div>
@@ -756,6 +758,24 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 // INICIO & WELCOME SCREEN FUNCTION (CON SELECTOR DE FORMULARIO)
 // ═══════════════════════════════════════════════
 let formType = 'detallado'; // 'detallado' u 'hitos'
+
+// ── CONFIGURACIÓN DEL TELÉFONO ─────────────────────────────────────────────
+// Se abre una sola vez un enlace con  #clave=...  y este teléfono queda
+// configurado para siempre. El inspector no escribe nada nunca.
+// Lo que va después del # no se envía al servidor: solo lo ve el navegador.
+(function configurarDesdeEnlace(){
+  try {
+    const m = (location.hash || '').match(/[#&]clave=([^&]+)/);
+    if(!m) return;
+    const clave = decodeURIComponent(m[1]).trim();
+    if(clave) localStorage.setItem('garmel_clave_envio', clave);
+    // Se borra de la barra de direcciones para que no quede a la vista.
+    history.replaceState(null, '', location.pathname + location.search);
+    window.addEventListener('load', function(){
+      if(typeof showToast === 'function') showToast('✅ Este teléfono quedó configurado', 'ok');
+    });
+  } catch(e) { /* sin almacenamiento disponible */ }
+})();
 
 // ── ÁMBITO DEL INFORME ─────────────────────────────────────────────────────
 // Qué hito se evalúa por torre y cuál por apartamento es criterio de
@@ -1944,9 +1964,57 @@ window.addEventListener('beforeprint', _prepararImpresion);
 window.addEventListener('afterprint', _restaurarTrasImpresion);
 
 function openSend() {
-  const c = document.getElementById('claveEnvio');
-  if(c) c.value = localStorage.getItem('garmel_clave_envio') || '';
+  refrescarEstadoClave();
   document.getElementById('overlay').classList.add('open');
+}
+
+function refrescarEstadoClave(){
+  const guardada = localStorage.getItem('garmel_clave_envio') || '';
+  const c = document.getElementById('claveEnvio');
+  if(c) c.value = guardada;
+  const e = document.getElementById('estado-clave');
+  if(e){
+    e.textContent = guardada ? '✓ Este teléfono está configurado'
+                             : '⚠️ Este teléfono todavía no está configurado';
+    e.style.color = guardada ? '#2e7d32' : '#e65100';
+  }
+}
+
+// Comprueba la clave contra el relevo sin enviar ningún informe, para poder
+// dejar un teléfono listo en la oficina.
+// El relevo comprueba la clave ANTES que cualquier otra cosa, así que
+// cualquier respuesta distinta de «Clave incorrecta» significa que pasó.
+async function probarClave(){
+  const clave = (document.getElementById('claveEnvio').value || '').trim();
+  const logEl = document.getElementById('sendLog');
+  const btn   = document.getElementById('btn-probar-clave');
+  if(!clave){ alert('Escriba la clave para probarla.'); return; }
+
+  logEl.style.display = 'block';
+  logEl.textContent = 'Comprobando la clave…\n';
+  btn.disabled = true;
+  try {
+    const r = await fetch(RELEVO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave: clave, prueba: true })
+    });
+    const res = await r.json();
+    if(res.error === 'Clave incorrecta'){
+      logEl.textContent += '❌ Esa clave no es la correcta.';
+      showToast('❌ Clave incorrecta', 'err');
+    } else {
+      localStorage.setItem('garmel_clave_envio', clave);
+      refrescarEstadoClave();
+      logEl.textContent += '✅ Clave correcta. Este teléfono quedó configurado.';
+      showToast('✅ Teléfono configurado', 'ok');
+    }
+  } catch(e) {
+    logEl.textContent += '❌ No se pudo comprobar: ' + e.message + '\nHace falta señal para esto.';
+    showToast('❌ Sin conexión para comprobar', 'err');
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 function closeSend() {
@@ -2015,6 +2083,7 @@ async function enviarAlRelevo() {
 
     if(res.ok){
       localStorage.setItem('garmel_clave_envio', clave);
+      refrescarEstadoClave();
       logEl.textContent += '✅ Archivado en Drive\n' + (res.archivos || []).join('\n');
       showToast('✅ Informe enviado y archivado', 'ok');
       closeSend();
