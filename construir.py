@@ -3833,6 +3833,110 @@ s = sustituir(s,
   return m ? m[1] + String(m[2]).padStart(2, '0') : (_limpiar(t).slice(0, 12) || 'T--');""",
  "93c· el identificador deja de crecer sin tope")
 
+# ── 94. Tres arreglos pedidos tras revisar el instrumento ──────────────────
+#
+# 94a · EL ESTATUS SE ORDENA POR EL CICLO DE LA OBRA, y se retira «Pendiente».
+#   Estaba en orden arbitrario —En progreso, Iniciada, Finalizada, Pendiente,
+#   Paralizada—, que obliga a leer las cinco cada vez. Pasa a seguir la vida de
+#   la obra: Iniciada → En progreso → Finalizada, y Paralizada aparte, porque
+#   es una interrupción, no una etapa. «Pendiente» se quita: no se distinguía
+#   de «Iniciada» sin definirlo, y una etiqueta que dos inspectores entienden
+#   distinto ensucia todo lo que se consolide después.
+#
+# 94b · EL MODO DE PRUEBA DEJA DE ESTAR EN LA BARRA. Estaba junto a «Enviar»,
+#   y marca los informes con el prefijo PRUEBA-. Un toque por error en obra
+#   produce un informe que parece bueno y no lo es. Pasa a pedirse por enlace
+#   —`?prueba=1`—, igual que el modo por hitos: quien lo necesita lo abre así,
+#   y en el teléfono del inspector no existe.
+#
+# 94c · EL IDENTIFICADOR NO REPITE «TORRE». `SR-T12-TORRE-260828-CF` dice dos
+#   veces lo mismo: la T-12 ya está en el segundo bloque. El informe de torre
+#   pasa a `SR-T12-260828-CF`, y sigue siendo inequívoco: si lleva bloque de
+#   piso y apartamento es de una vivienda, y si no, es de la torre entera.
+#   Comprobado que el relevo NO lee «TORRE» del número: archiva con los campos
+#   `sector` y `torre` que van aparte, y usa el número solo como nombre de
+#   archivo. Todavía no se ha enviado ningún informe real, así que no deja
+#   ninguna serie a medias. Modifica el esquema de ADR-0016, que es provisional.
+
+s = sustituir(s,
+ """        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="En progreso">En progreso</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Iniciada">Iniciada</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Finalizada">Finalizada</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Pendiente">Pendiente</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Paralizada">Paralizada</label>""",
+ """        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Iniciada">Iniciada</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="En progreso">En progreso</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Finalizada">Finalizada</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Paralizada">Paralizada</label>""",
+ "94a· el estatus sigue el ciclo de la obra, y sin «Pendiente»")
+
+s = sustituir(s,
+ """      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" title="Activar modo de prueba — los informes quedan marcados como PRUEBA">🧪 <span>Prueba</span></button>""",
+ """      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" style="display:none" title="Activar modo de prueba — los informes quedan marcados como PRUEBA">🧪 <span>Prueba</span></button>""",
+ "94b· el botón de prueba nace oculto")
+
+s = sustituir(s,
+ "  startApp(modo === 'hitos' ? 'hitos' : 'detallado');",
+ "  // El modo de prueba se pide por enlace, no con un botón al lado de «Enviar».\n"
+ "  if (new URLSearchParams(location.search).get('prueba') === '1') {\n"
+ "    const bt = document.getElementById('btn-test');\n"
+ "    if (bt) bt.style.display = '';\n"
+ "  }\n"
+ "  startApp(modo === 'hitos' ? 'hitos' : 'detallado');",
+ "94b2· solo aparece con ?prueba=1")
+
+s = sustituir(s,
+ "  const bloque = (ambito === 'torre') ? 'TORRE' : ('P' + piso + 'A' + apto);\n"
+ "  const nro    = (TEST_MODE ? 'PRUEBA-' : '') +\n"
+ "                 [sector, torre, bloque, fecha, inic].join('-');",
+ "  // En el informe de torre no se repite «TORRE»: la torre ya está en el\n"
+ "  // bloque anterior. Sigue siendo inequívoco — con bloque de piso y\n"
+ "  // apartamento es de una vivienda; sin él, de la torre entera.\n"
+ "  const bloque = (ambito === 'torre') ? null : ('P' + piso + 'A' + apto);\n"
+ "  const nro    = (TEST_MODE ? 'PRUEBA-' : '') +\n"
+ "                 [sector, torre, bloque, fecha, inic].filter(Boolean).join('-');",
+ "94c· el identificador de torre deja de repetir TORRE")
+
+# ── 94d. «Hito no inspeccionado» también en el modo de campo ───────────────
+# El control existía, la función existía, y el promedio y el PDF ya lo
+# respetaban — pero el botón SOLO estaba dibujado en la rama del modo por
+# hitos, que es el que nadie usa. En el modo detallado, que es el de campo, no
+# había forma de marcar un hito entero como no inspeccionado desde la pantalla.
+#
+# Se lleva el mismo control a la cabecera del hito en la rama detallada. Y se
+# le pone TEXTO además del símbolo: el ⊘ solo se explicaba con un `title`, y
+# un `title` no existe en una pantalla táctil — no hay puntero que reposar—,
+# así que en el teléfono era un símbolo sin explicación.
+s = sustituir(s,
+ """      d.innerHTML=`
+        <div class="p-hdr" style="background:${colorHito(p)}" onclick="toggleP('${p.id}')">
+          <div class="p-hdr-l"><h2>${p.nombre}</h2></div>
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="pct-bdg" id="badge_${p.id}">—</div>
+            <span class="arrow">▼</span>
+          </div>
+        </div>""",
+ """      d.innerHTML=`
+        <div class="p-hdr" style="background:${colorHito(p)}" onclick="toggleP('${p.id}')">
+          <div class="p-hdr-l"><h2>${p.nombre}</h2></div>
+          <div style="display:flex;align-items:center;gap:9px">
+            <span class="no-insp-tgl" id="noinsp_${p.id}"
+                  onclick="event.stopPropagation();toggleNoInspeccionado('${p.id}')"
+                  title="Marcar el hito completo como no inspeccionado en esta visita">⊘ No inspeccionado</span>
+            <div class="pct-bdg" id="badge_${p.id}">—</div>
+            <span class="arrow">▼</span>
+          </div>
+        </div>""",
+ "94d· el hito completo se puede marcar no inspeccionado en el modo de campo")
+
+# El control llevaba tamaño de símbolo suelto. Con texto necesita caja propia,
+# y 44 px de alto como el resto de lo que se toca con guantes.
+s = sustituir(s,
+ ".no-insp-tgl{",
+ ".no-insp-tgl{min-height:44px;display:inline-flex;align-items:center;gap:4px;"
+ "padding:0 10px;border-radius:14px;font-size:11px;font-weight:700;white-space:nowrap;",
+ "94e· el control se puede tocar con guantes y dice lo que hace")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar

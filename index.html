@@ -230,7 +230,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .ev-btn.B.on{background:#2e7d32;border-color:#2e7d32;color:#fff}
 .ev-btn.R.on{background:#f57f17;border-color:#f57f17;color:#fff}
 .ev-btn.M.on{background:#c62828;border-color:#c62828;color:#fff}
-.no-insp-tgl{cursor:pointer;font-size:15px;opacity:.85;padding:0 4px;user-select:none;color:#fff;border:1.5px solid rgba(255,255,255,.5);border-radius:6px;line-height:1}
+.no-insp-tgl{min-height:44px;display:inline-flex;align-items:center;gap:4px;padding:0 10px;border-radius:14px;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer;font-size:15px;opacity:.85;padding:0 4px;user-select:none;color:#fff;border:1.5px solid rgba(255,255,255,.5);border-radius:6px;line-height:1}
 .no-insp-tgl.on{opacity:1;background:rgba(0,0,0,.35);border-color:#fff;border-width:2px}
 .partida.no-inspeccionada .p-body{opacity:.38;pointer-events:none}
 .partida.no-inspeccionada .p-hdr h2::after{content:' · NO INSPECCIONADO';font-size:10px;opacity:.85}
@@ -709,7 +709,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
       <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 <span>Mis informes</span><b id="cnt-guardados" style="display:none;margin-left:5px"></b></button>
       <button class="hbtn hbtn-pdf" onclick="imprimirInforme()" title="Genera el PDF del informe que está en pantalla">🖨️ <span>PDF</span></button>
       <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Vacía el formulario entero, incluidas torre y empresa. Para empezar en otra torre">🆕 <span>Informe en blanco</span></button>
-      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" title="Activar modo de prueba — los informes quedan marcados como PRUEBA">🧪 <span>Prueba</span></button>
+      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" style="display:none" title="Activar modo de prueba — los informes quedan marcados como PRUEBA">🧪 <span>Prueba</span></button>
     </div>
     <!-- «Finalizar» retirado: hacía lo mismo que «Guardar y siguiente» pero sin guardar. -->
   </div>
@@ -909,10 +909,9 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     <div class="field">
       <label>Estatus de la obra *</label>
       <div class="ck-group" id="estatus">
-        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="En progreso">En progreso</label>
         <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Iniciada">Iniciada</label>
+        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="En progreso">En progreso</label>
         <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Finalizada">Finalizada</label>
-        <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Pendiente">Pendiente</label>
         <label class="ck-lbl" onclick="toggleCk(this,true)"><input type="checkbox" value="Paralizada">Paralizada</label>
       </div>
     </div>
@@ -1699,9 +1698,12 @@ function updateNroInforme() {
   const fv     = document.getElementById('fecha')?.value || '';
   const fecha  = /^\d{4}-\d{2}-\d{2}$/.test(fv) ? fv.slice(2).replace(/-/g, '') : '------';
   const inic   = getInicialesInspector();
-  const bloque = (ambito === 'torre') ? 'TORRE' : ('P' + piso + 'A' + apto);
+  // En el informe de torre no se repite «TORRE»: la torre ya está en el
+  // bloque anterior. Sigue siendo inequívoco — con bloque de piso y
+  // apartamento es de una vivienda; sin él, de la torre entera.
+  const bloque = (ambito === 'torre') ? null : ('P' + piso + 'A' + apto);
   const nro    = (TEST_MODE ? 'PRUEBA-' : '') +
-                 [sector, torre, bloque, fecha, inic].join('-');
+                 [sector, torre, bloque, fecha, inic].filter(Boolean).join('-');
   const el    = document.getElementById('nro-display');
   if (el) el.textContent = nro;
   const docNum = document.getElementById('doc-num');
@@ -1943,6 +1945,9 @@ function initAppContent() {
         <div class="p-hdr" style="background:${colorHito(p)}" onclick="toggleP('${p.id}')">
           <div class="p-hdr-l"><h2>${p.nombre}</h2></div>
           <div style="display:flex;align-items:center;gap:9px">
+            <span class="no-insp-tgl" id="noinsp_${p.id}"
+                  onclick="event.stopPropagation();toggleNoInspeccionado('${p.id}')"
+                  title="Marcar el hito completo como no inspeccionado en esta visita">⊘ No inspeccionado</span>
             <div class="pct-bdg" id="badge_${p.id}">—</div>
             <span class="arrow">▼</span>
           </div>
@@ -3088,6 +3093,11 @@ window.onload = function() {
 
   // Sin portada intermedia: se entra directo al formulario que toque.
   const modo = new URLSearchParams(location.search).get('modo');
+  // El modo de prueba se pide por enlace, no con un botón al lado de «Enviar».
+  if (new URLSearchParams(location.search).get('prueba') === '1') {
+    const bt = document.getElementById('btn-test');
+    if (bt) bt.style.display = '';
+  }
   startApp(modo === 'hitos' ? 'hitos' : 'detallado');
   actualizarContadores();
 };
