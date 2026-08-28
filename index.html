@@ -770,7 +770,8 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   <div class="grid3">
     <div class="field">
       <label>Empresa ejecutora *</label>
-      <select id="empresa" onchange="autoResidenteConv()">
+      <span id="aviso-empresa" style="display:none;font-size:11.5px;font-weight:600;color:#8f4b00;margin-bottom:4px"></span>
+      <select id="empresa" onchange="handleEmpresaChange()">
         <option value="">— Seleccione —</option>
         <option>ALNAVIC, C.A.</option>
         <option>AROA, C.A.</option>
@@ -1813,6 +1814,41 @@ function autoResidenteConv() {
   _residenteAuto = res ? res.split('/').map(function(r){ return r.trim(); }).join(' / ') : '';
 }
 
+// Cambiar la empresa a una que no es la que el cuadro asigna a esta torre es
+// legítimo —el maestro mismo prevé reasignaciones—, pero entonces no sabemos
+// quién es el residente: se limpia y se dice, en vez de dejar el de antes.
+function handleEmpresaChange(){
+  const conv   = document.getElementById('convenio').value;
+  const tor    = document.getElementById('torre').value;
+  const emp    = document.getElementById('empresa').value;
+  const propia = (tor && tor !== 'NO_REG') ? empresaDeTorre(conv, tor) : '';
+  const aviso  = document.getElementById('aviso-empresa');
+
+  if (!propia || !emp || emp === propia) {
+    if (aviso) { aviso.style.display = 'none'; aviso.textContent = ''; }
+    autoResidenteConv();
+  } else {
+    if (aviso) {
+      aviso.style.display = 'block';
+      // El nombre de la empresa ya termina en punto («C.A.»): no se le pega otro.
+      aviso.textContent = ('⚠️ Según el cuadro, la ' + tor + ' la ejecuta ' + propia).replace(/\.$/, '') +
+        '. Escriba el ingeniero residente que encontró en obra.';
+    }
+    // Solo se borra lo que puso el formulario; lo escrito a mano se respeta.
+    const cont = document.getElementById('residentes-container');
+    if (cont) {
+      const puestos = Array.prototype.slice.call(cont.querySelectorAll('.residente-input'))
+        .map(function(i){ return i.value.trim(); }).filter(Boolean);
+      if (!puestos.length || puestos.join(' / ') === _residenteAuto) {
+        cont.innerHTML = '';
+        addResidenteField('');
+        _residenteAuto = '';
+      }
+    }
+  }
+  updateNroInforme();
+}
+
 function handleTorreChange() {
   const val  = document.getElementById('torre').value;
   const wrap = document.getElementById('torre-manual-wrap');
@@ -1831,6 +1867,8 @@ function handleTorreChange() {
     empSel.value = emp;
   }
   autoResidenteConv();
+  const av = document.getElementById('aviso-empresa');
+  if (av) { av.style.display = 'none'; av.textContent = ''; }
   updateNroInforme();
   renderMemoriaTable();
 }

@@ -3937,6 +3937,89 @@ s = sustituir(s,
  "padding:0 10px;border-radius:14px;font-size:11px;font-weight:700;white-space:nowrap;",
  "94e· el control se puede tocar con guantes y dice lo que hace")
 
+# ── 95. Cambiar la empresa dejaba al informe contradiciéndose ──────────────
+# Defecto introducido por el cambio 92 y encontrado usando el formulario: al
+# mover el residente de la empresa a la TORRE, la empresa quedó editable por
+# libre y su `onchange` siguió apuntando a `autoResidenteConv()`, que ya no la
+# mira. Resultado: se elegía la T-01, entraban Río Limón y Harry Arteaga, se
+# cambiaba la empresa a Alnavic… y el residente seguía siendo el de Río Limón.
+# El informe salía con torre de una contratista, empresa de otra y residente de
+# una tercera, sin avisar de nada.
+#
+# Qué se hace y por qué NO se rellena con otro nombre: el cuadro del 28-ago da
+# el residente por torre bajo la contratista que tiene asignada. Si el
+# inspector dice que la ejecuta otra empresa, **no existe dato** de quién es el
+# residente en ese caso —Alnavic tiene residentes en la T-05 y la T-06, y
+# ninguno es «el de Alnavic en la T-01»—. Inventarlo sería exactamente lo que
+# este instrumento no debe hacer. Así que se limpia y se dice por qué, para
+# que lo escriba quien esté en obra.
+#
+# La discrepancia no es un error del inspector: el maestro mismo marca
+# «POSIBLE REASIGNACIÓN» en las torres 45 a 48, y PA-33 pregunta justo por esa
+# doble capa. Por eso se avisa en vez de impedirlo.
+
+s = sustituir(s,
+ """      <label>Empresa ejecutora *</label>
+      <select id="empresa" onchange="autoResidenteConv()">""",
+ """      <label>Empresa ejecutora *</label>
+      <span id="aviso-empresa" style="display:none;font-size:11.5px;font-weight:600;color:#8f4b00;margin-bottom:4px"></span>
+      <select id="empresa" onchange="handleEmpresaChange()">""",
+ "95a· sitio para el aviso, y la empresa llama a su propia función")
+
+s = sustituir(s,
+ """function handleTorreChange() {""",
+ """// Cambiar la empresa a una que no es la que el cuadro asigna a esta torre es
+// legítimo —el maestro mismo prevé reasignaciones—, pero entonces no sabemos
+// quién es el residente: se limpia y se dice, en vez de dejar el de antes.
+function handleEmpresaChange(){
+  const conv   = document.getElementById('convenio').value;
+  const tor    = document.getElementById('torre').value;
+  const emp    = document.getElementById('empresa').value;
+  const propia = (tor && tor !== 'NO_REG') ? empresaDeTorre(conv, tor) : '';
+  const aviso  = document.getElementById('aviso-empresa');
+
+  if (!propia || !emp || emp === propia) {
+    if (aviso) { aviso.style.display = 'none'; aviso.textContent = ''; }
+    autoResidenteConv();
+  } else {
+    if (aviso) {
+      aviso.style.display = 'block';
+      // El nombre de la empresa ya termina en punto («C.A.»): no se le pega otro.
+      aviso.textContent = ('⚠️ Según el cuadro, la ' + tor + ' la ejecuta ' + propia).replace(/\.$/, '') +
+        '. Escriba el ingeniero residente que encontró en obra.';
+    }
+    // Solo se borra lo que puso el formulario; lo escrito a mano se respeta.
+    const cont = document.getElementById('residentes-container');
+    if (cont) {
+      const puestos = Array.prototype.slice.call(cont.querySelectorAll('.residente-input'))
+        .map(function(i){ return i.value.trim(); }).filter(Boolean);
+      if (!puestos.length || puestos.join(' / ') === _residenteAuto) {
+        cont.innerHTML = '';
+        addResidenteField('');
+        _residenteAuto = '';
+      }
+    }
+  }
+  updateNroInforme();
+}
+
+function handleTorreChange() {""",
+ "95b· si la empresa no es la de la torre, se limpia el residente y se avisa")
+
+# Al cambiar de torre el aviso puede quedar colgado de la torre anterior.
+s = sustituir(s,
+ "  autoResidenteConv();\n"
+ "  updateNroInforme();\n"
+ "  renderMemoriaTable();\n"
+ "}",
+ "  autoResidenteConv();\n"
+ "  const av = document.getElementById('aviso-empresa');\n"
+ "  if (av) { av.style.display = 'none'; av.textContent = ''; }\n"
+ "  updateNroInforme();\n"
+ "  renderMemoriaTable();\n"
+ "}",
+ "95c· el aviso no se queda colgado al cambiar de torre")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
