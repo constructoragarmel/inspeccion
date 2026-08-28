@@ -2356,6 +2356,208 @@ s = sustituir(s,
  "  noReg.style.color = '#8f4b00';",
  "62· el aviso también se lee cuando lo redibuja el JavaScript")
 
+# ── 63. El PDF decía «ponderado», y no lo es ─────────────────────────────
+# El informe que va al Ministerio rotulaba el número global como «Promedio
+# ponderado de los hitos y subitems». No está ponderado por nada: los pesos son
+# `PA-03` y todavía no existen, así que es un promedio simple de los hitos que
+# se inspeccionaron. Llamarlo ponderado en un documento firmado le da una
+# validez que no tiene — y es justo el número que ESTADO-ACTUAL advierte que no
+# debe sostener nada financiero.
+s = sustituir(s,
+ '<div style="font-size:11px;opacity:.7;margin-top:3px">Promedio ponderado de los hitos y subitems</div>',
+ '<div style="font-size:11px;opacity:.85;margin-top:3px">Promedio simple de los hitos inspeccionados · sin ponderar</div>',
+ "63a· el promedio se llama por su nombre")
+
+# El rótulo decía las dos cosas a la vez, en los dos ámbitos.
+s = sustituir(s,
+ '<h2>% AVANCE GENERAL DE LA TORRE / APARTAMENTO</h2>',
+ '<h2 id="total-titulo">% AVANCE GENERAL</h2>',
+ "63b· un rótulo, no dos")
+
+# ── 64. El resumen mezclaba «no aplica» con «no se inspeccionó» ──────────
+# En un informe de apartamento el resumen listaba también los hitos de torre, y
+# al revés, todos con un «—». Pero ese mismo «—» marca un hito que SÍ tocaba y
+# no se pudo ver. Dos cosas distintas con el mismo signo, en la página que lee
+# la Dirección. Las filas fuera de ámbito se ocultan, igual que las tarjetas.
+s = sustituir(s,
+ '      <div class="res-row">\n'
+ '        <div class="res-name">${p.nombre}</div>',
+ '      <div class="res-row" id="res_${p.id}">\n'
+ '        <div class="res-name">${p.nombre}</div>',
+ "64a· cada fila del resumen se puede señalar")
+
+s = sustituir(s,
+ "    const bloque = document.getElementById('p_' + p.id);\n"
+ "    if(!bloque) return;\n"
+ "    const deTorre = HITOS_DE_TORRE.indexOf(p.id) >= 0;\n"
+ "    bloque.style.display = (deTorre === esTorre) ? '' : 'none';",
+ "    const deTorre = HITOS_DE_TORRE.indexOf(p.id) >= 0;\n"
+ "    const propio = (deTorre === esTorre);\n"
+ "    const bloque = document.getElementById('p_' + p.id);\n"
+ "    if(bloque) bloque.style.display = propio ? '' : 'none';\n"
+ "    // La fila del resumen va con su tarjeta: un hito de torre no tiene por\n"
+ "    // qué aparecer con un guion en el informe de un apartamento.\n"
+ "    const fila = document.getElementById('res_' + p.id);\n"
+ "    if(fila) fila.style.display = propio ? '' : 'none';",
+ "64b· el resumen solo muestra los hitos del ámbito")
+
+s = sustituir(s,
+ "  const nota = document.getElementById('ambito-nota');",
+ "  const tt = document.getElementById('total-titulo');\n"
+ "  if(tt) tt.textContent = esTorre ? '% AVANCE GENERAL DE LA TORRE' : '% AVANCE GENERAL DEL APARTAMENTO';\n"
+ "\n"
+ "  const nota = document.getElementById('ambito-nota');",
+ "64c· el rótulo del total sigue al ámbito")
+
+# ── 65. El papel imprimía los textos de ayuda y los mensajes de pantalla ──
+# En los hitos sin observación salía impreso «Describa brevemente los subitems
+# inspeccionados…» y «Observación sobre las fotografías de este hito…», que son
+# el texto de ayuda del campo vacío. En el informe parecen contenido. Igual la
+# tabla de memoria con «No hay apartamentos registrados para la torre T-45»,
+# que es un mensaje de interfaz. Y «(máx. 6)» es una instrucción de captura:
+# en el papel no aporta.
+s = sustituir(s,
+ "  .bar-bg{display:none}",
+ "  /* El texto de ayuda de un campo vacío no es contenido del informe. */\n"
+ "  ::placeholder{color:transparent!important}\n"
+ "  ::-webkit-input-placeholder{color:transparent!important}\n"
+ "  .tabla-vacia{display:none!important}\n"
+ "  .solo-pantalla{display:none!important}\n"
+ "  /* Un desplegable impreso con su flecha parece un formulario, no un informe. */\n"
+ "  select{appearance:none!important;-webkit-appearance:none!important;background-image:none!important;\n"
+ "         border:none!important;padding-left:0!important;font-weight:700!important;color:#000!important}\n"
+ "  .bar-bg{display:none}",
+ "65a· el papel no imprime ayudas ni mensajes de pantalla")
+
+s = sustituir(s,
+ '<td colspan="4" style="color:#5a6672;padding:10px">No hay apartamentos registrados para la torre ${torreActual}.</td>',
+ '<td colspan="4" class="tabla-vacia" style="color:#5a6672;padding:10px">No hay apartamentos registrados para la torre ${torreActual}.</td>',
+ "65b· el mensaje de tabla vacía es de pantalla")
+
+s = sustituir(s, ' (máx. 6)</div>', '<span class="solo-pantalla"> (máx. 6)</span></div>',
+              "65c· «máx. 6» es una instrucción de captura, no del informe", 2)
+
+# ── 66. Los cuatro emojis que quedaban en los títulos ────────────────────
+for viejo, nuevo, etiq in [
+    ('<h3>🔌 Agentes de Contacto', '<h3>Agentes de Contacto', "66a· agentes"),
+    ('<h3>🏗️ Memoria Técnica y Consolidado', '<h3>Memoria Técnica y Consolidado', "66b· memoria"),
+    ('<h3>📝 Observaciones y Sugerencias', '<h3>Observaciones y Sugerencias', "66c· observaciones"),
+    ('<h2>📊 Resumen por Hito</h2>', '<h2>Resumen por Hito</h2>', "66d· resumen"),
+]:
+    s = sustituir(s, viejo, nuevo, etiq)
+
+# ── 67. El porcentaje salía RECORTADO en el PDF ─────────────────────────
+# El hallazgo más serio de la revisión del PDF: 85 se imprimía «8», 100 «1»,
+# 60 «6» y 40 «4». La regla de impresión `.num{width:40px!important}` estrangula
+# el campo, mientras el `font-size:14px` que lleva en línea sobrevive — y a ese
+# tamaño no caben dos dígitos en 40 px. El número del que trata toda la
+# herramienta llegaba al Ministerio a medias.
+s = sustituir(s,
+ "  .num{border:none!important;background:transparent!important;font-size:9px;width:40px!important}",
+ "  .num{border:none!important;background:transparent!important;font-size:9px;width:40px!important}\n"
+ "  /* El porcentaje del hito lleva font-size en línea: con 40 px se recortaba. */\n"
+ "  .hito-pct-input{width:70px!important;font-size:13px!important;\n"
+ "                  border:1px solid #bbb!important;padding:2px 6px!important;text-align:center}",
+ "67· el porcentaje cabe entero en el papel")
+
+
+# ── 68. Marcar «N/A» no recalculaba el promedio del hito ─────────────────
+# La leyenda del modo detallado promete que N/A «no cuenta para el promedio», y
+# `recalcP` efectivamente lo excluye — pero `setEv` solo pintaba el botón y no
+# volvía a calcular. El porcentaje se quedaba con la fila dentro hasta que el
+# inspector tocara alguna cantidad. Medido: cuatro filas al 100, 20, 40 y 60
+# dan 55 %; al marcar N/A la del 20 debería dar 67 % y seguía en 55 %.
+# El promedio del hito viaja al informe, así que era un número mal.
+s = sustituir(s,
+ "function setEv(btn){\n"
+ "  const rid=btn.dataset.rid;\n"
+ "  const isAlreadyOn = btn.classList.contains('on');\n"
+ "  document.querySelectorAll(`.ev-btn[data-rid=\"${rid}\"]`).forEach(b=>b.classList.remove('on'));\n"
+ "  if (!isAlreadyOn) {\n"
+ "    btn.classList.add('on');\n"
+ "  }\n"
+ "}",
+ "function setEv(btn){\n"
+ "  const rid=btn.dataset.rid;\n"
+ "  const isAlreadyOn = btn.classList.contains('on');\n"
+ "  document.querySelectorAll(`.ev-btn[data-rid=\"${rid}\"]`).forEach(b=>b.classList.remove('on'));\n"
+ "  if (!isAlreadyOn) {\n"
+ "    btn.classList.add('on');\n"
+ "  }\n"
+ "  // Un ítem marcado N/A sale del promedio del hito, y uno que deja de estarlo\n"
+ "  // vuelve a entrar. Sin esto el porcentaje se quedaba con el valor viejo.\n"
+ "  const pid = (document.getElementById('pr_' + rid) || {}).dataset\n"
+ "            ? document.getElementById('pr_' + rid).dataset.p : null;\n"
+ "  if(pid && typeof recalcP === 'function') recalcP(pid);\n"
+ "  if(typeof _marcarCambio === 'function') _marcarCambio();\n"
+ "}",
+ "68· marcar la evaluación recalcula el promedio")
+
+
+# ── 69. Lo escrito en un campo podía romper la lista de informes ─────────
+# «Mis informes» pintaba con innerHTML el número, la torre y el apartamento tal
+# como se guardaron. Un apartamento escrito con un «<» —o cualquier cosa que se
+# parezca a una etiqueta— se interpreta como HTML: la ficha se dibuja mal o
+# desaparece de la lista. Y esa lista es el único sitio desde donde se recupera
+# o se envía un informe que todavía vive SOLO en ese teléfono.
+# Probado con `<img src=x onerror=…>` en la torre: se ejecutaba.
+s = sustituir(s,
+ "function renderSavedList() {",
+ "// Lo que se guardó es texto, no HTML. Se escapa antes de pintarlo.\n"
+ "function _txt(v){\n"
+ "  return String(v == null ? '' : v)\n"
+ "    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')\n"
+ "    .replace(/\"/g,'&quot;').replace(/'/g,'&#39;');\n"
+ "}\n"
+ "\n"
+ "function renderSavedList() {",
+ "69a· una función para escapar lo guardado")
+
+s = sustituir(s,
+ "<span class=\"saved-item-title\">${item.nro || 'Sin Correlativo'} (${item.formType === 'hitos' ? 'Hitos' : 'Detallado'})</span>\n"
+ "        <span class=\"saved-item-sub\">📍 Torre: ${item.torre || '—'} | Apto: ${item.apto || '—'}</span>\n"
+ "        <span class=\"saved-item-sub\">📅 Guardado: ${item.timestamp}</span>\n"
+ "        <span class=\"saved-item-sub\" style=\"color:${item.enviado ? '#2e7d32' : '#e65100'};font-weight:700\">${item.enviado ? '✅ Enviado ' + item.enviado : '⏳ Sin enviar'}</span>",
+ "<span class=\"saved-item-title\">${_txt(item.nro || 'Sin Correlativo')} (${item.formType === 'hitos' ? 'Hitos' : 'Detallado'})</span>\n"
+ "        <span class=\"saved-item-sub\">📍 Torre: ${_txt(item.torre || '—')} | Apto: ${_txt(item.apto || '—')}</span>\n"
+ "        <span class=\"saved-item-sub\">📅 Guardado: ${_txt(item.timestamp)}</span>\n"
+ "        <span class=\"saved-item-sub\" style=\"color:${item.enviado ? '#1b5e20' : '#8f4b00'};font-weight:700\">${item.enviado ? '✅ Enviado ' + _txt(item.enviado) : '⏳ Sin enviar'}</span>",
+ "69b· la lista de informes muestra texto, no HTML")
+
+# La tabla de memoria pinta la torre y el apartamento por el mismo camino.
+s = sustituir(s,
+ "No hay apartamentos registrados para la torre ${torreActual}.",
+ "No hay apartamentos registrados para la torre ${_txt(torreActual)}.",
+ "69c· lo mismo en la tabla de memoria")
+
+# ── 70. La coma decimal vaciaba el porcentaje sin decir nada ─────────────
+# En Venezuela se escribe «99,7». El campo es `type=number` y con coma queda
+# inválido: `.value` devuelve vacío, el hito pasa a «—» y sale del promedio,
+# sin ningún aviso. El inspector cree que puso 99,7. Se acepta la coma y se
+# trata como el separador decimal que es.
+s = sustituir(s,
+ "  const inp = document.getElementById('hitopct_' + pid);\n"
+ "\n"
+ "  // Campo vac\u00edo es",
+ "  const inp = document.getElementById('hitopct_' + pid);\n"
+ "\n"
+ "  // El teclado del tel\u00e9fono ofrece coma decimal. Con \u00ab99,7\u00bb el campo queda\n"
+ "  // inv\u00e1lido y `value` devuelve vac\u00edo: el hito se iba a \u00ab\u2014\u00bb y sal\u00eda del promedio\n"
+ "  // sin avisar, mientras el inspector cre\u00eda haber puesto 99,7.\n"
+ "  if((inp.value || '') === '' && inp.dataset.crudo){\n"
+ "    const conPunto = String(inp.dataset.crudo).replace(',', '.');\n"
+ "    if(/^\\d*\\.?\\d+$/.test(conPunto)) inp.value = conPunto;\n"
+ "  }\n"
+ "\n"
+ "  // Campo vac\u00edo es",
+ "70a\u00b7 aceptar la coma decimal en el porcentaje")
+
+s = sustituir(s,
+ 'oninput="recalcHito(\'${p.id}\')"',
+ 'oninput="this.dataset.crudo=this.value;recalcHito(\'${p.id}\')" onkeydown="if(event.key===\',\'){event.preventDefault();this.value=this.value+\'.\';}"',
+ "70b· la coma se escribe como punto directamente")
+
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
