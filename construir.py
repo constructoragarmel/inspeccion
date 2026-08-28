@@ -3367,6 +3367,106 @@ s = sustituir(s,
  "88f· el aviso de ámbito no va al documento")
 
 
+# ── 89. En el teléfono, cada subpartida deja de ser una fila de tabla ────
+# El modo detallado pasó a ser el instrumento de campo (ADR-0018) y nunca se
+# había medido en un teléfono, porque hasta ahora el de campo era el de hitos.
+#
+# Medido en 375 px: la tabla ocupa **689 px** dentro de un contenedor de 354, y
+# aun ocultando la cantidad proyectada en modo Inspector se queda en 640. O sea
+# que el inspector tiene que **arrastrar de lado en cada una de las 34 filas**
+# para llegar a la cantidad ejecutada y a la evaluación. Y los botones B/R/M
+# miden **36x38 px**: 136 controles por debajo del mínimo que lleva todo lo
+# demás desde la ronda de móvil.
+#
+# En una pantalla estrecha la fila se apila: la descripción arriba, y debajo lo
+# que se llena. Desaparece el arrastre lateral y los botones caben a 44 px.
+# En pantalla ancha la tabla no cambia.
+s = sustituir(s,
+ "  .no-insp-tgl, .arrow{\n"
+ "    min-width:44px; min-height:44px;",
+ "  /* ── El detallado, apilado: sin arrastre lateral ─────────────────── */\n"
+ "  .tbl-wrap{ overflow-x:visible!important; }\n"
+ "  .tbl-wrap table{ min-width:0!important; width:100%!important; }\n"
+ "  .tbl-wrap thead{ display:none; }\n"
+ "  .tbl-wrap tbody, .tbl-wrap tr, .tbl-wrap td{ display:block; width:auto!important; }\n"
+ "  .tbl-wrap tr{\n"
+ "    border:1px solid #e0e4ff; border-radius:8px; padding:9px 11px;\n"
+ "    margin-bottom:9px; background:#fff; position:relative;\n"
+ "  }\n"
+ "  .tbl-wrap td{ border:none!important; padding:0!important; text-align:left!important; }\n"
+ "  /* El número de la subpartida, como distintivo en la esquina. */\n"
+ "  .tbl-wrap td.n{\n"
+ "    position:absolute; top:9px; right:11px; width:auto!important;\n"
+ "    font-size:11px; color:#8a93a3; font-weight:800;\n"
+ "  }\n"
+ "  .tbl-wrap td.desc{\n"
+ "    font-size:14px!important; font-weight:700; color:#1a237e;\n"
+ "    padding-right:26px!important; margin-bottom:8px!important; line-height:1.3;\n"
+ "  }\n"
+ "  .tbl-wrap td.desc input{ font-size:14px!important; font-weight:700; }\n"
+ "  /* Las dos cantidades, cada una con su rótulo delante. */\n"
+ "  .tbl-wrap td.col-proyectada, .tbl-wrap td.col-ejecutada{\n"
+ "    display:flex!important; align-items:center; gap:9px; margin-bottom:7px!important;\n"
+ "  }\n"
+ "  .tbl-wrap td.col-proyectada::before{ content:'Proyectada'; }\n"
+ "  .tbl-wrap td.col-ejecutada::before{ content:'Ejecutada'; }\n"
+ "  .tbl-wrap td.col-proyectada::before, .tbl-wrap td.col-ejecutada::before{\n"
+ "    flex:0 0 92px; font-size:11px; font-weight:800; color:#5a6672;\n"
+ "    text-transform:uppercase; letter-spacing:.3px;\n"
+ "  }\n"
+ "  .tbl-wrap td .num{ width:96px!important; }\n"
+ "  /* La evaluación, en su fila, con los botones ya tocables. */\n"
+ "  .tbl-wrap td.col-eval{ margin-top:2px!important; }\n"
+ "  .tbl-wrap .ev{ display:flex; gap:7px; }\n"
+ "  .tbl-wrap .ev-btn{ flex:1 1 0; min-height:44px; font-size:14px; }\n"
+ "  /* Lo calculado, en una línea al pie, sin campo que llenar. */\n"
+ "  .tbl-wrap td.falt-cell, .tbl-wrap td.pct-cell{\n"
+ "    display:inline-flex!important; align-items:center; gap:6px;\n"
+ "    margin-top:8px!important; font-size:12px;\n"
+ "  }\n"
+ "  .tbl-wrap td.falt-cell::before{ content:'Faltante'; }\n"
+ "  .tbl-wrap td.pct-cell::before{ content:'Avance'; }\n"
+ "  .tbl-wrap td.falt-cell::before, .tbl-wrap td.pct-cell::before{\n"
+ "    font-size:10px; font-weight:800; color:#5a6672; text-transform:uppercase;\n"
+ "  }\n"
+ "  .tbl-wrap td.pct-cell{ margin-left:16px!important; }\n"
+ "  .tbl-wrap td.pct-cell .bar-bg{ display:none; }\n"
+ "\n"
+ "  .no-insp-tgl, .arrow{\n"
+ "    min-width:44px; min-height:44px;",
+ "89a· en el teléfono la subpartida se apila en vez de arrastrarse")
+
+# Las celdas necesitan poder señalarse una a una.
+s = sustituir(s,
+ '<td><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>\n'
+ '          <td><div class="ev">',
+ '<td class="col-ejecutada"><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>\n'
+ '          <td class="col-eval"><div class="ev">',
+ "89b· poder señalar la cantidad ejecutada y la evaluación")
+
+
+# ── 90. En el teléfono los hitos abren plegados ─────────────────────────
+# Con once hitos y las subpartidas apiladas, el formulario abría entero: 17
+# pantallas de scroll para recorrer las 34 subpartidas de un apartamento. El
+# inspector pierde de vista dónde está.
+#
+# Plegados, el encabezado de cada hito sigue mostrando su nombre y su
+# porcentaje, así que la lista completa cabe en dos pantallas y se despliega el
+# que se va a llenar. En pantalla ancha no cambia: ahí caben.
+s = sustituir(s,
+ "  if(document.getElementById('inspectores-container').children.length === 0) addInspectorField();",
+ "  // En una pantalla estrecha se abre la lista plegada. El encabezado de cada\n"
+ "  // hito ya dice su nombre y su porcentaje, así que sigue informando.\n"
+ "  try{\n"
+ "    if(window.matchMedia &&\n"
+ "       window.matchMedia('(max-width: 700px), (pointer: coarse)').matches){\n"
+ "      document.querySelectorAll('.partida').forEach(function(p){ p.classList.add('collapsed'); });\n"
+ "    }\n"
+ "  } catch(e) { /* sin matchMedia se deja desplegado */ }\n"
+ "\n"
+ "  if(document.getElementById('inspectores-container').children.length === 0) addInspectorField();",
+ "90· en el teléfono los hitos abren plegados")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
