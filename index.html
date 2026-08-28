@@ -168,6 +168,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue2);background:#fff}
 .field textarea{resize:vertical;min-height:80px;display:block;}
 .field-note{font-size:10px;color:#5f6b7a;margin-top:2px}
+/* Copia de las observaciones que solo se usa al imprimir. */
+.texto-impreso{display:none}
 
 /* DYNAMIC MULTI-INPUTS */
 .multi-input-row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
@@ -487,7 +489,150 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   .partida{page-break-inside:avoid}
   .resumen,.total-card,.obs-card,.sp-card{page-break-inside:avoid}
   .grid3,.grid4,.grid2{display:grid!important}
-  @page{margin:12mm 10mm;size:A4 portrait}
+  /* ══ El informe como documento ══════════════════════════════════════
+     Todo lo anterior corrige la pantalla para el papel. Lo que sigue le da
+     forma de documento: sin cajas, sin rellenos de color, sin repeticiones. */
+
+  /* La barra azul de la aplicación no es parte del informe: el membrete con
+     los logos, el título y el número ya está justo debajo. */
+  .hdr{display:none!important}
+
+  body{font-size:10.5px;color:#111}
+  .logo-bar{padding:0 0 8px!important;margin-bottom:10px;border-bottom:2px solid #1a237e!important}
+  .meta-card{padding:0!important;border:none!important;margin-bottom:10px}
+  .content{padding:0!important}
+
+  /* Rótulos de sección: una línea de texto con su regla, no una banda. */
+  .sec-div{background:none!important;color:#1a237e!important;border:none!important;
+           border-bottom:1px solid #1a237e!important;padding:8px 0 3px!important;
+           letter-spacing:.6px;font-size:9.5px!important;margin:10px 0 6px}
+  .sec-lbl{color:#1a237e!important;margin-bottom:5px!important;font-size:9px!important}
+
+  /* Los campos rellenados: etiqueta pequeña arriba, valor en negro debajo,
+     con una guía discreta. Un recuadro de formulario no aporta nada. */
+  .field label{color:#5a6672!important;font-size:8px!important;letter-spacing:.3px}
+  .field input, .field select, .meta-card input, .meta-card select{
+    border:none!important;border-bottom:1px dotted #b9c0cc!important;border-radius:0!important;
+    background:none!important;padding:1px 0!important;font-size:11px!important;
+    font-weight:700!important;color:#111!important;height:auto!important;min-height:0!important;
+  }
+
+  /* Cada hito, una sección del documento. */
+  .partida{border:none!important;border-radius:0!important;box-shadow:none!important;
+           margin:0 0 9px!important;padding:0!important;break-inside:auto;page-break-inside:auto}
+  .p-hdr{background:none!important;color:#111!important;padding:0 0 2px!important;
+         margin-bottom:5px;border-bottom:1px solid #98a2b3!important;
+         print-color-adjust:economy;-webkit-print-color-adjust:economy}
+  .p-hdr h2{color:#1a237e!important;font-size:10.5px!important;letter-spacing:.2px}
+  .p-body{padding:0!important}
+  /* El porcentaje ya está junto al título del hito: el campo lo repetía. */
+  .campo-pct{display:none!important}
+  /* Y el pie del hito lo repetía por tercera vez. */
+  .p-foot{display:none!important}
+  .pct-bdg{background:none!important;box-shadow:none!important;padding:0!important;
+           min-width:0!important;font-size:11px!important;font-weight:900!important}
+  .partida.no-inspeccionada .p-body{opacity:1!important}
+
+  /* Las observaciones son prosa del informe, no el contenido de una casilla.
+     Se imprime el párrafo, no el cuadro: un cuadro recorta, un párrafo no. */
+  textarea{display:none!important}
+  .texto-impreso{display:block!important;
+           font-family:Georgia,'Times New Roman',serif!important;font-size:10.5px!important;
+           line-height:1.45!important;color:#111!important;
+           white-space:pre-wrap;word-break:break-word;margin:0!important;padding:0!important}
+  #obs_general + .texto-impreso, #obs_sp + .texto-impreso{font-size:11px!important}
+  .foto-obs .texto-impreso{font-style:italic;font-size:9.5px!important}
+
+  /* Fotografías: una fila de imágenes bajo su rótulo, sin marco ni fondo. */
+  .foto-sec{background:none!important;border:none!important;margin:5px 0 0!important;
+            padding:0!important;break-inside:avoid;page-break-inside:avoid}
+  .foto-sec-title{color:#5a6672!important;font-size:8px!important;margin-bottom:3px!important;
+                  text-transform:uppercase;letter-spacing:.3px}
+  .foto-obs textarea{font-style:italic;font-size:9.5px!important}
+  .foto-obs{margin-top:3px!important;border-top:none!important}
+  .foto-obs textarea{border-top:none!important;padding-top:0!important}
+
+  /* Bloques finales: tarjetas fuera, contenido dentro. */
+  /* El color es una ayuda de la pantalla, no un dictamen. En el papel, la
+     cifra sola: quien la lea aplicará el criterio que corresponda. */
+  .g, .y, .r, .pct-bdg, .res-pct, .p-foot-pct, .pv, .total-num,
+  td[id^='flt_'], .flt{ color:#111!important }
+
+  /* La cabecera de la tabla, texto sobre una regla en vez de una banda.
+     El color de fondo lo lleva el <thead> en un atributo style, que gana a
+     cualquier hoja: hay que anularlo ahí, no solo en las celdas. */
+  thead, table thead{background:none!important;background-image:none!important}
+  thead th{
+    background:none!important; color:#1a237e!important;
+    border:none!important; border-bottom:1.2px solid #1a237e!important;
+    print-color-adjust:economy!important; -webkit-print-color-adjust:economy!important;
+  }
+  tbody td{border-color:#dde1e8!important}
+  td.n{color:#5a6672!important}
+
+  /* La escala de evaluación es una nota al pie, no un recuadro de color. */
+  #escala-brm{background:none!important;border:none!important;border-left:2px solid #1a237e!important;
+              border-radius:0!important;padding:2px 0 2px 8px!important;font-size:9px!important;
+              margin:0 0 8px!important;color:#333!important}
+
+  .vacio-impresion{display:none!important}
+
+  /* Un título no se queda solo al pie de una página. */
+  .p-hdr, .sec-div, .sec-lbl, .foto-sec-title, .field label,
+  .sp-card h3, .resumen h2, .obs-card h3, .memoria-card h3{
+    break-after:avoid; page-break-after:avoid;
+  }
+  .res-row, .total-card{break-inside:avoid; page-break-inside:avoid}
+
+  /* Aire entre los bloques finales. */
+  .sp-card h3, .resumen h2, .obs-card h3{margin-top:11px!important}
+
+  /* El selector de fecha es un control, no parte del informe. */
+  input[type=date]::-webkit-calendar-picker-indicator{display:none!important}
+
+  /* Instrucciones para quien llena; no son contenido del informe. */
+  .field-note, .memoria-card p, .hint-formato{display:none!important}
+
+  /* El estatus, en un renglón: se marca uno de cinco. */
+  #estatus{gap:4px!important;margin-top:1px!important}
+  #estatus .ck-lbl{padding:1px 5px!important;font-size:9px!important;border-width:1px!important}
+  #estatus .ck-lbl:not(.on){display:none!important}
+  #agentes .ck-lbl, #agentes .ag-btn{padding:1px 6px!important;font-size:9px!important}
+
+  /* La memoria por torre: si no tiene apartamentos cargados, no dice nada. */
+  .memoria-card{background:none!important;box-shadow:none!important;border:none!important;
+                border-radius:0!important;padding:0!important;margin:0 0 9px!important}
+  .memoria-card h3{color:#1a237e!important;font-size:9.5px!important;text-transform:uppercase;
+                   letter-spacing:.6px;border-bottom:1px solid #1a237e!important;
+                   padding-bottom:3px;margin-bottom:5px!important}
+  .memoria-card:has(.tabla-vacia){display:none!important}
+
+  /* El número de informe es un dato, no un campo resaltado. */
+  #nro-display{background:none!important;border:none!important;padding:0!important;
+               color:#111!important;font-size:11px!important}
+
+  .sp-card, .resumen, .obs-card{background:none!important;box-shadow:none!important;
+    border:none!important;border-radius:0!important;padding:0!important;margin:0 0 9px!important}
+  .sp-card h3, .resumen h2, .obs-card h3{color:#1a237e!important;font-size:9.5px!important;
+    text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #1a237e!important;
+    padding-bottom:3px;margin-bottom:6px!important}
+  .res-row{margin-bottom:2px!important;padding:1px 0;border-bottom:1px dotted #dde1e8}
+  .res-name{font-size:10px!important}
+  .res-pct{font-size:11px!important}
+
+  /* El total: la cifra que se busca al abrir el informe. Se destaca con
+     tipografía y reglas, no con un bloque de color de media página. */
+  .total-card{background:none!important;color:#111!important;box-shadow:none!important;
+    border:none!important;border-top:2px solid #1a237e!important;
+    border-bottom:2px solid #1a237e!important;border-radius:0!important;
+    padding:7px 0!important;margin:0 0 9px!important;
+    display:flex;align-items:baseline;justify-content:center;gap:12px;text-align:left}
+  .total-card h2{color:#1a237e!important;font-size:10px!important;letter-spacing:.6px;margin:0}
+  .total-num{font-size:26px!important;letter-spacing:-.5px;color:#111!important}
+  .total-card>div:last-child{display:none!important}   /* la barra de progreso */
+  .total-card>div[style*='opacity']{font-size:8.5px!important;opacity:1!important;color:#5a6672!important}
+
+  @page{margin:11mm 11mm;size:A4 portrait}
 }
 </style>
 <link rel="manifest" href="manifest.json">
@@ -557,9 +702,9 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
       <input type="date" id="fecha" onchange="updateDocInfo()">
     </div>
     <div class="field">
-      <label>N° de Informe <span style="color:#2e7d32;font-size:9px">● Auto-generado</span></label>
+      <label>N° de Informe <span class="solo-pantalla" style="color:#1b5e20;font-size:9px">● Auto-generado</span></label>
       <div id="nro-display" style="padding:7px 10px;border-radius:7px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:1.5px solid #a5d6a7;font-size:12px;font-weight:800;color:#1b5e20;font-family:monospace;letter-spacing:.4px">XX-T---P--A---------</div>
-      <span style="font-size:10px;color:#5f6b7a;margin-top:2px;display:block">Formato: Sector-Torre-Piso/Apto-Fecha-Inspector</span>
+      <span class="hint-formato" style="font-size:10px;color:#5f6b7a;margin-top:2px;display:block">Formato: Sector-Torre-Piso/Apto-Fecha-Inspector</span>
     </div>
     <div class="field">
       <label>Convenio *</label>
@@ -1549,7 +1694,7 @@ function initAppContent() {
       d.style.borderLeftColor = colorHito(p);
       d.innerHTML = `
         <div class="p-hdr" style="background:${colorHito(p)}" onclick="toggleP('${p.id}')">
-          <div class="p-hdr-l"><h2>${p.nombre}<span class="solo-impresion"> (Evaluación por Hitos)</span></h2></div>
+          <div class="p-hdr-l"><h2>${p.nombre}</h2></div>
           <div style="display:flex;align-items:center;gap:9px">
             <span class="no-insp-tgl" id="noinsp_${p.id}" onclick="event.stopPropagation();toggleNoInspeccionado('${p.id}')"
                   title="Marcar el hito como no inspeccionado en esta visita">⊘</span>
@@ -1559,7 +1704,7 @@ function initAppContent() {
         </div>
         <div class="p-body">
           <div style="padding:14px 16px;">
-            <div class="field" style="margin-bottom:12px;">
+            <div class="field campo-pct" style="margin-bottom:12px;">
               <label>Porcentaje de avance<span class="solo-impresion"> en este hito (${p.nombre})</span> *</label>
               <input type="number" class="num hito-pct-input" min="0" max="100" id="hitopct_${p.id}" data-p="${p.id}" oninput="this.dataset.crudo=this.value;recalcHito('${p.id}')" onkeydown="if(event.key===','){event.preventDefault();this.value=this.value+'.';}" placeholder="0-100" style="width:120px; font-weight:bold; font-size:14px;">
             </div>
@@ -2412,18 +2557,49 @@ function finalizarInforme() {
 // observaciones con barra de desplazamiento sale cortado en el PDF.
 // ═══════════════════════════════════════════════
 function _prepararImpresion(){
+  // Un campo sin nada escrito no tiene por qué llevarse su rótulo al papel.
+  document.querySelectorAll('textarea').forEach(t=>{
+    const caja = t.closest('.field') || t.closest('.foto-obs');
+    if(caja) caja.classList.toggle('vacio-impresion', !(t.value || '').trim());
+  });
+  // Y una sección de fotografías sin ninguna fotografía, tampoco.
+  document.querySelectorAll('.foto-sec').forEach(sec=>{
+    const hay = [...sec.querySelectorAll('img')].some(im => im.src && im.src.indexOf('data:') === 0);
+    const obs = sec.querySelector('.foto-obs textarea');
+    const hayNota = obs && (obs.value || '').trim();
+    sec.classList.toggle('vacio-impresion', !hay && !hayNota);
+  });
+  // El asterisco marca «campo obligatorio» mientras se llena. En el documento
+  // firmado no significa nada.
+  document.querySelectorAll('.field label, .sec-lbl').forEach(l=>{
+    if(l.dataset.conAsterisco) return;
+    const t = l.textContent;
+    if(/\s\*\s*$/.test(t)){ l.dataset.conAsterisco = t; l.textContent = t.replace(/\s\*\s*$/, ''); }
+  });
   document.querySelectorAll('.foto-slot').forEach(sl=>{
     const im = sl.querySelector('img');
     const tiene = im && im.src && im.src.indexOf('data:') === 0;
     sl.classList.toggle('sin-foto', !tiene);
   });
-  document.querySelectorAll('.foto-obs textarea, #obs_general, #obs_sp').forEach(t=>{
-    if(!t.dataset.altoOriginal) t.dataset.altoOriginal = t.style.height || '';
-    t.style.height = 'auto';
-    t.style.height = t.scrollHeight + 'px';
+  // Cada observación se vuelca a un párrafo, que crece con su contenido. La
+  // altura calculada del cuadro dependía de la letra de la pantalla y en el
+  // papel recortaba el final del texto.
+  document.querySelectorAll('textarea').forEach(t=>{
+    let p = t.nextElementSibling;
+    if(!p || !p.classList || !p.classList.contains('texto-impreso')){
+      p = document.createElement('div');
+      p.className = 'texto-impreso';
+      t.parentNode.insertBefore(p, t.nextSibling);
+    }
+    p.textContent = t.value || '';
   });
 }
 function _restaurarTrasImpresion(){
+  document.querySelectorAll('.vacio-impresion').forEach(e=>e.classList.remove('vacio-impresion'));
+  document.querySelectorAll('[data-con-asterisco]').forEach(l=>{
+    l.textContent = l.dataset.conAsterisco;
+    delete l.dataset.conAsterisco;
+  });
   document.querySelectorAll('.foto-obs textarea, #obs_general, #obs_sp').forEach(t=>{
     t.style.height = t.dataset.altoOriginal || '';
   });

@@ -2702,6 +2702,372 @@ s = sustituir(s, "@media(max-width:700px){.hdr-btns .hbtn-mas{display:flex}}",
               "72c· «Más» aparece también con el teléfono acostado")
 
 
+# ── 73. El informe impreso deja de ser una foto de la pantalla ───────────
+# En pantalla el instrumento es una herramienta de campo y tiene que seguir
+# siéndolo: objetivos de 44 px, letra de 16, colores que se distinguen con
+# guantes y un contador que persigue al inspector. Nada de eso sirve en papel.
+#
+# El informe es un documento oficial: lo firma un ingeniero, lo lee la Alta
+# Dirección y termina en el expediente de rendición, que se entrega en tres
+# ejemplares físicos (`PA-76`). Ahí el recuadro de cada campo, el bloque de
+# color de cada hito y la tarjeta con sombra no son información: son ruido que
+# gasta papel. Un informe de un apartamento ocupaba SEIS páginas, y la mitad
+# era relleno.
+#
+# Este bloque se aplica solo al imprimir. La pantalla no cambia en nada.
+s = sustituir(s,
+ "  @page{margin:12mm 10mm;size:A4 portrait}\n"
+ "}",
+ "  /* ══ El informe como documento ══════════════════════════════════════\n"
+ "     Todo lo anterior corrige la pantalla para el papel. Lo que sigue le da\n"
+ "     forma de documento: sin cajas, sin rellenos de color, sin repeticiones. */\n"
+ "\n"
+ "  /* La barra azul de la aplicación no es parte del informe: el membrete con\n"
+ "     los logos, el título y el número ya está justo debajo. */\n"
+ "  .hdr{display:none!important}\n"
+ "\n"
+ "  body{font-size:10.5px;color:#111}\n"
+ "  .logo-bar{padding:0 0 8px!important;margin-bottom:10px;border-bottom:2px solid #1a237e!important}\n"
+ "  .meta-card{padding:0!important;border:none!important;margin-bottom:10px}\n"
+ "  .content{padding:0!important}\n"
+ "\n"
+ "  /* Rótulos de sección: una línea de texto con su regla, no una banda. */\n"
+ "  .sec-div{background:none!important;color:#1a237e!important;border:none!important;\n"
+ "           border-bottom:1px solid #1a237e!important;padding:8px 0 3px!important;\n"
+ "           letter-spacing:.6px;font-size:9.5px!important;margin:10px 0 6px}\n"
+ "  .sec-lbl{color:#1a237e!important;margin-bottom:5px!important;font-size:9px!important}\n"
+ "\n"
+ "  /* Los campos rellenados: etiqueta pequeña arriba, valor en negro debajo,\n"
+ "     con una guía discreta. Un recuadro de formulario no aporta nada. */\n"
+ "  .field label{color:#5a6672!important;font-size:8px!important;letter-spacing:.3px}\n"
+ "  .field input, .field select, .meta-card input, .meta-card select{\n"
+ "    border:none!important;border-bottom:1px dotted #b9c0cc!important;border-radius:0!important;\n"
+ "    background:none!important;padding:1px 0!important;font-size:11px!important;\n"
+ "    font-weight:700!important;color:#111!important;height:auto!important;min-height:0!important;\n"
+ "  }\n"
+ "\n"
+ "  /* Cada hito, una sección del documento. */\n"
+ "  .partida{border:none!important;border-radius:0!important;box-shadow:none!important;\n"
+ "           margin:0 0 9px!important;padding:0!important;break-inside:auto;page-break-inside:auto}\n"
+ "  .p-hdr{background:none!important;color:#111!important;padding:0 0 2px!important;\n"
+ "         margin-bottom:5px;border-bottom:1px solid #98a2b3!important;\n"
+ "         print-color-adjust:economy;-webkit-print-color-adjust:economy}\n"
+ "  .p-hdr h2{color:#1a237e!important;font-size:10.5px!important;letter-spacing:.2px}\n"
+ "  .p-body{padding:0!important}\n"
+ "  /* El porcentaje ya está junto al título del hito: el campo lo repetía. */\n"
+ "  .campo-pct{display:none!important}\n"
+ "  /* Y el pie del hito lo repetía por tercera vez. */\n"
+ "  .p-foot{display:none!important}\n"
+ "  .pct-bdg{background:none!important;box-shadow:none!important;padding:0!important;\n"
+ "           min-width:0!important;font-size:11px!important;font-weight:900!important}\n"
+ "  .partida.no-inspeccionada .p-body{opacity:1!important}\n"
+ "\n"
+ "  /* Las observaciones son prosa del informe, no el contenido de una casilla. */\n"
+ "  textarea{border:none!important;background:none!important;border-radius:0!important;\n"
+ "           padding:0!important;margin:0!important;resize:none!important;overflow:hidden!important;\n"
+ "           font-family:Georgia,'Times New Roman',serif!important;font-size:10.5px!important;\n"
+ "           line-height:1.45!important;color:#111!important;min-height:0!important}\n"
+ "  #obs_general, #obs_sp{font-size:11px!important}\n"
+ "\n"
+ "  /* Fotografías: una fila de imágenes bajo su rótulo, sin marco ni fondo. */\n"
+ "  .foto-sec{background:none!important;border:none!important;margin:5px 0 0!important;\n"
+ "            padding:0!important;break-inside:avoid;page-break-inside:avoid}\n"
+ "  .foto-sec-title{color:#5a6672!important;font-size:8px!important;margin-bottom:3px!important;\n"
+ "                  text-transform:uppercase;letter-spacing:.3px}\n"
+ "  .foto-obs textarea{font-style:italic;font-size:9.5px!important}\n"
+ "  .foto-obs{margin-top:3px!important;border-top:none!important}\n"
+ "  .foto-obs textarea{border-top:none!important;padding-top:0!important}\n"
+ "\n"
+ "  /* Bloques finales: tarjetas fuera, contenido dentro. */\n"
+ "  .sp-card, .resumen, .obs-card{background:none!important;box-shadow:none!important;\n"
+ "    border:none!important;border-radius:0!important;padding:0!important;margin:0 0 9px!important}\n"
+ "  .sp-card h3, .resumen h2, .obs-card h3{color:#1a237e!important;font-size:9.5px!important;\n"
+ "    text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #1a237e!important;\n"
+ "    padding-bottom:3px;margin-bottom:6px!important}\n"
+ "  .res-row{margin-bottom:2px!important;padding:1px 0;border-bottom:1px dotted #dde1e8}\n"
+ "  .res-name{font-size:10px!important}\n"
+ "  .res-pct{font-size:11px!important}\n"
+ "\n"
+ "  /* El total: la cifra que se busca al abrir el informe. Se destaca con\n"
+ "     tipografía y reglas, no con un bloque de color de media página. */\n"
+ "  .total-card{background:none!important;color:#111!important;box-shadow:none!important;\n"
+ "    border:none!important;border-top:2px solid #1a237e!important;\n"
+ "    border-bottom:2px solid #1a237e!important;border-radius:0!important;\n"
+ "    padding:7px 0!important;margin:0 0 9px!important;\n"
+ "    display:flex;align-items:baseline;justify-content:center;gap:12px;text-align:left}\n"
+ "  .total-card h2{color:#1a237e!important;font-size:10px!important;letter-spacing:.6px;margin:0}\n"
+ "  .total-num{font-size:26px!important;letter-spacing:-.5px;color:#111!important}\n"
+ "  .total-card>div:last-child{display:none!important}   /* la barra de progreso */\n"
+ "  .total-card>div[style*='opacity']{font-size:8.5px!important;opacity:1!important;color:#5a6672!important}\n"
+ "\n"
+ "  @page{margin:11mm 11mm;size:A4 portrait}\n"
+ "}",
+ "73· el informe impreso es un documento, no una captura de pantalla")
+
+# El campo del porcentaje necesita poder señalarse para no repetirlo en papel.
+s = sustituir(s,
+ '<div class="field" style="margin-bottom:12px;">\n'
+ '              <label>Porcentaje de avance',
+ '<div class="field campo-pct" style="margin-bottom:12px;">\n'
+ '              <label>Porcentaje de avance',
+ "73b· poder señalar el campo del porcentaje")
+
+
+# ── 74. Lo que está vacío no ocupa una página ────────────────────────────
+# Un hito sin observación imprimía igual el rótulo «OBSERVACIONES VISUALES DE
+# OBRA — HITO 5…» con un hueco debajo, y otro tanto con «FOTOGRAFÍAS — …».
+# Dos rótulos huérfanos por hito, unos 150 px de blanco cada uno. En un informe
+# de siete hitos eso es media página de nada.
+#
+# CSS no puede preguntar si un textarea está vacío, pero el preparado de la
+# impresión ya recorre el documento: que marque lo vacío al pasar.
+s = sustituir(s,
+ "function _prepararImpresion(){\n"
+ "  document.querySelectorAll('.foto-slot').forEach(sl=>{",
+ "function _prepararImpresion(){\n"
+ "  // Un campo sin nada escrito no tiene por qué llevarse su rótulo al papel.\n"
+ "  document.querySelectorAll('textarea').forEach(t=>{\n"
+ "    const caja = t.closest('.field') || t.closest('.foto-obs');\n"
+ "    if(caja) caja.classList.toggle('vacio-impresion', !(t.value || '').trim());\n"
+ "  });\n"
+ "  // Y una sección de fotografías sin ninguna fotografía, tampoco.\n"
+ "  document.querySelectorAll('.foto-sec').forEach(sec=>{\n"
+ "    const hay = [...sec.querySelectorAll('img')].some(im => im.src && im.src.indexOf('data:') === 0);\n"
+ "    const obs = sec.querySelector('.foto-obs textarea');\n"
+ "    const hayNota = obs && (obs.value || '').trim();\n"
+ "    sec.classList.toggle('vacio-impresion', !hay && !hayNota);\n"
+ "  });\n"
+ "  document.querySelectorAll('.foto-slot').forEach(sl=>{",
+ "74a· marcar lo vacío antes de imprimir")
+
+s = sustituir(s,
+ "function _restaurarTrasImpresion(){",
+ "function _restaurarTrasImpresion(){\n"
+ "  document.querySelectorAll('.vacio-impresion').forEach(e=>e.classList.remove('vacio-impresion'));",
+ "74b· y desmarcarlo al volver a la pantalla")
+
+# ── 75. Lo que quedaba con aire de interfaz en el documento ──────────────
+# La memoria por torre seguía siendo una tarjeta blanca con sombra, con su
+# tabla vacía y el texto «Agregue o registre los apartamentos evaluados…», que
+# es una instrucción para quien llena, no información para quien lee. El
+# estatus de la obra gastaba cinco renglones para marcar uno. Y quedaban las
+# ayudas de la interfaz: el formato del identificador y la nota del residente.
+s = sustituir(s,
+ "  .sp-card, .resumen, .obs-card{background:none!important;box-shadow:none!important;",
+ "  .vacio-impresion{display:none!important}\n"
+ "\n"
+ "  /* Instrucciones para quien llena; no son contenido del informe. */\n"
+ "  .field-note, .memoria-card p, .hint-formato{display:none!important}\n"
+ "\n"
+ "  /* El estatus, en un renglón: se marca uno de cinco. */\n"
+ "  #estatus{gap:4px!important;margin-top:1px!important}\n"
+ "  #estatus .ck-lbl{padding:1px 5px!important;font-size:9px!important;border-width:1px!important}\n"
+ "  #estatus .ck-lbl:not(.on){display:none!important}\n"
+ "  #agentes .ck-lbl, #agentes .ag-btn{padding:1px 6px!important;font-size:9px!important}\n"
+ "\n"
+ "  /* La memoria por torre: si no tiene apartamentos cargados, no dice nada. */\n"
+ "  .memoria-card{background:none!important;box-shadow:none!important;border:none!important;\n"
+ "                border-radius:0!important;padding:0!important;margin:0 0 9px!important}\n"
+ "  .memoria-card h3{color:#1a237e!important;font-size:9.5px!important;text-transform:uppercase;\n"
+ "                   letter-spacing:.6px;border-bottom:1px solid #1a237e!important;\n"
+ "                   padding-bottom:3px;margin-bottom:5px!important}\n"
+ "  .memoria-card:has(.tabla-vacia){display:none!important}\n"
+ "\n"
+ "  /* El número de informe es un dato, no un campo resaltado. */\n"
+ "  #nro-display{background:none!important;border:none!important;padding:0!important;\n"
+ "               color:#111!important;font-size:11px!important}\n"
+ "\n"
+ "  .sp-card, .resumen, .obs-card{background:none!important;box-shadow:none!important;",
+ "75· fuera lo que era interfaz y no informe")
+
+# El rótulo del formato del identificador necesita poder señalarse.
+s = sustituir(s,
+ '<span style="font-size:10px;color:#5f6b7a;margin-top:2px;display:block">Formato: Sector-Torre-Piso/Apto-Fecha-Inspector</span>',
+ '<span class="hint-formato" style="font-size:10px;color:#5f6b7a;margin-top:2px;display:block">Formato: Sector-Torre-Piso/Apto-Fecha-Inspector</span>',
+ "75b· poder señalar la ayuda del formato")
+
+# ── 76. «(Evaluación por Hitos)» en cada uno de los siete títulos ────────
+# Lo puse yo para que el papel conservara el contexto, pero el documento entero
+# se titula «Informe de Inspección por Hitos»: repetirlo siete veces no informa.
+s = sustituir(s,
+ '<h2>${p.nombre}<span class="solo-impresion"> (Evaluación por Hitos)</span></h2>',
+ '<h2>${p.nombre}</h2>',
+ "76· el título del hito no repite el del informe")
+
+
+# ── 77. Remates del documento ───────────────────────────────────────────
+# Al dejar que los hitos fluyan entre páginas —que es lo que quitó las páginas
+# medio vacías— apareció el efecto contrario: el título del hito 4 quedó al pie
+# de una página y su observación al principio de la siguiente. Un título
+# huérfano se arregla pidiendo que no se corte justo después de él.
+#
+# Y quedaban marcas de formulario que en un documento firmado no significan
+# nada: el asterisco de «campo obligatorio» y el icono del calendario.
+s = sustituir(s,
+ "  .vacio-impresion{display:none!important}",
+ "  .vacio-impresion{display:none!important}\n"
+ "\n"
+ "  /* Un título no se queda solo al pie de una página. */\n"
+ "  .p-hdr, .sec-div, .sec-lbl, .foto-sec-title, .field label,\n"
+ "  .sp-card h3, .resumen h2, .obs-card h3, .memoria-card h3{\n"
+ "    break-after:avoid; page-break-after:avoid;\n"
+ "  }\n"
+ "  .res-row, .total-card{break-inside:avoid; page-break-inside:avoid}\n"
+ "\n"
+ "  /* Aire entre los bloques finales. */\n"
+ "  .sp-card h3, .resumen h2, .obs-card h3{margin-top:11px!important}\n"
+ "\n"
+ "  /* El selector de fecha es un control, no parte del informe. */\n"
+ "  input[type=date]::-webkit-calendar-picker-indicator{display:none!important}",
+ "77a· títulos que no quedan huérfanos, y sin controles de formulario")
+
+# El asterisco de obligatorio se retira al imprimir y vuelve al salir.
+s = sustituir(s,
+ "  document.querySelectorAll('.foto-slot').forEach(sl=>{",
+ "  // El asterisco marca «campo obligatorio» mientras se llena. En el documento\n"
+ "  // firmado no significa nada.\n"
+ "  document.querySelectorAll('.field label, .sec-lbl').forEach(l=>{\n"
+ "    if(l.dataset.conAsterisco) return;\n"
+ "    const t = l.textContent;\n"
+ "    if(/\\s\\*\\s*$/.test(t)){ l.dataset.conAsterisco = t; l.textContent = t.replace(/\\s\\*\\s*$/, ''); }\n"
+ "  });\n"
+ "  document.querySelectorAll('.foto-slot').forEach(sl=>{",
+ "77b· quitar el asterisco de obligatorio al imprimir")
+
+s = sustituir(s,
+ "  document.querySelectorAll('.vacio-impresion').forEach(e=>e.classList.remove('vacio-impresion'));",
+ "  document.querySelectorAll('.vacio-impresion').forEach(e=>e.classList.remove('vacio-impresion'));\n"
+ "  document.querySelectorAll('[data-con-asterisco]').forEach(l=>{\n"
+ "    l.textContent = l.dataset.conAsterisco;\n"
+ "    delete l.dataset.conAsterisco;\n"
+ "  });",
+ "77c· y devolverlo al volver a la pantalla")
+
+
+# ── 78. El último resto de formulario en el documento ───────────────────
+# «● Auto-generado» junto al número le dice al inspector que no lo escriba él.
+# En el documento firmado no aporta: el número es el número.
+s = sustituir(s,
+ '<label>N\u00b0 de Informe <span style="color:#2e7d32;font-size:9px">\u25cf Auto-generado</span></label>',
+ '<label>N\u00b0 de Informe <span class="solo-pantalla" style="color:#1b5e20;font-size:9px">\u25cf Auto-generado</span></label>',
+ "78\u00b7 el aviso de autogenerado no va al papel")
+
+# ── 79. En el informe firmado, el porcentaje va en negro ────────────────
+# En pantalla el verde, el ámbar y el rojo ayudan al inspector a barrer siete
+# hitos de un vistazo, y ahí se quedan. En el papel dicen «bien / regular /
+# mal» sobre un umbral que NADIE ha definido: los pesos son `PA-03` y el
+# criterio de aceptación lo fija el ingeniero responsable, no un color de la
+# herramienta. Un 40 % en rojo dentro de un documento que va al Ministerio es
+# un juicio implícito que el informe no está en condiciones de emitir.
+s = sustituir(s,
+ "  .vacio-impresion{display:none!important}",
+ "  /* El color es una ayuda de la pantalla, no un dictamen. En el papel, la\n"
+ "     cifra sola: quien la lea aplicará el criterio que corresponda. */\n"
+ "  .g, .y, .r, .pct-bdg, .res-pct, .p-foot-pct, .pv, .total-num{ color:#111!important }\n"
+ "\n"
+ "  .vacio-impresion{display:none!important}",
+ "79\u00b7 sin verde, \u00e1mbar ni rojo en el informe firmado")
+
+# ── 80. Los bloques de color que quedaban en el modo detallado ───────────
+# El modo por hitos ya salía como documento, pero el detallado —el de oficina—
+# conservaba lo que se había quitado en el otro: la cabecera de cada tabla como
+# una banda azul sólida, la escala B/R/M dentro de una caja de color, y la
+# columna «cantidad faltante» en naranja, que es otro juicio de color sin
+# criterio detrás. La numeración de filas, además, iba en gris #bbb: ilegible
+# impresa.
+s = sustituir(s,
+ "  /* El color es una ayuda de la pantalla, no un dictamen. En el papel, la\n"
+ "     cifra sola: quien la lea aplicará el criterio que corresponda. */\n"
+ "  .g, .y, .r, .pct-bdg, .res-pct, .p-foot-pct, .pv, .total-num{ color:#111!important }",
+ "  /* El color es una ayuda de la pantalla, no un dictamen. En el papel, la\n"
+ "     cifra sola: quien la lea aplicará el criterio que corresponda. */\n"
+ "  .g, .y, .r, .pct-bdg, .res-pct, .p-foot-pct, .pv, .total-num,\n"
+ "  td[id^='flt_'], .flt{ color:#111!important }\n"
+ "\n"
+ "  /* La cabecera de la tabla, texto sobre una regla en vez de una banda.\n"
+ "     El color de fondo lo lleva el <thead> en un atributo style, que gana a\n"
+ "     cualquier hoja: hay que anularlo ahí, no solo en las celdas. */\n"
+ "  thead, table thead{background:none!important;background-image:none!important}\n"
+ "  thead th{\n"
+ "    background:none!important; color:#1a237e!important;\n"
+ "    border:none!important; border-bottom:1.2px solid #1a237e!important;\n"
+ "    print-color-adjust:economy!important; -webkit-print-color-adjust:economy!important;\n"
+ "  }\n"
+ "  tbody td{border-color:#dde1e8!important}\n"
+ "  td.n{color:#5a6672!important}\n"
+ "\n"
+ "  /* La escala de evaluación es una nota al pie, no un recuadro de color. */\n"
+ "  #escala-brm{background:none!important;border:none!important;border-left:2px solid #1a237e!important;\n"
+ "              border-radius:0!important;padding:2px 0 2px 8px!important;font-size:9px!important;\n"
+ "              margin:0 0 8px!important;color:#333!important}",
+ "80· el modo detallado también deja de traer bloques de color")
+
+
+# ── 81. Las observaciones largas se cortaban en el PDF ───────────────────
+# Al imprimir, la altura de cada cuadro de observaciones se calculaba con
+# `scrollHeight`, que mide con la tipografía de PANTALLA. En el papel el texto
+# va en otra familia y otro cuerpo, ocupa más líneas, y el `overflow:hidden`
+# recortaba lo que sobraba. Medido con una observación de dos párrafos: el
+# informe terminaba a media frase —«…condicionado a la llegada del material.
+# Queda»— y el resto no salía. Nadie se enteraría: en pantalla está entero.
+#
+# Un cuadro de texto no crece solo; un párrafo sí. Al imprimir se vuelca el
+# contenido a un párrafo de verdad y se imprime ese.
+s = sustituir(s,
+ "  document.querySelectorAll('.foto-obs textarea, #obs_general, #obs_sp').forEach(t=>{\n"
+ "    if(!t.dataset.altoOriginal) t.dataset.altoOriginal = t.style.height || '';\n"
+ "    t.style.height = 'auto';\n"
+ "    t.style.height = t.scrollHeight + 'px';\n"
+ "  });",
+ "  // Cada observación se vuelca a un párrafo, que crece con su contenido. La\n"
+ "  // altura calculada del cuadro dependía de la letra de la pantalla y en el\n"
+ "  // papel recortaba el final del texto.\n"
+ "  document.querySelectorAll('textarea').forEach(t=>{\n"
+ "    let p = t.nextElementSibling;\n"
+ "    if(!p || !p.classList || !p.classList.contains('texto-impreso')){\n"
+ "      p = document.createElement('div');\n"
+ "      p.className = 'texto-impreso';\n"
+ "      t.parentNode.insertBefore(p, t.nextSibling);\n"
+ "    }\n"
+ "    p.textContent = t.value || '';\n"
+ "  });",
+ "81a· volcar las observaciones a un párrafo antes de imprimir")
+
+s = sustituir(s,
+ "  /* Las observaciones son prosa del informe, no el contenido de una casilla. */\n"
+ "  textarea{border:none!important;background:none!important;border-radius:0!important;\n"
+ "           padding:0!important;margin:0!important;resize:none!important;overflow:hidden!important;\n"
+ "           font-family:Georgia,'Times New Roman',serif!important;font-size:10.5px!important;\n"
+ "           line-height:1.45!important;color:#111!important;min-height:0!important}\n"
+ "  #obs_general, #obs_sp{font-size:11px!important}",
+ "  /* Las observaciones son prosa del informe, no el contenido de una casilla.\n"
+ "     Se imprime el párrafo, no el cuadro: un cuadro recorta, un párrafo no. */\n"
+ "  textarea{display:none!important}\n"
+ "  .texto-impreso{display:block!important;\n"
+ "           font-family:Georgia,'Times New Roman',serif!important;font-size:10.5px!important;\n"
+ "           line-height:1.45!important;color:#111!important;\n"
+ "           white-space:pre-wrap;word-break:break-word;margin:0!important;padding:0!important}\n"
+ "  #obs_general + .texto-impreso, #obs_sp + .texto-impreso{font-size:11px!important}\n"
+ "  .foto-obs .texto-impreso{font-style:italic;font-size:9.5px!important}",
+ "81b· imprimir el párrafo en vez del cuadro")
+
+# En pantalla el párrafo no existe: el inspector escribe en el cuadro de siempre.
+s = sustituir(s,
+ ".field-note{font-size:10px;color:#5f6b7a;margin-top:2px}",
+ ".field-note{font-size:10px;color:#5f6b7a;margin-top:2px}\n"
+ "/* Copia de las observaciones que solo se usa al imprimir. */\n"
+ ".texto-impreso{display:none}",
+ "81c· el párrafo no se ve en pantalla")
+
+# Y lo vacío se decide sobre el mismo texto.
+s = sustituir(s,
+ "    const caja = t.closest('.field') || t.closest('.foto-obs');\n"
+ "    if(caja) caja.classList.toggle('vacio-impresion', !(t.value || '').trim());",
+ "    const caja = t.closest('.field') || t.closest('.foto-obs');\n"
+ "    if(caja) caja.classList.toggle('vacio-impresion', !(t.value || '').trim());",
+ "81d· sin cambio en la marca de vacío")
+
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
