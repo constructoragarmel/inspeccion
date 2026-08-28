@@ -2190,6 +2190,172 @@ s = sustituir(s,
  "56c· el interruptor no sale en el PDF")
 
 
+# ── 57. Oscuro sobre oscuro: el porcentaje era ilegible ───────────────────
+# Auditado con la fórmula de contraste de la WCAG sobre la pantalla real: 67
+# elementos por debajo del mínimo. El peor, con diferencia, es el número que da
+# sentido a toda la herramienta: el distintivo de porcentaje va sobre el
+# encabezado azul del hito con el color semántico pensado para fondo claro.
+# Verde #2e7d32 sobre azul #0277bd da 1,07 de contraste — invisible. El rojo,
+# 1,6. El ámbar, 2,17.
+#
+# El distintivo pasa a fondo blanco sólido, y los tres colores semánticos se
+# oscurecen para que también se lean sobre blanco, donde el ámbar daba 2,65.
+s = sustituir(s,
+ ".pct-bdg{background:rgba(255,255,255,.25);color:#fff;font-weight:900;font-size:14px;padding:3px 11px;border-radius:20px;min-width:52px;text-align:center}",
+ ".pct-bdg{background:#fff;color:#1a237e;font-weight:900;font-size:14px;padding:3px 11px;border-radius:20px;min-width:52px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.25)}",
+ "57a· el porcentaje sobre blanco, legible en cualquier encabezado")
+
+s = sustituir(s,
+ ".g{color:#2e7d32}.y{color:#f57f17}.r{color:#c62828}",
+ "/* Oscurecidos para pasar el 4,5:1 sobre blanco: antes el ámbar daba 2,65. */\n"
+ ".g{color:#1b5e20}.y{color:#8f4b00}.r{color:#b71c1c}",
+ "57b· verde, ámbar y rojo legibles sobre blanco")
+
+# Texto auxiliar: #aaa sobre blanco daba 2,32 en 44 sitios, y #888 daba 3,54.
+s = sustituir(s, ".field-note{font-size:10px;color:#aaa;margin-top:2px}",
+                 ".field-note{font-size:10px;color:#5f6b7a;margin-top:2px}",
+              "57c· las notas de campo se leen")
+s = sustituir(s, "color:#aaa", "color:#5f6b7a", "57d· resto del texto auxiliar", 40)
+s = sustituir(s, "color:#888", "color:#5a6672", "57e· subtítulos", 20)
+
+# Blanco sobre #1e88e5 daba 3,68; sobre #1565c0 da 5,14.
+s = sustituir(s, ".hbtn-nuevo{background:#1e88e5;color:#fff;border-color:#64b5f6}",
+                 ".hbtn-nuevo{background:#1565c0;color:#fff;border-color:#64b5f6}",
+              "57f· el azul de los botones aguanta el texto blanco")
+
+# Blanco sobre naranja #e65100 daba 3,79 en los selectores de modo y de ámbito.
+s = sustituir(s, "background:#e65100;color:#fff", "background:#a63d00;color:#fff",
+              "57g· el naranja de los selectores se oscurece", 4)
+
+# Los dos indicadores de estado iban en verde oscuro sobre la barra azul: 1,12.
+s = sustituir(s, "el.textContent = '💾 guardado ' + hh + ':' + mm;\n  el.style.color = '#2e7d32';",
+                 "el.textContent = '💾 guardado ' + hh + ':' + mm;\n  el.style.color = '#c8e6c9';",
+              "57h· «guardado» se lee sobre la barra azul")
+
+
+# ── 58. Ordenar los botones por el recorrido del inspector ───────────────
+# Había ocho botones y cuatro nombres que compiten: «Guardar», «Guardados»,
+# «Finalizar» y «Nuevo». Nadie puede saber cuál hace qué.
+#
+# En una jornada de ocho apartamentos: se pasa al siguiente 8 veces, se envía
+# entre 1 y 8, se guarda a mano por tranquilidad —el autoguardado ya corre cada
+# 30 s—, y el PDF, el informe en blanco y el modo prueba no se tocan casi nunca.
+#
+#   Primero  ➡️ Guardar y siguiente  — el verbo del trabajo, 8 veces al día
+#   Igual    📤 Enviar (n)           — no por frecuencia, por riesgo: hasta que
+#                                      se pulse, el informe vive en UN teléfono
+#   Después  💾 Guardar              — la red de seguridad
+#   Guardado ⋯ Más                   — lo de una vez por jornada
+#
+# «Finalizar» se retira: desde que dejó de existir la portada hacía lo mismo que
+# «Siguiente apto.» pero SIN guardar antes — se probó y perdía lo escrito desde
+# el último autoguardado. Y el contador que incrementaba ya no alimenta el
+# número del informe desde el cambio 8.
+ini_b = s.index('<div class="hdr-btns">')
+fin_b = s.index('</div>', s.index('<!-- Botón «Reiniciar N°» retirado'))
+s = sustituir(s, s[ini_b:fin_b],
+ '<div class="hdr-btns">\n'
+ '    <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Guarda este informe y prepara el del siguiente apartamento, conservando torre, empresa y personal">➡️ <span>Guardar y siguiente</span></button>\n'
+ '    <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guarda el informe en este teléfono. También se guarda solo cada 30 segundos">💾 <span>Guardar</span></button>\n'
+ '    <button class="hbtn hbtn-send" onclick="openSend()" title="Manda los informes a Drive. Hasta que se envían, viven solo en este teléfono">📤 <span>Enviar</span><b id="cnt-pendientes" style="display:none;margin-left:5px"></b></button>\n'
+ '    <button class="hbtn hbtn-mas" id="btn-mas" onclick="toggleMasAcciones()" title="Resto de las acciones">⋯ <span>Más</span></button>\n'
+ '    <span id="estado-guardado" style="font-size:11px;font-weight:700;color:#bcc6e0;align-self:center;margin-left:4px"></span>\n'
+ '    <span id="estado-conexion" style="font-size:11px;font-weight:700;align-self:center;margin-left:8px"></span>\n'
+ '    <div class="hdr-sec" id="hdr-sec">\n'
+ '      <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 <span>Mis informes</span><b id="cnt-guardados" style="display:none;margin-left:5px"></b></button>\n'
+ '      <button class="hbtn hbtn-pdf" onclick="imprimirInforme()" title="Genera el PDF del informe que está en pantalla">🖨️ <span>PDF</span></button>\n'
+ '      <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Vacía el formulario entero, incluidas torre y empresa. Para empezar en otra torre">🆕 <span>Informe en blanco</span></button>\n'
+ '      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" title="Activar modo de prueba — los informes quedan marcados como PRUEBA">🧪 <span>Prueba</span></button>\n'
+ '    </div>\n'
+ '    <!-- «Finalizar» retirado: hacía lo mismo que «Guardar y siguiente» pero sin guardar. -->\n'
+ '  ',
+ "58a· los botones, ordenados por lo que se usa y cuándo")
+
+# El estilo de «Finalizar» ya no tiene dueño; «Informe en blanco» toma el suyo,
+# más apagado que el azul de la acción principal para que no compitan.
+s = sustituir(s,
+ ".hbtn-finalizar{background:#0d47a1;color:#fff;border-color:#5c8fd6}",
+ ".hbtn-nuevo2{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}",
+ "58b· «Informe en blanco» no compite con la acción principal")
+
+# En el teléfono, las dos acciones de más peso ocupan la fila entera.
+s = sustituir(s,
+ "  .hbtn{ flex:1 1 38%; justify-content:center; padding:8px 10px; font-size:12.5px; }",
+ "  .hbtn{ flex:1 1 38%; justify-content:center; padding:8px 10px; font-size:12.5px; }\n"
+ "  /* La acción que se usa ocho veces al día se lleva la fila entera; las\n"
+ "     otras tres se reparten la siguiente. Dos filas, no cuatro. */\n"
+ "  .hbtn-nuevo{ flex:1 1 100%; font-size:13.5px; }\n"
+ "  .hbtn-save, .hbtn-send, .hbtn-mas{ flex:1 1 28%; }",
+ "58c· las dos acciones principales, a fila completa")
+
+# ── 59. «Simplificado» ya no distingue nada ──────────────────────────────
+# Distinguía dos modos cuando compartían pantalla de inicio. Ahora cada uno
+# tiene su enlace, y la palabra solo sugiere que el inspector usa una versión
+# menor de algo.
+s = sustituir(s, "'Informe de Inspección por Hitos (Simplificado)'",
+                 "'Informe de Inspección por Hitos'",
+              "59· fuera «(Simplificado)»")
+
+
+# ── 60. El indicador de conexión tampoco se leía sobre el azul ───────────
+# Verde #2e7d32 sobre la barra azul da 1,12 de contraste, y el naranja #e65100
+# de «sin señal» tampoco pasa. Y «sin señal» es justo lo que el inspector
+# necesita ver antes de tocar Enviar.
+s = sustituir(s,
+ "    el.textContent = '● en línea';\n"
+ "    el.style.color = '#2e7d32';",
+ "    el.textContent = '● en línea';\n"
+ "    el.style.color = '#a5d6a7';",
+ "60a· «en línea» legible sobre la barra")
+
+s = sustituir(s,
+ "    el.textContent = '● sin señal — el informe queda guardado aquí';\n"
+ "    el.style.color = '#e65100';",
+ "    el.textContent = '● sin señal — el informe queda guardado aquí';\n"
+ "    el.style.color = '#ffcc80';",
+ "60b· «sin señal» legible sobre la barra")
+
+# ── 61. Los cinco avisos que quedaban por debajo del mínimo ──────────────
+# Tras la pasada anterior el audit bajó de 67 fallos a 5, y los cinco son
+# avisos: justo el texto que tiene que leerse. El ámbar #f57f17 sobre blanco da
+# 2,65 y el naranja #e65100 sobre su propio fondo crema da 3,46.
+s = sustituir(s,
+ '<span style="font-size:10px;color:#f57f17;margin-top:2px;display:block">⚠️ Torre no registrada en el maestro</span>',
+ '<span style="font-size:10px;color:#8f4b00;font-weight:700;margin-top:2px;display:block">⚠️ Torre no registrada en el maestro</span>',
+ "61a· el aviso de torre no registrada se lee")
+
+s = sustituir(s,
+ '<option value="NO_REG" style="color:#e65100;font-weight:700">⚠️ No registrada — ingresar manualmente</option>',
+ '<option value="NO_REG" style="color:#8f4b00;font-weight:700">⚠️ No registrada — ingresar manualmente</option>',
+ "61b· la opción «no registrada» se lee")
+
+s = sustituir(s, 'background:#fff3e0;color:#e65100;border:1px solid #ffcc80',
+                 'background:#fff3e0;color:#8f4b00;border:1px solid #e6a860',
+              "61c· el distintivo de modo se lee")
+
+s = sustituir(s, "badge.style.background = '#fff3e0'; badge.style.color = '#e65100'; badge.style.borderColor = '#ffcc80';",
+                 "badge.style.background = '#fff3e0'; badge.style.color = '#8f4b00'; badge.style.borderColor = '#e6a860';",
+              "61d· y también cuando se repinta")
+
+# Los dos indicadores de la barra: el verde y el ámbar claros que puse antes
+# se quedaban en 3,5 y 4,27 sobre el extremo claro del degradado.
+s = sustituir(s, "el.style.color = '#a5d6a7';", "el.style.color = '#e8f5e9';",
+              "61e· «en línea», más claro")
+s = sustituir(s, "el.style.color = '#ffcc80';", "el.style.color = '#ffe9c7';",
+              "61f· «sin señal», más claro")
+s = sustituir(s, "el.style.color = '#c8e6c9';", "el.style.color = '#e8f5e9';",
+              "61g· «guardado», más claro")
+
+
+# ── 62. La misma opción se dibuja dos veces, y solo una estaba corregida ─
+# El desplegable de torres se reconstruye por JavaScript al elegir el convenio,
+# y ahí la opción «No registrada» se creaba de nuevo con el naranja viejo. El
+# audit lo cazó: el único fallo que quedaba en toda la pantalla.
+s = sustituir(s,
+ "  noReg.style.color = '#e65100';",
+ "  noReg.style.color = '#8f4b00';",
+ "62· el aviso también se lee cuando lo redibuja el JavaScript")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar

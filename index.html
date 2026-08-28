@@ -134,9 +134,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 /* Relleno sólido y contraste real: sobre la barra azul, un botón tiene que
    distinguirse del fondo sin que haya que adivinarlo. */
 .hbtn-save{background:#fff;color:#1a237e;border-color:#fff}
-.hbtn-nuevo{background:#1e88e5;color:#fff;border-color:#64b5f6}
+.hbtn-nuevo{background:#1565c0;color:#fff;border-color:#64b5f6}
 .hbtn-send{background:#2e7d32;color:#fff;border-color:#66bb6a}
-.hbtn-finalizar{background:#0d47a1;color:#fff;border-color:#5c8fd6}
+.hbtn-nuevo2{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}
 .hbtn-saved-list{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}
 .hbtn-pdf{background:#eceff1;color:#37474f;border-color:#cfd8dc}
 .hbtn-mas{background:transparent;color:#fff;border-color:rgba(255,255,255,.55)}
@@ -145,7 +145,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 /* LOGO BAR (print) */
 .logo-bar{background:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--blue-l)}
 .logo-box{display:flex;align-items:center;gap:14px}
-.logo-placeholder{width:80px;height:60px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;cursor:pointer;text-align:center;position:relative;overflow:hidden;flex-shrink:0}
+.logo-placeholder{width:80px;height:60px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#5f6b7a;cursor:pointer;text-align:center;position:relative;overflow:hidden;flex-shrink:0}
 .logo-placeholder img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .logo-placeholder input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
 .logo-text h2{font-size:17px;font-weight:900;color:var(--blue)}
@@ -167,7 +167,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 .field input,.field select,.field textarea{border:1.5px solid #ddd;border-radius:7px;padding:7px 10px;font-size:13px;background:#fafafa;width:100%;transition:border-color .2s}
 .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue2);background:#fff}
 .field textarea{resize:vertical;min-height:80px;display:block;}
-.field-note{font-size:10px;color:#aaa;margin-top:2px}
+.field-note{font-size:10px;color:#5f6b7a;margin-top:2px}
 
 /* DYNAMIC MULTI-INPUTS */
 .multi-input-row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
@@ -194,7 +194,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 .p-hdr{padding:11px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
 .p-hdr-l{display:flex;align-items:center;gap:9px}
 .p-hdr h2{font-size:13px;font-weight:800;color:#fff}
-.pct-bdg{background:rgba(255,255,255,.25);color:#fff;font-weight:900;font-size:14px;padding:3px 11px;border-radius:20px;min-width:52px;text-align:center}
+.pct-bdg{background:#fff;color:#1a237e;font-weight:900;font-size:14px;padding:3px 11px;border-radius:20px;min-width:52px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .arrow{color:#fff;font-size:15px;transition:transform .2s}
 .partida.collapsed .arrow{transform:rotate(-90deg)}
 .partida.collapsed .p-body{display:none}
@@ -219,7 +219,8 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .pv{font-weight:800;font-size:13px;margin-bottom:2px}
 .bar-bg{height:5px;background:#eee;border-radius:3px;overflow:hidden}
 .bar-fill{height:100%;border-radius:3px;transition:width .4s,background .4s}
-.g{color:#2e7d32}.y{color:#f57f17}.r{color:#c62828}
+/* Oscurecidos para pasar el 4,5:1 sobre blanco: antes el ámbar daba 2,65. */
+.g{color:#1b5e20}.y{color:#8f4b00}.r{color:#b71c1c}
 .bg{background:#43a047}.by{background:#fbc02d}.br{background:#e53935}
 .ev{display:flex;gap:3px;justify-content:center}
 .ev-btn{padding:4px 9px;border:1.5px solid #ddd;border-radius:11px;font-size:11px;font-weight:800;cursor:pointer;background:#f5f5f5;color:#bbb;transition:all .12s}
@@ -242,7 +243,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .foto-sec{margin:10px 16px 4px;padding:12px 14px;background:#f8f9ff;border-radius:8px;border:1.5px solid #e0e4ff}
 .foto-sec-title{font-size:11px;font-weight:800;color:var(--blue);text-transform:uppercase;margin-bottom:8px;letter-spacing:.4px}
 .foto-grid{display:flex;gap:10px;flex-wrap:wrap}
-.foto-slot{width:90px;height:70px;border:2px dashed #c5cae9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa;cursor:pointer;position:relative;overflow:hidden;flex-shrink:0;text-align:center;background:#fff;transition:border-color .15s}
+.foto-slot{width:90px;height:70px;border:2px dashed #c5cae9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#5f6b7a;cursor:pointer;position:relative;overflow:hidden;flex-shrink:0;text-align:center;background:#fff;transition:border-color .15s}
 .foto-slot:hover{border-color:var(--blue2)}
 .foto-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .foto-slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
@@ -355,6 +356,10 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   .hdr p{ display:none; }
   .hdr-btns{ gap:6px; width:100%; }
   .hbtn{ flex:1 1 38%; justify-content:center; padding:8px 10px; font-size:12.5px; }
+  /* La acción que se usa ocho veces al día se lleva la fila entera; las
+     otras tres se reparten la siguiente. Dos filas, no cuatro. */
+  .hbtn-nuevo{ flex:1 1 100%; font-size:13.5px; }
+  .hbtn-save, .hbtn-send, .hbtn-mas{ flex:1 1 28%; }
   /* Las cinco acciones de una vez por jornada viven plegadas. */
   .hdr-sec{ display:none; width:100%; gap:6px; flex-wrap:wrap; }
   .hdr-sec.abierto{ display:flex; }
@@ -446,7 +451,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   }
   .ck-lbl, .ag-btn{ color:#000!important; }
   .ck-lbl.on::before, .ag-btn.on::before{ content:'▣\00A0'; }
-  .ck-lbl:not(.on)::before, .ag-btn:not(.on)::before{ content:'▢\00A0'; color:#888; }
+  .ck-lbl:not(.on)::before, .ag-btn:not(.on)::before{ content:'▢\00A0'; color:#5a6672; }
   .bar-bg{display:none}
   .pv{font-size:9px!important}
   .p-foot{padding:4px 10px}
@@ -488,29 +493,28 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 <div class="hdr">
   <div><h1 id="hdr-title">Informe de Inspección Técnica de Obra</h1><p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>
   <div class="hdr-btns">
-    <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guardar o actualizar borrador localmente">💾 <span>Guardar</span></button>
-    <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Cierra este informe y prepara el siguiente, conservando torre, empresa y personal">➡️ <span>Siguiente apto.</span></button>
-    <button class="hbtn hbtn-send" onclick="openSend()">📤 <span>Enviar</span><b id="cnt-pendientes" style="display:none;margin-left:5px"></b></button>
+    <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Guarda este informe y prepara el del siguiente apartamento, conservando torre, empresa y personal">➡️ <span>Guardar y siguiente</span></button>
+    <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guarda el informe en este teléfono. También se guarda solo cada 30 segundos">💾 <span>Guardar</span></button>
+    <button class="hbtn hbtn-send" onclick="openSend()" title="Manda los informes a Drive. Hasta que se envían, viven solo en este teléfono">📤 <span>Enviar</span><b id="cnt-pendientes" style="display:none;margin-left:5px"></b></button>
     <button class="hbtn hbtn-mas" id="btn-mas" onclick="toggleMasAcciones()" title="Resto de las acciones">⋯ <span>Más</span></button>
-    <span id="estado-guardado" style="font-size:11px;font-weight:700;color:#999;align-self:center;margin-left:4px"></span>
+    <span id="estado-guardado" style="font-size:11px;font-weight:700;color:#bcc6e0;align-self:center;margin-left:4px"></span>
     <span id="estado-conexion" style="font-size:11px;font-weight:700;align-self:center;margin-left:8px"></span>
     <div class="hdr-sec" id="hdr-sec">
-      <button class="hbtn hbtn-finalizar" onclick="finalizarInforme()" title="Finalizar informe, guardar, incrementar correlativo y volver a la pantalla de inicio">✅ <span>Finalizar</span></button>
-      <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Ver informes almacenados localmente">📁 <span>Guardados</span><b id="cnt-guardados" style="display:none;margin-left:5px"></b></button>
-      <button class="hbtn hbtn-pdf" onclick="imprimirInforme()">🖨️ <span>PDF</span></button>
-      <button class="hbtn hbtn-nuevo" onclick="nuevoFormulario()" title="Nuevo informe — limpia todo el formulario">🆕 <span>Nuevo</span></button>
-      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" title="Activar modo de prueba — el correlativo NO se incrementa">🧪 <span>Prueba</span></button>
+      <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 <span>Mis informes</span><b id="cnt-guardados" style="display:none;margin-left:5px"></b></button>
+      <button class="hbtn hbtn-pdf" onclick="imprimirInforme()" title="Genera el PDF del informe que está en pantalla">🖨️ <span>PDF</span></button>
+      <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Vacía el formulario entero, incluidas torre y empresa. Para empezar en otra torre">🆕 <span>Informe en blanco</span></button>
+      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" title="Activar modo de prueba — los informes quedan marcados como PRUEBA">🧪 <span>Prueba</span></button>
     </div>
-    <!-- Botón «Reiniciar N°» retirado: el número ya no depende de un contador. -->
+    <!-- «Finalizar» retirado: hacía lo mismo que «Guardar y siguiente» pero sin guardar. -->
   </div>
 </div>
 
 <!-- MODO DE USO -->
 <div id="mode-bar" style="background:#fff;padding:10px 22px;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--blue-l);flex-wrap:wrap">
   <span style="font-size:11px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.5px">Modo:</span>
-  <button id="btnInspector" onclick="setModeUI('inspector')" style="padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#e65100;color:#fff">👷 Inspector</button>
+  <button id="btnInspector" onclick="setModeUI('inspector')" style="padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#a63d00;color:#fff">👷 Inspector</button>
   <button id="btnPlanif" onclick="setModeUI('planificacion')" style="padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666">📊 Gerencia de Planificación</button>
-  <span id="mode-badge" style="padding:3px 12px;border-radius:12px;font-size:11px;font-weight:700;background:#fff3e0;color:#e65100;border:1px solid #ffcc80">Inspector: ingresa cantidades ejecutadas · Proyectada solo la ve Planificación</span>
+  <span id="mode-badge" style="padding:3px 12px;border-radius:12px;font-size:11px;font-weight:700;background:#fff3e0;color:#8f4b00;border:1px solid #e6a860">Inspector: ingresa cantidades ejecutadas · Proyectada solo la ve Planificación</span>
 </div>
 
 <!-- LOGO BAR -->
@@ -522,7 +526,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     <div style="width:1px;height:50px;background:#e0e0e0"></div>
     <div>
       <h2 id="logo-title" style="font-size:16px;font-weight:900;color:var(--blue)">INFORME DE INSPECCIÓN TÉCNICA</h2>
-      <p id="logo-sub" style="font-size:10px;color:#888;margin-top:2px">Gerencia GARMEL · Evaluación por Hitos y Subitems</p>
+      <p id="logo-sub" style="font-size:10px;color:#5a6672;margin-top:2px">Gerencia GARMEL · Evaluación por Hitos y Subitems</p>
     </div>
   </div>
   <div class="doc-info">
@@ -543,7 +547,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     <div class="field">
       <label>N° de Informe <span style="color:#2e7d32;font-size:9px">● Auto-generado</span></label>
       <div id="nro-display" style="padding:7px 10px;border-radius:7px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:1.5px solid #a5d6a7;font-size:12px;font-weight:800;color:#1b5e20;font-family:monospace;letter-spacing:.4px">XX-T---P--A---------</div>
-      <span style="font-size:10px;color:#aaa;margin-top:2px;display:block">Formato: Sector-Torre-Piso/Apto-Fecha-Inspector</span>
+      <span style="font-size:10px;color:#5f6b7a;margin-top:2px;display:block">Formato: Sector-Torre-Piso/Apto-Fecha-Inspector</span>
     </div>
     <div class="field">
       <label>Convenio *</label>
@@ -606,10 +610,10 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px">
     <span style="font-size:12px;font-weight:700;color:#555">ÁMBITO DEL INFORME:</span>
     <button type="button" id="btnAmbApto" onclick="setAmbito('apartamento')"
-      style="padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#e65100;color:#fff">🚪 Apartamento</button>
+      style="padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#a63d00;color:#fff">🚪 Apartamento</button>
     <button type="button" id="btnAmbTorre" onclick="setAmbito('torre')"
       style="padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666">🏢 Torre completa</button>
-    <span id="ambito-nota" style="font-size:11px;color:#888"></span>
+    <span id="ambito-nota" style="font-size:11px;color:#5a6672"></span>
   </div>
   <div class="grid4">
     <div class="field">
@@ -658,11 +662,11 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
         <option>T-56</option>
         <option>T-57</option>
         <option>T-58</option>
-        <option value="NO_REG" style="color:#e65100;font-weight:700">⚠️ No registrada — ingresar manualmente</option>
+        <option value="NO_REG" style="color:#8f4b00;font-weight:700">⚠️ No registrada — ingresar manualmente</option>
       </select>
       <div id="torre-manual-wrap" style="display:none;margin-top:6px;position:relative;z-index:10">
         <input type="text" id="torre-manual" placeholder="Nombre de la torre..." oninput="updateNroInforme()" style="width:100%;border:1.5px solid #ff9800;border-radius:7px;padding:7px 10px;font-size:13px;background:#fff8e1">
-        <span style="font-size:10px;color:#f57f17;margin-top:2px;display:block">⚠️ Torre no registrada en el maestro</span>
+        <span style="font-size:10px;color:#8f4b00;font-weight:700;margin-top:2px;display:block">⚠️ Torre no registrada en el maestro</span>
       </div>
     </div>
     <div class="field">
@@ -884,7 +888,7 @@ function _pintarEstadoGuardado(cuando){
   const hh = String(cuando.getHours()).padStart(2,'0');
   const mm = String(cuando.getMinutes()).padStart(2,'0');
   el.textContent = '💾 guardado ' + hh + ':' + mm;
-  el.style.color = '#2e7d32';
+  el.style.color = '#e8f5e9';
 }
 
 document.addEventListener('input',  _marcarCambio, true);
@@ -902,10 +906,10 @@ function _pintarConexion(){
   if(!el) return;
   if(navigator.onLine){
     el.textContent = '● en línea';
-    el.style.color = '#2e7d32';
+    el.style.color = '#e8f5e9';
   } else {
     el.textContent = '● sin señal — el informe queda guardado aquí';
-    el.style.color = '#e65100';
+    el.style.color = '#ffe9c7';
   }
 }
 window.addEventListener('online',  _pintarConexion);
@@ -976,7 +980,7 @@ function setAmbito(a){
   ambito = (a === 'torre') ? 'torre' : 'apartamento';
   const esTorre = (ambito === 'torre');
 
-  const on  = 'padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#e65100;color:#fff';
+  const on  = 'padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#a63d00;color:#fff';
   const off = 'padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666';
   const bA = document.getElementById('btnAmbApto'), bT = document.getElementById('btnAmbTorre');
   if(bA) bA.style.cssText = esTorre ? off : on;
@@ -1034,7 +1038,7 @@ function setupFormTypeUI() {
   const logoSub = document.getElementById('logo-sub');
   
   if (formType === 'hitos') {
-    if (hdrTitle) hdrTitle.textContent = 'Informe de Inspección por Hitos (Simplificado)';
+    if (hdrTitle) hdrTitle.textContent = 'Informe de Inspección por Hitos';
     if (hdrSub) hdrSub.textContent = 'Sistema GARMEL · Evaluación por Porcentajes Generales en Obra';
     if (logoTitle) logoTitle.textContent = 'INFORME DE INSPECCIÓN POR HITOS';
     if (logoSub) logoSub.textContent = 'Gerencia GARMEL · Evaluación Visual y Porcentual';
@@ -1245,7 +1249,7 @@ function renderMemoriaTable() {
   const filtered = memoriaTorreData.filter(m => m.torre === torreActual);
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="color:#888;padding:10px">No hay apartamentos registrados para la torre ${torreActual}.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="color:#5a6672;padding:10px">No hay apartamentos registrados para la torre ${torreActual}.</td></tr>`;
     document.getElementById('memoria-global-txt').textContent = 'Avance Global de la Torre: —';
     return;
   }
@@ -1440,7 +1444,7 @@ function filtrarPorConvenio() {
   const noReg = document.createElement('option');
   noReg.value = 'NO_REG';
   noReg.textContent = '⚠️ No registrada — ingresar manualmente';
-  noReg.style.color = '#e65100';
+  noReg.style.color = '#8f4b00';
   noReg.style.fontWeight = '700';
   torSel.appendChild(noReg);
 
@@ -1496,7 +1500,7 @@ function setModeUI(mode) {
     if (bi) { bi.style.background = '#e65100'; bi.style.borderColor = '#e65100'; bi.style.color = '#fff'; }
     if (bp) { bp.style.background = '#f5f5f5'; bp.style.borderColor = '#e0e0e0'; bp.style.color = '#666'; }
     if (badge) {
-      badge.style.background = '#fff3e0'; badge.style.color = '#e65100'; badge.style.borderColor = '#ffcc80';
+      badge.style.background = '#fff3e0'; badge.style.color = '#8f4b00'; badge.style.borderColor = '#e6a860';
       badge.textContent = 'Inspector: ingresa cantidades ejecutadas · Proyectada solo la ve Planificación';
     }
     document.querySelectorAll('th.col-proyectada, td.col-proyectada').forEach(el => el.style.display = 'none');
@@ -1583,7 +1587,7 @@ function initAppContent() {
             <button class="ev-btn M" data-rid="${rid}" onclick="setEv(this)">M</button>
             <button class="ev-btn NA" data-rid="${rid}" onclick="setEv(this)" title="No aplica o no se pudo verificar — no cuenta para el promedio">N/A</button>
           </div></td>
-          <td class="falt-cell" id="flt_${rid}" style="color:#aaa">—</td>
+          <td class="falt-cell" id="flt_${rid}" style="color:#5f6b7a">—</td>
           <td class="pct-cell" id="pct_${rid}"><span style="color:#ccc">—</span></td>
         </tr>`;
       }).join('');
@@ -1873,7 +1877,7 @@ function addRow(pid, customDesc='', customPr='', customEj='', customEv=''){
       <button class="ev-btn R ${customEv==='R'?'on':''}" data-rid="${rid}" onclick="setEv(this)">R</button>
       <button class="ev-btn M ${customEv==='M'?'on':''}" data-rid="${rid}" onclick="setEv(this)">M</button>
     </div></td>
-    <td class="falt-cell" id="flt_${rid}" style="color:#aaa">—</td>
+    <td class="falt-cell" id="flt_${rid}" style="color:#5f6b7a">—</td>
     <td class="pct-cell" id="pct_${rid}"><span style="color:#ccc">—</span></td>`;
   tbody.appendChild(tr);
   if(currentMode==='inspector'){
@@ -2113,7 +2117,7 @@ function renderSavedList() {
   const container = document.getElementById('savedListContent');
   const list = getSavedReports();
   if (list.length === 0) {
-    container.innerHTML = '<div style="padding:20px;text-align:center;color:#888;font-size:12px">No hay informes almacenados localmente.</div>';
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:#5a6672;font-size:12px">No hay informes almacenados localmente.</div>';
     return;
   }
 
