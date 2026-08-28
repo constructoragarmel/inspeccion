@@ -3576,6 +3576,206 @@ s = sustituir(s,
  "",
  "91e· retirar HITOS_DE_TORRE, que se queda sin consumidores")
 
+# ── 92. Los datos de torre salen del cuadro de Gerencia Técnica ────────────
+# Fuente: `CUADRO RESUMEN DE SECTORES EMP-OBRAS 28.08.26.xlsx` — Drive
+# `1GdkAY-PKzrFUzFy2PvGkYDv0Q0NzRzrM`, del 28-ago-2026. Es la respuesta de
+# Gerencia Técnica a C-27, y coincide **exactamente** con el maestro
+# `ASIGNACIONES CIUDAD TIUNA CONTINGENCIA 2026.xlsx` del 13-ago: mismas 46
+# asignaciones, mismos sectores, y sus totales cuadran (792 + 588 + 1.788 =
+# 3.168 apartamentos).
+#
+# Lo que había estaba mal en tres cosas distintas, y las tres se corrigen aquí:
+#
+#   1. NUEVE TORRES EN EL SECTOR EQUIVOCADO. Las 01, 02, 03 (Río Limón), 09,
+#      10, 11 (Thaissa MM) y 14, 15, 16 (Procodima) estaban bajo Convenio
+#      Rusos; son de Ezequiel Zamora. Son 540 apartamentos, y el sector decide
+#      el identificador del informe y la carpeta de Drive donde se archiva.
+#   2. TRES A MEDIAS. Las 04, 12 y 13 existen en DOS sectores —esa es la
+#      duplicación de PA-23—. Estaba solo la copia rusa; faltaba la bielorrusa.
+#   3. UNA INVENTADA. La T-04 bajo Convenio Chinos no existe en ningún
+#      documento: Simón Bolívar solo tiene D-08 y J-07 a J-12.
+#
+# Además los ceros a la izquierda: T-5, T-6, T-7 y T-8 se escribían sin cero y
+# quedaban sueltas al final del desplegable, entre las cuarenta.
+#
+# Y EL CAMBIO DE FONDO: el residente y la empresa pasan a colgar de la TORRE,
+# no de la empresa. El cuadro da residentes DISTINTOS para torres de la misma
+# contratista —Río Limón tiene a Harry Arteaga en la T-01 y a María T. Marcano
+# en la T-02; Alnavic, a Antonio Cuicas en la T-05 y a José V. Gonzáles en la
+# T-06—. Un residente por empresa no puede representar eso, y precargaba el
+# nombre equivocado.
+#
+# Donde el cuadro no dice residente, se deja EN BLANCO y lo escribe el
+# inspector. No se hereda el de otra torre de la misma empresa: el cuadro
+# REPITE el nombre cuando una persona cubre varias torres —Drijecae lo pone
+# cuatro veces, Grupo Tepuy tres—, así que una casilla vacía significa «no
+# consta», no «el mismo de arriba». Son 26 torres con residente de 46.
+
+s = sustituir(s,
+ """const EMPRESA_RESIDENTE = {"ALNAVIC, C.A.": "ING. ANTONIO CUICAS", "AROA, C.A.": "", "BELZARUBEZHSTORY, S.A.": "ING. FELIX PINTO", "CIVIKA PRO, C.A.": "", "CONSTRUCTORA 5010, C.A.": "ING. JOSE MARTINEZ", "CONSTRUCTORA SB 86, C.A.": "ING. JULIO LUQUEZ", "CONSTRUCTORA VIALPA, C.A.": "ING. ADRIAN OLIVARES", "DRIJECAE, C.A.": "", "GRUPO TEPUY, C.A.": "", "ING & ARQ 1111, C.A.": "ING. JHOANNY LOPEZ", "JVR INGENIERÍA C,A.": "ING. JUAN COLMENARES / ARQ. EVER AVENDAÑO", "MASTER REFORMAS RR, C.A.": "ING. ERICK MARTINEZ", "PROCODIMA, C.A.": "ING. LEONARDO TORRES", "RACAR INGENIEROS, C.A.": "ING. GERARDO ARGARIN", "RÍO LIMÓN, C.A.": "ING. HARRY ARTEAGA", "THAISSA MM INVERSIONES, C.A.": "ING. MANUEL PAEZ", "TSURU, C.A.": "MILTON RODRIGUEZ", "ZERPA CONSTRUCCIONES, C.A.": "ING. IVAN MEDINA"};""",
+ """const TORRES = [
+  {t:'T-01',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:"ING HARRY ARTEAGA"},
+  {t:'T-02',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:"ING MARIA T MARCANO"},
+  {t:'T-03',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:""},
+  {t:'T-04',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:""},
+  {t:'T-05',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:"ING. ANTONIO CUICAS"},
+  {t:'T-06',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:"ING JOSE V GONZALES"},
+  {t:'T-07',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:""},
+  {t:'T-08',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:""},
+  {t:'T-09',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:"ING MANUEL PAEZ"},
+  {t:'T-10',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
+  {t:'T-11',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
+  {t:'T-12',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
+  {t:'T-13',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:"ING. LEONARDO TORRES"},
+  {t:'T-14',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
+  {t:'T-15',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
+  {t:'T-16',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
+  {t:'T-17',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:"ING FELIX PINTO"},
+  {t:'T-18',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-19',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-45',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-46',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-47',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-48',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-49',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-50',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-51',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-52',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-53',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:"ING. ANDREA LEON"},
+  {t:'T-54',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:"ING.ASTRID LARES"},
+  {t:'T-55',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:""},
+  {t:'T-56',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
+  {t:'T-57',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
+  {t:'T-58',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
+  {t:'T-04',  c:'Convenio Rusos',        e:"AROA, C.A.",                    r:""},
+  {t:'T-07',  c:'Convenio Rusos',        e:"TSURU, C.A.",                   r:"MILTON RODRIGUEZ"},
+  {t:'T-12',  c:'Convenio Rusos',        e:"ZERPA CONSTRUCCIONES, C.A.",    r:"ING. IVAN MEDINA"},
+  {t:'T-13',  c:'Convenio Rusos',        e:"MASTER REFORMAS RR, C.A.",      r:"ING. ERICK MARTINEZ"},
+  {t:'T-38',  c:'Convenio Rusos',        e:"CONSTRUCTORA 5010, C.A.",       r:"ING. JOSE MARTINEZ"},
+  {t:'T-39',  c:'Convenio Rusos',        e:"JVR INGENIERÍA C,A.",           r:"ING. JUAN COLMENARES ARQ EVER AVENDAÑO"},
+  {t:'D-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA VIALPA, C.A.",     r:"ING ADRIAN OLIVARES"},
+  {t:'J-07',  c:'Convenio Chinos',       e:"ING & ARQ 1111, C.A.",          r:"ING. JOANNY TAPIA / ING. JHOANNY LOPEZ"},
+  {t:'J-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA SB 86, C.A.",      r:"ING. JULIO LUQUEZ"},
+  {t:'J-09',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:"ING. GERARDO ARGARIN"},
+  {t:'J-10',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:""},
+  {t:'J-11',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:"ING.RADAMEZ RIVAS"},
+  {t:'J-12',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:""},
+];""",
+ "92a\u00b7 la tabla de torres del cuadro del 28-ago, con su empresa y su residente")
+
+# CONVENIO_DATA se deriva de TORRES en vez de escribirse aparte: así no pueden
+# volver a discrepar entre sí, que es exactamente lo que pasaba.
+s = sustituir(s,
+ """const CONVENIO_DATA = {"Convenio Bielorusos": {"empresas": {"ALNAVIC, C.A.": "ING. ANTONIO CUICAS", "BELZARUBEZHSTORY, S.A.": "ING. FELIX PINTO", "CIVIKA PRO, C.A.": "", "DRIJECAE, C.A.": "", "GRUPO TEPUY, C.A.": "", "PROCODIMA, C.A.": "ING. LEONARDO TORRES", "RÍO LIMÓN, C.A.": "ING. HARRY ARTEAGA", "THAISSA MM INVERSIONES, C.A.": "ING. MANUEL PAEZ"}, "torres": ["T-17", "T-18", "T-19", "T-45", "T-46", "T-47", "T-48", "T-49", "T-5", "T-50", "T-51", "T-52", "T-53", "T-54", "T-55", "T-56", "T-57", "T-58", "T-6", "T-7", "T-8"]}, "Convenio Rusos": {"empresas": {"AROA, C.A.": "", "CONSTRUCTORA 5010, C.A.": "ING. JOSE MARTINEZ", "JVR INGENIERÍA C,A.": "ING. JUAN COLMENARES / ARQ. EVER AVENDAÑO", "MASTER REFORMAS RR, C.A.": "ING. ERICK MARTINEZ", "TSURU, C.A.": "MILTON RODRIGUEZ", "ZERPA CONSTRUCCIONES, C.A.": "ING. IVAN MEDINA"}, "torres": ["T-01", "T-02", "T-03", "T-04", "T-07", "T-09", "T-10", "T-11", "T-12", "T-13", "T-14", "T-15", "T-16", "T-38", "T-39"]}, "Convenio Chinos": {"empresas": {"CONSTRUCTORA SB 86, C.A.": "ING. JULIO LUQUEZ", "CONSTRUCTORA VIALPA, C.A.": "ING. ADRIAN OLIVARES", "ING & ARQ 1111, C.A.": "ING. JHOANNY LOPEZ", "RACAR INGENIEROS, C.A.": "ING. GERARDO ARGARIN"}, "torres": ["D-08", "J-07", "J-08", "J-09", "J-10", "J-11", "J-12", "T-04"]}};""",
+ """const CONVENIO_DATA = (function(){
+  const d = {};
+  TORRES.forEach(function(x){
+    if(!d[x.c]) d[x.c] = { empresas: {}, torres: [] };
+    d[x.c].empresas[x.e] = '';
+    if(d[x.c].torres.indexOf(x.t) < 0) d[x.c].torres.push(x.t);
+  });
+  Object.keys(d).forEach(function(c){ d[c].torres.sort(); });
+  return d;
+})();""",
+ "92b\u00b7 el desplegable se deriva de la tabla, y no puede discrepar de ella")
+
+s = sustituir(s,
+ """function autoResidenteConv() {
+  const conv  = document.getElementById('convenio').value;
+  const emp   = document.getElementById('empresa').value;
+  let res = '';
+  if (conv && CONVENIO_DATA[conv] && emp) res = CONVENIO_DATA[conv].empresas[emp] || '';
+  if (!res && emp) {
+    Object.values(CONVENIO_DATA).forEach(cd => { if(!res && cd.empresas && cd.empresas[emp] !== undefined) res = cd.empresas[emp] || ''; });
+  }
+  if (!res && emp) res = EMPRESA_RESIDENTE[emp] || '';
+
+  const container = document.getElementById('residentes-container');
+  if (container.children.length === 0 || (container.children.length === 1 && container.querySelector('input').value === '')) {
+    container.innerHTML = '';
+    if (res) {
+      res.split('/').forEach(rName => addResidenteField(rName.trim()));
+    } else {
+      addResidenteField('');
+    }
+  }
+}
+""",
+ """// El residente lo fija la TORRE. Ver el cambio 92 para el porqué.
+// Nunca pisa lo que haya escrito una persona: solo sustituye lo que puso el
+// propio formulario, de modo que cambiar de torre actualiza el nombre pero
+// escribirlo a mano lo deja quieto.
+let _residenteAuto = '';
+
+function residenteDeTorre(conv, torre){
+  for (let i = 0; i < TORRES.length; i++){
+    if (TORRES[i].t === torre && (!conv || TORRES[i].c === conv)) return TORRES[i].r || '';
+  }
+  return '';
+}
+
+function empresaDeTorre(conv, torre){
+  for (let i = 0; i < TORRES.length; i++){
+    if (TORRES[i].t === torre && (!conv || TORRES[i].c === conv)) return TORRES[i].e || '';
+  }
+  return '';
+}
+
+function autoResidenteConv() {
+  const conv = document.getElementById('convenio').value;
+  const tor  = document.getElementById('torre').value;
+  const res  = residenteDeTorre(conv, tor);
+
+  const cont = document.getElementById('residentes-container');
+  if (!cont) return;
+  const escritos = Array.prototype.slice.call(cont.querySelectorAll('.residente-input'))
+    .map(function(i){ return i.value.trim(); }).filter(Boolean);
+  if (escritos.length && escritos.join(' / ') !== _residenteAuto) return;
+
+  cont.innerHTML = '';
+  if (res) res.split('/').forEach(function(r){ addResidenteField(r.trim()); });
+  else addResidenteField('');
+  _residenteAuto = res ? res.split('/').map(function(r){ return r.trim(); }).join(' / ') : '';
+}
+""",
+ "92c\u00b7 el residente lo fija la torre, y no pisa lo escrito a mano")
+
+s = sustituir(s,
+ """function handleTorreChange() {
+  const val  = document.getElementById('torre').value;
+  const wrap = document.getElementById('torre-manual-wrap');
+  if (wrap) {
+    wrap.style.display = (val === 'NO_REG') ? 'block' : 'none';
+    if (val === 'NO_REG') setTimeout(() => document.getElementById('torre-manual')?.focus(), 50);
+  }
+  updateNroInforme();
+  renderMemoriaTable();
+}
+""",
+ """function handleTorreChange() {
+  const val  = document.getElementById('torre').value;
+  const wrap = document.getElementById('torre-manual-wrap');
+  if (wrap) {
+    wrap.style.display = (val === 'NO_REG') ? 'block' : 'none';
+    if (val === 'NO_REG') setTimeout(() => document.getElementById('torre-manual')?.focus(), 50);
+  }
+  // La empresa la determina la torre, no al revés: antes el inspector de la
+  // Torre 01 no tenía a Río Limón en la lista porque la torre estaba en otro
+  // convenio. Se preselecciona la que asigna el cuadro y se puede cambiar, por
+  // si en obra la ejecuta otra.
+  const conv   = document.getElementById('convenio').value;
+  const emp    = empresaDeTorre(conv, val);
+  const empSel = document.getElementById('empresa');
+  if (emp && empSel && Array.prototype.slice.call(empSel.options).some(function(o){ return o.value === emp; })) {
+    empSel.value = emp;
+  }
+  autoResidenteConv();
+  updateNroInforme();
+  renderMemoriaTable();
+}
+""",
+ "92d\u00b7 elegir torre preselecciona su empresa y trae su residente")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
