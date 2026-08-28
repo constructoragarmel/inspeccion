@@ -14,6 +14,13 @@ ORIG = os.path.join(RAIZ, "fuente", "Formularios.V8272026.html")
 SALIDA = os.path.join(RAIZ, "index.html")
 LOGOS = os.path.join(RAIZ, "recursos")
 
+# ── Los once hitos del desglose de agosto: transcritos y DESACTIVADOS ──────
+# Skarlet Gómez los aporta el 28-ago-2026 y están construidos (cambio 86),
+# pero chocan con ADR-0017, que aprobó la Ing. Beatriz Sevilla, y con el
+# ámbito del formulario. Ver C-28 en fuentes/contradicciones.md.
+# Se activan poniendo esto en True, cuando Ingeniería lo valide.
+ONCE_HITOS = False
+
 cambios = []
 
 def b64(nombre, mime):
@@ -30,6 +37,87 @@ s = open(ORIG, encoding="utf-8").read()
 
 LOGO_GARMEL = b64("garmel.png", "image/png")
 LOGO_GMVV   = b64("gmvv.png", "image/png")
+
+# Los once hitos del Excel de agosto (ver cambio 86).
+PARTIDAS_ONCE = """const PARTIDAS = [
+  {
+    "id": "hito_estructura", 
+    "nombre": "HITO 1: ESTRUCTURA", 
+    "icon": "", 
+    "color": "#1a237e", 
+    "items": ["Encofrado", "Acero de refuerzo", "Vaciados"]
+  }, 
+  {
+    "id": "hito_cerramientos", 
+    "nombre": "HITO 2: CERRAMIENTOS Y ALBAÑILERÍA", 
+    "icon": "", 
+    "color": "#283593", 
+    "items": ["Construcción de paredes exteriores", "Tabiquería interior", "Impermeabilización de azotea"]
+  }, 
+  {
+    "id": "hito_servicios", 
+    "nombre": "HITO 3: INSTALACIÓN DE SERVICIOS", 
+    "icon": "", 
+    "color": "#303f9f", 
+    "items": ["Sanitarias y pluviales — Aguas blancas", "Sanitarias y pluviales — Desagüe", "Sanitarias y pluviales — Bajante de aguas de lluvias", "Eléctricas y datos — Cableados", "Eléctricas y datos — Tableros principales", "Eléctricas y datos — Canalizaciones", "Eléctricas y datos — Equipamiento de cuarto de módulos", "Gas — Montante", "Gas — Manifold"]
+  }, 
+  {
+    "id": "hito_acabados", 
+    "nombre": "HITO 4: ACABADOS", 
+    "icon": "", 
+    "color": "#3949ab", 
+    "items": ["Frisos", "Encamisados", "Cerámica en paredes", "Cerámica en pisos", "Construcción de sobrepisos", "Pintura en paredes", "Texturizado de techos"]
+  }, 
+  {
+    "id": "hito_puertas", 
+    "nombre": "HITO 5: PUERTAS", 
+    "icon": "", 
+    "color": "#1565c0", 
+    "items": ["Puertas metálicas", "Puertas de servicios", "Puertas de madera"]
+  }, 
+  {
+    "id": "hito_ventanas", 
+    "nombre": "HITO 6: VENTANAS", 
+    "icon": "", 
+    "color": "#0277bd", 
+    "items": ["Instalación de ventanas y vidrios"]
+  }, 
+  {
+    "id": "hito_acc_sanitarios", 
+    "nombre": "HITO 7: ACCESORIOS SANITARIOS", 
+    "icon": "", 
+    "color": "#01579b", 
+    "items": ["Ducha", "Fregadero de acero inoxidable", "W.C.", "Lavamanos", "Batea", "C.P.", "T.R."]
+  }, 
+  {
+    "id": "hito_acc_electricos", 
+    "nombre": "HITO 8: ACCESORIOS ELÉCTRICOS", 
+    "icon": "", 
+    "color": "#0d47a1", 
+    "items": ["Tomacorrientes", "Interruptores", "Toma de data", "Breakers"]
+  }, 
+  {
+    "id": "hito_ascensor", 
+    "nombre": "HITO 9: ASCENSOR", 
+    "icon": "", 
+    "color": "#26418f", 
+    "items": ["Adecuación y verificación de plomada en foso y cuarto de máquina", "Instalación de guías, rieles y soporte estructural en la caja", "Montaje de cabina, motor y contrapeso", "Instalación de puertas de piso, botoneras y sistema electrónico de control"]
+  }, 
+  {
+    "id": "hito_exteriores", 
+    "nombre": "HITO 10: ACABADOS EXTERIORES Y ÁREAS COMUNES", 
+    "icon": "", 
+    "color": "#1e3a8a", 
+    "items": ["Revestimiento y pintura de fachada exterior", "Adecuación de accesos y pasillos", "Instalación de iluminación en común", "Instalación de barandas", "Instalación de pasamanos escaleras"]
+  }, 
+  {
+    "id": "hito_pruebas", 
+    "nombre": "HITO 11: PRUEBAS", 
+    "icon": "", 
+    "color": "#172554", 
+    "items": ["Presión de agua", "Hermeticidad", "Carga eléctrica", "Pruebas de cargas, velocidad y certificación de seguridad de ascensores"]
+  }
+]"""
 
 # ── 1. Fuera las dos librerías que se bajaban de internet ───────────────────
 # No se usaban nunca (el PDF sale de window.print()) y sin señal la página
@@ -3159,6 +3247,45 @@ s = sustituir(s,
  "}",
  "85· una ficha rota no tumba la lista de informes")
 
+
+if ONCE_HITOS:
+    # ── 86. Los once hitos del desglose de agosto, completos ────────────
+    # Skarlet Gómez informa (28-ago-2026) que **el modo detallado es el que se va a
+    # usar** —de ahí sale la fórmula del porcentaje, porque se calcula por cantidad
+    # proyectada contra ejecutada en cada subpartida— y que **los hitos estaban
+    # cortados: son once, no siete**.
+    #
+    # Se transcriben del Excel "Hitos en desglose Ciudad Tiuna. Agosto.xlsx"
+    # (Drive 1AOY-IjbDjdCLZ_J41vGdzLdI2j18F13S, modificado el 27-ago-2026):
+    # **11 hitos y 50 subpartidas**, contra los 7 hitos y 31 ítems que traía el
+    # formulario. El original **no trae ninguna cifra**: es estructura, no pesos,
+    # así que `PA-03` sigue abierta.
+    #
+    # ATENCIÓN: esto NO está aprobado y choca con tres cosas ya escritas, todas
+    # registradas como **C-28** en fuentes/contradicciones.md:
+    #   1. ADR-0017 fijó **siete** hitos, aprobados por la Ing. Beatriz Sevilla, y
+    #      dice expresamente que no se pueden inferir hitos adicionales sin el
+    #      ingeniero responsable.
+    #   2. Los once hitos son de **TORRE** según C-26; este formulario se llena por
+    #      **apartamento**. Ascensor, acabados exteriores y pruebas de ascensores no
+    #      son partidas de una vivienda.
+    #   3. **Contra incendio** y **mecánicas** existían en los siete y **no están**
+    #      entre los once. Adoptarlos los saca del instrumento, con PA-89 vivo.
+    ini_p = s.index("const PARTIDAS = [")
+    fin_p = s.index("\n]", ini_p) + 2
+    s = sustituir(s, s[ini_p:fin_p], PARTIDAS_ONCE,
+     "86· los once hitos con sus 50 subpartidas, del Excel de agosto")
+
+    # Con once hitos el reparto de ámbito cambia: los de torre ya no son dos.
+    s = sustituir(s,
+     "const HITOS_DE_TORRE = ['hito_estructura', 'hito_mecanicas'];",
+     "// PROVISIONAL. Qué hito se evalúa por torre y cuál por apartamento es criterio\n"
+     "// de ingeniería; esta lista es una propuesta a confirmar. Dos hitos quedan\n"
+     "// MEZCLADOS y no se resuelven aquí: el 2 lleva la impermeabilización de azotea\n"
+     "// y el 3 el equipamiento de cuarto de módulos, que son de torre dentro de un\n"
+     "// hito de apartamento. Ver C-28.\n"
+     "const HITOS_DE_TORRE = ['hito_estructura', 'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];",
+     "86b· reparto de ámbito provisional para once hitos")
 
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
