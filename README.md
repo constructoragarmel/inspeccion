@@ -42,8 +42,9 @@ informe** — sirve para dejar teléfonos listos en la oficina sin inventar info
 **Un informe = un apartamento, una fecha, un inspector.** Seis apartamentos del piso 3 son seis informes.
 
 De los nueve campos del encabezado, **siete se repiten** en todo el recorrido. Por eso el botón
-**➡️ Siguiente apto.**: cierra el informe actual con su propia ficha, conserva convenio, empresa,
-residente, inspector, torre y estatus, y limpia solo el apartamento y la evaluación.
+**➡️ Siguiente apto.**: cierra el informe actual con su propia ficha, conserva fecha, convenio, empresa,
+torre, piso, residente, inspector y estatus, y limpia solo el número de apartamento, las observaciones y
+la evaluación.
 
 > **Cambiar de apartamento ya no pisa el informe anterior.** Un borrador pertenece a su número: si el
 > número cambia y el informe anterior tenía contenido, el anterior se conserva y el nuevo abre su propia
@@ -51,7 +52,8 @@ residente, inspector, torre y estatus, y limpia solo el apartamento y la evaluac
 > entre apartamentos y el borrador es lo único que existe.
 
 Para lo de **toda la torre** —estructura, ascensores, áreas comunes— se cambia el ámbito a 🏢 Torre:
-desaparecen piso y apartamento, quedan los hitos 1 y 7, y el número sale `EZ-T05-TORRE-…`.
+desaparecen piso y apartamento, quedan los cuatro hitos de torre —**1** Estructura, **9** Ascensor,
+**10** Acabados exteriores y áreas comunes, **11** Pruebas—, y el número sale `EZ-T05-TORRE-…`.
 
 Al volver con señal, **📤 Enviar todos los pendientes** manda de una vez los que falten. La lista de
 guardados marca cada uno como **✅ Enviado** o **⏳ Sin enviar**, y avisa antes de reenviar algo que ya se
@@ -62,11 +64,14 @@ fue, para no crear copias `-r2` en Drive.
 1. Abrir el enlace **una vez con señal**. El teléfono se guarda una copia.
 2. *Agregar a pantalla de inicio* — queda con ícono, como una aplicación.
 3. De ahí en adelante abre **sin señal**, indefinidamente.
-4. Llenar → **🖨️ PDF** → *Guardar como PDF* → subir a la carpeta de Drive de la torre.
+4. Llenar el informe. Sin señal se queda guardado en el teléfono.
+5. Al volver con cobertura, **📤 Enviar**: el relevo lo archiva solo en Drive —el PDF, los datos y las
+   fotografías, en la carpeta de su torre—.
+6. **🖨️ PDF** solo cuando haga falta el papel. El envío ya dejó el PDF en Drive.
 
-> **Regla de operación:** mientras no se genere el PDF y se suba, el informe existe
-> **solo en ese teléfono**. Si el teléfono se pierde o se borran los datos del navegador, se
-> pierde. Hay que subirlo al terminar el día.
+> **Regla de operación:** el número que acompaña a **📤 Enviar** cuenta los informes que existen
+> **solo en ese teléfono**. Mientras no esté en cero, si el teléfono se pierde o se borran los datos del
+> navegador, esos informes se pierden. Hay que dejarlo en cero al terminar el día.
 
 ## El número de informe
 
@@ -106,21 +111,52 @@ Así se sabe siempre qué se le tocó al trabajo de Skarlet y por qué.
 Hay que **subir el número de `VERSION` en `sw.js`**. Es lo que hace que los teléfonos se traigan la
 copia nueva la próxima vez que tengan internet. Si no se sube, siguen abriendo la vieja.
 
-## Los siete hitos y el ámbito del informe
+## Los once hitos y el ámbito del informe
 
-La inspección se estructura en **siete hitos con 38 ítems**, aprobados por la **Ing. Beatriz Sevilla**
-(ADR-0017 del repositorio de contexto), en sustitución de las 7 partidas y 68 ítems anteriores.
+La inspección se estructura en **once hitos con cincuenta subpartidas**, acordados por la
+**Ing. Beatriz Sevilla** con Skarlet Gómez. La fuente es el Excel *Hitos en desglose Ciudad Tiuna.
+Agosto* (ADR-0018 del repositorio de contexto).
 
-Hay **dos modos de llenado** —detallado con subítems, y simplificado con un porcentaje y una observación
-por hito— y **dos ámbitos**:
+| # | Hito | # | Hito |
+| --- | --- | --- | --- |
+| 1 | Estructura | 7 | Accesorios sanitarios |
+| 2 | Cerramientos y albañilería | 8 | Accesorios eléctricos |
+| 3 | Instalación de servicios | 9 | Ascensor |
+| 4 | Acabados | 10 | Acabados exteriores y áreas comunes |
+| 5 | Puertas | 11 | Pruebas |
+| 6 | Ventanas | | |
 
-| Ámbito | Hitos que muestra | Piso y apartamento |
-| --- | --- | --- |
-| 🚪 **Apartamento** | 2 Revestimientos · 3 Arquitectura · 4 Sanitarias · 5 Eléctricas · 6 Gas e incendio | obligatorios |
-| 🏢 **Torre completa** | 1 Estructura · 7 Mecánicas y áreas comunes | no aplican |
+### El modo detallado es el instrumento de campo
 
-No se inspecciona un ascensor en el apartamento 3-A. **Qué hito va en qué ámbito es criterio de
-ingeniería**: se cambia en la lista `HITOS_DE_TORRE`, que es una sola línea en `construir.py`.
+Hay **dos modos de llenado**, y el enlace pelado abre el **detallado**. El otro se conserva en
+`?modo=hitos` y no se retira.
+
+**El motivo es de medición, no de gusto.** El modo por hitos pide **un porcentaje por hito, a ojo**. El
+detallado lo **calcula**, por cantidad proyectada contra cantidad ejecutada en cada subpartida. Es la
+diferencia entre **avance declarado y avance verificado**, y de ahí sale la fórmula del porcentaje.
+
+### Dos ámbitos
+
+| Ámbito | Hitos que muestra | Filas que se llenan | Piso y apartamento |
+| --- | --- | --- | --- |
+| 🚪 **Apartamento** | 2 · 3 · 4 · 5 · 6 · 7 · 8 | 34 | obligatorios |
+| 🏢 **Torre completa** | 1 · 9 · 10 · 11 | 16 | no aplican |
+
+No se inspecciona un ascensor en el apartamento 3-A. La cabecera de la evaluación dice **cuántos hitos se
+están mostrando y cuáles quedan fuera**, para que la numeración salteada no parezca un formulario
+incompleto.
+
+> ⚠️ **Este reparto es PROVISIONAL.** **Qué hito va en qué ámbito es criterio de ingeniería**, y está
+> pendiente de confirmación. Dos hitos quedan mezclados: el **2** lleva *impermeabilización de azotea* y
+> el **3** *equipamiento de cuarto de módulos*, que son de torre dentro de un hito de apartamento.
+> Se cambia en la lista `HITOS_DE_TORRE`, que es una sola línea en `construir.py`.
+
+> **Contra incendio no está entre los once.** Rociadores, gabinetes, extintores y detectores de humo
+> existían en la partición anterior y no aparecen en el Excel. Está preguntado a Ingeniería si es
+> deliberado; el formulario **no los añade por su cuenta**.
+
+**El Excel no trae pesos**: es estructura, no ponderación. El promedio de subpartidas es simple, y ese
+número **no debe sostener nada financiero**.
 
 ## Lo que protege el trabajo en campo
 
@@ -128,11 +164,11 @@ ingeniería**: se cambia en la lista `HITOS_DE_TORRE`, que es una sola línea en
 | --- | --- |
 | **Autoguardado** cada 2 s tras el último cambio y cada 30 s | En un teléfono con poca memoria el navegador descarta la pestaña en segundo plano. Antes solo guardaba el botón, a mano, y lo perdido no se notaba hasta abrir y ver el formulario en blanco |
 | **Aviso al salir** con cambios sin guardar | Lo mismo, por la otra puerta |
-| **Validación** de los 8 campos obligatorios | El número del informe se compone de ellos: sin torre queda `XX-T---P--A---------` y así se archiva para siempre. Un dato malo se corrige; un identificador malo contamina todo lo que cuelga de él |
+| **Validación** de los campos obligatorios — nueve en apartamento, siete en torre | El número del informe se compone de ellos: sin torre queda `XX-T---P--A---------` y así se archiva para siempre. Un dato malo se corrige; un identificador malo contamina todo lo que cuelga de él |
 | **`N/A` y «hito no inspeccionado»** | Un cero significa *no está construido*. «No pude entrar» y «esta torre no tiene ascensor» no son ceros: **no cuentan para el promedio**. Sin esto, todo consolidado nace sesgado hacia abajo |
 | **Indicador de conexión** | El inspector sabe si «Enviar» va a funcionar antes de tocarlo |
 | **La cámara, no la galería** | `capture="environment"` — un atributo, diez personas todos los días |
-| **Seis fotografías por hito** | Tres se quedaban cortas para una patología. Ahora pesan 24 KB, no 3 MB |
+| **Seis fotografías por hito** | Tres se quedaban cortas para una patología. Se reducen solas al entrar: una imagen lisa queda en ~22 KB, y una con textura densa —cabillas, bloque, encofrado— llega a ~460 KB |
 | **Leyenda de B / R / M** | No estaba escrita en ninguna parte. Diez inspectores calificando con criterios distintos alimentan la misma escala |
 
 ## Qué se corrigió respecto del original
@@ -140,21 +176,29 @@ ingeniería**: se cambia en la lista `HITOS_DE_TORRE`, que es una sola línea en
 | | Qué pasaba | Qué se hizo |
 | --- | --- | --- |
 | **Fotos y observaciones** | No entraban al borrador: al guardar y volver, se perdían. Era el producto de la inspección | Entran y vuelven |
-| **Peso de las fotos** | Una foto de cámara no cabe en el almacenamiento del navegador | Se reducen solas al entrar (≈ 280 KB → 24 KB) |
+| **Peso de las fotos** | Una foto de cámara no cabe en el almacenamiento del navegador | Se reducen solas al entrar, a entre ~22 KB y ~460 KB según la textura |
 | **Dos librerías de internet** | Se descargaban de un CDN y **no se usaban**; sin señal, la página las esperaba en vano | Eliminadas. El PDF sale de la impresión del propio teléfono |
 | **Sin funcionamiento offline** | El enlace publicado no abría sin señal | `sw.js` + `manifest.json`, con ícono en pantalla de inicio |
 | **Número de informe** | Contador por teléfono, sin sector: se repetía | Compuesto (ver arriba) |
 | **Logos** | Una «C» y una «G» dibujadas a mano, y el emblema oficial aproximado con polígonos | Logos reales |
 | **Fotos en el PDF** | Salían de 80×65 px, ilegibles | Un tercio del ancho de página; los recuadros vacíos no se imprimen |
-| **Botón «Enviar»** | Enviaba a monday.com, que ADR-0014 no adoptó | Envía al [relevo](../relevo-drive/) de Garmel, que archiva en Drive |
+| **Botón «Enviar»** | Enviaba a monday.com, que ADR-0014 no adoptó | Envía al relevo de Garmel, que archiva en Drive |
 | **Ámbito del informe** | Los hitos de torre y de apartamento en una sola lista | Selector de ámbito; el número lleva `TORRE` cuando corresponde |
 
 ## Lo que todavía no hace
 
-- **Enviar solo.** El envío automático a Drive y a Smartsheet necesita un intermediario que
-  guarde la credencial. Repartir una llave de acceso en diez teléfonos no es una opción.
-- **Archivar las fotos sueltas.** Hoy la fotografía queda dentro del PDF. Para poder consultarla,
-  ampliarla o compararla hace falta que además se guarde como archivo en Drive.
+- **Llegar a Smartsheet.** El relevo deja cada informe en Drive y anota una fila en la hoja
+  *Registro de informes de inspección*. **Esa hoja es el puente**, y la carga a Smartsheet es
+  retroactiva: hoy no la hace nadie automáticamente.
+- **Precargar el estado anterior del apartamento.** El inspector califica las 34 subpartidas desde
+  cero en cada visita, en vez de confirmar lo que no cambió desde la anterior.
+- **Ponderar los hitos.** Sin los pesos, el porcentaje promedia cosas que no son comparables.
+
+## Lo que no está probado
+
+**Todo lo anterior está verificado en escritorio, ejecutándolo. Nada está verificado en una torre.**
+Faltan las dos cosas que no se pueden saber desde un escritorio: si abre sin señal dentro de un
+edificio, y cuánto almacenamiento consume un día real de fotografías.
 
 ## Aviso sobre datos
 
