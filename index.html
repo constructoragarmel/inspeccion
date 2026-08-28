@@ -632,7 +632,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   .total-card>div:last-child{display:none!important}   /* la barra de progreso */
   .total-card>div[style*='opacity']{font-size:8.5px!important;opacity:1!important;color:#5a6672!important}
 
-  @page{margin:11mm 11mm;size:A4 portrait}
+  @page{margin:11mm 11mm;size:portrait}
 }
 </style>
 <link rel="manifest" href="manifest.json">
@@ -2218,7 +2218,11 @@ function _marcarComoEnviado(nro){
 
 function getSavedReports() {
   try {
-    return JSON.parse(localStorage.getItem('garmel_reports_list') || '[]');
+    const l = JSON.parse(localStorage.getItem('garmel_reports_list') || '[]');
+    // Un hueco en la lista no debe dejar sin acceso al resto: se descartan las
+    // fichas que no son un informe, y si lo guardado no es siquiera una lista
+    // se empieza de cero en vez de reventar.
+    return Array.isArray(l) ? l.filter(function(b){ return b && typeof b === 'object'; }) : [];
   } catch(e) { return []; }
 }
 
@@ -2236,14 +2240,17 @@ function saveDraft(silencioso){
       }
       list[pos] = data;
       currentEditingIndex = pos;
-      if(!silencioso) showToast('✅ Borrador modificado y actualizado con éxito', 'ok');
     } else {
       list.unshift(data);
       currentEditingIndex = 0;
-      if(!silencioso) showToast('✅ Nuevo borrador guardado localmente','ok');
     }
     _idEnEdicion = data.id || null;
+    // El aviso va DESPUÉS de escribir: si esto revienta por falta de espacio,
+    // el inspector no puede haber leído antes que se guardó bien.
     localStorage.setItem('garmel_reports_list', JSON.stringify(list));
+    if(!silencioso) showToast(pos >= 0
+      ? '✅ Borrador modificado y actualizado con éxito'
+      : '✅ Nuevo borrador guardado localmente', 'ok');
     // Deja anotado a qué informe pertenece lo que acaba de guardarse. Sin esto,
     // el siguiente apartamento se guardaba encima de este.
     _numeroDelBorrador = document.getElementById('nro-display')?.textContent || null;
@@ -2836,8 +2843,14 @@ async function enviarAlRelevo() {
       showToast('✅ Informe enviado y archivado', 'ok');
       closeSend();
     } else {
-      logEl.textContent += '❌ ' + (res.error || 'Error desconocido');
-      showToast('❌ ' + (res.error || 'No se pudo enviar'), 'err');
+      const err = res.error || 'Error desconocido';
+      // El detalle técnico siempre queda escrito, para poder diagnosticar.
+      logEl.textContent += '❌ ' + err;
+      // Y al inspector se le dice qué hacer, no qué falló por dentro.
+      const conocido = /clave|faltan|sector/i.test(err);
+      showToast(conocido
+        ? '❌ ' + err
+        : '❌ El relevo no pudo archivarlo. El informe sigue guardado aquí: reinténtelo, y si vuelve a fallar avise a la oficina.', 'err');
     }
   } catch(e) {
     const seRindio = (e && e.name === 'AbortError');

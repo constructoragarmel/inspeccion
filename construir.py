@@ -3068,6 +3068,98 @@ s = sustituir(s,
  "81d· sin cambio en la marca de vacío")
 
 
+# ── 82. El informe se imprimía siempre en A4 ────────────────────────────
+# `@page{size:A4 portrait}` fija el papel: el PDF sale 210 x 297 mm aunque la
+# impresora tenga otra cosa. En oficina venezolana lo corriente es **Carta**
+# (215,9 x 279,4 mm), que es 18 mm más corta: la impresora acaba reescalando el
+# documento para que quepa —el cuerpo de 10,5 px baja a ~9,9— o recortando el
+# pie. Y el expediente de rendición se entrega en tres ejemplares FÍSICOS
+# (`PA-76`), así que el papel real importa.
+#
+# Se conserva la orientación vertical y se deja que el navegador use el papel
+# que tenga cargado. El diseño es fluido, así que encaja en los dos.
+s = sustituir(s,
+ "  @page{margin:11mm 11mm;size:A4 portrait}",
+ "  @page{margin:11mm 11mm;size:portrait}",
+ "82\u00b7 el informe se adapta al papel de la impresora, A4 o Carta")
+
+# ── 83. Los errores del relevo llegaban en jerga al inspector ───────────
+# Cuando el relevo falla por algo que no es la clave ni un dato que falte, el
+# aviso que veía el inspector era el error crudo del servidor —«TypeError: no
+# se pudo crear la carpeta»—. En una torre eso no le dice qué hacer. Los tres
+# errores previsibles se explican; el resto pasa a un mensaje accionable, y el
+# técnico queda en el registro de envío, que es donde sirve para diagnosticar.
+s = sustituir(s,
+ "    } else {\n"
+ "      logEl.textContent += '\u274c ' + (res.error || 'Error desconocido');\n"
+ "      showToast('\u274c ' + (res.error || 'No se pudo enviar'), 'err');\n"
+ "    }",
+ "    } else {\n"
+ "      const err = res.error || 'Error desconocido';\n"
+ "      // El detalle t\u00e9cnico siempre queda escrito, para poder diagnosticar.\n"
+ "      logEl.textContent += '\u274c ' + err;\n"
+ "      // Y al inspector se le dice qu\u00e9 hacer, no qu\u00e9 fall\u00f3 por dentro.\n"
+ "      const conocido = /clave|faltan|sector/i.test(err);\n"
+ "      showToast(conocido\n"
+ "        ? '\u274c ' + err\n"
+ "        : '\u274c El relevo no pudo archivarlo. El informe sigue guardado aqu\u00ed: reint\u00e9ntelo, y si vuelve a fallar avise a la oficina.', 'err');\n"
+ "    }",
+ "83\u00b7 el error del relevo se explica en vez de mostrarse crudo")
+
+# ── 84. «Guardado con éxito» antes de haber guardado ────────────────────
+# El aviso de éxito se emitía ANTES del `localStorage.setItem`. Si el guardado
+# fallaba —el teléfono sin espacio es el caso real—, el inspector veía primero
+# «✅ Nuevo borrador guardado localmente» y a continuación «❌ El teléfono se
+# quedó sin espacio». El primero es el que se lee, y no se había guardado nada.
+s = sustituir(s,
+ "      list[pos] = data;\n"
+ "      currentEditingIndex = pos;\n"
+ "      if(!silencioso) showToast('✅ Borrador modificado y actualizado con éxito', 'ok');\n"
+ "    } else {\n"
+ "      list.unshift(data);\n"
+ "      currentEditingIndex = 0;\n"
+ "      if(!silencioso) showToast('✅ Nuevo borrador guardado localmente','ok');\n"
+ "    }\n"
+ "    _idEnEdicion = data.id || null;\n"
+ "    localStorage.setItem('garmel_reports_list', JSON.stringify(list));",
+ "      list[pos] = data;\n"
+ "      currentEditingIndex = pos;\n"
+ "    } else {\n"
+ "      list.unshift(data);\n"
+ "      currentEditingIndex = 0;\n"
+ "    }\n"
+ "    _idEnEdicion = data.id || null;\n"
+ "    // El aviso va DESPUÉS de escribir: si esto revienta por falta de espacio,\n"
+ "    // el inspector no puede haber leído antes que se guardó bien.\n"
+ "    localStorage.setItem('garmel_reports_list', JSON.stringify(list));\n"
+ "    if(!silencioso) showToast(pos >= 0\n"
+ "      ? '✅ Borrador modificado y actualizado con éxito'\n"
+ "      : '✅ Nuevo borrador guardado localmente', 'ok');",
+ "84a· el aviso de guardado se emite después de guardar")
+
+# ── 85. Una ficha vacía en la lista dejaba sin acceso a todo lo guardado ─
+# `renderSavedList` recorría la lista tal cual. Con un hueco —un `null` de un
+# guardado interrumpido o de una versión anterior— reventaba al leer `.nro`, y
+# «Mis informes» dejaba de abrirse. Es el único sitio desde donde se recupera o
+# se envía un informe que vive SOLO en ese teléfono.
+s = sustituir(s,
+ "function getSavedReports() {\n"
+ "  try {\n"
+ "    return JSON.parse(localStorage.getItem('garmel_reports_list') || '[]');\n"
+ "  } catch(e) { return []; }\n"
+ "}",
+ "function getSavedReports() {\n"
+ "  try {\n"
+ "    const l = JSON.parse(localStorage.getItem('garmel_reports_list') || '[]');\n"
+ "    // Un hueco en la lista no debe dejar sin acceso al resto: se descartan las\n"
+ "    // fichas que no son un informe, y si lo guardado no es siquiera una lista\n"
+ "    // se empieza de cero en vez de reventar.\n"
+ "    return Array.isArray(l) ? l.filter(function(b){ return b && typeof b === 'object'; }) : [];\n"
+ "  } catch(e) { return []; }\n"
+ "}",
+ "85· una ficha rota no tumba la lista de informes")
+
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
