@@ -360,8 +360,26 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   .doc-info{ text-align:left; width:100%; }
 }
 
+/* Lo que solo tiene sentido en el papel. */
+.solo-impresion{display:none}
+
+/* Los dos controles del encabezado de cada hito, tocables con guantes. */
+@media (max-width: 700px){
+  .no-insp-tgl, .arrow{
+    min-width:44px; min-height:44px;
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+  .p-hdr{ padding:6px 10px 6px 16px; }
+  /* Borrar deja de estar pegado a enviar: son lo contrario una de otra. */
+  .saved-item{ flex-wrap:wrap; gap:8px; }
+  .saved-item-actions{ width:100%; gap:10px; }
+  .s-btn{ min-height:44px; font-size:12.5px; padding:8px 12px; flex:1 1 auto; }
+  .s-btn-del{ flex:0 0 56px; margin-left:26px; }
+}
+
 @media print{
   #welcome-screen{display:none!important}
+  .solo-impresion{display:inline!important}
   .hdr-btns,.arrow,.add-row-btn,#mode-bar,.hbtn,
   .foto-slot input[type=file],.foto-rm,.ev-btn:not(.on),
   .overlay,.toast,#pdf-overlay,.modal,
@@ -416,6 +434,15 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   table td:nth-child(3),table td:nth-child(4),table td:nth-child(5){width:10%!important}
   table td:nth-child(6){width:12%!important}
   table td:nth-child(7){width:12%!important}
+  /* Lo seleccionado, legible aunque la impresora descarte fondos o sea B/N. */
+  .ck-lbl.on, .ag-btn.on, .ev-btn.on{
+    background:#fff!important; color:#000!important;
+    border:2px solid #000!important; font-weight:800!important;
+    print-color-adjust:exact; -webkit-print-color-adjust:exact;
+  }
+  .ck-lbl, .ag-btn{ color:#000!important; }
+  .ck-lbl.on::before, .ag-btn.on::before{ content:'▣\00A0'; }
+  .ck-lbl:not(.on)::before, .ag-btn:not(.on)::before{ content:'▢\00A0'; color:#888; }
   .bar-bg{display:none}
   .pv{font-size:9px!important}
   .p-foot{padding:4px 10px}
@@ -1447,7 +1474,7 @@ function initAppContent() {
       d.style.borderLeftColor = p.color;
       d.innerHTML = `
         <div class="p-hdr" style="background:${p.color}" onclick="toggleP('${p.id}')">
-          <div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre} (Evaluación por Hitos)</h2></div>
+          <div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre}<span class="solo-impresion"> (Evaluación por Hitos)</span></h2></div>
           <div style="display:flex;align-items:center;gap:9px">
             <span class="no-insp-tgl" id="noinsp_${p.id}" onclick="event.stopPropagation();toggleNoInspeccionado('${p.id}')"
                   title="Marcar el hito como no inspeccionado en esta visita">⊘</span>
@@ -1458,16 +1485,16 @@ function initAppContent() {
         <div class="p-body">
           <div style="padding:14px 16px;">
             <div class="field" style="margin-bottom:12px;">
-              <label>Porcentaje general de avance en este hito (${p.nombre}) *</label>
+              <label>Porcentaje de avance<span class="solo-impresion"> en este hito (${p.nombre})</span> *</label>
               <input type="number" class="num hito-pct-input" min="0" max="100" id="hitopct_${p.id}" data-p="${p.id}" oninput="recalcHito('${p.id}')" placeholder="0-100" style="width:120px; font-weight:bold; font-size:14px;">
             </div>
             <div class="field">
-              <label>Observaciones visuales de obra — ${p.nombre}</label>
+              <label>Observaciones visuales de obra<span class="solo-impresion"> — ${p.nombre}</span></label>
               <textarea id="hitoobs_${p.id}" placeholder="Describa brevemente los subitems inspeccionados de forma somera en este hito..."></textarea>
             </div>
           </div>
           <div class="foto-sec">
-            <div class="foto-sec-title">📷 Fotografías — ${p.nombre} (máx. 3)</div>
+            <div class="foto-sec-title">📷 Fotografías<span class="solo-impresion"> — ${p.nombre}</span> (máx. 6)</div>
             <div class="foto-grid" id="fotos_${p.id}">
               ${[0,1,2,3,4,5].map(fi=>`
                 <div class="foto-slot" id="fslot_${p.id}_${fi}">
@@ -1540,7 +1567,7 @@ function initAppContent() {
           </table></div>
           <button class="add-row-btn" onclick="addRow('${p.id}')">＋ Agregar subitem adicional</button>
           <div class="foto-sec">
-            <div class="foto-sec-title">📷 Fotografías — ${p.nombre} (máx. 3)</div>
+            <div class="foto-sec-title">📷 Fotografías — ${p.nombre} (máx. 6)</div>
             <div class="foto-grid" id="fotos_${p.id}">
               ${[0,1,2,3,4,5].map(fi=>`
                 <div class="foto-slot" id="fslot_${p.id}_${fi}">

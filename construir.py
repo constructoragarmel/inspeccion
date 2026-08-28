@@ -1856,6 +1856,101 @@ s = sustituir(s,
  "46· lo enviado sigue enviado aunque se vuelva a guardar")
 
 
+# ── 47. Decía «máx. 3» y hay seis ranuras ─────────────────────────────────
+# Texto que quedó de cuando eran tres. Quien lo lea deja de tomar fotos a la
+# tercera, y la foto es la evidencia que sostiene la valuación.
+s = sustituir(s, "(máx. 3)", "(máx. 6)", "47· el máximo de fotos que dice es el que hay", 2)
+
+# ── 48. El nombre del hito se repetía cuatro veces en la misma tarjeta ─────
+# En el encabezado, en la etiqueta del porcentaje, en la de observaciones y en
+# la de fotografías. La tarjeta ocupaba 631 px de 812 en un teléfono, y buena
+# parte era repetir lo que el encabezado ya dice. Se recorta EN PANTALLA y se
+# conserva entero EN EL PDF, que es lo que llega al Ministerio y ahí sí hace
+# falta que cada sección diga de qué hito habla.
+s = sustituir(s,
+ "<h2>${p.nombre} (Evaluación por Hitos)</h2>",
+ "<h2>${p.nombre}<span class=\"solo-impresion\"> (Evaluación por Hitos)</span></h2>",
+ "48a· el encabezado del hito no repite el modo")
+
+s = sustituir(s,
+ "<label>Porcentaje general de avance en este hito (${p.nombre}) *</label>",
+ "<label>Porcentaje de avance<span class=\"solo-impresion\"> en este hito (${p.nombre})</span> *</label>",
+ "48b· etiqueta corta del porcentaje")
+
+s = sustituir(s,
+ "<label>Observaciones visuales de obra — ${p.nombre}</label>",
+ "<label>Observaciones visuales de obra<span class=\"solo-impresion\"> — ${p.nombre}</span></label>",
+ "48c· etiqueta corta de observaciones")
+
+s = sustituir(s,
+ '<div class="foto-sec-title">📷 Fotografías — ${p.nombre} (máx. 6)</div>\n'
+ '            <div class="foto-grid" id="fotos_${p.id}">\n'
+ '              ${[0,1,2,3,4,5].map(fi=>`',
+ '<div class="foto-sec-title">📷 Fotografías<span class="solo-impresion"> — ${p.nombre}</span> (máx. 6)</div>\n'
+ '            <div class="foto-grid" id="fotos_${p.id}">\n'
+ '              ${[0,1,2,3,4,5].map(fi=>`',
+ "48d· etiqueta corta de fotografías (solo en el modo por hitos)")
+
+# ── 49. Los controles más pequeños eran los más delicados ─────────────────
+# El interruptor de «no inspeccionado» medía 19×20 px y la flecha de plegar
+# 11×18. El primero es justo el que evita que un hito que nadie fue a ver
+# cuente como 0 %: si no se puede tocar con guantes, en la práctica no existe.
+# Y en «Guardados», borrar (32 px) estaba pegado a enviar (54 px) — un informe
+# sin enviar vive solo en ese teléfono.
+s = sustituir(s,
+ "@media print{",
+ "/* Lo que solo tiene sentido en el papel. */\n"
+ ".solo-impresion{display:none}\n"
+ "\n"
+ "/* Los dos controles del encabezado de cada hito, tocables con guantes. */\n"
+ "@media (max-width: 700px){\n"
+ "  .no-insp-tgl, .arrow{\n"
+ "    min-width:44px; min-height:44px;\n"
+ "    display:inline-flex; align-items:center; justify-content:center;\n"
+ "  }\n"
+ "  .p-hdr{ padding:6px 10px 6px 16px; }\n"
+ "  /* Borrar deja de estar pegado a enviar: son lo contrario una de otra. */\n"
+ "  .saved-item{ flex-wrap:wrap; gap:8px; }\n"
+ "  .saved-item-actions{ width:100%; gap:10px; }\n"
+ "  .s-btn{ min-height:44px; font-size:12.5px; padding:8px 12px; flex:1 1 auto; }\n"
+ "  .s-btn-del{ flex:0 0 56px; margin-left:26px; }\n"
+ "}\n"
+ "\n"
+ "@media print{",
+ "49· agrandar los controles chicos y apartar el de borrar")
+
+s = sustituir(s,
+ "  .hdr-btns,.arrow,.add-row-btn,#mode-bar,.hbtn,",
+ "  .solo-impresion{display:inline!important}\n"
+ "  .hdr-btns,.arrow,.add-row-btn,#mode-bar,.hbtn,",
+ "49b· en el papel vuelve el nombre completo del hito")
+
+
+# ── 50. Lo marcado tiene que verse en papel, y en blanco y negro ──────────
+# El estatus de la obra, los agentes externos y la evaluación B/R/M señalan lo
+# elegido con texto BLANCO sobre fondo de color. El navegador imprime en modo
+# «economy», que descarta los fondos: eso deja texto blanco sobre papel blanco,
+# o sea la selección desaparecida del informe. Y el expediente de rendición se
+# entrega en tres ejemplares FÍSICOS (`PA-76`), así que puede además salir de
+# una impresora en blanco y negro.
+#
+# Se invierte para el papel —negro sobre blanco, con borde grueso— y se añade
+# una marca ▣/▢ que no depende de ningún color para leerse.
+s = sustituir(s,
+ "  .bar-bg{display:none}",
+ "  /* Lo seleccionado, legible aunque la impresora descarte fondos o sea B/N. */\n"
+ "  .ck-lbl.on, .ag-btn.on, .ev-btn.on{\n"
+ "    background:#fff!important; color:#000!important;\n"
+ "    border:2px solid #000!important; font-weight:800!important;\n"
+ "    print-color-adjust:exact; -webkit-print-color-adjust:exact;\n"
+ "  }\n"
+ "  .ck-lbl, .ag-btn{ color:#000!important; }\n"
+ "  .ck-lbl.on::before, .ag-btn.on::before{ content:'▣\\00A0'; }\n"
+ "  .ck-lbl:not(.on)::before, .ag-btn:not(.on)::before{ content:'▢\\00A0'; color:#888; }\n"
+ "  .bar-bg{display:none}",
+ "50· lo marcado se ve en papel aunque se impriman sin color")
+
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
