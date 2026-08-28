@@ -279,8 +279,10 @@ s = sustituir(s,
      fotografía es justamente la evidencia de la inspección. */
   .foto-sec{background:#fff!important;border:1px solid #ddd!important;margin:6px 10px;padding:8px 10px;page-break-inside:avoid}
   .foto-sec-title{font-size:9px!important;margin-bottom:5px}
-  .foto-grid{display:flex!important;gap:6px!important;flex-wrap:nowrap!important;align-items:flex-start}
-  .foto-slot{width:33%!important;height:auto!important;aspect-ratio:4/3;border:1px solid #ccc!important;border-radius:4px!important;flex:1 1 33%!important;page-break-inside:avoid}
+  /* Tres por fila, y las siguientes bajan. Con «nowrap» seis fotografías se
+     comprimían a 114 px y volvían al tamaño estampilla que esto vino a evitar. */
+  .foto-grid{display:flex!important;gap:6px!important;flex-wrap:wrap!important;align-items:flex-start}
+  .foto-slot{width:calc(33.333% - 4px)!important;height:auto!important;aspect-ratio:4/3;border:1px solid #ccc!important;border-radius:4px!important;flex:0 0 calc(33.333% - 4px)!important;page-break-inside:avoid}
   .foto-slot img{position:absolute!important;inset:0;width:100%!important;height:100%!important;object-fit:cover;print-color-adjust:exact;-webkit-print-color-adjust:exact}
   .foto-slot span{display:none}
   .foto-slot.sin-foto{display:none!important}
@@ -364,12 +366,20 @@ function setAmbito(a){
   if(bA) bA.style.cssText = esTorre ? off : on;
   if(bT) bT.style.cssText = esTorre ? on  : off;
 
-  // Piso y apartamento solo aplican al informe de vivienda.
+  // Piso y apartamento solo aplican al informe de vivienda. Se guardan al
+  // ocultarlos y se devuelven al volver: si no, un toque en «Torre completa»
+  // borraba lo que ya se había escrito.
   ['piso','apto'].forEach(id=>{
     const el = document.getElementById(id);
     const campo = el ? el.closest('.field') : null;
     if(campo) campo.style.display = esTorre ? 'none' : '';
-    if(el && esTorre) el.value = '';
+    if(!el) return;
+    if(esTorre){
+      if(el.value) el.dataset.guardado = el.value;
+      el.value = '';
+    } else if(!el.value && el.dataset.guardado){
+      el.value = el.dataset.guardado;
+    }
   });
 
   // Se muestran solo los hitos del ámbito elegido.
@@ -456,6 +466,14 @@ fin = s.index("// Inicialización general al cargar")
 s = sustituir(s, s[ini:fin],
  """const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQiGp3CCZmIWTnsWBD0KEw5quMkexDcBieUESBkmTspqAsvjoXQ/exec';
 
+// Devuelve una copia del informe sin las imágenes incrustadas. Se envían
+// aparte, como archivos, y duplicarlas dentro del JSON no aporta nada.
+function _sinFotos(d){
+  const copia = Object.assign({}, d);
+  delete copia.fotos;
+  return copia;
+}
+
 // Recoge las fotografías tal como quedaron tras reducirse, con un nombre que
 // dice de qué hito son.
 function _fotosParaEnviar(){
@@ -503,7 +521,10 @@ async function enviarAlRelevo() {
         sector: getSectorActual(),
         torre:  getTorreActual(),
         ambito: ambito,
-        datos:  datos,
+        // Las fotografías van UNA vez, en su propio arreglo. Si se dejaran
+        // también dentro de «datos», el envío pesaría el doble — y en obra,
+        // con señal mala, eso decide si el informe llega o no.
+        datos:  _sinFotos(datos),
         fotos:  fotos
       })
     });
@@ -1194,7 +1215,7 @@ async function _enviarUno(b, clave){
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ clave: clave, numero: b.nro, sector: sector,
                              torre: b.torre, ambito: b.ambito || 'apartamento',
-                             datos: b, fotos: fotos })
+                             datos: _sinFotos(b), fotos: fotos })
     });
     const res = await r.json();
     if(res.ok){ _marcarComoEnviado(b.nro); return true; }
@@ -1309,6 +1330,120 @@ if (navigator.storage && navigator.storage.persist) {
 // Inicialización general al cargar
 window.onload = function() {""",
  "27g· pedir almacenamiento permanente")
+
+
+# ── 28. Correcciones del modo por hitos, que es el que usan en campo ──────
+
+# 28a · El porcentaje se guardaba crudo. El distintivo mostraba 100 % y el
+# informe llevaba «150»; mostraba 0 % y llevaba «-20». Lo que llegaba a Drive y
+# a Smartsheet era el valor sin corregir, que es justo lo que ensucia el
+# consolidado. Ahora se corrige el campo, no solo lo que se ve.
+s = sustituir(s,
+ """function recalcHito(pid) {
+  const inp = document.getElementById('hitopct_' + pid);
+  let val = parseFloat(inp.value) || 0;
+  if(val > 100) val = 100;
+  if(val < 0) val = 0;""",
+ """function recalcHito(pid) {
+  const inp = document.getElementById('hitopct_' + pid);
+  let val = parseFloat(inp.value) || 0;
+  if(val > 100) val = 100;
+  if(val < 0) val = 0;
+  val = Math.round(val);
+  // El campo se corrige a sí mismo: si no, el informe viaja con el valor crudo
+  // aunque en pantalla se vea el correcto.
+  if(inp.value !== '' && String(val) !== inp.value) inp.value = String(val);""",
+ "28a· el porcentaje se corrige en el campo, no solo en el distintivo")
+
+# 28b · Marcar un hito como no inspeccionado no se podía deshacer: al
+# reactivarlo el distintivo se quedaba en «—» para siempre, porque se llamaba a
+# recalcP, que en este modo no hace nada.
+s = sustituir(s,
+ """  if(!activo && typeof recalcP === 'function') recalcP(pid);""",
+ """  if(!activo){
+    if(formType === 'hitos'){
+      if(typeof recalcHito === 'function') recalcHito(pid);
+    } else if(typeof recalcP === 'function'){
+      recalcP(pid);
+    }
+  }""",
+ "28b· se puede deshacer «no inspeccionado» en modo hitos")
+
+# 28c · Y que un hito apagado no siga recalculándose por detrás.
+s = sustituir(s,
+ """function recalcHito(pid) {
+  const inp = document.getElementById('hitopct_' + pid);""",
+ """function recalcHito(pid) {
+  if(hitosNoInspeccionados[pid]) return;
+  const inp = document.getElementById('hitopct_' + pid);""",
+ "28c· un hito apagado no recalcula")
+
+
+# ── 29. El informe cuenta y guarda solo los hitos de su ámbito ────────────
+# Un informe de torre estaba sumando al total los hitos de apartamento que
+# quedaban ocultos, y los enviaba dentro del informe. El inspector no los veía y
+# aun así viajaban. Lo que se ve tiene que ser lo que se manda.
+s = sustituir(s,
+ """function recalcTotal(){
+  let sum=0,cnt=0;
+  PARTIDAS.forEach(p=>{""",
+ """// Los hitos que corresponden al ámbito elegido. Todo lo demás está oculto y no
+// forma parte de este informe.
+function _hitosDelAmbito(){
+  const esTorre = (ambito === 'torre');
+  return PARTIDAS.filter(function(p){
+    return (HITOS_DE_TORRE.indexOf(p.id) >= 0) === esTorre;
+  });
+}
+
+function recalcTotal(){
+  let sum=0,cnt=0;
+  _hitosDelAmbito().forEach(p=>{""",
+ "29a· el total suma solo los hitos del ámbito")
+
+s = sustituir(s,
+ """  PARTIDAS.forEach(p=>{
+    d.fotobs[p.id] = document.getElementById('fotobs_'+p.id)?.value || '';""",
+ """  _hitosDelAmbito().forEach(p=>{
+    d.fotobs[p.id] = document.getElementById('fotobs_'+p.id)?.value || '';""",
+ "29b· solo se guardan las fotos del ámbito")
+
+s = sustituir(s,
+ """  if (formType === 'hitos') {
+    PARTIDAS.forEach(p => {
+      d.partidas[p.id] = {""",
+ """  if (formType === 'hitos') {
+    _hitosDelAmbito().forEach(p => {
+      d.partidas[p.id] = {""",
+ "29c· solo se guardan los hitos del ámbito (modo simplificado)")
+
+s = sustituir(s,
+ """  } else {
+    PARTIDAS.forEach(p=>{
+      d.partidas[p.id]=p.items.map((_,i)=>{""",
+ """  } else {
+    _hitosDelAmbito().forEach(p=>{
+      d.partidas[p.id]=p.items.map((_,i)=>{""",
+ "29d· lo mismo en el modo detallado")
+
+s = sustituir(s,
+ """function _fotosParaEnviar(){
+  const out = [];
+  if (typeof PARTIDAS === 'undefined') return out;
+  PARTIDAS.forEach(p=>{""",
+ """function _fotosParaEnviar(){
+  const out = [];
+  if (typeof PARTIDAS === 'undefined') return out;
+  _hitosDelAmbito().forEach(p=>{""",
+ "29e· solo se envían las fotos del ámbito")
+
+# ── 30. Un 99,9 % no es un 100 % ──────────────────────────────────────────
+# Redondear hacia arriba declara terminado algo que no lo está, y el 100 % es
+# justo el umbral que habilita el cobro (ADR-0004). Se trunca.
+s = sustituir(s,
+ """  val = Math.round(val);""",
+ """  val = Math.floor(val);   // 99,9 % no es 100 %: el 100 % habilita cobro""",
+ "30· el porcentaje se trunca, no se redondea hacia arriba")
 
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,

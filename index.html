@@ -393,8 +393,10 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
      fotografía es justamente la evidencia de la inspección. */
   .foto-sec{background:#fff!important;border:1px solid #ddd!important;margin:6px 10px;padding:8px 10px;page-break-inside:avoid}
   .foto-sec-title{font-size:9px!important;margin-bottom:5px}
-  .foto-grid{display:flex!important;gap:6px!important;flex-wrap:nowrap!important;align-items:flex-start}
-  .foto-slot{width:33%!important;height:auto!important;aspect-ratio:4/3;border:1px solid #ccc!important;border-radius:4px!important;flex:1 1 33%!important;page-break-inside:avoid}
+  /* Tres por fila, y las siguientes bajan. Con «nowrap» seis fotografías se
+     comprimían a 114 px y volvían al tamaño estampilla que esto vino a evitar. */
+  .foto-grid{display:flex!important;gap:6px!important;flex-wrap:wrap!important;align-items:flex-start}
+  .foto-slot{width:calc(33.333% - 4px)!important;height:auto!important;aspect-ratio:4/3;border:1px solid #ccc!important;border-radius:4px!important;flex:0 0 calc(33.333% - 4px)!important;page-break-inside:avoid}
   .foto-slot img{position:absolute!important;inset:0;width:100%!important;height:100%!important;object-fit:cover;print-color-adjust:exact;-webkit-print-color-adjust:exact}
   .foto-slot span{display:none}
   .foto-slot.sin-foto{display:none!important}
@@ -907,12 +909,20 @@ function setAmbito(a){
   if(bA) bA.style.cssText = esTorre ? off : on;
   if(bT) bT.style.cssText = esTorre ? on  : off;
 
-  // Piso y apartamento solo aplican al informe de vivienda.
+  // Piso y apartamento solo aplican al informe de vivienda. Se guardan al
+  // ocultarlos y se devuelven al volver: si no, un toque en «Torre completa»
+  // borraba lo que ya se había escrito.
   ['piso','apto'].forEach(id=>{
     const el = document.getElementById(id);
     const campo = el ? el.closest('.field') : null;
     if(campo) campo.style.display = esTorre ? 'none' : '';
-    if(el && esTorre) el.value = '';
+    if(!el) return;
+    if(esTorre){
+      if(el.value) el.dataset.guardado = el.value;
+      el.value = '';
+    } else if(!el.value && el.dataset.guardado){
+      el.value = el.dataset.guardado;
+    }
   });
 
   // Se muestran solo los hitos del ámbito elegido.
@@ -1566,10 +1576,15 @@ function initAppContent() {
 // CÁLCULOS PARA EL MODO HITOS
 // ═══════════════════════════════════════════════
 function recalcHito(pid) {
+  if(hitosNoInspeccionados[pid]) return;
   const inp = document.getElementById('hitopct_' + pid);
   let val = parseFloat(inp.value) || 0;
   if(val > 100) val = 100;
   if(val < 0) val = 0;
+  val = Math.floor(val);   // 99,9 % no es 100 %: el 100 % habilita cobro
+  // El campo se corrige a sí mismo: si no, el informe viaja con el valor crudo
+  // aunque en pantalla se vea el correcto.
+  if(inp.value !== '' && String(val) !== inp.value) inp.value = String(val);
 
   const cls = pCls(val);
   const txt = val + '%';
@@ -1670,12 +1685,27 @@ function _pintarNoInspeccionado(pid){
     const el = document.getElementById(pfx + pid);
     if(el && activo) el.textContent = '—';
   });
-  if(!activo && typeof recalcP === 'function') recalcP(pid);
+  if(!activo){
+    if(formType === 'hitos'){
+      if(typeof recalcHito === 'function') recalcHito(pid);
+    } else if(typeof recalcP === 'function'){
+      recalcP(pid);
+    }
+  }
+}
+
+// Los hitos que corresponden al ámbito elegido. Todo lo demás está oculto y no
+// forma parte de este informe.
+function _hitosDelAmbito(){
+  const esTorre = (ambito === 'torre');
+  return PARTIDAS.filter(function(p){
+    return (HITOS_DE_TORRE.indexOf(p.id) >= 0) === esTorre;
+  });
 }
 
 function recalcTotal(){
   let sum=0,cnt=0;
-  PARTIDAS.forEach(p=>{
+  _hitosDelAmbito().forEach(p=>{
     const t=document.getElementById('fpct_'+p.id)?.textContent;
     if(t&&t!=='—'){sum+=parseInt(t);cnt++;}
   });
@@ -1836,7 +1866,7 @@ function getFormData(){
   // Las fotografías y las observaciones por partida entran al borrador en los
   // dos modos de llenado. Antes no entraban —getFormData no las recogía— y por
   // eso se perdían al guardar y volver.
-  PARTIDAS.forEach(p=>{
+  _hitosDelAmbito().forEach(p=>{
     d.fotobs[p.id] = document.getElementById('fotobs_'+p.id)?.value || '';
     d.fotos[p.id]  = [0,1,2,3,4,5].map(fi=>{
       const im = document.getElementById(`fimg_${p.id}_${fi}`);
@@ -1845,14 +1875,14 @@ function getFormData(){
   });
   
   if (formType === 'hitos') {
-    PARTIDAS.forEach(p => {
+    _hitosDelAmbito().forEach(p => {
       d.partidas[p.id] = {
         pct: document.getElementById('hitopct_' + p.id)?.value || '',
         obs: document.getElementById('hitoobs_' + p.id)?.value || ''
       };
     });
   } else {
-    PARTIDAS.forEach(p=>{
+    _hitosDelAmbito().forEach(p=>{
       d.partidas[p.id]=p.items.map((_,i)=>{
         const rid=`${p.id}_${i}`;
         const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
@@ -2279,7 +2309,7 @@ async function _enviarUno(b, clave){
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ clave: clave, numero: b.nro, sector: sector,
                              torre: b.torre, ambito: b.ambito || 'apartamento',
-                             datos: b, fotos: fotos })
+                             datos: _sinFotos(b), fotos: fotos })
     });
     const res = await r.json();
     if(res.ok){ _marcarComoEnviado(b.nro); return true; }
@@ -2289,12 +2319,20 @@ async function _enviarUno(b, clave){
 
 const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQiGp3CCZmIWTnsWBD0KEw5quMkexDcBieUESBkmTspqAsvjoXQ/exec';
 
+// Devuelve una copia del informe sin las imágenes incrustadas. Se envían
+// aparte, como archivos, y duplicarlas dentro del JSON no aporta nada.
+function _sinFotos(d){
+  const copia = Object.assign({}, d);
+  delete copia.fotos;
+  return copia;
+}
+
 // Recoge las fotografías tal como quedaron tras reducirse, con un nombre que
 // dice de qué hito son.
 function _fotosParaEnviar(){
   const out = [];
   if (typeof PARTIDAS === 'undefined') return out;
-  PARTIDAS.forEach(p=>{
+  _hitosDelAmbito().forEach(p=>{
     [0,1,2,3,4,5].forEach(fi=>{
       const im = document.getElementById(`fimg_${p.id}_${fi}`);
       if(im && im.src && im.src.indexOf('data:') === 0){
@@ -2372,7 +2410,10 @@ async function enviarAlRelevo() {
         sector: getSectorActual(),
         torre:  getTorreActual(),
         ambito: ambito,
-        datos:  datos,
+        // Las fotografías van UNA vez, en su propio arreglo. Si se dejaran
+        // también dentro de «datos», el envío pesaría el doble — y en obra,
+        // con señal mala, eso decide si el informe llega o no.
+        datos:  _sinFotos(datos),
         fotos:  fotos
       })
     });
