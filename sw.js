@@ -3,7 +3,7 @@
 // Al subir una versión nueva hay que subir el número de VERSION: eso es lo que
 // hace que los teléfonos se traigan la copia nueva la próxima vez que tengan
 // internet. Si no se sube, siguen abriendo la vieja.
-const VERSION = 'garmel-inspeccion-v18';
+const VERSION = 'garmel-inspeccion-v19';
 const ARCHIVOS = [
   './',
   './index.html',

@@ -1180,12 +1180,6 @@ async function comprobarClave(clave){
 // Qué hito se evalúa por torre y cuál por apartamento es criterio de
 // ingeniería (ADR-0017). Esta lista es lo único que hay que cambiar si el
 // ingeniero responsable decide otro reparto.
-// PROVISIONAL. Qué hito se evalúa por torre y cuál por apartamento es criterio
-// de ingeniería; esta lista es una propuesta a confirmar. Dos hitos quedan
-// MEZCLADOS y no se resuelven aquí: el 2 lleva la impermeabilización de azotea
-// y el 3 el equipamiento de cuarto de módulos, que son de torre dentro de un
-// hito de apartamento. Ver C-28.
-const HITOS_DE_TORRE = ['hito_estructura', 'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];
 let ambito = 'apartamento';   // 'apartamento' u 'torre'
 
 function setAmbito(a){
@@ -1215,16 +1209,13 @@ function setAmbito(a){
     }
   });
 
-  // Se muestran solo los hitos del ámbito elegido.
+  // Los hitos se muestran completos en los dos ámbitos. Se recorren igual
+  // para devolver a la vista lo que una versión anterior hubiera ocultado.
   if (typeof PARTIDAS !== 'undefined') PARTIDAS.forEach(p=>{
-    const deTorre = HITOS_DE_TORRE.indexOf(p.id) >= 0;
-    const propio = (deTorre === esTorre);
     const bloque = document.getElementById('p_' + p.id);
-    if(bloque) bloque.style.display = propio ? '' : 'none';
-    // La fila del resumen va con su tarjeta: un hito de torre no tiene por
-    // qué aparecer con un guion en el informe de un apartamento.
+    if(bloque) bloque.style.display = '';
     const fila = document.getElementById('res_' + p.id);
-    if(fila) fila.style.display = propio ? '' : 'none';
+    if(fila) fila.style.display = '';
   });
 
   const tt = document.getElementById('total-titulo');
@@ -1232,24 +1223,22 @@ function setAmbito(a){
 
   // Se dice cuántos hitos se están mostrando y cuáles quedan fuera: si no, la
   // numeración salta y el formulario parece incompleto.
+  // El aviso existía para explicar una ausencia. Ya no hay ausencia que
+  // explicar: ahora dice qué hacer con el hito que no aplique, que es lo que
+  // evita que alguien le ponga cero.
   const aviso = document.getElementById('aviso-ambito');
   if(aviso && typeof PARTIDAS !== 'undefined'){
-    const propios = PARTIDAS.filter(function(p){
-      return (HITOS_DE_TORRE.indexOf(p.id) >= 0) === esTorre; });
-    const fuera = PARTIDAS.filter(function(p){
-      return (HITOS_DE_TORRE.indexOf(p.id) >= 0) !== esTorre; })
-      .map(function(p){ return (p.nombre.match(/[0-9]+/) || [''])[0]; })
-      .filter(Boolean);
-    aviso.textContent = 'Se muestran ' + propios.length + ' de los ' + PARTIDAS.length +
-      ' hitos: los de ' + (esTorre ? 'torre' : 'apartamento') + '.' +
-      (fuera.length ? '  Los hitos ' + fuera.join(', ') + ' son de ' +
-        (esTorre ? 'apartamento' : 'torre') + ' y van en su propio informe.' : '');
+    aviso.textContent = 'Se muestran los ' + PARTIDAS.length + ' hitos. El que no '
+      + 'aplique a este informe, márquelo como «hito no inspeccionado»: así no '
+      + 'cuenta para el promedio, que no es lo mismo que ponerle cero.';
   }
 
+  // La nota describía el reparto de hitos, que ya no existe. Ahora describe
+  // lo que el ámbito sí sigue decidiendo.
   const nota = document.getElementById('ambito-nota');
   if(nota) nota.textContent = esTorre
-    ? 'Estructura, ascensores y áreas comunes — no aplica a una vivienda'
-    : 'Acabados, carpintería e instalaciones de la vivienda';
+    ? 'Informe de la torre completa — sin piso ni apartamento; el número sale …-TORRE-…'
+    : 'Informe de una vivienda — piso y apartamento son obligatorios';
 
   updateDocInfo();
 }
@@ -2095,13 +2084,12 @@ function _pintarNoInspeccionado(pid){
   }
 }
 
-// Los hitos que corresponden al ámbito elegido. Todo lo demás está oculto y no
-// forma parte de este informe.
+// Los hitos que entran en el informe. La función se conserva —de ella cuelgan
+// el promedio, el guardado del borrador y el envío— porque el invariante que
+// la justificó sigue en pie: lo que se ve tiene que ser lo que se manda. Al
+// mostrarse los once, los once entran.
 function _hitosDelAmbito(){
-  const esTorre = (ambito === 'torre');
-  return PARTIDAS.filter(function(p){
-    return (HITOS_DE_TORRE.indexOf(p.id) >= 0) === esTorre;
-  });
+  return PARTIDAS;
 }
 
 function recalcTotal(){

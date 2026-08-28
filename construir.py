@@ -3467,6 +3467,115 @@ s = sustituir(s,
  "  if(document.getElementById('inspectores-container').children.length === 0) addInspectorField();",
  "90· en el teléfono los hitos abren plegados")
 
+# ── 91. Los once hitos se muestran siempre, en los dos ámbitos ─────────────
+# Lo pide Skarlet Gómez (28-ago-2026): que los hitos se vean completos, sea el
+# informe de un apartamento o de una torre.
+#
+# Lo que se retira es el REPARTO POR ÁMBITO, que era nuestro y era provisional:
+# ADR-0018 §3 lo dice en su propio texto —"PROVISIONAL, a confirmar por el
+# ingeniero responsable"— y deja dos hitos declaradamente mezclados: el 2 lleva
+# la impermeabilización de azotea y el 3 el equipamiento de cuarto de módulos,
+# que son de torre dentro de un hito de apartamento. Ocultar hitos sobre una
+# partición sin confirmar decide por el inspector algo que nadie decidió.
+#
+# El ámbito NO desaparece: sigue gobernando piso y apartamento, y sigue
+# poniendo TORRE en el identificador. Lo único que deja de hacer es esconder.
+#
+# El caso "este hito no aplica aquí" ya tenía respuesta y es mejor que ocultar:
+# «hito no inspeccionado», que no cuenta para el promedio. Un cero significa
+# "no está construido"; ocultarlo no significa nada y no queda registrado.
+
+s = sustituir(s,
+ "  // Se muestran solo los hitos del ámbito elegido.\n"
+ "  if (typeof PARTIDAS !== 'undefined') PARTIDAS.forEach(p=>{\n"
+ "    const deTorre = HITOS_DE_TORRE.indexOf(p.id) >= 0;\n"
+ "    const propio = (deTorre === esTorre);\n"
+ "    const bloque = document.getElementById('p_' + p.id);\n"
+ "    if(bloque) bloque.style.display = propio ? '' : 'none';\n"
+ "    // La fila del resumen va con su tarjeta: un hito de torre no tiene por\n"
+ "    // qué aparecer con un guion en el informe de un apartamento.\n"
+ "    const fila = document.getElementById('res_' + p.id);\n"
+ "    if(fila) fila.style.display = propio ? '' : 'none';\n"
+ "  });",
+ "  // Los hitos se muestran completos en los dos ámbitos. Se recorren igual\n"
+ "  // para devolver a la vista lo que una versión anterior hubiera ocultado.\n"
+ "  if (typeof PARTIDAS !== 'undefined') PARTIDAS.forEach(p=>{\n"
+ "    const bloque = document.getElementById('p_' + p.id);\n"
+ "    if(bloque) bloque.style.display = '';\n"
+ "    const fila = document.getElementById('res_' + p.id);\n"
+ "    if(fila) fila.style.display = '';\n"
+ "  });",
+ "91a· los hitos ya no se ocultan por ámbito")
+
+s = sustituir(s,
+ "// Los hitos que corresponden al ámbito elegido. Todo lo demás está oculto y no\n"
+ "// forma parte de este informe.\n"
+ "function _hitosDelAmbito(){\n"
+ "  const esTorre = (ambito === 'torre');\n"
+ "  return PARTIDAS.filter(function(p){\n"
+ "    return (HITOS_DE_TORRE.indexOf(p.id) >= 0) === esTorre;\n"
+ "  });\n"
+ "}",
+ "// Los hitos que entran en el informe. La función se conserva —de ella cuelgan\n"
+ "// el promedio, el guardado del borrador y el envío— porque el invariante que\n"
+ "// la justificó sigue en pie: lo que se ve tiene que ser lo que se manda. Al\n"
+ "// mostrarse los once, los once entran.\n"
+ "function _hitosDelAmbito(){\n"
+ "  return PARTIDAS;\n"
+ "}",
+ "91b· el promedio, el guardado y el envío toman los once")
+
+s = sustituir(s,
+ "  const aviso = document.getElementById('aviso-ambito');\n"
+ "  if(aviso && typeof PARTIDAS !== 'undefined'){\n"
+ "    const propios = PARTIDAS.filter(function(p){\n"
+ "      return (HITOS_DE_TORRE.indexOf(p.id) >= 0) === esTorre; });\n"
+ "    const fuera = PARTIDAS.filter(function(p){\n"
+ "      return (HITOS_DE_TORRE.indexOf(p.id) >= 0) !== esTorre; })\n"
+ "      .map(function(p){ return (p.nombre.match(/[0-9]+/) || [''])[0]; })\n"
+ "      .filter(Boolean);\n"
+ "    aviso.textContent = 'Se muestran ' + propios.length + ' de los ' + PARTIDAS.length +\n"
+ "      ' hitos: los de ' + (esTorre ? 'torre' : 'apartamento') + '.' +\n"
+ "      (fuera.length ? '  Los hitos ' + fuera.join(', ') + ' son de ' +\n"
+ "        (esTorre ? 'apartamento' : 'torre') + ' y van en su propio informe.' : '');\n"
+ "  }",
+ "  // El aviso existía para explicar una ausencia. Ya no hay ausencia que\n"
+ "  // explicar: ahora dice qué hacer con el hito que no aplique, que es lo que\n"
+ "  // evita que alguien le ponga cero.\n"
+ "  const aviso = document.getElementById('aviso-ambito');\n"
+ "  if(aviso && typeof PARTIDAS !== 'undefined'){\n"
+ "    aviso.textContent = 'Se muestran los ' + PARTIDAS.length + ' hitos. El que no '\n"
+ "      + 'aplique a este informe, márquelo como «hito no inspeccionado»: así no '\n"
+ "      + 'cuenta para el promedio, que no es lo mismo que ponerle cero.';\n"
+ "  }",
+ "91c· el aviso dice qué hacer con el hito que no aplica")
+
+s = sustituir(s,
+ "  const nota = document.getElementById('ambito-nota');\n"
+ "  if(nota) nota.textContent = esTorre\n"
+ "    ? 'Estructura, ascensores y áreas comunes — no aplica a una vivienda'\n"
+ "    : 'Acabados, carpintería e instalaciones de la vivienda';",
+ "  // La nota describía el reparto de hitos, que ya no existe. Ahora describe\n"
+ "  // lo que el ámbito sí sigue decidiendo.\n"
+ "  const nota = document.getElementById('ambito-nota');\n"
+ "  if(nota) nota.textContent = esTorre\n"
+ "    ? 'Informe de la torre completa — sin piso ni apartamento; el número sale …-TORRE-…'\n"
+ "    : 'Informe de una vivienda — piso y apartamento son obligatorios';",
+ "91d· la nota del ámbito dice lo que el ámbito decide de verdad")
+
+# Sin filtro por ámbito, la lista se queda sin un solo consumidor. Se retira en
+# vez de dejarla como código muerto: el reparto que proponía está escrito en
+# ADR-0018 §3, que es donde se decide si vuelve y con qué contenido.
+s = sustituir(s,
+ "// PROVISIONAL. Qué hito se evalúa por torre y cuál por apartamento es criterio\n"
+ "// de ingeniería; esta lista es una propuesta a confirmar. Dos hitos quedan\n"
+ "// MEZCLADOS y no se resuelven aquí: el 2 lleva la impermeabilización de azotea\n"
+ "// y el 3 el equipamiento de cuarto de módulos, que son de torre dentro de un\n"
+ "// hito de apartamento. Ver C-28.\n"
+ "const HITOS_DE_TORRE = ['hito_estructura', 'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];\n",
+ "",
+ "91e· retirar HITOS_DE_TORRE, que se queda sin consumidores")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
