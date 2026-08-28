@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Construye index.html a partir del formulario original de Skarlet Gómez.
 
-Entrada:  fuente/Formulario Garmel.V8262026.html  (no se modifica)
+Entrada:  fuente/Formularios.V8272026.html  (no se modifica)
 Salida:   index.html
 
 Cada cambio está numerado y explicado. Si el original cambia y una sustitución
@@ -45,20 +45,6 @@ s = sustituir(s,
  '<meta name="apple-mobile-web-app-title" content="Inspección GARMEL">\n'
  '<link rel="apple-touch-icon" href="icon-192.png">',
  "1· quitar librerías externas y declarar la app")
-
-# ── 2. Logos reales en la pantalla de inicio ────────────────────────────────
-ini_w = s.index('<div class="welcome-logos">')
-fin_w = s.index('<h1 class="welcome-title">')
-s = sustituir(s, s[ini_w:fin_w],
- '<div class="welcome-logos">\n'
- '      <div style="background:#fff;border-radius:12px;padding:12px 16px;display:flex;'
- 'align-items:center;gap:16px">\n'
- '        <img src="' + LOGO_GARMEL + '" alt="Constructora Garmel, C.A." style="height:52px;width:auto">\n'
- '        <div style="width:1px;height:44px;background:#ddd"></div>\n'
- '        <img src="' + LOGO_GMVV + '" alt="Gran Misión Vivienda Venezuela" style="height:52px;width:auto">\n'
- '      </div>\n'
- '    </div>\n\n    ',
- "2· logos reales en la pantalla de inicio")
 
 # ── 3. Logos reales en el encabezado del informe ────────────────────────────
 # Eran una «C» y una «G» dibujadas a mano, y un emblema oficial aproximado
@@ -1444,6 +1430,431 @@ s = sustituir(s,
  """  val = Math.round(val);""",
  """  val = Math.floor(val);   // 99,9 % no es 100 %: el 100 % habilita cobro""",
  "30· el porcentaje se trunca, no se redondea hacia arriba")
+
+# ── 31. El número del informe se quedaba sin las iniciales del inspector ───
+# El inspector se elige DESPUÉS de torre, piso y apartamento, y elegirlo no
+# recalculaba el número. Como el número se lee de la pantalla al guardar y al
+# enviar, el informe llegaba a Drive y a la hoja de registro como
+# «EZ-T45-P03A04-260828---». Rompía el identificador de ADR-0016.
+s = sustituir(s,
+ """    manualInput.style.display = 'none';
+    manualInput.value = sel.value;
+  }
+}""",
+ """    manualInput.style.display = 'none';
+    manualInput.value = sel.value;
+  }
+  // El número del informe lleva las iniciales del inspector: si no se recalcula
+  // aquí, se queda con las de antes de elegirlo — es decir, con ninguna.
+  if (typeof updateNroInforme === 'function') updateNroInforme();
+}""",
+ "31· el número del informe recoge al inspector recién elegido")
+
+# ── 32. La fecha era la de Greenwich, no la del teléfono ───────────────────
+# toISOString() da la fecha UTC. Venezuela es UTC−4, así que a partir de las
+# 8 de la noche el formulario abría con el día siguiente — y esa fecha entra
+# también en el número del informe y en el nombre del archivo en Drive.
+s = sustituir(s,
+ """  const today = new Date().toISOString().split('T')[0];""",
+ """  const ahora = new Date();
+  const today = ahora.getFullYear() + '-' +
+                String(ahora.getMonth() + 1).padStart(2, '0') + '-' +
+                String(ahora.getDate()).padStart(2, '0');""",
+ "32· la fecha es la del teléfono, no la de Greenwich")
+
+# ── 33. «Guardar Borrador» no separaba un apartamento del siguiente ────────
+# _separarSiCambioElInforme() se rinde mientras _numeroDelBorrador sea nulo, y
+# ese valor solo lo escribía autoguardar(). Quien guardaba a mano y cambiaba de
+# apartamento antes del autoguardado sobrescribía el informe anterior.
+s = sustituir(s,
+ """    localStorage.setItem('garmel_reports_list', JSON.stringify(list));
+  } catch(e){""",
+ """    localStorage.setItem('garmel_reports_list', JSON.stringify(list));
+    // Deja anotado a qué informe pertenece lo que acaba de guardarse. Sin esto,
+    // el siguiente apartamento se guardaba encima de este.
+    _numeroDelBorrador = document.getElementById('nro-display')?.textContent || null;
+  } catch(e){""",
+ "33· guardar a mano también separa un informe del siguiente")
+
+# ── 34. El total redondeaba hacia arriba lo que cada hito truncaba ─────────
+# El cambio 30 trunca cada hito porque el 100 % es el umbral que habilita el
+# cobro. El total hacía Math.round, así que cuatro hitos al 100 % y uno al 98 %
+# daban un apartamento «terminado». Se trunca igual que sus partes.
+s = sustituir(s,
+ """  const pct=cnt>0?Math.round(sum/cnt):null;
+  const el=document.getElementById('total-num');""",
+ """  const pct=cnt>0?Math.floor(sum/cnt):null;   // igual que cada hito: no se redondea hacia arriba
+  const el=document.getElementById('total-num');""",
+ "34· el total se trunca, igual que cada hito")
+
+# ── 35. Un porcentaje borrado valía 0 %, no «sin dato» ─────────────────────
+# Un hito nunca tocado mostraba «—» y quedaba fuera del promedio; uno donde se
+# escribió algo y luego se borró mostraba 0 % y sí entraba. Son dos maneras de
+# decir lo mismo con dos resultados distintos. Para decir «no se inspeccionó»
+# está el interruptor de «no inspeccionado», que es explícito.
+s = sustituir(s,
+ """function recalcHito(pid) {
+  if(hitosNoInspeccionados[pid]) return;
+  const inp = document.getElementById('hitopct_' + pid);""",
+ """function recalcHito(pid) {
+  if(hitosNoInspeccionados[pid]) return;
+  const inp = document.getElementById('hitopct_' + pid);
+
+  // Campo vacío es «todavía no se sabe», no «cero por ciento». Vuelve a «—» y
+  // sale del promedio del apartamento, como si no se hubiera tocado nunca.
+  if((inp.value || '').trim() === ''){
+    ['badge_', 'fpct_', 'rpct_'].forEach(pfx => {
+      const el = document.getElementById(pfx + pid);
+      if(!el) return;
+      el.textContent = '—';
+      el.className = el.className.replace(/ [gyr] /g, ' ').trim();
+    });
+    ['fbar_', 'rbar_'].forEach(pfx => {
+      const el = document.getElementById(pfx + pid);
+      if(el) el.style.width = '0%';
+    });
+    recalcTotal();
+    return;
+  }""",
+ "35· un porcentaje borrado vuelve a «sin dato», no a cero")
+
+# ── 36. El envío se quedaba colgado con señal mala ────────────────────────
+# fetch sin límite espera indefinidamente. En una torre, con una barra de
+# señal, el inspector no sabe si esperar o repetir. A los 90 s se corta solo.
+s = sustituir(s,
+ """  try {
+    // Content-Type de texto plano a propósito: evita la verificación previa de
+    // CORS, que Apps Script no responde.
+    const r = await fetch(RELEVO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },""",
+ """  // Con señal mala un envío puede quedarse esperando para siempre. A los 90
+  // segundos se corta y se avisa, en vez de dejar el botón muerto.
+  const corte = new AbortController();
+  const reloj = setTimeout(function(){ corte.abort(); }, 90000);
+
+  try {
+    // Content-Type de texto plano a propósito: evita la verificación previa de
+    // CORS, que Apps Script no responde.
+    const r = await fetch(RELEVO_URL, {
+      method: 'POST',
+      signal: corte.signal,
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },""",
+ "36a· el envío se rinde a los 90 segundos")
+
+s = sustituir(s,
+ """  } catch(e) {
+    logEl.textContent += '❌ Sin conexión o el relevo no responde: ' + e.message +
+      '\\nEl borrador sigue guardado en este teléfono. Intente de nuevo con señal.';
+    showToast('❌ No se pudo enviar. El borrador no se perdió', 'err');
+  } finally {
+    btn.disabled = false;
+  }""",
+ """  } catch(e) {
+    const seRindio = (e && e.name === 'AbortError');
+    logEl.textContent += seRindio
+      ? '❌ La señal no alcanzó para enviar (90 s sin respuesta).' +
+        '\\nEl borrador sigue guardado en este teléfono. Intente donde haya mejor señal.'
+      : '❌ Sin conexión o el relevo no responde: ' + e.message +
+        '\\nEl borrador sigue guardado en este teléfono. Intente de nuevo con señal.';
+    showToast(seRindio ? '❌ Sin señal suficiente. El borrador no se perdió'
+                       : '❌ No se pudo enviar. El borrador no se perdió', 'err');
+  } finally {
+    clearTimeout(reloj);
+    btn.disabled = false;
+  }""",
+ "36b· decir que fue la señal, no un error raro")
+
+# ── 38. Activar el modo de prueba deja de ser un toque suelto ──────────────
+# El botón vive en la barra del inspector. Un toque sin querer marca todos los
+# informes del día como PRUEBA-…
+s = sustituir(s,
+ """function toggleTestMode() {
+  TEST_MODE = !TEST_MODE;""",
+ """function toggleTestMode() {
+  if(!TEST_MODE && !confirm('¿Activar el MODO PRUEBA?\\n\\nLos informes quedarán marcados como PRUEBA y no cuentan como inspección real.')) return;
+  TEST_MODE = !TEST_MODE;""",
+ "38· el modo de prueba pregunta antes de activarse")
+
+# ── 39. El formulario se llena en un teléfono, parado en una torre ─────────
+# Tres cosas medidas en pantalla de 375 px: la cabecera se comía el 31 % del
+# alto con ocho botones; todos los campos estaban a 13 px, y por debajo de
+# 16 px Safari hace zoom solo al enfocarlos —de ahí que «la pantalla salte»—;
+# y el bloque del número de informe se salía 7 px por la derecha, con lo que
+# la página entera se podía arrastrar de lado.
+s = sustituir(s,
+ """@media print{""",
+ """/* ── EN EL TELÉFONO, EN OBRA ───────────────────────────────────────────── */
+@media (max-width: 700px){
+  /* Safari hace zoom solo al enfocar un campo de menos de 16px, y después hay
+     que despincharlo a mano. A 16px la pantalla deja de saltar. */
+  input:not([type=file]), select, textarea{ font-size:16px !important; }
+
+  /* Mínimo táctil: 44px es la guía de Apple, 48 la de Material. Todo estaba
+     entre 32 y 34, que con guantes de obra es tocar el botón de al lado. */
+  input:not([type=file]), select, textarea, .hbtn{ min-height:44px; }
+  .ev-btn{ min-height:38px; padding:6px 12px; font-size:12px; }
+
+  /* La cabecera ocupaba 252px de 826. El subtítulo no dice nada que el título
+     no diga, y los botones se reparten el ancho en filas parejas. */
+  .hdr{ padding:8px 12px; gap:6px; }
+  .hdr h1{ font-size:13px; line-height:1.3; }
+  .hdr p{ display:none; }
+  .hdr-btns{ gap:6px; width:100%; }
+  .hbtn{ flex:1 1 38%; justify-content:center; padding:8px 10px; font-size:12.5px; }
+  .hbtn-test{ flex:0 0 auto; }
+
+  /* El bloque «Informe N° / Fecha / Torre» se salía por la derecha. */
+  .logo-bar{ flex-wrap:wrap; padding:10px 14px; gap:8px; }
+  .doc-info{ text-align:left; width:100%; }
+}
+
+@media print{""",
+ "39· que se pueda llenar de pie en una torre, con guantes")
+
+# ── 40. Ocho botones no caben en un teléfono ──────────────────────────────
+# Medido en 375 px: la barra ocupaba el 31 % del alto, y al agrandar los
+# botones a un tamaño que se pueda tocar con guantes subía al 35 %. El problema
+# no es el tamaño, es cuántos hay. En una torre solo se usan tres a cada rato
+# —guardar, pasar al siguiente apartamento, enviar—; los otros cinco son de una
+# vez por jornada. Esos se van detrás de «⋯ Más». En pantalla grande no cambia
+# nada: el grupo se disuelve y siguen todos en fila.
+ini_b = s.index('<div class="hdr-btns">')
+fin_b = s.index('</div>', s.index('<!-- Botón «Reiniciar N°» retirado'))
+s = sustituir(s, s[ini_b:fin_b],
+ '<div class="hdr-btns">\n'
+ '    <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guardar o actualizar borrador localmente">💾 <span>Guardar</span></button>\n'
+ '    <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Cierra este informe y prepara el siguiente, conservando torre, empresa y personal">➡️ <span>Siguiente apto.</span></button>\n'
+ '    <button class="hbtn hbtn-send" onclick="openSend()">📤 <span>Enviar</span></button>\n'
+ '    <button class="hbtn hbtn-mas" id="btn-mas" onclick="toggleMasAcciones()" title="Resto de las acciones">⋯ <span>Más</span></button>\n'
+ '    <span id="estado-guardado" style="font-size:11px;font-weight:700;color:#999;align-self:center;margin-left:4px"></span>\n'
+ '    <span id="estado-conexion" style="font-size:11px;font-weight:700;align-self:center;margin-left:8px"></span>\n'
+ '    <div class="hdr-sec" id="hdr-sec">\n'
+ '      <button class="hbtn hbtn-finalizar" onclick="finalizarInforme()" title="Finalizar informe, guardar, incrementar correlativo y volver a la pantalla de inicio">✅ <span>Finalizar</span></button>\n'
+ '      <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Ver informes almacenados localmente">📁 <span>Guardados</span></button>\n'
+ '      <button class="hbtn hbtn-pdf" onclick="imprimirInforme()">🖨️ <span>PDF</span></button>\n'
+ '      <button class="hbtn hbtn-nuevo" onclick="nuevoFormulario()" title="Nuevo informe — limpia todo el formulario">🆕 <span>Nuevo</span></button>\n'
+ '      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" title="Activar modo de prueba — el correlativo NO se incrementa" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3)">🧪 <span>Prueba</span></button>\n'
+ '    </div>\n'
+ '    <!-- Botón «Reiniciar N°» retirado: el número ya no depende de un contador. -->\n'
+ '  ',
+ "40a· solo las tres acciones de campo quedan a la vista")
+
+s = sustituir(s,
+ "function toggleTestMode() {",
+ "// El resto de las acciones. En pantalla grande el grupo no existe como caja\n"
+ "// —los botones quedan en la misma fila—, así que esto solo actúa en teléfono.\n"
+ "function toggleMasAcciones(){\n"
+ "  const caja = document.getElementById('hdr-sec');\n"
+ "  const btn  = document.getElementById('btn-mas');\n"
+ "  if(!caja) return;\n"
+ "  const abierto = caja.classList.toggle('abierto');\n"
+ "  if(btn) btn.querySelector('span').textContent = abierto ? 'Menos' : 'Más';\n"
+ "}\n"
+ "\n"
+ "function toggleTestMode() {",
+ "40b· abrir y cerrar el resto de las acciones")
+
+s = sustituir(s,
+ "  .hbtn{ flex:1 1 38%; justify-content:center; padding:8px 10px; font-size:12.5px; }\n"
+ "  .hbtn-test{ flex:0 0 auto; }",
+ "  .hbtn{ flex:1 1 38%; justify-content:center; padding:8px 10px; font-size:12.5px; }\n"
+ "  /* Las cinco acciones de una vez por jornada viven plegadas. */\n"
+ "  .hdr-sec{ display:none; width:100%; gap:6px; flex-wrap:wrap; }\n"
+ "  .hdr-sec.abierto{ display:flex; }",
+ "40c· el grupo plegado, solo en teléfono")
+
+s = sustituir(s,
+ ".hdr-btns{display:flex;gap:7px;flex-wrap:wrap}",
+ ".hdr-btns{display:flex;gap:7px;flex-wrap:wrap}\n"
+ "/* En pantalla grande el grupo se disuelve: los botones siguen en la misma\n"
+ "   fila, como siempre, y «⋯ Más» no hace falta. */\n"
+ ".hdr-sec{display:contents}\n"
+ ".hdr-btns .hbtn-mas{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);display:none}\n"
+ "@media(max-width:700px){.hdr-btns .hbtn-mas{display:flex}}",
+ "40d· en pantalla grande no cambia nada")
+
+
+# ── 41. Avisar antes de quedarse sin espacio, no cuando ya falló ──────────
+# El aviso que había llega tarde: salta cuando el guardado YA reventó. Chrome
+# en Android tapa el localStorage en 5 MB por origen, y un informe de
+# apartamento con sus fotos pesa una fracción grande de eso — cuánto depende de
+# la foto, y eso todavía no está medido en obra. Mientras tanto, el inspector
+# tiene que enterarse a tiempo de que le queda poco, con el teléfono en la mano
+# y la torre delante, no cuando ya perdió el informe.
+s = sustituir(s,
+ "    // Deja anotado a qué informe pertenece lo que acaba de guardarse. Sin esto,\n"
+ "    // el siguiente apartamento se guardaba encima de este.\n"
+ "    _numeroDelBorrador = document.getElementById('nro-display')?.textContent || null;",
+ "    // Deja anotado a qué informe pertenece lo que acaba de guardarse. Sin esto,\n"
+ "    // el siguiente apartamento se guardaba encima de este.\n"
+ "    _numeroDelBorrador = document.getElementById('nro-display')?.textContent || null;\n"
+ "    if(!silencioso) avisarSiQuedaPocoEspacio();",
+ "41a· revisar el espacio cada vez que se guarda a mano")
+
+s = sustituir(s,
+ "function openSavedModal() {",
+ "// Cuánto ocupan los informes que todavía no se han enviado. El tope de\n"
+ "// Chrome en Android son 5 MB por origen; se avisa al 70 % para que dé tiempo\n"
+ "// de enviar o borrar, y no cuando ya no cabe nada.\n"
+ "const TOPE_ALMACEN = 5 * 1024 * 1024;\n"
+ 
+ "\n"
+ "function espacioUsado(){\n"
+ "  try { return (localStorage.getItem('garmel_reports_list') || '').length * 2; }\n"
+ "  catch(e){ return 0; }\n"
+ "}\n"
+ "\n"
+ "function avisarSiQuedaPocoEspacio(){\n"
+ "  const usado = espacioUsado();\n"
+ "  if(usado < TOPE_ALMACEN * 0.7) return;\n"
+ "  const sinEnviar = getSavedReports().filter(function(b){ return !b.enviado; }).length;\n"
+ "  showToast('⚠️ El teléfono va lleno: ' + Math.round(usado/1048576*10)/10 +\n"
+ "            ' MB en informes sin enviar. Envíe los ' + sinEnviar + ' pendientes antes de seguir.', 'err');\n"
+ "}\n"
+ "\n"
+ "function openSavedModal() {",
+ "41b· medir el espacio y avisar al 70 %")
+
+
+# ── 42. Fuera la portada: la herramienta abre en el formulario ────────────
+# La portada pedía un toque para no decidir nada: el inspector siempre va al
+# mismo sitio. Además sus cuatro tarjetas —«Funciona sin señal», «Registro de
+# Fotografías»…— tenían fondo, borde y esquinas redondeadas, o sea el aspecto
+# exacto de un botón, pero eran <div> inertes. Y llevaba una segunda copia de
+# los dos logos en base64, que pesa en obra y no aporta.
+ini_w = s.index('<div id="welcome-screen">')
+fin_w = s.index('<!-- STICKY NAV -->')
+s = sustituir(s, s[ini_w:fin_w], '', "42a· retirar la portada entera")
+
+# ── 43. Cada modo tiene su enlace ─────────────────────────────────────────
+# El enlace pelado abre el formulario por hitos, que es el de campo. Quien
+# necesite el detallado en oficina usa …/?modo=detallado. Es el mismo archivo:
+# una publicación, una caché, un sitio donde corregir. La separación vive en el
+# enlace que se le manda a cada quien, no en el código.
+s = sustituir(s,
+ "  updateDocInfo();\n"
+ "};",
+ "  updateDocInfo();\n"
+ "\n"
+ "  // Sin portada intermedia: se entra directo al formulario que toque.\n"
+ "  const modo = new URLSearchParams(location.search).get('modo');\n"
+ "  startApp(modo === 'detallado' ? 'detallado' : 'hitos');\n"
+ "};",
+ "43· abrir directo, y el detallado por ?modo=detallado")
+
+# ── 44. «Finalizar» ya no puede volver a una portada que no existe ────────
+# Volvía a la pantalla de inicio. Ahora deja el formulario limpio y listo para
+# el informe siguiente, que es lo que en realidad hacía falta después de cerrar
+# uno: seguir trabajando, no volver a elegir.
+s = sustituir(s,
+ "  showToast('✅ ¡Informe finalizado con éxito!', 'ok');\n"
+ "  setTimeout(() => {\n"
+ "    const welcome = document.getElementById('welcome-screen');\n"
+ "    if(welcome) welcome.classList.remove('hidden');\n"
+ "  }, 1200);",
+ "  showToast('✅ ¡Informe finalizado con éxito!', 'ok');\n"
+ "  setTimeout(function(){\n"
+ "    currentEditingIndex = null;   // el siguiente informe no pisa al que acaba de cerrarse\n"
+ "    _numeroDelBorrador = null;\n"
+ "    hitosNoInspeccionados = {};\n"
+ "    ['apto', 'obs_general', 'obs_sp'].forEach(function(id){\n"
+ "      const el = document.getElementById(id);\n"
+ "      if(el) el.value = '';\n"
+ "    });\n"
+ "    initAppContent();             // redibuja los hitos vacíos, igual que «Siguiente apto.»\n"
+ "    updateDocInfo();\n"
+ "    window.scrollTo(0, 0);\n"
+ "    showToast('Listo para el siguiente informe', 'ok');\n"
+ "  }, 1200);",
+ "44· finalizar deja el formulario listo para el siguiente")
+
+
+# ── 45. Los dos contadores de la cabecera ─────────────────────────────────
+# Al quitar la portada se perdió el único momento en que el inspector veía algo
+# antes de ponerse a llenar. Si arrastra informes de ayer sin enviar, nada se lo
+# recuerda. Ahora la cabecera lo dice sola: «Enviar (3)» son los que faltan por
+# mandar —el número que importa, porque esos viven solo en este teléfono— y
+# «Guardados (7)» es todo lo que hay almacenado.
+s = sustituir(s,
+ '<button class="hbtn hbtn-send" onclick="openSend()">📤 <span>Enviar</span></button>',
+ '<button class="hbtn hbtn-send" onclick="openSend()">📤 <span>Enviar</span><b id="cnt-pendientes" style="display:none;margin-left:5px"></b></button>',
+ "45a· sitio para el contador de pendientes")
+
+s = sustituir(s,
+ '<button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Ver informes almacenados localmente">📁 <span>Guardados</span></button>',
+ '<button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Ver informes almacenados localmente">📁 <span>Guardados</span><b id="cnt-guardados" style="display:none;margin-left:5px"></b></button>',
+ "45b· sitio para el contador de guardados")
+
+s = sustituir(s,
+ "function openSavedModal() {",
+ "// Cuántos informes hay guardados y cuántos siguen sin enviar. Se repinta cada\n"
+ "// vez que esa cuenta puede haber cambiado: al guardar, al borrar, al enviar y\n"
+ "// al abrir la herramienta.\n"
+ "function actualizarContadores(){\n"
+ "  let lista = [];\n"
+ "  try { lista = getSavedReports(); } catch(e){ return; }\n"
+ "  const pendientes = lista.filter(function(b){ return b && !b.enviado; }).length;\n"
+ "  const pintar = function(id, n){\n"
+ "    const el = document.getElementById(id);\n"
+ "    if(!el) return;\n"
+ "    el.textContent = '(' + n + ')';\n"
+ "    el.style.display = n > 0 ? 'inline' : 'none';\n"
+ "  };\n"
+ "  pintar('cnt-pendientes', pendientes);\n"
+ "  pintar('cnt-guardados', lista.length);\n"
+ "}\n"
+ "\n"
+ "function openSavedModal() {",
+ "45c· contar los guardados y los que faltan por enviar")
+
+# Los cuatro sitios donde esa cuenta cambia.
+s = sustituir(s,
+ "    if(!silencioso) avisarSiQuedaPocoEspacio();",
+ "    actualizarContadores();\n"
+ "    if(!silencioso) avisarSiQuedaPocoEspacio();",
+ "45d· recontar al guardar")
+
+s = sustituir(s,
+ "    if(cambio) localStorage.setItem('garmel_reports_list', JSON.stringify(lista));\n"
+ "  }catch(e){}",
+ "    if(cambio) localStorage.setItem('garmel_reports_list', JSON.stringify(lista));\n"
+ "    actualizarContadores();\n"
+ "  }catch(e){}",
+ "45e· recontar al enviar")
+
+s = sustituir(s,
+ "  renderSavedList();\n"
+ "  showToast('🗑️ Informe eliminado de la lista', 'ok');",
+ "  renderSavedList();\n"
+ "  actualizarContadores();\n"
+ "  showToast('🗑️ Informe eliminado de la lista', 'ok');",
+ "45f· recontar al borrar")
+
+s = sustituir(s,
+ "  startApp(modo === 'detallado' ? 'detallado' : 'hitos');",
+ "  startApp(modo === 'detallado' ? 'detallado' : 'hitos');\n"
+ "  actualizarContadores();",
+ "45g· recontar al abrir la herramienta")
+
+
+# ── 46. Un informe enviado no vuelve solo a «sin enviar» ──────────────────
+# getFormData() arma el borrador desde la pantalla, y la pantalla no sabe si ya
+# se envió. Así que el autoguardado —cada 30 s, sin que nadie toque nada—
+# reescribía la ficha encima y borraba la marca. Consecuencia: «Enviar
+# pendientes» lo tomaba por pendiente y lo archivaba OTRA VEZ en Drive, con su
+# fila repetida en el Registro. La marca se conserva; si de verdad hace falta
+# reenviarlo, el botón de enviar pregunta primero, que para eso está.
+s = sustituir(s,
+ "    if(currentEditingIndex !== null && list[currentEditingIndex]) {\n"
+ "      list[currentEditingIndex] = data;",
+ "    if(currentEditingIndex !== null && list[currentEditingIndex]) {\n"
+ "      if(list[currentEditingIndex].enviado && !data.enviado){\n"
+ "        data.enviado = list[currentEditingIndex].enviado;\n"
+ "      }\n"
+ "      list[currentEditingIndex] = data;",
+ "46· lo enviado sigue enviado aunque se vuelva a guardar")
+
 
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
