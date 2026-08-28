@@ -128,7 +128,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
    fila, como siempre, y «⋯ Más» no hace falta. */
 .hdr-sec{display:contents}
 .hdr-btns .hbtn-mas{display:none}
-@media(max-width:700px){.hdr-btns .hbtn-mas{display:flex}}
+@media(max-width:700px),(max-height:520px){.hdr-btns .hbtn-mas{display:flex}}
 .hbtn{padding:8px 14px;border:1.5px solid transparent;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;letter-spacing:.2px}
 .hbtn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
 /* Relleno sólido y contraste real: sobre la barra azul, un botón tiene que
@@ -339,7 +339,8 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 
 /* PRINT */
 /* ── EN EL TELÉFONO, EN OBRA ───────────────────────────────────────────── */
-@media (max-width: 700px){
+/* Se toca con el dedo: da igual la orientación y da igual el tamaño. */
+@media (max-width: 700px), (max-height: 520px), (pointer: coarse){
   /* Safari hace zoom solo al enfocar un campo de menos de 16px, y después hay
      que despincharlo a mano. A 16px la pantalla deja de saltar. */
   input:not([type=file]), select, textarea{ font-size:16px !important; }
@@ -373,7 +374,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .solo-impresion{display:none}
 
 /* Los dos controles del encabezado de cada hito, tocables con guantes. */
-@media (max-width: 700px){
+@media (max-width: 700px), (max-height: 520px), (pointer: coarse){
   .no-insp-tgl, .arrow{
     min-width:44px; min-height:44px;
     display:inline-flex; align-items:center; justify-content:center;
@@ -875,6 +876,7 @@ function _separarSiCambioElInforme(){
   const anterior = lista[currentEditingIndex];
   if(anterior && _tieneContenido(anterior)){
     currentEditingIndex = null;          // el siguiente guardado crea ficha nueva
+    _idEnEdicion = null;
     showToast('📄 El informe anterior quedó guardado aparte', 'ok');
   }
   _numeroDelBorrador = numeroAhora;
@@ -1982,7 +1984,12 @@ function removeFoto(pid,fi){
 // Si el índice en edición ya no corresponde a ningún borrador, se abandona en
 // vez de reventar. Pasaba de verdad: bastaba con que el navegador desalojara el
 // almacenamiento para que el autoguardado dejara de funcionar en silencio.
+// A qué informe pertenece lo que hay en pantalla. Es el id del borrador, no
+// su posición en la lista: la posición cambia si otra pestaña guarda algo.
+let _idEnEdicion = null;
+
 function _idDelBorradorEnEdicion(){
+  if(_idEnEdicion) return _idEnEdicion;
   if(currentEditingIndex === null) return 'draft_' + Date.now();
   const b = getSavedReports()[currentEditingIndex];
   if(b && b.id) return b.id;
@@ -2075,17 +2082,22 @@ function saveDraft(silencioso){
     if(!silencioso) _separarSiCambioElInforme();
     const data = getFormData();
     const list = getSavedReports();
-    if(currentEditingIndex !== null && list[currentEditingIndex]) {
-      if(list[currentEditingIndex].enviado && !data.enviado){
-        data.enviado = list[currentEditingIndex].enviado;
+    // Se busca por id porque la lista pudo moverse desde otra pestaña.
+    let pos = -1;
+    if(data.id){ pos = list.findIndex(function(b){ return b && b.id === data.id; }); }
+    if(pos >= 0) {
+      if(list[pos].enviado && !data.enviado){
+        data.enviado = list[pos].enviado;
       }
-      list[currentEditingIndex] = data;
+      list[pos] = data;
+      currentEditingIndex = pos;
       if(!silencioso) showToast('✅ Borrador modificado y actualizado con éxito', 'ok');
     } else {
       list.unshift(data);
       currentEditingIndex = 0;
       if(!silencioso) showToast('✅ Nuevo borrador guardado localmente','ok');
     }
+    _idEnEdicion = data.id || null;
     localStorage.setItem('garmel_reports_list', JSON.stringify(list));
     // Deja anotado a qué informe pertenece lo que acaba de guardarse. Sin esto,
     // el siguiente apartamento se guardaba encima de este.
@@ -2194,6 +2206,7 @@ function loadDraftData(index) {
   initAppContent();
 
   currentEditingIndex = index;
+  _idEnEdicion = d.id || null;
 
   ['fecha','convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(id=>{
     const el=document.getElementById(id); if(el&&d[id]!==undefined) el.value=d[id];
@@ -2315,7 +2328,7 @@ function deleteSavedReport(index) {
   const list = getSavedReports();
   list.splice(index, 1);
   localStorage.setItem('garmel_reports_list', JSON.stringify(list));
-  if(currentEditingIndex === index) currentEditingIndex = null;
+  if(currentEditingIndex === index){ currentEditingIndex = null; _idEnEdicion = null; }
   else if(currentEditingIndex > index) currentEditingIndex--;
   renderSavedList();
   actualizarContadores();
@@ -2332,6 +2345,7 @@ function siguienteApartamento(){
 
   saveDraft();                       // el informe actual queda con su propia ficha
   currentEditingIndex = null;        // el siguiente no lo pisa
+  _idEnEdicion = null;
   _numeroDelBorrador = null;
 
   document.getElementById('apto').value = '';
@@ -2349,6 +2363,7 @@ function siguienteApartamento(){
 function nuevoFormulario() {
   if(!confirm('¿Desea iniciar un nuevo informe? Se limpiarán los campos actuales.')) return;
   currentEditingIndex = null;
+  _idEnEdicion = null;
   document.getElementById('fecha').value = '';
   document.getElementById('convenio').value = '';
   document.getElementById('empresa').value = '';

@@ -2558,6 +2558,150 @@ s = sustituir(s,
  "70b· la coma se escribe como punto directamente")
 
 
+# ── 71. Con dos pestañas abiertas se perdía un informe entero ────────────
+# El teléfono guarda los informes en una lista y la app recordaba en qué
+# POSICIÓN estaba el que se edita. Si otra pestaña inserta uno, las posiciones
+# corren y esa posición pasa a señalar el informe de la otra.
+#
+# Reproducido: pestaña A guarda el apto 101 → [101]. Pestaña B guarda el 202 →
+# [202, 101]. A vuelve a guardar y escribe en la posición 0 → [101, 101].
+# El informe del 202 desaparece, sin ningún aviso, y era la única copia.
+#
+# No hace falta buscar el caso raro: el inspector abre el enlace de WhatsApp y
+# además tiene el ícono en la pantalla de inicio, o deja una pestaña vieja.
+#
+# Cada borrador ya trae un `id` estable. Se sigue el id, no el sitio.
+s = sustituir(s,
+ "function _idDelBorradorEnEdicion(){\n"
+ "  if(currentEditingIndex === null) return 'draft_' + Date.now();\n"
+ "  const b = getSavedReports()[currentEditingIndex];\n"
+ "  if(b && b.id) return b.id;\n"
+ "  currentEditingIndex = null;\n"
+ "  return 'draft_' + Date.now();\n"
+ "}",
+ "// A qué informe pertenece lo que hay en pantalla. Es el id del borrador, no\n"
+ "// su posición en la lista: la posición cambia si otra pestaña guarda algo.\n"
+ "let _idEnEdicion = null;\n"
+ "\n"
+ "function _idDelBorradorEnEdicion(){\n"
+ "  if(_idEnEdicion) return _idEnEdicion;\n"
+ "  if(currentEditingIndex === null) return 'draft_' + Date.now();\n"
+ "  const b = getSavedReports()[currentEditingIndex];\n"
+ "  if(b && b.id) return b.id;\n"
+ "  currentEditingIndex = null;\n"
+ "  return 'draft_' + Date.now();\n"
+ "}",
+ "71a· el informe en edición se identifica por su id")
+
+s = sustituir(s,
+ "    const data = getFormData();\n"
+ "    const list = getSavedReports();\n"
+ "    if(currentEditingIndex !== null && list[currentEditingIndex]) {\n"
+ "      if(list[currentEditingIndex].enviado && !data.enviado){\n"
+ "        data.enviado = list[currentEditingIndex].enviado;\n"
+ "      }\n"
+ "      list[currentEditingIndex] = data;\n"
+ "      if(!silencioso) showToast('✅ Borrador modificado y actualizado con éxito', 'ok');\n"
+ "    } else {\n"
+ "      list.unshift(data);\n"
+ "      currentEditingIndex = 0;\n"
+ "      if(!silencioso) showToast('✅ Nuevo borrador guardado localmente','ok');\n"
+ "    }",
+ "    const data = getFormData();\n"
+ "    const list = getSavedReports();\n"
+ "    // Se busca por id porque la lista pudo moverse desde otra pestaña.\n"
+ "    let pos = -1;\n"
+ "    if(data.id){ pos = list.findIndex(function(b){ return b && b.id === data.id; }); }\n"
+ "    if(pos >= 0) {\n"
+ "      if(list[pos].enviado && !data.enviado){\n"
+ "        data.enviado = list[pos].enviado;\n"
+ "      }\n"
+ "      list[pos] = data;\n"
+ "      currentEditingIndex = pos;\n"
+ "      if(!silencioso) showToast('✅ Borrador modificado y actualizado con éxito', 'ok');\n"
+ "    } else {\n"
+ "      list.unshift(data);\n"
+ "      currentEditingIndex = 0;\n"
+ "      if(!silencioso) showToast('✅ Nuevo borrador guardado localmente','ok');\n"
+ "    }\n"
+ "    _idEnEdicion = data.id || null;",
+ "71b· guardar escribe sobre el informe correcto, no sobre la posición")
+
+# Al cargar un borrador, ese pasa a ser el informe en edición.
+s = sustituir(s,
+ "  currentEditingIndex = index;",
+ "  currentEditingIndex = index;\n"
+ "  _idEnEdicion = d.id || null;",
+ "71c· cargar un borrador fija cuál se está editando")
+
+# Y los tres sitios que cierran un informe tienen que soltar el id.
+s = sustituir(s,
+ "  currentEditingIndex = null;        // el siguiente no lo pisa\n"
+ "  _numeroDelBorrador = null;",
+ "  currentEditingIndex = null;        // el siguiente no lo pisa\n"
+ "  _idEnEdicion = null;\n"
+ "  _numeroDelBorrador = null;",
+ "71d· «Guardar y siguiente» suelta el informe cerrado")
+
+s = sustituir(s,
+ "    currentEditingIndex = null;          // el siguiente guardado crea ficha nueva",
+ "    currentEditingIndex = null;          // el siguiente guardado crea ficha nueva\n"
+ "    _idEnEdicion = null;",
+ "71e· al cambiar de apartamento se suelta el anterior")
+
+s = sustituir(s,
+ "  if(!confirm('¿Desea iniciar un nuevo informe? Se limpiarán los campos actuales.')) return;\n"
+ "  currentEditingIndex = null;",
+ "  if(!confirm('¿Desea iniciar un nuevo informe? Se limpiarán los campos actuales.')) return;\n"
+ "  currentEditingIndex = null;\n"
+ "  _idEnEdicion = null;",
+ "71f· «Informe en blanco» suelta el informe anterior")
+
+s = sustituir(s,
+ "  if(currentEditingIndex === index) currentEditingIndex = null;\n"
+ "  else if(currentEditingIndex > index) currentEditingIndex--;",
+ "  if(currentEditingIndex === index){ currentEditingIndex = null; _idEnEdicion = null; }\n"
+ "  else if(currentEditingIndex > index) currentEditingIndex--;",
+ "71g· borrar el que se edita suelta también su id")
+
+
+# ── 72. Al girar el teléfono se caían todos los arreglos ────────────────
+# Los bloques móviles se activaban por ANCHO (700 px). Un iPhone en horizontal
+# mide 812 o más, así que en horizontal volvía todo lo corregido: la cabecera
+# con sus siete botones ocupando el 39 % de una pantalla de 375 px de alto,
+# veinte objetivos táctiles por debajo de 44 px y treinta y nueve campos por
+# debajo de 16 px — o sea el zoom automático de Safari otra vez.
+#
+# Se separan los dos criterios, que no son el mismo:
+#   · la ergonomía del dedo depende del PUNTERO, no del tamaño de la pantalla
+#   · el apilado de la cabecera depende del ESPACIO, ancho o alto
+s = sustituir(s,
+ "@media (max-width: 700px){\n"
+ "  /* Safari hace zoom solo al enfocar un campo de menos de 16px, y después hay\n"
+ "     que despincharlo a mano. A 16px la pantalla deja de saltar. */\n"
+ "  input:not([type=file]), select, textarea{ font-size:16px !important; }",
+ "/* Se toca con el dedo: da igual la orientación y da igual el tamaño. */\n"
+ "@media (max-width: 700px), (max-height: 520px), (pointer: coarse){\n"
+ "  /* Safari hace zoom solo al enfocar un campo de menos de 16px, y después hay\n"
+ "     que despincharlo a mano. A 16px la pantalla deja de saltar. */\n"
+ "  input:not([type=file]), select, textarea{ font-size:16px !important; }",
+ "72a· la ergonomía táctil no depende de la orientación")
+
+s = sustituir(s,
+ "@media (max-width: 700px){\n"
+ "  .no-insp-tgl, .arrow{\n"
+ "    min-width:44px; min-height:44px;",
+ "@media (max-width: 700px), (max-height: 520px), (pointer: coarse){\n"
+ "  .no-insp-tgl, .arrow{\n"
+ "    min-width:44px; min-height:44px;",
+ "72b· lo mismo para los controles del hito y del modal")
+
+# La cabecera se apila también cuando falta ALTO, que es lo que pasa en horizontal.
+s = sustituir(s, "@media(max-width:700px){.hdr-btns .hbtn-mas{display:flex}}",
+                 "@media(max-width:700px),(max-height:520px){.hdr-btns .hbtn-mas{display:flex}}",
+              "72c· «Más» aparece también con el teléfono acostado")
+
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
