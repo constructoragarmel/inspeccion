@@ -1131,7 +1131,12 @@ async function comprobarClave(clave){
 // Qué hito se evalúa por torre y cuál por apartamento es criterio de
 // ingeniería (ADR-0017). Esta lista es lo único que hay que cambiar si el
 // ingeniero responsable decide otro reparto.
-const HITOS_DE_TORRE = ['hito_estructura', 'hito_mecanicas'];
+// PROVISIONAL. Qué hito se evalúa por torre y cuál por apartamento es criterio
+// de ingeniería; esta lista es una propuesta a confirmar. Dos hitos quedan
+// MEZCLADOS y no se resuelven aquí: el 2 lleva la impermeabilización de azotea
+// y el 3 el equipamiento de cuarto de módulos, que son de torre dentro de un
+// hito de apartamento. Ver C-28.
+const HITOS_DE_TORRE = ['hito_estructura', 'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];
 let ambito = 'apartamento';   // 'apartamento' u 'torre'
 
 function setAmbito(a){
@@ -1244,52 +1249,80 @@ function colorHito(p){
 const PARTIDAS = [
   {
     "id": "hito_estructura", 
-    "nombre": "HITO 1: ESTRUCTURA Y OBRA GRUESA", 
-    "icon": "🏛️", 
-    "color": "#546e7a", 
-    "items": ["Fundaciones y losa de fundación", "Columnas y pantallas de concreto", "Vigas de carga y entrepiso", "Losa de techo / azotea", "Mampostería y paredes de tablilla / bloque", "Impermeabilización de losa"]
+    "nombre": "HITO 1: ESTRUCTURA", 
+    "icon": "", 
+    "color": "#1a237e", 
+    "items": ["Encofrado", "Acero de refuerzo", "Vaciados"]
   }, 
   {
-    "id": "hito_enlucido", 
-    "nombre": "HITO 2: REVESTIMIENTOS Y ENLUCIDOS", 
-    "icon": "🧱", 
-    "color": "#3f51b5", 
-    "items": ["Friso interno en paredes y techos", "Friso externo y fachada", "Preparación de superfícies para acabado", "Yeso o revestimiento decorativo"]
-  },
-  {
-    "id": "hito_arq", 
-    "nombre": "HITO 3: ARQUITECTURA Y CARPINTERÍA", 
-    "icon": "🚪", 
-    "color": "#0097a7", 
-    "items": ["Marco y puerta principal", "Cerradura y herrajes puerta principal", "Marcos y puertas internas (habitaciones y baños)", "Cerraduras puertas internas", "Ventanas panorámicas y marcos", "Cerámicas de piso (habitaciones y área social)", "Cerámicas y revestimiento de paredes de baño", "Cerámicas de cocina y lavadero"]
+    "id": "hito_cerramientos", 
+    "nombre": "HITO 2: CERRAMIENTOS Y ALBAÑILERÍA", 
+    "icon": "", 
+    "color": "#283593", 
+    "items": ["Construcción de paredes exteriores", "Tabiquería interior", "Impermeabilización de azotea"]
   }, 
   {
-    "id": "hito_sanitarias", 
-    "nombre": "HITO 4: INSTALACIONES SANITARIAS", 
-    "icon": "🔧", 
-    "color": "#e65100", 
-    "items": ["Piezas sanitarias (W.C, lavamanos, lavaplatos, batea)", "Griferías de baños y cocina", "Puntos de agua fría y caliente", "Bajantes de aguas negras y pluviales", "Pruebas de presión y estanqueidad"]
+    "id": "hito_servicios", 
+    "nombre": "HITO 3: INSTALACIÓN DE SERVICIOS", 
+    "icon": "", 
+    "color": "#303f9f", 
+    "items": ["Sanitarias y pluviales — Aguas blancas", "Sanitarias y pluviales — Desagüe", "Sanitarias y pluviales — Bajante de aguas de lluvias", "Eléctricas y datos — Cableados", "Eléctricas y datos — Tableros principales", "Eléctricas y datos — Canalizaciones", "Eléctricas y datos — Equipamiento de cuarto de módulos", "Gas — Montante", "Gas — Manifold"]
   }, 
   {
-    "id": "hito_electricidad", 
-    "nombre": "HITO 5: INSTALACIONES ELÉCTRICAS", 
-    "icon": "⚡", 
-    "color": "#bf360c", 
-    "items": ["Tablero principal y breakers de protección", "Cableado general en tuberías", "Tomacorrientes e interruptores", "Salidas y puntos para iluminación", "Puntos de timbre y comunicaciones"]
+    "id": "hito_acabados", 
+    "nombre": "HITO 4: ACABADOS", 
+    "icon": "", 
+    "color": "#3949ab", 
+    "items": ["Frisos", "Encamisados", "Cerámica en paredes", "Cerámica en pisos", "Construcción de sobrepisos", "Pintura en paredes", "Texturizado de techos"]
   }, 
   {
-    "id": "hito_gas_incendio", 
-    "nombre": "HITO 6: GAS Y CONTRA INCENDIO", 
-    "icon": "🔥", 
-    "color": "#c62828", 
-    "items": ["Red matriz y puntos de gas doméstico", "Válvulas de corte y seguridad de gas", "Sistema de rociadores (sprinklers)", "Gabinetes contra incendio y extintores", "Detectores de humo"]
+    "id": "hito_puertas", 
+    "nombre": "HITO 5: PUERTAS", 
+    "icon": "", 
+    "color": "#1565c0", 
+    "items": ["Puertas metálicas", "Puertas de servicios", "Puertas de madera"]
   }, 
   {
-    "id": "hito_mecanicas", 
-    "nombre": "HITO 7: INSTALACIONES MECÁNICAS Y ÁREAS COMUNES", 
-    "icon": "⚙️", 
-    "color": "#2e7d32", 
-    "items": ["Montaje y prueba de ascensores", "Sistema hidroneumático y bombas de agua", "Sistema de bombeo pluvial y achique", "Ventilación mecánica en sótanos/ductos", "Acabados finales de áreas comunes y lobby"]
+    "id": "hito_ventanas", 
+    "nombre": "HITO 6: VENTANAS", 
+    "icon": "", 
+    "color": "#0277bd", 
+    "items": ["Instalación de ventanas y vidrios"]
+  }, 
+  {
+    "id": "hito_acc_sanitarios", 
+    "nombre": "HITO 7: ACCESORIOS SANITARIOS", 
+    "icon": "", 
+    "color": "#01579b", 
+    "items": ["Ducha", "Fregadero de acero inoxidable", "W.C.", "Lavamanos", "Batea", "C.P.", "T.R."]
+  }, 
+  {
+    "id": "hito_acc_electricos", 
+    "nombre": "HITO 8: ACCESORIOS ELÉCTRICOS", 
+    "icon": "", 
+    "color": "#0d47a1", 
+    "items": ["Tomacorrientes", "Interruptores", "Toma de data", "Breakers"]
+  }, 
+  {
+    "id": "hito_ascensor", 
+    "nombre": "HITO 9: ASCENSOR", 
+    "icon": "", 
+    "color": "#26418f", 
+    "items": ["Adecuación y verificación de plomada en foso y cuarto de máquina", "Instalación de guías, rieles y soporte estructural en la caja", "Montaje de cabina, motor y contrapeso", "Instalación de puertas de piso, botoneras y sistema electrónico de control"]
+  }, 
+  {
+    "id": "hito_exteriores", 
+    "nombre": "HITO 10: ACABADOS EXTERIORES Y ÁREAS COMUNES", 
+    "icon": "", 
+    "color": "#1e3a8a", 
+    "items": ["Revestimiento y pintura de fachada exterior", "Adecuación de accesos y pasillos", "Instalación de iluminación en común", "Instalación de barandas", "Instalación de pasamanos escaleras"]
+  }, 
+  {
+    "id": "hito_pruebas", 
+    "nombre": "HITO 11: PRUEBAS", 
+    "icon": "", 
+    "color": "#172554", 
+    "items": ["Presión de agua", "Hermeticidad", "Carga eléctrica", "Pruebas de cargas, velocidad y certificación de seguridad de ascensores"]
   }
 ];
 
@@ -2902,7 +2935,7 @@ window.onload = function() {
 
   // Sin portada intermedia: se entra directo al formulario que toque.
   const modo = new URLSearchParams(location.search).get('modo');
-  startApp(modo === 'detallado' ? 'detallado' : 'hitos');
+  startApp(modo === 'hitos' ? 'hitos' : 'detallado');
   actualizarContadores();
 };
 </script>

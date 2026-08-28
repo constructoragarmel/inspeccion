@@ -19,7 +19,7 @@ LOGOS = os.path.join(RAIZ, "recursos")
 # pero chocan con ADR-0017, que aprobó la Ing. Beatriz Sevilla, y con el
 # ámbito del formulario. Ver C-28 en fuentes/contradicciones.md.
 # Se activan poniendo esto en True, cuando Ingeniería lo valide.
-ONCE_HITOS = False
+ONCE_HITOS = True
 
 cambios = []
 
@@ -3286,6 +3286,20 @@ if ONCE_HITOS:
      "// hito de apartamento. Ver C-28.\n"
      "const HITOS_DE_TORRE = ['hito_estructura', 'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];",
      "86b· reparto de ámbito provisional para once hitos")
+
+# ── 87. El enlace de campo abre el detallado, no el de hitos ────────────
+# Se invierte la entrada del cambio 43. El modo por hitos pedía un porcentaje a
+# ojo; el detallado lo CALCULA por cantidad proyectada contra ejecutada en cada
+# subpartida. Es la diferencia entre avance declarado y avance verificado, que
+# es justo lo que pregunta `PA-43`, y es la razón que da Skarlet Gómez para
+# usarlo. Ver ADR-0018.
+#
+#   .../inspeccion/            -> detallado, el que se llena en obra
+#   .../inspeccion/?modo=hitos -> el de hitos, que se conserva sin retirar
+s = sustituir(s,
+ "  startApp(modo === 'detallado' ? 'detallado' : 'hitos');",
+ "  startApp(modo === 'hitos' ? 'hitos' : 'detallado');",
+ "87\u00b7 el enlace pelado abre el detallado", 3)
 
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
