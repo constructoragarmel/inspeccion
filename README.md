@@ -52,8 +52,8 @@ la evaluación.
 > entre apartamentos y el borrador es lo único que existe.
 
 Para lo de **toda la torre** —estructura, ascensores, áreas comunes— se cambia el ámbito a 🏢 Torre:
-desaparecen piso y apartamento, quedan los cuatro hitos de torre —**1** Estructura, **9** Ascensor,
-**10** Acabados exteriores y áreas comunes, **11** Pruebas—, y el número sale `EZ-T05-TORRE-…`.
+desaparecen piso y apartamento, y el número sale `EZ-T05-TORRE-…`. **Los once hitos se muestran igual**:
+el ámbito decide qué identifica al informe, no qué se puede evaluar.
 
 Al volver con señal, **📤 Enviar todos los pendientes** manda de una vez los que falten. La lista de
 guardados marca cada uno como **✅ Enviado** o **⏳ Sin enviar**, y avisa antes de reenviar algo que ya se
@@ -137,19 +137,24 @@ diferencia entre **avance declarado y avance verificado**, y de ahí sale la fó
 
 ### Dos ámbitos
 
-| Ámbito | Hitos que muestra | Filas que se llenan | Piso y apartamento |
+| Ámbito | Hitos que muestra | Piso y apartamento | Identificador |
 | --- | --- | --- | --- |
-| 🚪 **Apartamento** | 2 · 3 · 4 · 5 · 6 · 7 · 8 | 34 | obligatorios |
-| 🏢 **Torre completa** | 1 · 9 · 10 · 11 | 16 | no aplican |
+| 🚪 **Apartamento** | los **once** | obligatorios | `EZ-T05-P03A04-…` |
+| 🏢 **Torre completa** | los **once** | no aplican | `EZ-T05-TORRE-…` |
 
-No se inspecciona un ascensor en el apartamento 3-A. La cabecera de la evaluación dice **cuántos hitos se
-están mostrando y cuáles quedan fuera**, para que la numeración salteada no parezca un formulario
-incompleto.
+**El ámbito no recorta la lista.** Decide si el informe es de una vivienda o de la torre entera —y con eso,
+si se piden piso y apartamento y cómo sale el número—, pero **los once hitos y las cincuenta subpartidas
+están disponibles en los dos**, a petición de Skarlet Gómez.
 
-> ⚠️ **Este reparto es PROVISIONAL.** **Qué hito va en qué ámbito es criterio de ingeniería**, y está
-> pendiente de confirmación. Dos hitos quedan mezclados: el **2** lleva *impermeabilización de azotea* y
-> el **3** *equipamiento de cuarto de módulos*, que son de torre dentro de un hito de apartamento.
-> Se cambia en la lista `HITOS_DE_TORRE`, que es una sola línea en `construir.py`.
+> **El hito que no aplique se marca como «hito no inspeccionado»**, y así **no cuenta para el promedio**.
+> Eso es distinto de ponerle cero: un cero significa *no está construido*. Ocultarlo no significaba nada y
+> no quedaba registrado en ninguna parte.
+
+> ⚠️ **Qué hito corresponde a qué ámbito sigue siendo criterio de ingeniería y sigue sin confirmarse.**
+> Hubo un reparto provisional —cuatro hitos de torre y siete de apartamento— y se retiró del instrumento:
+> dejaba dos hitos mezclados (el **2** lleva *impermeabilización de azotea* y el **3** *equipamiento de
+> cuarto de módulos*, que son de torre), y ocultar hitos apoyándose en él decidía por el inspector algo que
+> nadie había decidido. La propuesta sigue escrita en ADR-0018 §3, que es donde se decide si vuelve.
 
 > **Contra incendio no está entre los once.** Rociadores, gabinetes, extintores y detectores de humo
 > existían en la partición anterior y no aparecen en el Excel. Está preguntado a Ingeniería si es
