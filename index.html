@@ -127,16 +127,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 /* En pantalla grande el grupo se disuelve: los botones siguen en la misma
    fila, como siempre, y «⋯ Más» no hace falta. */
 .hdr-sec{display:contents}
-.hdr-btns .hbtn-mas{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);display:none}
+.hdr-btns .hbtn-mas{display:none}
 @media(max-width:700px){.hdr-btns .hbtn-mas{display:flex}}
-.hbtn{padding:7px 13px;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s}
+.hbtn{padding:8px 14px;border:1.5px solid transparent;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;letter-spacing:.2px}
 .hbtn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
-.hbtn-nuevo{background:rgba(105,240,174,.25);color:#fff;border:1px solid rgba(105,240,174,.4)}
-.hbtn-save{background:rgba(255,255,255,.2);color:#fff}
-.hbtn-saved-list{background:rgba(255,193,7,.3);color:#fff;border:1px solid rgba(255,193,7,.5)}
-.hbtn-send{background:#43a047;color:#fff}
-.hbtn-pdf{background:var(--orange);color:#fff}
-.hbtn-finalizar{background:#8e24aa;color:#fff;border:1px solid rgba(255,255,255,.3)}
+/* Relleno sólido y contraste real: sobre la barra azul, un botón tiene que
+   distinguirse del fondo sin que haya que adivinarlo. */
+.hbtn-save{background:#fff;color:#1a237e;border-color:#fff}
+.hbtn-nuevo{background:#1e88e5;color:#fff;border-color:#64b5f6}
+.hbtn-send{background:#2e7d32;color:#fff;border-color:#66bb6a}
+.hbtn-finalizar{background:#0d47a1;color:#fff;border-color:#5c8fd6}
+.hbtn-saved-list{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}
+.hbtn-pdf{background:#eceff1;color:#37474f;border-color:#cfd8dc}
+.hbtn-mas{background:transparent;color:#fff;border-color:rgba(255,255,255,.55)}
+.hbtn-test{background:transparent;color:#fff;border-color:rgba(255,255,255,.35);font-weight:600}
 
 /* LOGO BAR (print) */
 .logo-bar{background:#fff;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--blue-l)}
@@ -223,8 +227,8 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .ev-btn.B.on{background:#2e7d32;border-color:#2e7d32;color:#fff}
 .ev-btn.R.on{background:#f57f17;border-color:#f57f17;color:#fff}
 .ev-btn.M.on{background:#c62828;border-color:#c62828;color:#fff}
-.no-insp-tgl{cursor:pointer;font-size:15px;opacity:.45;padding:0 4px;user-select:none;color:#fff}
-.no-insp-tgl.on{opacity:1;background:rgba(0,0,0,.28);border-radius:6px}
+.no-insp-tgl{cursor:pointer;font-size:15px;opacity:.85;padding:0 4px;user-select:none;color:#fff;border:1.5px solid rgba(255,255,255,.5);border-radius:6px;line-height:1}
+.no-insp-tgl.on{opacity:1;background:rgba(0,0,0,.35);border-color:#fff;border-width:2px}
 .partida.no-inspeccionada .p-body{opacity:.38;pointer-events:none}
 .partida.no-inspeccionada .p-hdr h2::after{content:' · NO INSPECCIONADO';font-size:10px;opacity:.85}
 .ev-btn.NA{border-color:#bdbdbd}
@@ -380,7 +384,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 @media print{
   #welcome-screen{display:none!important}
   .solo-impresion{display:inline!important}
-  .hdr-btns,.arrow,.add-row-btn,#mode-bar,.hbtn,
+  .hdr-btns,.arrow,.no-insp-tgl,.add-row-btn,#mode-bar,.hbtn,
   .foto-slot input[type=file],.foto-rm,.ev-btn:not(.on),
   .overlay,.toast,#pdf-overlay,.modal,
   button:not(.ev-btn.on){display:none!important}
@@ -482,7 +486,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 <!-- PANTALLA DE INICIO (WELCOME SCREEN) -->
 <!-- STICKY NAV -->
 <div class="hdr">
-  <div><h1 id="hdr-title">📋 Informe de Inspección Técnica de Obra</h1><p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>
+  <div><h1 id="hdr-title">Informe de Inspección Técnica de Obra</h1><p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>
   <div class="hdr-btns">
     <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guardar o actualizar borrador localmente">💾 <span>Guardar</span></button>
     <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Cierra este informe y prepara el siguiente, conservando torre, empresa y personal">➡️ <span>Siguiente apto.</span></button>
@@ -495,7 +499,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
       <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Ver informes almacenados localmente">📁 <span>Guardados</span><b id="cnt-guardados" style="display:none;margin-left:5px"></b></button>
       <button class="hbtn hbtn-pdf" onclick="imprimirInforme()">🖨️ <span>PDF</span></button>
       <button class="hbtn hbtn-nuevo" onclick="nuevoFormulario()" title="Nuevo informe — limpia todo el formulario">🆕 <span>Nuevo</span></button>
-      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" title="Activar modo de prueba — el correlativo NO se incrementa" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3)">🧪 <span>Prueba</span></button>
+      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" title="Activar modo de prueba — el correlativo NO se incrementa">🧪 <span>Prueba</span></button>
     </div>
     <!-- Botón «Reiniciar N°» retirado: el número ya no depende de un contador. -->
   </div>
@@ -530,7 +534,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 
 <!-- DATOS GENERALES -->
 <div class="meta-card">
-  <div class="sec-lbl">📋 Identificación del Proyecto</div>
+  <div class="sec-lbl">Identificación del Proyecto</div>
   <div class="grid3">
     <div class="field">
       <label>Fecha de inspección *</label>
@@ -552,7 +556,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     </div>
   </div>
 
-  <div class="sec-lbl">🏗️ Empresa y Personal</div>
+  <div class="sec-lbl">Empresa y Personal</div>
   <div class="grid3">
     <div class="field">
       <label>Empresa ejecutora *</label>
@@ -591,14 +595,14 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     </div>
   </div>
 
-  <div style="background:#f5f7ff;border:1px solid #e0e4ff;border-radius:8px;padding:8px 12px;margin:0 0 12px;font-size:11px;color:#444;line-height:1.6">
+  <div id="escala-brm" style="background:#f5f7ff;border:1px solid #e0e4ff;border-radius:8px;padding:8px 12px;margin:0 0 12px;font-size:11px;color:#444;line-height:1.6">
     <strong style="color:#1a237e">Escala de evaluación:</strong>
     <b>B</b> = ejecutado conforme, sin observaciones ·
     <b>R</b> = ejecutado con defectos subsanables, requiere corrección ·
     <b>M</b> = mal ejecutado o inservible, requiere rehacer ·
     <b>N/A</b> = no aplica o no se pudo verificar — <em>no cuenta para el promedio</em>
   </div>
-  <div class="sec-lbl">📍 Ubicación</div>
+  <div class="sec-lbl">Ubicación</div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px">
     <span style="font-size:12px;font-weight:700;color:#555">ÁMBITO DEL INFORME:</span>
     <button type="button" id="btnAmbApto" onclick="setAmbito('apartamento')"
@@ -706,7 +710,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 </div>
 
 <!-- SECCIÓN EVALUACIÓN -->
-<div class="sec-div">📊 EVALUACIÓN DE AVANCE POR HITOS Y SUBITEMS</div>
+<div class="sec-div">EVALUACIÓN DE AVANCE POR HITOS Y SUBITEMS</div>
 <div class="content" id="main-content"></div>
 
 <!-- SERVICIOS PÚBLICOS -->
@@ -921,10 +925,45 @@ window.addEventListener('load',    _pintarConexion);
     // Se borra de la barra de direcciones para que no quede a la vista.
     history.replaceState(null, '', location.pathname + location.search);
     window.addEventListener('load', function(){
-      if(typeof showToast === 'function') showToast('✅ Este teléfono quedó configurado', 'ok');
+      comprobarClave(clave);
     });
   } catch(e) { /* sin almacenamiento disponible */ }
 })();
+
+// Le pregunta al relevo si esta clave sirve. No manda ningún informe: el
+// relevo rechaza la clave antes de mirar el resto, así que un envío vacío
+// distingue «clave mala» de «clave buena, faltan datos» sin crear nada.
+async function comprobarClave(clave){
+  const aviso = function(t, tipo){ if(typeof showToast === 'function') showToast(t, tipo); };
+  if(!navigator.onLine){
+    aviso('Clave guardada. Se comprobará en el primer envío con señal.', 'ok');
+    return;
+  }
+  const corte = new AbortController();
+  const reloj = setTimeout(function(){ corte.abort(); }, 20000);
+  try{
+    const r = await fetch(RELEVO_URL, {
+      method: 'POST',
+      signal: corte.signal,
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave: clave })
+    });
+    const res = await r.json();
+    if(res.ok || !/clave/i.test(res.error || '')){
+      aviso('✅ Este teléfono quedó configurado', 'ok');
+    } else {
+      localStorage.removeItem('garmel_clave_envio');
+      if(typeof refrescarEstadoClave === 'function') refrescarEstadoClave();
+      alert('La clave del enlace NO es correcta.\n\n' +
+            'Suele pasar cuando el enlace llega cortado por WhatsApp. ' +
+            'Pida que se lo reenvíen y ábralo completo.');
+    }
+  } catch(e){
+    aviso('Clave guardada. No se pudo comprobar ahora; se verá en el primer envío.', 'ok');
+  } finally {
+    clearTimeout(reloj);
+  }
+}
 
 // ── ÁMBITO DEL INFORME ─────────────────────────────────────────────────────
 // Qué hito se evalúa por torre y cuál por apartamento es criterio de
@@ -986,18 +1025,21 @@ function startApp(tipo = 'detallado') {
 }
 
 function setupFormTypeUI() {
+  // La escala B/R/M solo describe los botones del modo detallado.
+  const escala = document.getElementById('escala-brm');
+  if (escala) escala.style.display = (formType === 'hitos') ? 'none' : '';
   const hdrTitle = document.getElementById('hdr-title');
   const hdrSub = document.getElementById('hdr-sub');
   const logoTitle = document.getElementById('logo-title');
   const logoSub = document.getElementById('logo-sub');
   
   if (formType === 'hitos') {
-    if (hdrTitle) hdrTitle.textContent = '📋 Informe de Inspección por Hitos (Simplificado)';
+    if (hdrTitle) hdrTitle.textContent = 'Informe de Inspección por Hitos (Simplificado)';
     if (hdrSub) hdrSub.textContent = 'Sistema GARMEL · Evaluación por Porcentajes Generales en Obra';
     if (logoTitle) logoTitle.textContent = 'INFORME DE INSPECCIÓN POR HITOS';
     if (logoSub) logoSub.textContent = 'Gerencia GARMEL · Evaluación Visual y Porcentual';
   } else {
-    if (hdrTitle) hdrTitle.textContent = '📋 Informe de Inspección Técnica de Obra';
+    if (hdrTitle) hdrTitle.textContent = 'Informe de Inspección Técnica de Obra';
     if (hdrSub) hdrSub.textContent = 'Sistema GARMEL · Evaluación por Hitos y Subitems del Excel';
     if (logoTitle) logoTitle.textContent = 'INFORME DE INSPECCIÓN TÉCNICA';
     if (logoSub) logoSub.textContent = 'Gerencia GARMEL · Evaluación por Hitos y Subitems';
@@ -1021,6 +1063,15 @@ const INSPECTORES_DB = [
 const EMPRESA_RESIDENTE = {"ALNAVIC, C.A.": "ING. ANTONIO CUICAS", "AROA, C.A.": "", "BELZARUBEZHSTORY, S.A.": "ING. FELIX PINTO", "CIVIKA PRO, C.A.": "", "CONSTRUCTORA 5010, C.A.": "ING. JOSE MARTINEZ", "CONSTRUCTORA SB 86, C.A.": "ING. JULIO LUQUEZ", "CONSTRUCTORA VIALPA, C.A.": "ING. ADRIAN OLIVARES", "DRIJECAE, C.A.": "", "GRUPO TEPUY, C.A.": "", "ING & ARQ 1111, C.A.": "ING. JHOANNY LOPEZ", "JVR INGENIERÍA C,A.": "ING. JUAN COLMENARES / ARQ. EVER AVENDAÑO", "MASTER REFORMAS RR, C.A.": "ING. ERICK MARTINEZ", "PROCODIMA, C.A.": "ING. LEONARDO TORRES", "RACAR INGENIEROS, C.A.": "ING. GERARDO ARGARIN", "RÍO LIMÓN, C.A.": "ING. HARRY ARTEAGA", "THAISSA MM INVERSIONES, C.A.": "ING. MANUEL PAEZ", "TSURU, C.A.": "MILTON RODRIGUEZ", "ZERPA CONSTRUCCIONES, C.A.": "ING. IVAN MEDINA"};
 
 // Estructura actualizada con los hitos y subitems del Excel del proyecto
+// Una escala de azules, de la más oscura a la más clara, para que los siete
+// hitos se lean como una serie ordenada. El color de cada hito en el archivo
+// original se conserva en el dato; lo que cambia es cómo se pinta.
+const ESCALA_HITOS = ['#1a237e','#283593','#303f9f','#3949ab','#1565c0','#0277bd','#01579b'];
+function colorHito(p){
+  const i = (typeof PARTIDAS !== 'undefined') ? PARTIDAS.indexOf(p) : -1;
+  return ESCALA_HITOS[i] || ESCALA_HITOS[0];
+}
+
 const PARTIDAS = [
   {
     "id": "hito_estructura", 
@@ -1256,10 +1307,10 @@ function toggleTestMode() {
   TEST_MODE = !TEST_MODE;
   const btn = document.getElementById('btn-test');
   if(TEST_MODE) {
-    btn.style.background = '#c62828'; btn.style.borderColor = '#c62828';
+    btn.style.background = '#c62828'; btn.style.borderColor = '#ef5350';
     showToast('🧪 Modo Prueba ACTIVADO — El correlativo no aumentará', 'err');
   } else {
-    btn.style.background = 'rgba(255,255,255,.15)'; btn.style.borderColor = 'rgba(255,255,255,.3)';
+    btn.style.background = ''; btn.style.borderColor = '';
     showToast('Modo normal activado', 'ok');
   }
 }
@@ -1471,10 +1522,10 @@ function initAppContent() {
     PARTIDAS.forEach(p => {
       const d = document.createElement('div');
       d.className = 'partida'; d.id = 'p_' + p.id;
-      d.style.borderLeftColor = p.color;
+      d.style.borderLeftColor = colorHito(p);
       d.innerHTML = `
-        <div class="p-hdr" style="background:${p.color}" onclick="toggleP('${p.id}')">
-          <div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre}<span class="solo-impresion"> (Evaluación por Hitos)</span></h2></div>
+        <div class="p-hdr" style="background:${colorHito(p)}" onclick="toggleP('${p.id}')">
+          <div class="p-hdr-l"><h2>${p.nombre}<span class="solo-impresion"> (Evaluación por Hitos)</span></h2></div>
           <div style="display:flex;align-items:center;gap:9px">
             <span class="no-insp-tgl" id="noinsp_${p.id}" onclick="event.stopPropagation();toggleNoInspeccionado('${p.id}')"
                   title="Marcar el hito como no inspeccionado en esta visita">⊘</span>
@@ -1494,7 +1545,7 @@ function initAppContent() {
             </div>
           </div>
           <div class="foto-sec">
-            <div class="foto-sec-title">📷 Fotografías<span class="solo-impresion"> — ${p.nombre}</span> (máx. 6)</div>
+            <div class="foto-sec-title">Fotografías<span class="solo-impresion"> — ${p.nombre}</span> (máx. 6)</div>
             <div class="foto-grid" id="fotos_${p.id}">
               ${[0,1,2,3,4,5].map(fi=>`
                 <div class="foto-slot" id="fslot_${p.id}_${fi}">
@@ -1510,7 +1561,7 @@ function initAppContent() {
           </div>
           <div class="p-foot">
             <div class="p-foot-lbl">% Avance Hito</div>
-            <div class="p-foot-bar"><div class="bar-bg"><div class="bar-fill" id="fbar_${p.id}" style="width:0%;background:${p.color}"></div></div></div>
+            <div class="p-foot-bar"><div class="bar-bg"><div class="bar-fill" id="fbar_${p.id}" style="width:0%;background:${colorHito(p)}"></div></div></div>
             <div class="p-foot-pct g" id="fpct_${p.id}">—</div>
           </div>
         </div>`;
@@ -1540,10 +1591,10 @@ function initAppContent() {
       const extraId = `extra_${p.id}`;
       const d=document.createElement('div');
       d.className='partida'; d.id='p_'+p.id;
-      d.style.borderLeftColor=p.color;
+      d.style.borderLeftColor=colorHito(p);
       d.innerHTML=`
-        <div class="p-hdr" style="background:${p.color}" onclick="toggleP('${p.id}')">
-          <div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre}</h2></div>
+        <div class="p-hdr" style="background:${colorHito(p)}" onclick="toggleP('${p.id}')">
+          <div class="p-hdr-l"><h2>${p.nombre}</h2></div>
           <div style="display:flex;align-items:center;gap:9px">
             <div class="pct-bdg" id="badge_${p.id}">—</div>
             <span class="arrow">▼</span>
@@ -1551,7 +1602,7 @@ function initAppContent() {
         </div>
         <div class="p-body">
           <div class="tbl-wrap"><table>
-            <thead style="background:${p.color}">
+            <thead style="background:${colorHito(p)}">
               <tr>
                 <th style="width:34px">N°</th>
                 <th style="text-align:left;padding-left:13px">Subitem / Descripción</th>
@@ -1583,7 +1634,7 @@ function initAppContent() {
           </div>
           <div class="p-foot">
             <div class="p-foot-lbl">% Avance Hito</div>
-            <div class="p-foot-bar"><div class="bar-bg"><div class="bar-fill" id="fbar_${p.id}" style="width:0%;background:${p.color}"></div></div></div>
+            <div class="p-foot-bar"><div class="bar-bg"><div class="bar-fill" id="fbar_${p.id}" style="width:0%;background:${colorHito(p)}"></div></div></div>
             <div class="p-foot-pct g" id="fpct_${p.id}">—</div>
           </div>
         </div>`;
@@ -1597,8 +1648,8 @@ function initAppContent() {
     <h2>📊 Resumen por Hito</h2>
     ${PARTIDAS.map(p=>`
       <div class="res-row">
-        <div class="res-name">${p.icon} ${p.nombre}</div>
-        <div class="res-bar"><div class="bar-bg"><div class="bar-fill" id="rbar_${p.id}" style="width:0%;background:${p.color}"></div></div></div>
+        <div class="res-name">${p.nombre}</div>
+        <div class="res-bar"><div class="bar-bg"><div class="bar-fill" id="rbar_${p.id}" style="width:0%;background:${colorHito(p)}"></div></div></div>
         <div class="res-pct g" id="rpct_${p.id}">—</div>
       </div>`).join('')}
   </div>

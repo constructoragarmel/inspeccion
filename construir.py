@@ -1951,6 +1951,245 @@ s = sustituir(s,
  "50· lo marcado se ve en papel aunque se impriman sin color")
 
 
+# ── 51. La clave se comprueba, no se cree ─────────────────────────────────
+# El teléfono guardaba lo que viniera en el enlace y decía «configurado»
+# aunque la clave estuviera mal. Y llega mal con facilidad: WhatsApp y otros
+# suelen dejar fuera la puntuación final de una URL, así que una clave que
+# termine en «!» puede llegar cortada. El error no se veía hasta el primer
+# envío, en la torre, con el informe ya hecho.
+#
+# El relevo comprueba la clave ANTES de mirar nada más y responde «Clave
+# incorrecta» o «Faltan numero, sector o torre». Ese segundo error significa
+# que la clave está bien. Sirve de comprobación y no crea nada en Drive.
+s = sustituir(s,
+ "    if(clave) localStorage.setItem('garmel_clave_envio', clave);\n"
+ "    // Se borra de la barra de direcciones para que no quede a la vista.\n"
+ "    history.replaceState(null, '', location.pathname + location.search);\n"
+ "    window.addEventListener('load', function(){\n"
+ "      if(typeof showToast === 'function') showToast('✅ Este teléfono quedó configurado', 'ok');\n"
+ "    });",
+ "    if(clave) localStorage.setItem('garmel_clave_envio', clave);\n"
+ "    // Se borra de la barra de direcciones para que no quede a la vista.\n"
+ "    history.replaceState(null, '', location.pathname + location.search);\n"
+ "    window.addEventListener('load', function(){\n"
+ "      comprobarClave(clave);\n"
+ "    });",
+ "51a· al configurar, comprobar en vez de suponer")
+
+s = sustituir(s,
+ "// ── ÁMBITO DEL INFORME ─────────────────────────────────────────────────────",
+ "// Le pregunta al relevo si esta clave sirve. No manda ningún informe: el\n"
+ "// relevo rechaza la clave antes de mirar el resto, así que un envío vacío\n"
+ "// distingue «clave mala» de «clave buena, faltan datos» sin crear nada.\n"
+ "async function comprobarClave(clave){\n"
+ "  const aviso = function(t, tipo){ if(typeof showToast === 'function') showToast(t, tipo); };\n"
+ "  if(!navigator.onLine){\n"
+ "    aviso('Clave guardada. Se comprobará en el primer envío con señal.', 'ok');\n"
+ "    return;\n"
+ "  }\n"
+ "  const corte = new AbortController();\n"
+ "  const reloj = setTimeout(function(){ corte.abort(); }, 20000);\n"
+ "  try{\n"
+ "    const r = await fetch(RELEVO_URL, {\n"
+ "      method: 'POST',\n"
+ "      signal: corte.signal,\n"
+ "      headers: { 'Content-Type': 'text/plain;charset=utf-8' },\n"
+ "      body: JSON.stringify({ clave: clave })\n"
+ "    });\n"
+ "    const res = await r.json();\n"
+ "    if(res.ok || !/clave/i.test(res.error || '')){\n"
+ "      aviso('✅ Este teléfono quedó configurado', 'ok');\n"
+ "    } else {\n"
+ "      localStorage.removeItem('garmel_clave_envio');\n"
+ "      if(typeof refrescarEstadoClave === 'function') refrescarEstadoClave();\n"
+ "      alert('La clave del enlace NO es correcta.\\n\\n' +\n"
+ "            'Suele pasar cuando el enlace llega cortado por WhatsApp. ' +\n"
+ "            'Pida que se lo reenvíen y ábralo completo.');\n"
+ "    }\n"
+ "  } catch(e){\n"
+ "    aviso('Clave guardada. No se pudo comprobar ahora; se verá en el primer envío.', 'ok');\n"
+ "  } finally {\n"
+ "    clearTimeout(reloj);\n"
+ "  }\n"
+ "}\n"
+ "\n"
+ "// ── ÁMBITO DEL INFORME ─────────────────────────────────────────────────────",
+ "51b· preguntarle al relevo si la clave sirve")
+
+# ── 52. La leyenda B/R/M salía donde no hay botones B/R/M ─────────────────
+# La escala «B = conforme · R = defectos subsanables · M = mal ejecutado ·
+# N/A» explica los botones del modo detallado. En el modo por hitos —el que se
+# usa en obra— esos botones no existen: el inspector escribe un porcentaje. La
+# leyenda quedaba explicando controles que no están en pantalla.
+s = sustituir(s,
+ '<div style="background:#f5f7ff;border:1px solid #e0e4ff;border-radius:8px;padding:8px 12px;margin:0 0 12px;font-size:11px;color:#444;line-height:1.6">\n'
+ '    <strong style="color:#1a237e">Escala de evaluación:</strong>',
+ '<div id="escala-brm" style="background:#f5f7ff;border:1px solid #e0e4ff;border-radius:8px;padding:8px 12px;margin:0 0 12px;font-size:11px;color:#444;line-height:1.6">\n'
+ '    <strong style="color:#1a237e">Escala de evaluación:</strong>',
+ "52a· poder señalar la leyenda de la escala")
+
+s = sustituir(s,
+ "function setupFormTypeUI() {",
+ "function setupFormTypeUI() {\n"
+ "  // La escala B/R/M solo describe los botones del modo detallado.\n"
+ "  const escala = document.getElementById('escala-brm');\n"
+ "  if (escala) escala.style.display = (formType === 'hitos') ? 'none' : '';",
+ "52b· la escala solo donde hay botones que explicar")
+
+
+# ── 53. Siete hitos son una serie, no siete cosas distintas ───────────────
+# Cada hito traía su propio color: gris azulado, índigo, turquesa, naranja,
+# naranja quemado, rojo y verde. Un arcoíris que además gasta los colores que
+# SÍ significan algo — el rojo y el naranja leen como alarma cuando solo son
+# categorías. Se pasan a una sola familia de azules, y el verde, el ámbar y el
+# rojo quedan reservados para el avance y las alertas, que es información.
+s = sustituir(s,
+ "const PARTIDAS = [",
+ "// Una escala de azules, de la más oscura a la más clara, para que los siete\n"
+ "// hitos se lean como una serie ordenada. El color de cada hito en el archivo\n"
+ "// original se conserva en el dato; lo que cambia es cómo se pinta.\n"
+ "const ESCALA_HITOS = ['#1a237e','#283593','#303f9f','#3949ab','#1565c0','#0277bd','#01579b'];\n"
+ "function colorHito(p){\n"
+ "  const i = (typeof PARTIDAS !== 'undefined') ? PARTIDAS.indexOf(p) : -1;\n"
+ "  return ESCALA_HITOS[i] || ESCALA_HITOS[0];\n"
+ "}\n"
+ "\n"
+ "const PARTIDAS = [",
+ "53a· una escala de azules en vez de un color por hito")
+
+s = sustituir(s, "d.style.borderLeftColor = p.color;", "d.style.borderLeftColor = colorHito(p);",
+              "53b· borde del hito, modo por hitos")
+s = sustituir(s, "d.style.borderLeftColor=p.color;", "d.style.borderLeftColor=colorHito(p);",
+              "53c· borde del hito, modo detallado")
+s = sustituir(s, '<div class="p-hdr" style="background:${p.color}"',
+                 '<div class="p-hdr" style="background:${colorHito(p)}"',
+              "53d· encabezado del hito", 2)
+s = sustituir(s, 'style="width:0%;background:${p.color}"', 'style="width:0%;background:${colorHito(p)}"',
+              "53e· barras de avance", 3)
+s = sustituir(s, '<thead style="background:${p.color}">', '<thead style="background:${colorHito(p)}">',
+              "53f· cabecera de la tabla del modo detallado")
+
+# ── 54. Los emojis, solo donde son una acción ─────────────────────────────
+# 🏛️ 🧱 🚪 🔧 ⚡ 🔥 ⚙️ en los hitos y 📋 🏗️ 📍 📊 en los títulos de sección le
+# dan al informe aire de cartel escolar, y este documento lo firma un ingeniero
+# y lo lee un Ministerio. Se quedan los de las acciones —guardar, enviar,
+# finalizar, guardados, PDF, borrar—, que son de lectura universal y ayudan a
+# encontrar el botón de un vistazo.
+s = sustituir(s,
+ '<div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre}<span class="solo-impresion"> (Evaluación por Hitos)</span></h2></div>',
+ '<div class="p-hdr-l"><h2>${p.nombre}<span class="solo-impresion"> (Evaluación por Hitos)</span></h2></div>',
+ "54a· sin icono en el encabezado del hito")
+
+s = sustituir(s,
+ '<div class="p-hdr-l"><span style="font-size:17px">${p.icon}</span><h2>${p.nombre}</h2></div>',
+ '<div class="p-hdr-l"><h2>${p.nombre}</h2></div>',
+ "54b· sin icono en el encabezado del hito, modo detallado")
+
+s = sustituir(s, '<div class="res-name">${p.icon} ${p.nombre}</div>',
+                 '<div class="res-name">${p.nombre}</div>',
+              "54c· sin icono en el resumen")
+
+for viejo, nuevo, etiq in [
+    ('id="hdr-title">📋 Informe de Inspección Técnica de Obra',
+     'id="hdr-title">Informe de Inspección Técnica de Obra', "54d· título"),
+    ('<div class="sec-lbl">📋 Identificación del Proyecto',
+     '<div class="sec-lbl">Identificación del Proyecto', "54e· sección identificación"),
+    ('<div class="sec-lbl">🏗️ Empresa y Personal',
+     '<div class="sec-lbl">Empresa y Personal', "54f· sección empresa"),
+    ('<div class="sec-lbl">📍 Ubicación',
+     '<div class="sec-lbl">Ubicación', "54g· sección ubicación"),
+    ('<div class="sec-div">📊 EVALUACIÓN DE AVANCE POR HITOS Y SUBITEMS',
+     '<div class="sec-div">EVALUACIÓN DE AVANCE POR HITOS Y SUBITEMS', "54h· divisor de evaluación"),
+    ("hdrTitle.textContent = '📋 Informe de Inspección por Hitos",
+     "hdrTitle.textContent = 'Informe de Inspección por Hitos", "54i· título en modo hitos"),
+    ("hdrTitle.textContent = '📋 Informe de Inspección Técnica de",
+     "hdrTitle.textContent = 'Informe de Inspección Técnica de", "54j· título en modo detallado"),
+    ('<div class="foto-sec-title">📷 Fotografías',
+     '<div class="foto-sec-title">Fotografías', "54k· sección de fotografías"),
+]:
+    s = sustituir(s, viejo, nuevo, etiq)
+
+
+# ── 55. Los botones tenían que parecer botones ────────────────────────────
+# En la barra azul los botones eran blanco translúcido sobre azul: se leían
+# como texto sobre un fondo, no como algo que se pulsa. Pasan a relleno sólido
+# con borde, jerarquizados por lo que hacen:
+#   Guardar   — blanco sobre azul: la acción constante, el mayor contraste
+#   Siguiente — azul acero: se usa una vez por apartamento
+#   Enviar    — verde: es lo único que saca el informe del teléfono
+#   Más       — contorno: no es una acción, es un cajón
+s = sustituir(s,
+ ".hbtn{padding:7px 13px;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s}",
+ ".hbtn{padding:8px 14px;border:1.5px solid transparent;border-radius:7px;font-size:12px;font-weight:700;"
+ "cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;letter-spacing:.2px}",
+ "55a· los botones llevan borde propio")
+
+s = sustituir(s,
+ ".hbtn-nuevo{background:rgba(105,240,174,.25);color:#fff;border:1px solid rgba(105,240,174,.4)}\n"
+ ".hbtn-save{background:rgba(255,255,255,.2);color:#fff}\n"
+ ".hbtn-saved-list{background:rgba(255,193,7,.3);color:#fff;border:1px solid rgba(255,193,7,.5)}\n"
+ ".hbtn-send{background:#43a047;color:#fff}\n"
+ ".hbtn-pdf{background:var(--orange);color:#fff}\n"
+ ".hbtn-finalizar{background:#8e24aa;color:#fff;border:1px solid rgba(255,255,255,.3)}",
+ "/* Relleno sólido y contraste real: sobre la barra azul, un botón tiene que\n"
+ "   distinguirse del fondo sin que haya que adivinarlo. */\n"
+ ".hbtn-save{background:#fff;color:#1a237e;border-color:#fff}\n"
+ ".hbtn-nuevo{background:#1e88e5;color:#fff;border-color:#64b5f6}\n"
+ ".hbtn-send{background:#2e7d32;color:#fff;border-color:#66bb6a}\n"
+ ".hbtn-finalizar{background:#0d47a1;color:#fff;border-color:#5c8fd6}\n"
+ ".hbtn-saved-list{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}\n"
+ ".hbtn-pdf{background:#eceff1;color:#37474f;border-color:#cfd8dc}\n"
+ ".hbtn-mas{background:transparent;color:#fff;border-color:rgba(255,255,255,.55)}\n"
+ ".hbtn-test{background:transparent;color:#fff;border-color:rgba(255,255,255,.35);font-weight:600}",
+ "55b· cada botón con su color, según lo que hace")
+
+# La regla del cambio 40d ponía el color de «Más» y ya no hace falta.
+s = sustituir(s,
+ ".hdr-btns .hbtn-mas{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);display:none}",
+ ".hdr-btns .hbtn-mas{display:none}",
+ "55c· «Más» toma su color de la regla nueva")
+
+# El botón de prueba traía su color escrito en el atributo style, que gana a
+# cualquier hoja: se quita para que lo gobierne la clase.
+s = sustituir(s,
+ ' title="Activar modo de prueba — el correlativo NO se incrementa" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3)"',
+ ' title="Activar modo de prueba — el correlativo NO se incrementa"',
+ "55d· el modo prueba deja de llevar su color a mano")
+
+s = sustituir(s,
+ "    btn.style.background = '#c62828'; btn.style.borderColor = '#c62828';",
+ "    btn.style.background = '#c62828'; btn.style.borderColor = '#ef5350';",
+ "55e· el aviso de modo prueba, con borde visible")
+
+s = sustituir(s,
+ "    btn.style.background = 'rgba(255,255,255,.15)'; btn.style.borderColor = 'rgba(255,255,255,.3)';",
+ "    btn.style.background = ''; btn.style.borderColor = '';",
+ "55f· al salir del modo prueba, vuelve a su color de clase")
+
+
+# ── 56. El interruptor de «no inspeccionado», legible y fuera del PDF ─────
+# Ya se puede tocar (44 px), pero seguía siendo un ⊘ al 45 % de opacidad que
+# no se lee como un control. Es el que evita que un hito que nadie fue a ver
+# cuente como 0 %, así que tiene que verse. Y en el papel sobra: el rótulo
+# «· NO INSPECCIONADO» ya dice lo mismo, y un ⊘ suelto junto a cada hito es
+# ruido en un documento que firma un ingeniero.
+s = sustituir(s,
+ ".no-insp-tgl{cursor:pointer;font-size:15px;opacity:.45;padding:0 4px;user-select:none;color:#fff}",
+ ".no-insp-tgl{cursor:pointer;font-size:15px;opacity:.85;padding:0 4px;user-select:none;color:#fff;"
+ "border:1.5px solid rgba(255,255,255,.5);border-radius:6px;line-height:1}",
+ "56a· el interruptor se ve como un control")
+
+s = sustituir(s,
+ ".no-insp-tgl.on{opacity:1;background:rgba(0,0,0,.28);border-radius:6px}",
+ ".no-insp-tgl.on{opacity:1;background:rgba(0,0,0,.35);border-color:#fff;border-width:2px}",
+ "56b· y se nota cuando está activado")
+
+s = sustituir(s,
+ "  .hdr-btns,.arrow,.add-row-btn,#mode-bar,.hbtn,",
+ "  .hdr-btns,.arrow,.no-insp-tgl,.add-row-btn,#mode-bar,.hbtn,",
+ "56c· el interruptor no sale en el PDF")
+
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
