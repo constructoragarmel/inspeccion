@@ -3776,6 +3776,63 @@ s = sustituir(s,
 """,
  "92d\u00b7 elegir torre preselecciona su empresa y trae su residente")
 
+# ── 93. Dos pérdidas silenciosas de datos que salieron del QC ──────────────
+# Las dos se descubrieron ejecutando, y las dos pierden información SIN AVISAR,
+# que es lo peor que puede hacer un instrumento que produce un documento firmado.
+#
+# 93a · UN NOMBRE CON COMILLAS SE TRUNCA. Los campos de residente e inspector
+#   se componen con innerHTML e interpolan el valor dentro de value="...". Un
+#   nombre como  ING. JOSE "EL CATIRE" PEREZ  cierra el atributo en la primera
+#   comilla: el campo se queda en «ING. JOSE» y el resto se convierte en
+#   atributos sueltos del input. Medido: el apóstrofo, el < y el & pasan
+#   intactos; solo la comilla doble rompe. El apodo entre comillas no es raro
+#   en obra. Se asigna por PROPIEDAD en vez de por atributo, que además elimina
+#   de raíz la inyección de atributos.
+#
+# 93b · EL IDENTIFICADOR NO TIENE TOPE. Con «torre no registrada» el nombre lo
+#   escribe el inspector y entra entero en el número del informe: 300
+#   caracteres dan un identificador de 320, y la validación lo deja pasar. Ese
+#   número es el nombre del archivo en Drive, cuyo tope son 255. Se acota a 12
+#   caracteres, que deja el identificador completo en 34.
+
+s = sustituir(s,
+ """  row.innerHTML = `
+    <input type="text" class="residente-input" placeholder="Nombre y credencial del residente..." value="${val}">
+    <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(row);""",
+ """  row.innerHTML = `
+    <input type="text" class="residente-input" placeholder="Nombre y credencial del residente...">
+    <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">✕</button>
+  `;
+  // Por propiedad, no dentro del atributo: un nombre con comillas —un apodo en
+  // obra— cerraba el value y se perdía a la mitad, sin avisar.
+  row.querySelector('.residente-input').value = val;
+  container.appendChild(row);""",
+ "93a· un residente con comillas ya no se trunca")
+
+s = sustituir(s,
+ """    <input type="text" class="inspector-manual" placeholder="Nombre y CIV..." value="${isCustom && selectedVal ? selectedVal : ''}" style="${isCustom && selectedVal ? '' : 'display:none;'} margin-top:2px">
+    <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(row);""",
+ """    <input type="text" class="inspector-manual" placeholder="Nombre y CIV..." style="${isCustom && selectedVal ? '' : 'display:none;'} margin-top:2px">
+    <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">✕</button>
+  `;
+  // Lo mismo que en el residente: por propiedad.
+  row.querySelector('.inspector-manual').value = (isCustom && selectedVal) ? selectedVal : '';
+  container.appendChild(row);""",
+ "93b· lo mismo para el inspector escrito a mano")
+
+s = sustituir(s,
+ """  const m = String(t || '').trim().toUpperCase().match(/^([A-Z]+)[\\s-]*0*(\\d+)$/);
+  return m ? m[1] + String(m[2]).padStart(2, '0') : (_limpiar(t) || 'T--');""",
+ """  const m = String(t || '').trim().toUpperCase().match(/^([A-Z]+)[\\s-]*0*(\\d+)$/);
+  // El nombre escrito a mano se acota: entra en el identificador, y el
+  // identificador es el nombre del archivo en Drive, que tiene tope de 255.
+  return m ? m[1] + String(m[2]).padStart(2, '0') : (_limpiar(t).slice(0, 12) || 'T--');""",
+ "93c· el identificador deja de crecer sin tope")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar

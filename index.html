@@ -1459,9 +1459,12 @@ function addResidenteField(val = '') {
   const row = document.createElement('div');
   row.className = 'multi-input-row';
   row.innerHTML = `
-    <input type="text" class="residente-input" placeholder="Nombre y credencial del residente..." value="${val}">
+    <input type="text" class="residente-input" placeholder="Nombre y credencial del residente...">
     <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">✕</button>
   `;
+  // Por propiedad, no dentro del atributo: un nombre con comillas —un apodo en
+  // obra— cerraba el value y se perdía a la mitad, sin avisar.
+  row.querySelector('.residente-input').value = val;
   container.appendChild(row);
 }
 
@@ -1483,9 +1486,11 @@ function addInspectorField(selectedVal = '') {
     <select class="inspector-select" onchange="handleInspectorSelectChange(this)">
       ${optionsHtml}
     </select>
-    <input type="text" class="inspector-manual" placeholder="Nombre y CIV..." value="${isCustom && selectedVal ? selectedVal : ''}" style="${isCustom && selectedVal ? '' : 'display:none;'} margin-top:2px">
+    <input type="text" class="inspector-manual" placeholder="Nombre y CIV..." style="${isCustom && selectedVal ? '' : 'display:none;'} margin-top:2px">
     <button type="button" class="btn-remove-item" onclick="this.parentElement.remove()">✕</button>
   `;
+  // Lo mismo que en el residente: por propiedad.
+  row.querySelector('.inspector-manual').value = (isCustom && selectedVal) ? selectedVal : '';
   container.appendChild(row);
 }
 
@@ -1672,7 +1677,9 @@ function getSectorActual(){
 
 function normalizaTorre(t){
   const m = String(t || '').trim().toUpperCase().match(/^([A-Z]+)[\s-]*0*(\d+)$/);
-  return m ? m[1] + String(m[2]).padStart(2, '0') : (_limpiar(t) || 'T--');
+  // El nombre escrito a mano se acota: entra en el identificador, y el
+  // identificador es el nombre del archivo en Drive, que tiene tope de 255.
+  return m ? m[1] + String(m[2]).padStart(2, '0') : (_limpiar(t).slice(0, 12) || 'T--');
 }
 
 function getInicialesInspector(){
