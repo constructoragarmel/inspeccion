@@ -3301,6 +3301,72 @@ s = sustituir(s,
  "  startApp(modo === 'hitos' ? 'hitos' : 'detallado');",
  "87\u00b7 el enlace pelado abre el detallado", 3)
 
+# ── 88. Se ocultaban cuatro hitos sin decirlo en ninguna parte ───────────
+# El informe abre en ámbito apartamento, que esconde los hitos de torre: la
+# lista empieza en el 2 y termina en el 8. El selector de ámbito que lo explica
+# está a 1.200 px del inicio —fuera de la primera pantalla— y mide 32 px, por
+# debajo de los 44 que llevan el resto de los controles.
+#
+# El resultado es que el formulario parece incompleto. Le pasó a quien conoce
+# el sistema; a un inspector le pasa igual. El aviso se pone DONDE se nota la
+# ausencia: en la cabecera de la lista de hitos, con la cuenta y con el botón
+# para cambiar de ámbito ahí mismo.
+s = sustituir(s,
+ '<div class="sec-div">EVALUACIÓN DE AVANCE POR HITOS Y SUBITEMS',
+ '<div class="sec-div">EVALUACIÓN DE AVANCE POR HITOS Y SUBITEMS'
+ '<span id="aviso-ambito" style="display:block;text-transform:none;letter-spacing:0;'
+ 'font-weight:600;font-size:11.5px;color:#1a237e;margin-top:5px"></span>',
+ "88a· sitio para el aviso de ámbito, donde se nota la ausencia")
+
+s = sustituir(s,
+ "  const nota = document.getElementById('ambito-nota');",
+ "  // Se dice cuántos hitos se están mostrando y cuáles quedan fuera: si no, la\n"
+ "  // numeración salta y el formulario parece incompleto.\n"
+ "  const aviso = document.getElementById('aviso-ambito');\n"
+ "  if(aviso && typeof PARTIDAS !== 'undefined'){\n"
+ "    const propios = PARTIDAS.filter(function(p){\n"
+ "      return (HITOS_DE_TORRE.indexOf(p.id) >= 0) === esTorre; });\n"
+ "    const fuera = PARTIDAS.filter(function(p){\n"
+ "      return (HITOS_DE_TORRE.indexOf(p.id) >= 0) !== esTorre; })\n"
+ "      .map(function(p){ return (p.nombre.match(/[0-9]+/) || [''])[0]; })\n"
+ "      .filter(Boolean);\n"
+ "    aviso.textContent = 'Se muestran ' + propios.length + ' de los ' + PARTIDAS.length +\n"
+ "      ' hitos: los de ' + (esTorre ? 'torre' : 'apartamento') + '.' +\n"
+ "      (fuera.length ? '  Los hitos ' + fuera.join(', ') + ' son de ' +\n"
+ "        (esTorre ? 'apartamento' : 'torre') + ' y van en su propio informe.' : '');\n"
+ "  }\n"
+ "\n"
+ "  const nota = document.getElementById('ambito-nota');",
+ "88b· decir cuántos hitos se muestran y cuáles quedan fuera")
+
+# El selector de ámbito llevaba su tamaño escrito en el atributo style, que gana
+# a la hoja: por eso se quedó en 32 px cuando todo lo demás subió a 44.
+s = sustituir(s,
+ "  const on  = 'padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#a63d00;color:#fff';\n"
+ "  const off = 'padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666';",
+ "  const base = 'padding:10px 16px;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;';\n"
+ "  const on  = base + 'border:2px solid #a63d00;background:#a63d00;color:#fff';\n"
+ "  const off = base + 'border:2px solid #c9cdd6;background:#fff;color:#37474f';",
+ "88c· el selector de ámbito, tocable con guantes")
+
+s = sustituir(s,
+ 'style="padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#a63d00;color:#fff">🚪 Apartamento</button>',
+ 'style="padding:10px 16px;border:2px solid #a63d00;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:#a63d00;color:#fff">🚪 Apartamento</button>',
+ "88d· y su estado inicial con el mismo tamaño")
+
+s = sustituir(s,
+ 'style="padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666">🏢 Torre completa</button>',
+ 'style="padding:10px 16px;border:2px solid #c9cdd6;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:#fff;color:#37474f">🏢 Torre completa</button>',
+ "88e· lo mismo para el de torre")
+
+# En el papel el aviso sobra: el informe ya declara su ámbito arriba.
+s = sustituir(s,
+ "  .vacio-impresion{display:none!important}",
+ "  #aviso-ambito{display:none!important}\n"
+ "  .vacio-impresion{display:none!important}",
+ "88f· el aviso de ámbito no va al documento")
+
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar

@@ -575,6 +575,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
               border-radius:0!important;padding:2px 0 2px 8px!important;font-size:9px!important;
               margin:0 0 8px!important;color:#333!important}
 
+  #aviso-ambito{display:none!important}
   .vacio-impresion{display:none!important}
 
   /* Un título no se queda solo al pie de una página. */
@@ -767,9 +768,9 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px">
     <span style="font-size:12px;font-weight:700;color:#555">ÁMBITO DEL INFORME:</span>
     <button type="button" id="btnAmbApto" onclick="setAmbito('apartamento')"
-      style="padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#a63d00;color:#fff">🚪 Apartamento</button>
+      style="padding:10px 16px;border:2px solid #a63d00;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:#a63d00;color:#fff">🚪 Apartamento</button>
     <button type="button" id="btnAmbTorre" onclick="setAmbito('torre')"
-      style="padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666">🏢 Torre completa</button>
+      style="padding:10px 16px;border:2px solid #c9cdd6;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:#fff;color:#37474f">🏢 Torre completa</button>
     <span id="ambito-nota" style="font-size:11px;color:#5a6672"></span>
   </div>
   <div class="grid4">
@@ -871,7 +872,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 </div>
 
 <!-- SECCIÓN EVALUACIÓN -->
-<div class="sec-div">EVALUACIÓN DE AVANCE POR HITOS Y SUBITEMS</div>
+<div class="sec-div">EVALUACIÓN DE AVANCE POR HITOS Y SUBITEMS<span id="aviso-ambito" style="display:block;text-transform:none;letter-spacing:0;font-weight:600;font-size:11.5px;color:#1a237e;margin-top:5px"></span></div>
 <div class="content" id="main-content"></div>
 
 <!-- SERVICIOS PÚBLICOS -->
@@ -1143,8 +1144,9 @@ function setAmbito(a){
   ambito = (a === 'torre') ? 'torre' : 'apartamento';
   const esTorre = (ambito === 'torre');
 
-  const on  = 'padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#a63d00;color:#fff';
-  const off = 'padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666';
+  const base = 'padding:10px 16px;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;';
+  const on  = base + 'border:2px solid #a63d00;background:#a63d00;color:#fff';
+  const off = base + 'border:2px solid #c9cdd6;background:#fff;color:#37474f';
   const bA = document.getElementById('btnAmbApto'), bT = document.getElementById('btnAmbTorre');
   if(bA) bA.style.cssText = esTorre ? off : on;
   if(bT) bT.style.cssText = esTorre ? on  : off;
@@ -1179,6 +1181,22 @@ function setAmbito(a){
 
   const tt = document.getElementById('total-titulo');
   if(tt) tt.textContent = esTorre ? '% AVANCE GENERAL DE LA TORRE' : '% AVANCE GENERAL DEL APARTAMENTO';
+
+  // Se dice cuántos hitos se están mostrando y cuáles quedan fuera: si no, la
+  // numeración salta y el formulario parece incompleto.
+  const aviso = document.getElementById('aviso-ambito');
+  if(aviso && typeof PARTIDAS !== 'undefined'){
+    const propios = PARTIDAS.filter(function(p){
+      return (HITOS_DE_TORRE.indexOf(p.id) >= 0) === esTorre; });
+    const fuera = PARTIDAS.filter(function(p){
+      return (HITOS_DE_TORRE.indexOf(p.id) >= 0) !== esTorre; })
+      .map(function(p){ return (p.nombre.match(/[0-9]+/) || [''])[0]; })
+      .filter(Boolean);
+    aviso.textContent = 'Se muestran ' + propios.length + ' de los ' + PARTIDAS.length +
+      ' hitos: los de ' + (esTorre ? 'torre' : 'apartamento') + '.' +
+      (fuera.length ? '  Los hitos ' + fuera.join(', ') + ' son de ' +
+        (esTorre ? 'apartamento' : 'torre') + ' y van en su propio informe.' : '');
+  }
 
   const nota = document.getElementById('ambito-nota');
   if(nota) nota.textContent = esTorre
