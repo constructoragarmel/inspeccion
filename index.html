@@ -1230,7 +1230,12 @@ const SECTOR_POR_CONVENIO = {
 };
 
 function _limpiar(v){
-  return (v == null ? '' : String(v)).trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  // Primero se convierten los acentos y la eñe a su letra base; si se borraran,
+  // «Ñ2» y «2» darían el mismo identificador, y las iniciales de un nombre
+  // acentuado quedarían vacías.
+  return (v == null ? '' : String(v))
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
 // El piso es un desplegable con valores tipo «Piso 03»: hay que sacarle el número.
@@ -1589,8 +1594,10 @@ function recalcHito(pid) {
 // ═══════════════════════════════════════════════
 function recalcRow(inp){
   const rid=inp.dataset.rid, pid=inp.dataset.p;
-  const pr=parseFloat(document.getElementById('pr_'+rid)?.value)||0;
-  const ej=parseFloat(document.getElementById('ej_'+rid)?.value)||0;
+  // Una cantidad negativa no existe en obra: se trata como cero en vez de
+  // producir un avance negativo.
+  const pr=Math.max(0, parseFloat(document.getElementById('pr_'+rid)?.value)||0);
+  const ej=Math.max(0, parseFloat(document.getElementById('ej_'+rid)?.value)||0);
   const falt=Math.max(0,pr-ej);
   const fltEl=document.getElementById('flt_'+rid);
   if(pr>0||ej>0){
@@ -1621,8 +1628,8 @@ function recalcP(pid){
     const rid=inp.dataset.rid;
     // Un ítem marcado N/A no entra al promedio: no es un cero, es «no cuenta».
     if(document.querySelector(`.ev-btn.NA.on[data-rid="${rid}"]`)) return;
-    const pr=parseFloat(inp.value)||0;
-    const ej=parseFloat(document.getElementById('ej_'+rid)?.value)||0;
+    const pr=Math.max(0, parseFloat(inp.value)||0);
+    const ej=Math.max(0, parseFloat(document.getElementById('ej_'+rid)?.value)||0);
     if(pr>0){sumPct+=Math.min(100,Math.round((ej/pr)*100));cnt++;}
   });
   const pct=cnt>0?Math.round(sumPct/cnt):null;
@@ -1790,10 +1797,21 @@ function removeFoto(pid,fi){
 // ═══════════════════════════════════════════════
 // STORAGE & MODIFICATION OF DRAFTS
 // ═══════════════════════════════════════════════
+// Si el índice en edición ya no corresponde a ningún borrador, se abandona en
+// vez de reventar. Pasaba de verdad: bastaba con que el navegador desalojara el
+// almacenamiento para que el autoguardado dejara de funcionar en silencio.
+function _idDelBorradorEnEdicion(){
+  if(currentEditingIndex === null) return 'draft_' + Date.now();
+  const b = getSavedReports()[currentEditingIndex];
+  if(b && b.id) return b.id;
+  currentEditingIndex = null;
+  return 'draft_' + Date.now();
+}
+
 function getFormData(){
   function gv(id){ const el=document.getElementById(id); return el ? (el.value||el.textContent||'') : ''; }
   const d={
-    id: currentEditingIndex !== null ? getSavedReports()[currentEditingIndex].id : ('draft_' + Date.now()),
+    id: _idDelBorradorEnEdicion(),
     formType: formType,
     ambito: ambito,
     noInspeccionados: Object.keys(hitosNoInspeccionados).filter(k=>hitosNoInspeccionados[k]),
@@ -1886,8 +1904,9 @@ function saveDraft(silencioso){
   } catch(e){
     const sinEspacio = /quota|exceeded|storage/i.test(e.name + ' ' + e.message);
     showToast(sinEspacio
-      ? '❌ El teléfono se quedó sin espacio para borradores. Envíe o elimine informes guardados antes de continuar.'
-      : '❌ Error al guardar: ' + e.message, 'err');
+      ? '❌ El teléfono se quedó sin espacio. Envíe o elimine informes guardados antes de seguir.'
+      : '❌ No se pudo guardar el informe. Anote lo importante y avise a la oficina.', 'err');
+    if(!sinEspacio && window.console) console.error('Fallo al guardar:', e);
   }
 }
 
@@ -2376,6 +2395,17 @@ async function enviarAlRelevo() {
   } finally {
     btn.disabled = false;
   }
+}
+
+// Los informes sin enviar viven en este teléfono y en ningún otro lado. Se le
+// pide al navegador que trate ese almacenamiento como permanente, para que no
+// lo borre cuando el teléfono se quede sin espacio.
+if (navigator.storage && navigator.storage.persist) {
+  window.addEventListener('load', function(){
+    navigator.storage.persisted().then(function(yaEsta){
+      if(!yaEsta) navigator.storage.persist();
+    }).catch(function(){});
+  });
 }
 
 // ═══════════════════════════════════════════════

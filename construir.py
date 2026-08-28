@@ -1209,6 +1209,107 @@ s = sustituir(s,
       <button class="m-btn m-confirm" onclick="enviarPendientes()">📤 Enviar todos los pendientes</button>""",
  "26· botón de enviar todos los pendientes")
 
+
+# ── 27. Correcciones salidas de las rondas de prueba ──────────────────────
+
+# 27a · Los acentos y la eñe se borraban en vez de convertirse, y eso hacía
+# colisionar identificadores distintos: «Ñ2» daba A02, igual que el apartamento
+# «2». Y un inspector llamado «Ñandú Óscar» quedaba con iniciales «--».
+s = sustituir(s,
+ """function _limpiar(v){
+  return (v == null ? '' : String(v)).trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+}""",
+ """function _limpiar(v){
+  // Primero se convierten los acentos y la eñe a su letra base; si se borraran,
+  // «Ñ2» y «2» darían el mismo identificador, y las iniciales de un nombre
+  // acentuado quedarían vacías.
+  return (v == null ? '' : String(v))
+    .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+    .trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+}""",
+ "27a· los acentos y la eñe se convierten, no se borran")
+
+# 27b · Una cantidad negativa daba un avance negativo: «10 / -2» mostraba -20 %.
+s = sustituir(s,
+ """function recalcRow(inp){
+  const rid=inp.dataset.rid, pid=inp.dataset.p;
+  const pr=parseFloat(document.getElementById('pr_'+rid)?.value)||0;
+  const ej=parseFloat(document.getElementById('ej_'+rid)?.value)||0;""",
+ """function recalcRow(inp){
+  const rid=inp.dataset.rid, pid=inp.dataset.p;
+  // Una cantidad negativa no existe en obra: se trata como cero en vez de
+  // producir un avance negativo.
+  const pr=Math.max(0, parseFloat(document.getElementById('pr_'+rid)?.value)||0);
+  const ej=Math.max(0, parseFloat(document.getElementById('ej_'+rid)?.value)||0);""",
+ "27b· las cantidades negativas no producen avances negativos")
+
+s = sustituir(s,
+ """    const pr=parseFloat(inp.value)||0;
+    const ej=parseFloat(document.getElementById('ej_'+rid)?.value)||0;
+    if(pr>0){sumPct+=Math.min(100,Math.round((ej/pr)*100));cnt++;}""",
+ """    const pr=Math.max(0, parseFloat(inp.value)||0);
+    const ej=Math.max(0, parseFloat(document.getElementById('ej_'+rid)?.value)||0);
+    if(pr>0){sumPct+=Math.min(100,Math.round((ej/pr)*100));cnt++;}""",
+ "27c· lo mismo en el promedio del hito")
+
+# 27d · Si el borrador en edición ya no existe —porque el navegador desalojó los
+# datos, o porque hay otra pestaña abierta— getFormData reventaba, y con él el
+# autoguardado: el inspector seguía escribiendo y nada se guardaba.
+s = sustituir(s,
+ """    id: currentEditingIndex !== null ? getSavedReports()[currentEditingIndex].id : ('draft_' + Date.now()),""",
+ """    id: _idDelBorradorEnEdicion(),""",
+ "27d· getFormData deja de reventar con un índice huérfano")
+
+s = sustituir(s,
+ """function getFormData(){""",
+ """// Si el índice en edición ya no corresponde a ningún borrador, se abandona en
+// vez de reventar. Pasaba de verdad: bastaba con que el navegador desalojara el
+// almacenamiento para que el autoguardado dejara de funcionar en silencio.
+function _idDelBorradorEnEdicion(){
+  if(currentEditingIndex === null) return 'draft_' + Date.now();
+  const b = getSavedReports()[currentEditingIndex];
+  if(b && b.id) return b.id;
+  currentEditingIndex = null;
+  return 'draft_' + Date.now();
+}
+
+function getFormData(){""",
+ "27e· recuperarse del índice huérfano")
+
+# 27f · Y que el aviso no sea un mensaje técnico en inglés.
+s = sustituir(s,
+ """    const sinEspacio = /quota|exceeded|storage/i.test(e.name + ' ' + e.message);
+    showToast(sinEspacio
+      ? '❌ El teléfono se quedó sin espacio para borradores. Envíe o elimine informes guardados antes de continuar.'
+      : '❌ Error al guardar: ' + e.message, 'err');""",
+ """    const sinEspacio = /quota|exceeded|storage/i.test(e.name + ' ' + e.message);
+    showToast(sinEspacio
+      ? '❌ El teléfono se quedó sin espacio. Envíe o elimine informes guardados antes de seguir.'
+      : '❌ No se pudo guardar el informe. Anote lo importante y avise a la oficina.', 'err');
+    if(!sinEspacio && window.console) console.error('Fallo al guardar:', e);""",
+ "27f· mensaje comprensible en vez del error técnico")
+
+# 27g · Pedirle al navegador que NO desaloje nuestros datos. Sin esto, Chrome
+# puede borrar el almacenamiento del sitio cuando el teléfono se quede sin
+# espacio, y se llevaría por delante los informes sin enviar.
+s = sustituir(s,
+ """// Inicialización general al cargar
+window.onload = function() {""",
+ """// Los informes sin enviar viven en este teléfono y en ningún otro lado. Se le
+// pide al navegador que trate ese almacenamiento como permanente, para que no
+// lo borre cuando el teléfono se quede sin espacio.
+if (navigator.storage && navigator.storage.persist) {
+  window.addEventListener('load', function(){
+    navigator.storage.persisted().then(function(yaEsta){
+      if(!yaEsta) navigator.storage.persist();
+    }).catch(function(){});
+  });
+}
+
+// Inicialización general al cargar
+window.onload = function() {""",
+ "27g· pedir almacenamiento permanente")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
