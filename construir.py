@@ -4020,6 +4020,179 @@ s = sustituir(s,
  "}",
  "95c· el aviso no se queda colgado al cambiar de torre")
 
+# ── 96. El rol se elige antes de ver el formulario ─────────────────────────
+# El cambio 42 retiró la portada original porque «pedía un toque para no
+# decidir nada»: sus cuatro tarjetas eran <div> inertes. Esta sí decide algo, y
+# es lo que la barra de modo no lograba: hasta ahora el rol era un par de
+# botones en la cabecera, sin estado evidente y a un toque accidental de
+# cambiar en mitad de una inspección.
+#
+# Ahora se elige al abrir, con las dos opciones explicadas, y la barra de modo
+# deja de tener botones: pasa a ser un rótulo de lo que se eligió, con un
+# «cambiar» explícito que vuelve a abrir la pantalla. Cambiar de rol NO redibuja
+# los hitos —solo muestra u oculta la columna de cantidad proyectada—, así que
+# hacerlo a mitad de un informe no pierde nada de lo ya escrito.
+#
+# Se recuerda la última elección en ese teléfono para dejarla resaltada: sigue
+# haciendo falta un toque, que es lo pedido, pero no hay que pensarlo dos veces.
+# Se reutiliza el id `welcome-screen` porque conserva su CSS y, sobre todo, la
+# regla de impresión que lo mantiene fuera del PDF.
+
+s = sustituir(s,
+ """<div id="mode-bar" style="background:#fff;padding:10px 22px;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--blue-l);flex-wrap:wrap">
+  <span style="font-size:11px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.5px">Modo:</span>
+  <button id="btnInspector" onclick="setModeUI('inspector')" style="padding:6px 15px;border:2px solid #e65100;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#a63d00;color:#fff">👷 Inspector</button>
+  <button id="btnPlanif" onclick="setModeUI('planificacion')" style="padding:6px 15px;border:2px solid #e0e0e0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#f5f5f5;color:#666">📊 Gerencia de Planificación</button>
+  <span id="mode-badge" style="padding:3px 12px;border-radius:12px;font-size:11px;font-weight:700;background:#fff3e0;color:#8f4b00;border:1px solid #e6a860">Inspector: ingresa cantidades ejecutadas · Proyectada solo la ve Planificación</span>
+</div>""",
+ """<div id="welcome-screen">
+  <div class="welcome-card">
+    <div style="font-size:12px;font-weight:800;letter-spacing:1.4px;opacity:.75;margin-bottom:6px">CONSTRUCTORA GARMEL, C.A.</div>
+    <div style="font-size:21px;font-weight:800;margin-bottom:26px">Informe de Inspección Técnica</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:16px">¿Con qué rol va a llenar el informe?</div>
+
+    <button id="rol-inspector" onclick="elegirRol('inspector')" style="width:100%;min-height:44px;text-align:left;padding:15px 18px;margin-bottom:12px;border-radius:13px;border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.10);color:#fff;cursor:pointer">
+      <div style="font-size:16px;font-weight:800">👷 Inspector</div>
+      <div style="font-size:12.5px;opacity:.85;margin-top:4px;line-height:1.45">Registra en obra la <b>cantidad ejecutada</b> de cada subpartida. No ve la cantidad proyectada.</div>
+    </button>
+
+    <button id="rol-planificacion" onclick="elegirRol('planificacion')" style="width:100%;min-height:44px;text-align:left;padding:15px 18px;border-radius:13px;border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.10);color:#fff;cursor:pointer">
+      <div style="font-size:16px;font-weight:800">📊 Gerencia de Planificación</div>
+      <div style="font-size:12.5px;opacity:.85;margin-top:4px;line-height:1.45">Además ve y carga la <b>cantidad proyectada</b>, que es la meta contra la que se calcula el avance.</div>
+    </button>
+
+    <div id="rol-recordado" style="font-size:11.5px;opacity:.7;margin-top:18px"></div>
+  </div>
+</div>
+<div id="mode-bar" style="background:#fff;padding:10px 22px;display:flex;align-items:center;gap:10px;border-bottom:3px solid var(--blue-l);flex-wrap:wrap">
+  <span id="mode-badge" style="padding:4px 12px;border-radius:12px;font-size:11.5px;font-weight:700;background:#fff3e0;color:#8f4b00;border:1px solid #e6a860"></span>
+  <button id="btn-cambiar-rol" onclick="abrirEleccionDeRol()" style="min-height:32px;padding:4px 12px;border:1.5px solid #c9cdd6;border-radius:16px;font-size:11.5px;font-weight:700;cursor:pointer;background:#fff;color:#37474f">Cambiar</button>
+</div>""",
+ "96a· pantalla de elección de rol, y la barra deja de tener botones de modo")
+
+# setModeUI pintaba dos botones que ya no existen. Se queda con el rótulo.
+s = sustituir(s,
+ "  const bi = document.getElementById('btnInspector');\n"
+ "  const bp = document.getElementById('btnPlanif');\n"
+ "  const badge = document.getElementById('mode-badge');",
+ "  const badge = document.getElementById('mode-badge');",
+ "96b· setModeUI ya no pinta los botones retirados")
+
+s = sustituir(s,
+ "  if (mode === 'inspector') {\n"
+ "    if (bi) { bi.style.background = '#e65100'; bi.style.borderColor = '#e65100'; bi.style.color = '#fff'; }\n"
+ "    if (bp) { bp.style.background = '#f5f5f5'; bp.style.borderColor = '#e0e0e0'; bp.style.color = '#666'; }\n"
+ "    if (badge) {",
+ "  if (mode === 'inspector') {\n"
+ "    if (badge) {",
+ "96c· lo mismo en la rama de inspector")
+
+# La rama de planificación seguía pintando los dos botones retirados: sin esto,
+# elegir «Gerencia de Planificación» reventaba con «bi is not defined» y dejaba
+# la aplicación en blanco. Apareció al probar la pantalla nueva.
+s = sustituir(s,
+ "    if (bi) { bi.style.background = '#f5f5f5'; bi.style.borderColor = '#e0e0e0'; bi.style.color = '#666'; }\n"
+ "    if (bp) { bp.style.background = 'var(--blue)'; bp.style.borderColor = 'var(--blue)'; bp.style.color = '#fff'; }\n"
+ "    if (badge) {",
+ "    if (badge) {",
+ "96g\u00b7 la rama de planificaci\u00f3n tampoco pinta los botones retirados")
+
+s = sustituir(s,
+ "      badge.textContent = 'Planificación: acceso completo — cantidades proyectadas y métricas de avance';",
+ "      badge.textContent = '📊 Gerencia de Planificación — carga la cantidad proyectada';",
+ "96h· el rótulo de planificación, igual de corto")
+
+s = sustituir(s,
+ "      badge.textContent = 'Inspector: ingresa cantidades ejecutadas · Proyectada solo la ve Planificación';",
+ "      badge.textContent = '👷 Inspector — registra la cantidad ejecutada';",
+ "96d· el rótulo dice el rol, no una explicación larga")
+
+s = sustituir(s,
+ "function startApp(tipo = 'detallado') {",
+ """// El rol se elige antes de ver nada, y se recuerda en este teléfono para
+// dejarlo resaltado la próxima vez.
+function abrirEleccionDeRol(){
+  const w = document.getElementById('welcome-screen');
+  if (!w) return;
+  const previo = localStorage.getItem('garmel_rol') || '';
+  const nota = document.getElementById('rol-recordado');
+  [['inspector','rol-inspector'], ['planificacion','rol-planificacion']].forEach(function(par){
+    const b = document.getElementById(par[1]);
+    if (!b) return;
+    const elegido = (par[0] === previo);
+    b.style.background  = elegido ? 'rgba(255,255,255,.24)' : 'rgba(255,255,255,.10)';
+    b.style.borderColor = elegido ? '#fff' : 'rgba(255,255,255,.35)';
+  });
+  if (nota) nota.textContent = previo
+    ? 'La última vez se usó ' + (previo === 'inspector' ? 'Inspector' : 'Gerencia de Planificación') + '.'
+    : '';
+  w.classList.remove('hidden');
+}
+
+function elegirRol(rol){
+  localStorage.setItem('garmel_rol', rol);
+  const w = document.getElementById('welcome-screen');
+  if (w) w.classList.add('hidden');
+  // El orden importa: primero se dibujan los hitos, y después se aplica el rol,
+  // que es lo que muestra u oculta la columna de cantidad proyectada.
+  if (!_appArrancada) { startApp('detallado'); _appArrancada = true; }
+  setModeUI(rol);
+}
+let _appArrancada = false;
+
+function startApp(tipo = 'detallado') {""",
+ "96e· elegir rol arranca la aplicación y aplica el modo")
+
+s = sustituir(s,
+ "  startApp(modo === 'hitos' ? 'hitos' : 'detallado');",
+ "  // No se entra al formulario sin haber elegido rol.\n"
+ "  if (modo === 'hitos') { startApp('hitos'); _appArrancada = true; setModeUI('inspector'); }\n"
+ "  else { abrirEleccionDeRol(); }",
+ "96f· al abrir se pide el rol antes que nada")
+
+# ── 97. En el teléfono, el modo Inspector no ocultaba la cantidad proyectada
+# `setModeUI` ocultaba la columna con un estilo EN LÍNEA (`display:none`). En
+# pantalla estrecha la regla responsiva la vuelve a mostrar con
+# `display:flex !important`, y un `!important` de hoja de estilos le gana a un
+# estilo en línea sin `!important`. Medido: en 426 px de ancho el campo de
+# cantidad proyectada mide 44 px de alto en los DOS modos.
+#
+# Es decir: justo en el dispositivo de campo, el inspector veía la cantidad
+# proyectada —la meta— antes de medir. Que es exactamente lo que el rol
+# promete evitar, y ahora que el rol se elige en una pantalla previa, la
+# promesa tiene que cumplirse.
+#
+# Se cambia a una clase en el <body>, que compite en el mismo terreno.
+s = sustituir(s,
+ "  #aviso-ambito{display:none!important}\n",
+ "  #aviso-ambito{display:none!important}\n"
+ "}\n"
+ "\n"
+ "/* El rol Inspector oculta la cantidad proyectada. Va como clase y con\n"
+ "   !important porque la disposición de teléfono fuerza `display:flex\n"
+ "   !important` sobre estas celdas, y un estilo en línea no le gana. */\n"
+ "body.ocultar-proyectada th.col-proyectada,\n"
+ "body.ocultar-proyectada td.col-proyectada{display:none!important}\n"
+ "\n"
+ "@media print{\n",
+ "97a· la columna se oculta con una clase, no con estilo en línea")
+
+s = sustituir(s,
+ "    document.querySelectorAll('th.col-proyectada, td.col-proyectada').forEach(el => el.style.display = 'none');",
+ "    document.body.classList.add('ocultar-proyectada');\n"
+ "    document.querySelectorAll('th.col-proyectada, td.col-proyectada').forEach(el => el.style.display = '');",
+ "97b· inspector: se pone la clase")
+
+s = sustituir(s,
+ "    document.querySelectorAll('th.col-proyectada, td.col-proyectada').forEach(el => el.style.display = '');\n"
+ "  }\n"
+ "}",
+ "    document.body.classList.remove('ocultar-proyectada');\n"
+ "    document.querySelectorAll('th.col-proyectada, td.col-proyectada').forEach(el => el.style.display = '');\n"
+ "  }\n"
+ "}",
+ "97c· planificación: se quita")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
