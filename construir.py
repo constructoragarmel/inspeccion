@@ -4477,6 +4477,184 @@ s = sustituir(s,
  "body.ocultar-proyectada th.col-proyectada,\n",
  "103c· foco visible al navegar con teclado")
 
+# ── 104. La empresa vuelve a sugerir residente cuando es inequívoco ────────
+# El cambio 92 movió el residente de la empresa a la TORRE, porque el cuadro
+# del 28-ago da nombres distintos para torres de una misma contratista. Correcto
+# — pero se pasó de frenada: al elegir convenio y empresa dejó de aparecer nada,
+# aunque en la mayoría de los casos el dato es inequívoco.
+#
+# Contado sobre la propia tabla, de las 18 empresas:
+#   · 13 tienen UN SOLO residente conocido en todas sus torres  → se rellena
+#   ·  4 tienen VARIOS —Alnavic, Civika Pro, Río Limón y RACAR— → hay que
+#      elegir la torre, y se dice por qué
+#   ·  1 no tiene ninguno —AROA—                                → queda en blanco
+#
+# La torre sigue mandando siempre que esté elegida: es el dato más específico.
+# La empresa solo rellena cuando NO hay torre y no hay ambigüedad. Así se
+# aprovecha todo lo que la fuente dice, y ni un dato más.
+
+s = sustituir(s,
+ "function empresaDeTorre(conv, torre){",
+ """// Los residentes DISTINTOS que le constan a una empresa en todas sus torres.
+function residentesDeEmpresa(conv, emp){
+  const vistos = [];
+  TORRES.forEach(function(x){
+    if (x.c === conv && x.e === emp && x.r && vistos.indexOf(x.r) < 0) vistos.push(x.r);
+  });
+  return vistos;
+}
+
+// Qué residente corresponde con lo que hay elegido ahora mismo, y por qué.
+// La torre manda; la empresa solo decide cuando no hay torre y el dato es
+// inequívoco. Nunca se rellena con el de otra torre: eso sería inventar.
+function _residenteQueToca(){
+  const conv = document.getElementById('convenio').value;
+  const tor  = document.getElementById('torre').value;
+  const emp  = document.getElementById('empresa').value;
+
+  if (tor && tor !== 'NO_REG') {
+    const propia = empresaDeTorre(conv, tor);
+    if (!emp || emp === propia) return { valor: residenteDeTorre(conv, tor), nota: '' };
+    return { valor: '', nota: 'Según el cuadro, la ' + tor + ' la ejecuta ' +
+      String(propia).replace(/\\.$/, '') + '. Escriba el ingeniero residente que encontró en obra.' };
+  }
+  if (emp && conv) {
+    const lista = residentesDeEmpresa(conv, emp);
+    if (lista.length === 1) return { valor: lista[0], nota: '' };
+    if (lista.length > 1)  return { valor: '', nota: 'Esta empresa tiene ' + lista.length +
+      ' ingenieros residentes según el cuadro. Elija la torre y se pondrá el que corresponde.' };
+  }
+  return { valor: '', nota: '' };
+}
+
+function empresaDeTorre(conv, torre){""",
+ "104a· saber qué residente toca, y por qué")
+
+s = sustituir(s,
+ """function autoResidenteConv() {
+  const conv = document.getElementById('convenio').value;
+  const tor  = document.getElementById('torre').value;
+  const res  = residenteDeTorre(conv, tor);
+
+  const cont = document.getElementById('residentes-container');
+  if (!cont) return;
+  const escritos = Array.prototype.slice.call(cont.querySelectorAll('.residente-input'))
+    .map(function(i){ return i.value.trim(); }).filter(Boolean);
+  if (escritos.length && escritos.join(' / ') !== _residenteAuto) return;
+
+  cont.innerHTML = '';
+  if (res) res.split('/').forEach(function(r){ addResidenteField(r.trim()); });
+  else addResidenteField('');
+  _residenteAuto = res ? res.split('/').map(function(r){ return r.trim(); }).join(' / ') : '';
+}""",
+ """function autoResidenteConv() {
+  const q = _residenteQueToca();
+  const res = q.valor;
+
+  const aviso = document.getElementById('aviso-empresa');
+  if (aviso) {
+    aviso.textContent = q.nota ? '⚠️ ' + q.nota : '';
+    aviso.style.display = q.nota ? 'block' : 'none';
+  }
+
+  const cont = document.getElementById('residentes-container');
+  if (!cont) return;
+  const escritos = Array.prototype.slice.call(cont.querySelectorAll('.residente-input'))
+    .map(function(i){ return i.value.trim(); }).filter(Boolean);
+  if (escritos.length && escritos.join(' / ') !== _residenteAuto) return;
+
+  cont.innerHTML = '';
+  if (res) res.split('/').forEach(function(r){ addResidenteField(r.trim()); });
+  else addResidenteField('');
+  _residenteAuto = res ? res.split('/').map(function(r){ return r.trim(); }).join(' / ') : '';
+}""",
+ "104b· autoResidenteConv usa la regla completa y pinta su aviso")
+
+# handleEmpresaChange se queda sin trabajo propio: todo vive en la regla.
+s = sustituir(s,
+ """function handleEmpresaChange(){
+  const conv   = document.getElementById('convenio').value;
+  const tor    = document.getElementById('torre').value;
+  const emp    = document.getElementById('empresa').value;
+  const propia = (tor && tor !== 'NO_REG') ? empresaDeTorre(conv, tor) : '';
+  const aviso  = document.getElementById('aviso-empresa');
+
+  if (!propia || !emp || emp === propia) {
+    if (aviso) { aviso.style.display = 'none'; aviso.textContent = ''; }
+    autoResidenteConv();
+  } else {
+    if (aviso) {
+      aviso.style.display = 'block';
+      // El nombre de la empresa ya termina en punto («C.A.»): no se le pega otro.
+      aviso.textContent = ('⚠️ Según el cuadro, la ' + tor + ' la ejecuta ' + propia).replace(/\\.$/, '') +
+        '. Escriba el ingeniero residente que encontró en obra.';
+    }
+    // Solo se borra lo que puso el formulario; lo escrito a mano se respeta.
+    const cont = document.getElementById('residentes-container');
+    if (cont) {
+      const puestos = Array.prototype.slice.call(cont.querySelectorAll('.residente-input'))
+        .map(function(i){ return i.value.trim(); }).filter(Boolean);
+      if (!puestos.length || puestos.join(' / ') === _residenteAuto) {
+        cont.innerHTML = '';
+        addResidenteField('');
+        _residenteAuto = '';
+      }
+    }
+  }
+  updateNroInforme();
+}""",
+ """function handleEmpresaChange(){
+  autoResidenteConv();
+  updateNroInforme();
+}""",
+ "104c· la empresa delega en la misma regla, sin duplicarla")
+
+# El aviso ya lo gestiona la regla: handleTorreChange no debe borrarlo a mano.
+s = sustituir(s,
+ "  autoResidenteConv();\n"
+ "  const av = document.getElementById('aviso-empresa');\n"
+ "  if (av) { av.style.display = 'none'; av.textContent = ''; }\n"
+ "  updateNroInforme();\n"
+ "  renderMemoriaTable();\n"
+ "}",
+ "  autoResidenteConv();\n"
+ "  updateNroInforme();\n"
+ "  renderMemoriaTable();\n"
+ "}",
+ "104d· un solo sitio decide el aviso")
+
+# ── 105. Decir por qué el residente se queda en blanco ─────────────────────
+# Caso real al probarlo: se elige PROCODIMA y aparece «ING. LEONARDO TORRES»
+# —es el único que le consta a esa empresa—; se elige la T-14 y el nombre
+# desaparece sin explicación. Es lo correcto: el cuadro da a Leonardo Torres
+# como residente de la T-13 y de la T-14 no dice nada, así que ponerlo ahí
+# sería afirmar algo que la fuente no dice. Pero en pantalla parecía un fallo.
+#
+# Se deja el campo en blanco y se dice qué sí consta, para que el inspector
+# escriba a quien encontró en obra con la información delante. Es `PA-94`, ya
+# preguntada a Gerencia Técnica: si confirman que el residente cubre todas las
+# torres de su empresa, esto se convierte en autocompletado y el aviso sobra.
+s = sustituir(s,
+ "  if (tor && tor !== 'NO_REG') {\n"
+ "    const propia = empresaDeTorre(conv, tor);\n"
+ "    if (!emp || emp === propia) return { valor: residenteDeTorre(conv, tor), nota: '' };",
+ "  if (tor && tor !== 'NO_REG') {\n"
+ "    const propia = empresaDeTorre(conv, tor);\n"
+ "    if (!emp || emp === propia) {\n"
+ "      const deLaTorre = residenteDeTorre(conv, tor);\n"
+ "      if (deLaTorre) return { valor: deLaTorre, nota: '' };\n"
+ "      // La torre no trae residente. Si a su empresa le consta alguno, se dice\n"
+ "      // cuál —sin ponerlo—, para no afirmar lo que la fuente no dice.\n"
+ "      const otros = residentesDeEmpresa(conv, propia || emp);\n"
+ "      if (otros.length) {\n"
+ "        return { valor: '', nota: 'El cuadro no dice quién es el residente de la ' + tor +\n"
+ "          '. En otras torres de ' + String(propia || emp) + ' figura ' +\n"
+ "          otros.join(' y ') + '. Escriba el que encontró en obra.' };\n"
+ "      }\n"
+ "      return { valor: '', nota: '' };\n"
+ "    }",
+ "105· decir qué consta cuando la torre no trae residente")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
