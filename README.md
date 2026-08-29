@@ -37,14 +37,30 @@ informe** — sirve para dejar teléfonos listos en la oficina sin inventar info
 > **La clave nunca va dentro de este repositorio**, que es público. Si se filtra, se cambia en las
 > propiedades del script del relevo y se reenvía el enlace de configuración.
 
+## Lo primero que se ve: con qué rol se llena
+
+Al abrir, antes del formulario, se elige el rol. La elección se recuerda en ese teléfono y se cambia con
+el botón **Cambiar** de la barra superior.
+
+| Rol | Qué hace |
+| --- | --- |
+| 👷 **Inspector** | Registra en obra la **cantidad ejecutada** de cada subpartida. **No ve la cantidad proyectada** — la meta— para no medir contra ella |
+| 📊 **Gerencia de Planificación** | Además ve y carga la **cantidad proyectada**, que es contra la que se calcula el avance |
+
+**En el PDF salen siempre las dos.** El rol decide quién llena el dato, no qué lleva el documento: sin la
+proyectada, quien lee el informe no puede comprobar de dónde sale el porcentaje.
+
 ## El recorrido de una torre
 
 **Un informe = un apartamento, una fecha, un inspector.** Seis apartamentos del piso 3 son seis informes.
 
 De los nueve campos del encabezado, **siete se repiten** en todo el recorrido. Por eso el botón
-**➡️ Siguiente apto.**: cierra el informe actual con su propia ficha, conserva fecha, convenio, empresa,
-torre, piso, residente, inspector y estatus, y limpia solo el número de apartamento, las observaciones y
-la evaluación.
+**➡️ Guardar y siguiente**: cierra el informe actual con su propia ficha, conserva fecha, convenio,
+empresa, torre, piso, residente, inspector y estatus, y limpia solo el número de apartamento, las
+observaciones y la evaluación.
+
+Para empezar de cero —otra torre, o simplemente rehacerlo— está **🧹 Limpiar todo**, que vacía el
+formulario entero. **Los informes ya guardados no se tocan.**
 
 > **Cambiar de apartamento ya no pisa el informe anterior.** Un borrador pertenece a su número: si el
 > número cambia y el informe anterior tenía contenido, el anterior se conserva y el nuevo abre su propia
@@ -52,8 +68,8 @@ la evaluación.
 > entre apartamentos y el borrador es lo único que existe.
 
 Para lo de **toda la torre** —estructura, ascensores, áreas comunes— se cambia el ámbito a 🏢 Torre:
-desaparecen piso y apartamento, y el número sale `EZ-T05-TORRE-…`. **Los once hitos se muestran igual**:
-el ámbito decide qué identifica al informe, no qué se puede evaluar.
+desaparecen piso y apartamento, y el número pierde el bloque de vivienda: `EZ-T05-260828-CF`. **Los once
+hitos se muestran igual**: el ámbito decide qué identifica al informe, no qué se puede evaluar.
 
 Al volver con señal, **📤 Enviar todos los pendientes** manda de una vez los que falten. La lista de
 guardados marca cada uno como **✅ Enviado** o **⏳ Sin enviar**, y avisa antes de reenviar algo que ya se
@@ -61,9 +77,15 @@ fue, para no crear copias `-r2` en Drive.
 
 ## Cómo se usa en campo
 
-1. Abrir el enlace **una vez con señal**. El teléfono se guarda una copia.
+1. Abrir el enlace **una vez con señal**. El teléfono se guarda una copia y ya queda con la versión
+   publicada.
 2. *Agregar a pantalla de inicio* — queda con ícono, como una aplicación.
 3. De ahí en adelante abre **sin señal**, indefinidamente.
+
+> ⚠️ **Al publicar una versión nueva, un teléfono que YA tenga el formulario necesita abrirlo dos veces.**
+> Sirve primero la copia guardada y se trae la nueva por detrás: la primera apertura todavía muestra la
+> anterior, la segunda ya es la nueva. **Un teléfono que nunca lo ha abierto recibe la última a la
+> primera** — comprobado.
 4. Llenar el informe. Sin señal se queda guardado en el teléfono.
 5. Al volver con cobertura, **📤 Enviar**: el relevo lo archiva solo en Drive —el PDF, los datos y las
    fotografías, en la carpeta de su torre—.
@@ -83,6 +105,10 @@ EZ-T05-P03A04-260828-CF
 │   └───────────────────── torre
 └───────────────────────── sector (EZ · SR · SB)
 ```
+
+En el informe de **torre completa** el bloque de piso y apartamento **desaparece** —`EZ-T05-260828-CF`—:
+la torre ya está en el bloque anterior y repetirla no añadía nada. Sigue siendo inequívoco, porque la
+distinción es estructural: con bloque `P##A##` es de una vivienda; sin él, de la torre entera.
 
 Se compone solo, con lo que ya se llenó. **No depende de un contador**, que era el defecto
 anterior: el contador vivía en cada teléfono por separado y dos inspectores generaban el mismo
@@ -140,7 +166,7 @@ diferencia entre **avance declarado y avance verificado**, y de ahí sale la fó
 | Ámbito | Hitos que muestra | Piso y apartamento | Identificador |
 | --- | --- | --- | --- |
 | 🚪 **Apartamento** | los **once** | obligatorios | `EZ-T05-P03A04-…` |
-| 🏢 **Torre completa** | los **once** | no aplican | `EZ-T05-TORRE-…` |
+| 🏢 **Torre completa** | los **once** | no aplican | `EZ-T05-260828-CF` |
 
 **El ámbito no recorta la lista.** Decide si el informe es de una vivienda o de la torre entera —y con eso,
 si se piden piso y apartamento y cómo sale el número—, pero **los once hitos y las cincuenta subpartidas
@@ -174,6 +200,8 @@ número **no debe sostener nada financiero**.
 | **Indicador de conexión** | El inspector sabe si «Enviar» va a funcionar antes de tocarlo |
 | **La cámara, no la galería** | `capture="environment"` — un atributo, diez personas todos los días |
 | **Seis fotografías por hito** | Tres se quedaban cortas para una patología. Se reducen solas al entrar: una imagen lisa queda en ~22 KB, y una con textura densa —cabillas, bloque, encofrado— llega a ~460 KB |
+| **El residente sale de la torre** | El cuadro de Gerencia Técnica da residentes **distintos para torres de una misma contratista**. Elegir la torre pone el suyo; elegir solo la empresa lo pone **si a esa empresa le consta uno solo** —13 de las 18—, y si tiene varios avisa de que hay que elegir torre. Donde la fuente no dice nada, el campo queda en blanco y se explica qué sí consta: no se inventa un nombre en un documento que se firma |
+| **Los hitos abren plegados** | Desplegados, el formulario mide 21 pantallas de teléfono; plegados, 5. Y plegados, los once con su porcentaje al lado son una lista de verificación: un guion dice «sin tocar» |
 | **Leyenda de B / R / M** | No estaba escrita en ninguna parte. Diez inspectores calificando con criterios distintos alimentan la misma escala |
 
 ## Qué se corrigió respecto del original
