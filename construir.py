@@ -4270,6 +4270,16 @@ s = sustituir(s,
  """<span class="saved-item-title">${_txt(item.nro || 'Sin Correlativo')}${item.formType === 'hitos' ? ' (Hitos)' : ''}</span>""",
  "98d· «(Detallado)» sale del nombre: es el estándar, no distingue nada")
 
+# ── 99. El destello naranja del ámbito al cargar ───────────────────────────
+# El botón «Apartamento» llevaba su estado activo escrito en el atributo style,
+# en naranja. `setAmbito` lo repinta de azul al arrancar, pero entre el primer
+# pintado y esa llamada se ve un destello del color viejo. Se corrige en el
+# origen para que no exista ni un fotograma.
+s = sustituir(s,
+ 'style="padding:10px 16px;border:2px solid #a63d00;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:#a63d00;color:#fff">🚪 Apartamento</button>',
+ 'style="padding:10px 16px;border:2px solid var(--blue);border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:var(--blue);color:#fff">🚪 Apartamento</button>',
+ "99· sin destello naranja al cargar")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
