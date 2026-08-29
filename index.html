@@ -135,7 +135,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
    distinguirse del fondo sin que haya que adivinarlo. */
 .hbtn-save{background:#fff;color:#1a237e;border-color:#fff}
 .hbtn-nuevo{background:#1565c0;color:#fff;border-color:#64b5f6}
-.hbtn-send{background:#2e7d32;color:#fff;border-color:#66bb6a}
+/* El verde queda como color de «enviar», pero en reposo va claro: con varios
+   informes guardados había cinco botones verdes sólidos compitiendo. */
+.hbtn-send{background:#e8f5e9;color:#1b5e20;border-color:#66bb6a}
+.hbtn-send:hover,.hbtn-send:active{background:#2e7d32;color:#fff;border-color:#2e7d32}
 .hbtn-nuevo2{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}
 .hbtn-saved-list{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}
 .hbtn-pdf{background:#eceff1;color:#37474f;border-color:#cfd8dc}
@@ -320,8 +323,10 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .saved-item-actions { display: flex; gap: 6px; }
 .s-btn { border: none; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; cursor: pointer; }
 .s-btn-load { background: var(--blue-l); color: var(--blue); }
-.s-btn-send { background: var(--green); color: #fff; }
-.s-btn-del { background: #ffebee; color: var(--red); }
+.s-btn-send{background:var(--green-l);color:#1b5e20;border:1.5px solid #66bb6a;font-weight:700}
+.s-btn-send:hover,.s-btn-send:active{background:var(--green);color:#fff;border-color:var(--green)}
+.s-btn-del{background:#fdecea;color:#b71c1c;border:1.5px solid #e57373;min-height:44px;font-weight:700}
+.s-btn-del:hover,.s-btn-del:active{background:#c62828;color:#fff;border-color:#c62828}
 
 /* TOAST */
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(80px);background:#323338;color:#fff;padding:11px 18px;border-radius:10px;font-size:12px;font-weight:700;opacity:0;transition:all .35s;z-index:999;pointer-events:none;white-space:nowrap}
@@ -434,7 +439,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   .saved-item{ flex-wrap:wrap; gap:8px; }
   .saved-item-actions{ width:100%; gap:10px; }
   .s-btn{ min-height:44px; font-size:12.5px; padding:8px 12px; flex:1 1 auto; }
-  .s-btn-del{ flex:0 0 56px; margin-left:26px; }
+  .s-btn-del{ flex:0 0 auto; padding:8px 16px; margin-left:20px; }
 }
 
 @media print{
@@ -745,7 +750,7 @@ body.ocultar-proyectada td.col-proyectada{display:none!important}
   </div>
 </div>
 <div id="mode-bar" style="background:#fff;padding:10px 22px;display:flex;align-items:center;gap:10px;border-bottom:3px solid var(--blue-l);flex-wrap:wrap">
-  <span id="mode-badge" style="padding:4px 12px;border-radius:12px;font-size:11.5px;font-weight:700;background:#fff3e0;color:#8f4b00;border:1px solid #e6a860"></span>
+  <span id="mode-badge" style="padding:4px 12px;border-radius:12px;font-size:11.5px;font-weight:700;background:var(--blue-l);color:var(--blue);border:1px solid #c5cae9"></span>
   <button id="btn-cambiar-rol" onclick="abrirEleccionDeRol()" style="min-height:32px;padding:4px 12px;border:1.5px solid #c9cdd6;border-radius:16px;font-size:11.5px;font-weight:700;cursor:pointer;background:#fff;color:#37474f">Cambiar</button>
 </div>
 
@@ -1213,8 +1218,9 @@ function setAmbito(a){
   const esTorre = (ambito === 'torre');
 
   const base = 'padding:10px 16px;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;';
-  const on  = base + 'border:2px solid #a63d00;background:#a63d00;color:#fff';
-  const off = base + 'border:2px solid #c9cdd6;background:#fff;color:#37474f';
+  // Mismo azul que el estatus: una sola familia de color en todo el formulario.
+  const on  = base + 'border:2px solid var(--blue);background:var(--blue);color:#fff';
+  const off = base + 'border:2px solid #c5cae9;background:#fff;color:var(--blue)';
   const bA = document.getElementById('btnAmbApto'), bT = document.getElementById('btnAmbTorre');
   if(bA) bA.style.cssText = esTorre ? off : on;
   if(bT) bT.style.cssText = esTorre ? on  : off;
@@ -1936,7 +1942,7 @@ function setModeUI(mode) {
   const badge = document.getElementById('mode-badge');
   if (mode === 'inspector') {
     if (badge) {
-      badge.style.background = '#fff3e0'; badge.style.color = '#8f4b00'; badge.style.borderColor = '#e6a860';
+      badge.style.background = 'var(--blue-l)'; badge.style.color = 'var(--blue)'; badge.style.borderColor = '#c5cae9';
       badge.textContent = '👷 Inspector — registra la cantidad ejecutada';
     }
     document.body.classList.add('ocultar-proyectada');
@@ -2609,7 +2615,7 @@ function renderSavedList() {
   container.innerHTML = list.map((item, index) => `
     <div class="saved-item">
       <div class="saved-item-info">
-        <span class="saved-item-title">${_txt(item.nro || 'Sin Correlativo')} (${item.formType === 'hitos' ? 'Hitos' : 'Detallado'})</span>
+        <span class="saved-item-title">${_txt(item.nro || 'Sin Correlativo')}${item.formType === 'hitos' ? ' (Hitos)' : ''}</span>
         <span class="saved-item-sub">📍 Torre: ${_txt(item.torre || '—')} | Apto: ${_txt(item.apto || '—')}</span>
         <span class="saved-item-sub">📅 Guardado: ${_txt(item.timestamp)}</span>
         <span class="saved-item-sub" style="color:${item.enviado ? '#1b5e20' : '#8f4b00'};font-weight:700">${item.enviado ? '✅ Enviado ' + _txt(item.enviado) : '⏳ Sin enviar'}</span>
@@ -2617,7 +2623,7 @@ function renderSavedList() {
       <div class="saved-item-actions">
         <button class="s-btn s-btn-load" onclick="loadDraftData(${index})">📂 Cargar para Editar</button>
         <button class="s-btn s-btn-send" onclick="sendSavedDirect(${index})">📤 Enviar</button>
-        <button class="s-btn s-btn-del" onclick="deleteSavedReport(${index})">🗑️</button>
+        <button class="s-btn s-btn-del" onclick="deleteSavedReport(${index})">🗑️ Borrar</button>
       </div>
     </div>
   `).join('');

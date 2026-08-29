@@ -4193,6 +4193,83 @@ s = sustituir(s,
  "}",
  "97c· planificación: se quita")
 
+# ── 98. Coherencia de color, y hacer visible el botón de borrar ────────────
+#
+# 98a · BORRAR PARECÍA NO EXISTIR. El botón es un 🗑️ solo, sobre un fondo casi
+#   blanco (#ffebee). Un emoji se pinta con sus propios colores y NO obedece al
+#   `color` de la regla, así que a ese tamaño se leía como una casilla vacía —
+#   hasta el punto de que al revisarlo se preguntó si se podía borrar—. Pasa a
+#   llevar la palabra, borde rojo de verdad y 44 px de alto.
+#
+# 98b · EL VERDE GRITABA CUATRO VECES. Con tres informes guardados había cinco
+#   botones verdes sólidos a la vez. El verde se queda como color de «enviar»,
+#   pero en reposo va claro —fondo #e8f5e9, texto #1b5e20, borde verde— y se
+#   pone sólido al pulsarlo. Se conserva sólido «Enviar todos los pendientes»,
+#   que es la acción principal del cuadro: así queda un único foco verde en
+#   pantalla en vez de cinco.
+#
+# 98c · LOS ÚLTIMOS NARANJAS PASAN A LA ESCALA DE AZULES. Quedaban dos sitios:
+#   el selector de ámbito (#a63d00) y la insignia del rol (#fff3e0/#e6a860). Se
+#   alinean con lo que ya usan el estatus y «Mis informes» —#1a237e sobre
+#   blanco, y #e8eaf6 con borde #c5cae9—. El naranja se conserva SOLO donde
+#   significa algo: la cantidad faltante.
+#
+# 98d · «(Detallado)» sale del nombre del informe guardado: es el estándar
+#   desde ADR-0018, así que no distingue nada. Se conserva «(Hitos)», que sí.
+
+s = sustituir(s,
+ ".s-btn-del { background: #ffebee; color: var(--red); }",
+ ".s-btn-del{background:#fdecea;color:#b71c1c;border:1.5px solid #e57373;min-height:44px;font-weight:700}\n"
+ ".s-btn-del:hover,.s-btn-del:active{background:#c62828;color:#fff;border-color:#c62828}",
+ "98a· el botón de borrar se ve y se puede tocar")
+
+s = sustituir(s,
+ '<button class="s-btn s-btn-del" onclick="deleteSavedReport(${index})">🗑️</button>',
+ '<button class="s-btn s-btn-del" onclick="deleteSavedReport(${index})">🗑️ Borrar</button>',
+ "98a2· y dice lo que hace, en vez de solo el icono")
+
+s = sustituir(s,
+ "  .s-btn-del{ flex:0 0 56px; margin-left:26px; }",
+ "  .s-btn-del{ flex:0 0 auto; padding:8px 16px; margin-left:20px; }",
+ "98a3· en el teléfono le cabe la palabra")
+
+s = sustituir(s,
+ ".hbtn-send{background:#2e7d32;color:#fff;border-color:#66bb6a}",
+ "/* El verde queda como color de «enviar», pero en reposo va claro: con varios\n"
+ "   informes guardados había cinco botones verdes sólidos compitiendo. */\n"
+ ".hbtn-send{background:#e8f5e9;color:#1b5e20;border-color:#66bb6a}\n"
+ ".hbtn-send:hover,.hbtn-send:active{background:#2e7d32;color:#fff;border-color:#2e7d32}",
+ "98b· el «Enviar» de la cabecera, claro en reposo")
+
+s = sustituir(s,
+ ".s-btn-send { background: var(--green); color: #fff; }",
+ ".s-btn-send{background:var(--green-l);color:#1b5e20;border:1.5px solid #66bb6a;font-weight:700}\n"
+ ".s-btn-send:hover,.s-btn-send:active{background:var(--green);color:#fff;border-color:var(--green)}",
+ "98b2· y el de cada informe de la lista")
+
+s = sustituir(s,
+ "  const on  = base + 'border:2px solid #a63d00;background:#a63d00;color:#fff';\n"
+ "  const off = base + 'border:2px solid #c9cdd6;background:#fff;color:#37474f';",
+ "  // Mismo azul que el estatus: una sola familia de color en todo el formulario.\n"
+ "  const on  = base + 'border:2px solid var(--blue);background:var(--blue);color:#fff';\n"
+ "  const off = base + 'border:2px solid #c5cae9;background:#fff;color:var(--blue)';",
+ "98c· el selector de ámbito entra en la escala de azules")
+
+s = sustituir(s,
+ "      badge.style.background = '#fff3e0'; badge.style.color = '#8f4b00'; badge.style.borderColor = '#e6a860';",
+ "      badge.style.background = 'var(--blue-l)'; badge.style.color = 'var(--blue)'; badge.style.borderColor = '#c5cae9';",
+ "98c2· la insignia del rol, también")
+
+s = sustituir(s,
+ """<span id="mode-badge" style="padding:4px 12px;border-radius:12px;font-size:11.5px;font-weight:700;background:#fff3e0;color:#8f4b00;border:1px solid #e6a860"></span>""",
+ """<span id="mode-badge" style="padding:4px 12px;border-radius:12px;font-size:11.5px;font-weight:700;background:var(--blue-l);color:var(--blue);border:1px solid #c5cae9"></span>""",
+ "98c3· y su estado inicial")
+
+s = sustituir(s,
+ """<span class="saved-item-title">${_txt(item.nro || 'Sin Correlativo')} (${item.formType === 'hitos' ? 'Hitos' : 'Detallado'})</span>""",
+ """<span class="saved-item-title">${_txt(item.nro || 'Sin Correlativo')}${item.formType === 'hitos' ? ' (Hitos)' : ''}</span>""",
+ "98d· «(Detallado)» sale del nombre: es el estándar, no distingue nada")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
