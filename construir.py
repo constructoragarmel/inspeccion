@@ -4280,6 +4280,143 @@ s = sustituir(s,
  'style="padding:10px 16px;border:2px solid var(--blue);border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:var(--blue);color:#fff">🚪 Apartamento</button>',
  "99· sin destello naranja al cargar")
 
+# ── 100. «Cargar para Editar» se parte en tres líneas ──────────────────────
+# En el teléfono la etiqueta se rompía en tres renglones y era lo que apretaba
+# la fila de tres botones. «Editar» dice lo mismo: al lado están «Enviar» y
+# «Borrar», y el verbo solo basta.
+s = sustituir(s,
+ '>📂 Cargar para Editar</button>',
+ '>📂 Editar</button>',
+ "100· «Editar», que cabe en una línea")
+
+# ── 101. Abrir un borrador viejo dejaba el instrumento en el otro modo ─────
+# Encontrado en QC. Un borrador guardado con la versión anterior lleva
+# `formType: 'hitos'`, y `loadDraftData` lo aplica al instrumento entero. Hasta
+# ahí es correcto: hay que verlo como se llenó. El problema es que NO VUELVE —
+# ni «Informe en blanco» ni «Guardar y siguiente» restauran el modo—, así que
+# el inspector abre un informe de agosto y **todo lo que llene el resto del día
+# va en el modo por hitos**, que es el que ADR-0018 descartó por producir
+# avance declarado en vez de verificado.
+#
+# Se recuerda el modo con el que se entró y se restaura al empezar un informe
+# nuevo. Abrir el viejo sigue mostrándolo tal cual se llenó.
+s = sustituir(s,
+ "function startApp(tipo = 'detallado') {\n"
+ "  formType = tipo;",
+ "// El modo con el que se entró. Abrir un borrador de otra versión lo cambia\n"
+ "// para poder verlo como se llenó, y al empezar uno nuevo se vuelve a este.\n"
+ "let _modoDeSesion = 'detallado';\n"
+ "\n"
+ "function startApp(tipo = 'detallado') {\n"
+ "  formType = tipo;\n"
+ "  _modoDeSesion = tipo;",
+ "101a· se recuerda el modo con el que se abrió")
+
+s = sustituir(s,
+ "function nuevoFormulario() {\n"
+ "  if(!confirm('¿Desea iniciar un nuevo informe? Se limpiarán los campos actuales.')) return;\n"
+ "  currentEditingIndex = null;",
+ "function nuevoFormulario() {\n"
+ "  if(!confirm('¿Desea iniciar un nuevo informe? Se limpiarán los campos actuales.')) return;\n"
+ "  // Un informe nuevo vuelve siempre al modo de la sesión.\n"
+ "  if (formType !== _modoDeSesion) { formType = _modoDeSesion; setupFormTypeUI(); }\n"
+ "  currentEditingIndex = null;",
+ "101b· «Informe en blanco» vuelve al modo de la sesión")
+
+s = sustituir(s,
+ "    currentEditingIndex = null;   // el siguiente informe no pisa al que acaba de cerrarse\n"
+ "    _numeroDelBorrador = null;\n"
+ "    hitosNoInspeccionados = {};",
+ "    currentEditingIndex = null;   // el siguiente informe no pisa al que acaba de cerrarse\n"
+ "    _numeroDelBorrador = null;\n"
+ "    hitosNoInspeccionados = {};\n"
+ "    if (formType !== _modoDeSesion) { formType = _modoDeSesion; setupFormTypeUI(); }",
+ "101c· «Guardar y siguiente», igual")
+
+# ── 102. Dos malos usos que producían un informe equivocado en silencio ────
+#
+# 102a · EL ÁMBITO RESUCITABA EL APARTAMENTO ANTERIOR. Al pasar a ámbito Torre,
+#   piso y apartamento se guardan en `dataset.guardado` y se limpian; al volver
+#   se devuelven. Correcto dentro de un informe. El problema es que ese guardado
+#   NUNCA SE BORRA: después de «Guardar y siguiente», tocar «Torre completa» y
+#   volver **rellena el apartamento del informe anterior**.
+#
+#   En obra: se termina el 7, se pulsa siguiente, se toca el ámbito por error y
+#   vuelve el 7. Si nadie lo nota, el apartamento 8 se archiva con el número del
+#   7 — mismo identificador, mismo nombre de archivo en Drive.
+#
+# 102b · CAMBIAR DE CONVENIO CONSERVABA LA EVALUACIÓN. Al cambiarlo se vacían
+#   torre, empresa y residente —correcto, la lista de torres es otra—, pero las
+#   cantidades medidas se quedan. El informe podía terminar con la cabecera de
+#   un sector y las mediciones de una torre de otro. No se borra nada: se avisa
+#   y se deja decidir, porque volver a medir un apartamento no es una opción.
+
+s = sustituir(s,
+ "    ['apto', 'obs_general', 'obs_sp'].forEach(function(id){\n"
+ "      const el = document.getElementById(id);\n"
+ "      if(el) el.value = '';\n"
+ "    });",
+ "    ['apto', 'obs_general', 'obs_sp'].forEach(function(id){\n"
+ "      const el = document.getElementById(id);\n"
+ "      if(el) el.value = '';\n"
+ "    });\n"
+ "    // Y el respaldo que guarda el selector de ámbito, o el apartamento del\n"
+ "    // informe anterior reaparece al tocar «Torre completa» y volver.\n"
+ "    ['piso','apto'].forEach(function(id){\n"
+ "      const el = document.getElementById(id);\n"
+ "      if(el) delete el.dataset.guardado;\n"
+ "    });",
+ "102a· «Guardar y siguiente» borra también el respaldo del ámbito")
+
+s = sustituir(s,
+ "  document.getElementById('piso').value = '';\n"
+ "  document.getElementById('apto').value = '';",
+ "  document.getElementById('piso').value = '';\n"
+ "  document.getElementById('apto').value = '';\n"
+ "  ['piso','apto'].forEach(function(id){\n"
+ "    const el = document.getElementById(id);\n"
+ "    if(el) delete el.dataset.guardado;\n"
+ "  });",
+ "102a2· «Informe en blanco», igual")
+
+s = sustituir(s,
+ '<select id="convenio" onchange="filtrarPorConvenio()">',
+ '<select id="convenio" onchange="handleConvenioChange(this)">',
+ "102b· el convenio pasa por su propia función")
+
+s = sustituir(s,
+ "function filtrarPorConvenio() {",
+ """// Cambiar de convenio vacía torre, empresa y residente, pero NO las cantidades
+// ya medidas: borrarlas sería tirar el trabajo de un apartamento. Se avisa,
+// porque el informe quedaría con la cabecera de un sector y las mediciones de
+// una torre de otro.
+let _convenioPrevio = '';
+
+function _hayEvaluacion(){
+  if (typeof PARTIDAS === 'undefined') return false;
+  return PARTIDAS.some(function(p){
+    const b = document.getElementById('badge_' + p.id);
+    return b && b.textContent.trim() !== '—';
+  });
+}
+
+function handleConvenioChange(sel){
+  const nuevo = sel.value;
+  if (_convenioPrevio && nuevo && nuevo !== _convenioPrevio && _hayEvaluacion()) {
+    const sigue = confirm('Este informe ya tiene subpartidas medidas.\\n\\n' +
+      'Al cambiar de convenio se vacían torre, empresa y residente, pero las ' +
+      'cantidades medidas se conservan: el informe quedaría con la cabecera de ' +
+      '«' + nuevo + '» y mediciones tomadas en otra torre.\\n\\n' +
+      '¿Cambiar de todos modos?');
+    if (!sigue) { sel.value = _convenioPrevio; return; }
+  }
+  _convenioPrevio = nuevo;
+  filtrarPorConvenio();
+}
+
+function filtrarPorConvenio() {""",
+ "102b2· avisar antes de cambiar de convenio con mediciones hechas")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar

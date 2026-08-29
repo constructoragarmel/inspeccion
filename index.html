@@ -788,7 +788,7 @@ body.ocultar-proyectada td.col-proyectada{display:none!important}
     </div>
     <div class="field">
       <label>Convenio *</label>
-      <select id="convenio" onchange="filtrarPorConvenio()">
+      <select id="convenio" onchange="handleConvenioChange(this)">
         <option value="">— Seleccione —</option>
         <option>Convenio Chinos</option>
         <option>Convenio Rusos</option>
@@ -1306,8 +1306,13 @@ function elegirRol(rol){
 }
 let _appArrancada = false;
 
+// El modo con el que se entró. Abrir un borrador de otra versión lo cambia
+// para poder verlo como se llenó, y al empezar uno nuevo se vuelve a este.
+let _modoDeSesion = 'detallado';
+
 function startApp(tipo = 'detallado') {
   formType = tipo;
+  _modoDeSesion = tipo;
   const welcome = document.getElementById('welcome-screen');
   if (welcome) {
     welcome.classList.add('hidden');
@@ -1780,6 +1785,34 @@ function updateDocInfo(){
   document.getElementById('doc-fecha').textContent = document.getElementById('fecha').value || '—';
   updateNroInforme();
   renderMemoriaTable();
+}
+
+// Cambiar de convenio vacía torre, empresa y residente, pero NO las cantidades
+// ya medidas: borrarlas sería tirar el trabajo de un apartamento. Se avisa,
+// porque el informe quedaría con la cabecera de un sector y las mediciones de
+// una torre de otro.
+let _convenioPrevio = '';
+
+function _hayEvaluacion(){
+  if (typeof PARTIDAS === 'undefined') return false;
+  return PARTIDAS.some(function(p){
+    const b = document.getElementById('badge_' + p.id);
+    return b && b.textContent.trim() !== '—';
+  });
+}
+
+function handleConvenioChange(sel){
+  const nuevo = sel.value;
+  if (_convenioPrevio && nuevo && nuevo !== _convenioPrevio && _hayEvaluacion()) {
+    const sigue = confirm('Este informe ya tiene subpartidas medidas.\n\n' +
+      'Al cambiar de convenio se vacían torre, empresa y residente, pero las ' +
+      'cantidades medidas se conservan: el informe quedaría con la cabecera de ' +
+      '«' + nuevo + '» y mediciones tomadas en otra torre.\n\n' +
+      '¿Cambiar de todos modos?');
+    if (!sigue) { sel.value = _convenioPrevio; return; }
+  }
+  _convenioPrevio = nuevo;
+  filtrarPorConvenio();
 }
 
 function filtrarPorConvenio() {
@@ -2621,7 +2654,7 @@ function renderSavedList() {
         <span class="saved-item-sub" style="color:${item.enviado ? '#1b5e20' : '#8f4b00'};font-weight:700">${item.enviado ? '✅ Enviado ' + _txt(item.enviado) : '⏳ Sin enviar'}</span>
       </div>
       <div class="saved-item-actions">
-        <button class="s-btn s-btn-load" onclick="loadDraftData(${index})">📂 Cargar para Editar</button>
+        <button class="s-btn s-btn-load" onclick="loadDraftData(${index})">📂 Editar</button>
         <button class="s-btn s-btn-send" onclick="sendSavedDirect(${index})">📤 Enviar</button>
         <button class="s-btn s-btn-del" onclick="deleteSavedReport(${index})">🗑️ Borrar</button>
       </div>
@@ -2802,6 +2835,8 @@ function siguienteApartamento(){
 
 function nuevoFormulario() {
   if(!confirm('¿Desea iniciar un nuevo informe? Se limpiarán los campos actuales.')) return;
+  // Un informe nuevo vuelve siempre al modo de la sesión.
+  if (formType !== _modoDeSesion) { formType = _modoDeSesion; setupFormTypeUI(); }
   currentEditingIndex = null;
   _idEnEdicion = null;
   document.getElementById('fecha').value = '';
@@ -2810,6 +2845,10 @@ function nuevoFormulario() {
   document.getElementById('torre').value = '';
   document.getElementById('piso').value = '';
   document.getElementById('apto').value = '';
+  ['piso','apto'].forEach(function(id){
+    const el = document.getElementById(id);
+    if(el) delete el.dataset.guardado;
+  });
   document.getElementById('obs_sp').value = '';
   document.getElementById('obs_general').value = '';
   document.getElementById('residentes-container').innerHTML = '';
@@ -2835,9 +2874,16 @@ function finalizarInforme() {
     currentEditingIndex = null;   // el siguiente informe no pisa al que acaba de cerrarse
     _numeroDelBorrador = null;
     hitosNoInspeccionados = {};
+    if (formType !== _modoDeSesion) { formType = _modoDeSesion; setupFormTypeUI(); }
     ['apto', 'obs_general', 'obs_sp'].forEach(function(id){
       const el = document.getElementById(id);
       if(el) el.value = '';
+    });
+    // Y el respaldo que guarda el selector de ámbito, o el apartamento del
+    // informe anterior reaparece al tocar «Torre completa» y volver.
+    ['piso','apto'].forEach(function(id){
+      const el = document.getElementById(id);
+      if(el) delete el.dataset.guardado;
     });
     initAppContent();             // redibuja los hitos vacíos, igual que «Siguiente apto.»
     updateDocInfo();
