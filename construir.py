@@ -4417,6 +4417,66 @@ function handleConvenioChange(sel){
 function filtrarPorConvenio() {""",
  "102b2· avisar antes de cambiar de convenio con mediciones hechas")
 
+# ── 103. La marca de «enviado» estaba en el botón equivocado ───────────────
+# Encontrado en QC, y son dos caras del mismo error de copiado.
+#
+# 103a · «📤 Enviar» NO marcaba el informe como enviado. `enviarAlRelevo`
+#   guarda la clave, escribe «✅ Archivado en Drive» y cierra la ventana, pero
+#   nunca llama a `_marcarComoEnviado`. El informe sigue contando como
+#   pendiente: al final del día «Enviar todos los pendientes» lo manda otra vez
+#   y el relevo lo archiva como `-r2`. Duplicado en Drive por cada informe que
+#   se envíe de uno en uno.
+#
+# 103b · «🔑 Probar clave» SÍ marcaba. `probarClave` llamaba a
+#   `_marcarComoEnviado(datos.nro)`, y `datos` ni siquiera existe en esa
+#   función. Dos consecuencias:
+#     · lanza `ReferenceError: datos is not defined`, que cae en el catch, así
+#       que **con la clave correcta el botón dice que falló** — comprobado:
+#       «❌ No se pudo comprobar: datos is not defined». La clave sí se guarda,
+#       pero quien esté configurando teléfonos en la oficina creerá que no.
+#     · y de haber funcionado habría sido peor: marcaría como enviado un
+#       informe que nadie mandó, y «Enviar todos los pendientes» lo saltaría
+#       para siempre. Ese informe se perdería sin que nadie se entere.
+#
+#   Probar la clave no tiene nada que ver con enviar un informe. Se retira.
+
+s = sustituir(s,
+ "      localStorage.setItem('garmel_clave_envio', clave);\n"
+ "      refrescarEstadoClave();\n"
+ "      _marcarComoEnviado(datos.nro);\n"
+ "      logEl.textContent += '✅ Clave correcta. Este teléfono quedó configurado.';",
+ "      localStorage.setItem('garmel_clave_envio', clave);\n"
+ "      refrescarEstadoClave();\n"
+ "      logEl.textContent += '✅ Clave correcta. Este teléfono quedó configurado.';",
+ "103b· probar la clave deja de marcar informes como enviados")
+
+s = sustituir(s,
+ "      localStorage.setItem('garmel_clave_envio', clave);\n"
+ "      refrescarEstadoClave();\n"
+ "      logEl.textContent += '✅ Archivado en Drive\\n' + (res.archivos || []).join('\\n');",
+ "      localStorage.setItem('garmel_clave_envio', clave);\n"
+ "      refrescarEstadoClave();\n"
+ "      // Sin esto el informe sigue contando como pendiente y «Enviar todos»\n"
+ "      // lo manda otra vez: el relevo lo archivaría como -r2.\n"
+ "      _marcarComoEnviado(datos.nro);\n"
+ "      logEl.textContent += '✅ Archivado en Drive\\n' + (res.archivos || []).join('\\n');",
+ "103a· enviar sí marca el informe como enviado")
+
+# ── 103c. Foco visible al navegar con teclado ──────────────────────────────
+# Los botones llevan `outline:none`, así que en el escritorio de oficina —donde
+# se usa el rol de Planificación— no se ve dónde está el foco al tabular. Se
+# devuelve solo para navegación por teclado: `:focus-visible` no se dispara al
+# tocar la pantalla, así que en obra no cambia nada.
+s = sustituir(s,
+ "body.ocultar-proyectada th.col-proyectada,\n",
+ "button:focus-visible,select:focus-visible,input:focus-visible,\n"
+ "textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{\n"
+ "  outline:3px solid #1565c0; outline-offset:2px;\n"
+ "}\n"
+ "\n"
+ "body.ocultar-proyectada th.col-proyectada,\n",
+ "103c· foco visible al navegar con teclado")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar

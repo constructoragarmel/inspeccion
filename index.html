@@ -634,6 +634,11 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 /* El rol Inspector oculta la cantidad proyectada. Va como clase y con
    !important porque la disposición de teléfono fuerza `display:flex
    !important` sobre estas celdas, y un estilo en línea no le gana. */
+button:focus-visible,select:focus-visible,input:focus-visible,
+textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
+  outline:3px solid #1565c0; outline-offset:2px;
+}
+
 body.ocultar-proyectada th.col-proyectada,
 body.ocultar-proyectada td.col-proyectada{display:none!important}
 
@@ -2991,7 +2996,6 @@ async function probarClave(){
     } else {
       localStorage.setItem('garmel_clave_envio', clave);
       refrescarEstadoClave();
-      _marcarComoEnviado(datos.nro);
       logEl.textContent += '✅ Clave correcta. Este teléfono quedó configurado.';
       showToast('✅ Teléfono configurado', 'ok');
     }
@@ -3173,6 +3177,9 @@ async function enviarAlRelevo() {
     if(res.ok){
       localStorage.setItem('garmel_clave_envio', clave);
       refrescarEstadoClave();
+      // Sin esto el informe sigue contando como pendiente y «Enviar todos»
+      // lo manda otra vez: el relevo lo archivaría como -r2.
+      _marcarComoEnviado(datos.nro);
       logEl.textContent += '✅ Archivado en Drive\n' + (res.archivos || []).join('\n');
       showToast('✅ Informe enviado y archivado', 'ok');
       closeSend();
