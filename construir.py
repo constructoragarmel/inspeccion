@@ -4066,7 +4066,7 @@ s = sustituir(s,
 </div>
 <div id="mode-bar" style="background:#fff;padding:10px 22px;display:flex;align-items:center;gap:10px;border-bottom:3px solid var(--blue-l);flex-wrap:wrap">
   <span id="mode-badge" style="padding:4px 12px;border-radius:12px;font-size:11.5px;font-weight:700;background:#fff3e0;color:#8f4b00;border:1px solid #e6a860"></span>
-  <button id="btn-cambiar-rol" onclick="abrirEleccionDeRol()" style="min-height:32px;padding:4px 12px;border:1.5px solid #c9cdd6;border-radius:16px;font-size:11.5px;font-weight:700;cursor:pointer;background:#fff;color:#37474f">Cambiar</button>
+  <button id="btn-cambiar-rol" onclick="abrirEleccionDeRol()" style="min-height:44px;padding:4px 12px;border:1.5px solid #c9cdd6;border-radius:16px;font-size:11.5px;font-weight:700;cursor:pointer;background:#fff;color:#37474f">Cambiar</button>
 </div>""",
  "96a· pantalla de elección de rol, y la barra deja de tener botones de modo")
 
@@ -4704,6 +4704,139 @@ s = sustituir(s,
  "  showToast('🆕 Formulario limpio para nuevo registro', 'ok');",
  "  showToast('🧹 Formulario limpio', 'ok');",
  "106e· y el mensaje de después, igual de directo")
+
+# ── 107. La pantalla del teléfono deja de gastarse en cromo ────────────────
+# Medido en 375×812 antes de esto: la cabecera azul ocupaba el 23 % de la
+# pantalla, la barra de rol el 11 % y el bloque de logos y título otro 22 %.
+# El primer campo que se puede llenar quedaba a 508 px —el 63 % de la primera
+# pantalla es cromo— y el primer hito a 1.741 px, o sea 2,1 pantallas de scroll
+# antes de tocar nada de la inspección.
+
+# 107a · El emblema de Gran Misión Vivienda Venezuela sale de la PANTALLA y se
+#   conserva en el PDF. Es identidad del documento oficial, no una ayuda para
+#   llenarlo. El de Garmel se queda —da contexto de quién inspecciona— pero más
+#   pequeño mientras se llena; en el papel vuelve a su tamaño.
+s = sustituir(s,
+ '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeAAAAE/',
+ '<img class="logo-garmel" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeAAAAE/',
+ "107a· marcar el logo de Garmel")
+
+s = sustituir(s,
+ '<div style="width:1px;height:50px;background:#e0e0e0"></div>\n'
+ '    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAVQAAAGW',
+ '<div class="logo-sep-gmvv" style="width:1px;height:50px;background:#e0e0e0"></div>\n'
+ '    <img class="logo-gmvv" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAVQAAAGW',
+ "107a2· marcar el emblema oficial y su separador")
+
+# 107b · El título se acorta y el subtítulo desaparece: «Gerencia GARMEL ·
+#   Evaluación por Hitos y Subitems» describía la mecánica interna del
+#   instrumento, no el documento.
+s = sustituir(s,
+ '<h2 id="logo-title" style="font-size:16px;font-weight:900;color:var(--blue)">INFORME DE INSPECCIÓN TÉCNICA</h2>\n'
+ '      <p id="logo-sub" style="font-size:10px;color:#5a6672;margin-top:2px">Gerencia GARMEL · Evaluación por Hitos y Subitems</p>',
+ '<h2 id="logo-title" style="font-size:16px;font-weight:900;color:var(--blue)">INFORME DE GERENCIA TÉCNICA DE INSPECCIÓN</h2>',
+ "107b· título nuevo y fuera el subtítulo")
+
+# setupFormTypeUI volvía a escribir esos textos en cada arranque.
+s = sustituir(s,
+ "    if (logoTitle) logoTitle.textContent = 'INFORME DE INSPECCIÓN POR HITOS';\n"
+ "    if (logoSub) logoSub.textContent = 'Gerencia GARMEL · Evaluación Visual y Porcentual';",
+ "    if (logoTitle) logoTitle.textContent = 'INFORME DE GERENCIA TÉCNICA DE INSPECCIÓN';",
+ "107b2· el modo por hitos no reescribe el título")
+
+s = sustituir(s,
+ "    if (logoTitle) logoTitle.textContent = 'INFORME DE INSPECCIÓN TÉCNICA';\n"
+ "    if (logoSub) logoSub.textContent = 'Gerencia GARMEL · Evaluación por Hitos y Subitems';",
+ "    if (logoTitle) logoTitle.textContent = 'INFORME DE GERENCIA TÉCNICA DE INSPECCIÓN';",
+ "107b3· ni el detallado")
+
+s = sustituir(s,
+ "  const logoSub = document.getElementById('logo-sub');\n",
+ "",
+ "107b4· y se retira la variable que ya no apunta a nada")
+
+# 107c · Los hitos abren plegados TAMBIÉN en escritorio. Desplegados el
+#   formulario mide 20,9 pantallas; plegados, 4,9. Y plegados los once con su
+#   porcentaje al lado son una lista de verificación: un guion dice «sin tocar».
+#   Además, que el escritorio y el teléfono se comporten igual evita que un
+#   defecto se esconda en el que no se prueba.
+s = sustituir(s,
+ "  try{\n"
+ "    if(window.matchMedia &&\n"
+ "       window.matchMedia('(max-width: 700px), (pointer: coarse)').matches){\n"
+ "      document.querySelectorAll('.partida').forEach(function(p){ p.classList.add('collapsed'); });\n"
+ "    }\n"
+ "  } catch(e) { /* sin matchMedia se deja desplegado */ }",
+ "  document.querySelectorAll('.partida').forEach(function(p){ p.classList.add('collapsed'); });",
+ "107c· los hitos abren plegados en cualquier pantalla")
+
+# 107d · Los controles que quedaban por debajo de 44 px. Los cinco de «Estatus
+#   de la obra» medían 25 px de alto y son campo obligatorio; los de agregar
+#   residente e inspector, 27; los de quitar, 30; los organismos, 32.
+s = sustituir(s,
+ ".btn-remove-item{background:#ffebee;color:var(--red);border:1px solid #ffcdd2;border-radius:6px;width:30px;height:30px;",
+ ".btn-remove-item{background:#ffebee;color:var(--red);border:1px solid #ffcdd2;border-radius:6px;width:44px;height:44px;",
+ "107d· el botón de quitar, a 44 px")
+
+s = sustituir(s,
+ ".btn-add-item{background:var(--blue-l);color:var(--blue);border:1px solid #c5cae9;border-radius:6px;padding:5px 10px;",
+ ".btn-add-item{background:var(--blue-l);color:var(--blue);border:1px solid #c5cae9;border-radius:6px;min-height:44px;padding:5px 14px;",
+ "107d2· los de agregar, también")
+
+s = sustituir(s,
+ ".ck-lbl{display:flex;align-items:center;gap:5px;background:#f5f7ff;border:1.5px solid #e0e4ff;border-radius:6px;padding:5px 10px;",
+ ".ck-lbl{display:flex;align-items:center;gap:5px;background:#f5f7ff;border:1.5px solid #e0e4ff;border-radius:6px;min-height:44px;padding:5px 12px;",
+ "107d3· el estatus, que es obligatorio")
+
+s = sustituir(s,
+ "  display:inline-flex;align-items:center;padding:7px 14px;\n"
+ "  background:#f5f7ff;border:2px solid #e0e4ff;border-radius:8px;",
+ "  display:inline-flex;align-items:center;min-height:44px;padding:7px 14px;\n"
+ "  background:#f5f7ff;border:2px solid #e0e4ff;border-radius:8px;",
+ "107d4· y los organismos")
+
+# ── 107e/f. El emblema fuera de pantalla, y las acciones al alcance del pulgar
+s = sustituir(s,
+ "button:focus-visible,select:focus-visible,input:focus-visible,\n",
+ "/* El emblema oficial no ayuda a llenar el informe y se lleva 22 % de la\n"
+ "   pantalla del teléfono. Sale del formulario y vuelve en el PDF, que es\n"
+ "   donde es identidad del documento. El de Garmel se queda, más pequeño. */\n"
+ ".logo-gmvv, .logo-sep-gmvv{display:none}\n"
+ ".logo-garmel{max-height:34px;width:auto}\n"
+ "\n"
+ "/* Las cuatro acciones caían en el tercio superior de la pantalla: con una\n"
+ "   sola mano —la otra sostiene linterna, plano o casco— el pulgar no llega.\n"
+ "   En pantalla estrecha bajan al borde inferior, que es la zona cómoda. */\n"
+ "@media (max-width:700px), (pointer:coarse){\n"
+ "  .hdr-btns{\n"
+ "    position:fixed; left:0; right:0; bottom:0; z-index:900;\n"
+ "    background:var(--blue); padding:8px 10px calc(8px + env(safe-area-inset-bottom));\n"
+ "    box-shadow:0 -4px 14px rgba(0,0,0,.28); margin:0;\n"
+ "  }\n"
+ "  /* Y el contenido deja sitio para no quedar debajo de la barra. */\n"
+ "  body{padding-bottom:150px}\n"
+ "  /* El menú «Más» se despliega hacia arriba, no hacia fuera de la pantalla. */\n"
+ "  .hdr-sec{flex-direction:column-reverse}\n"
+ "}\n"
+ "\n"
+ "button:focus-visible,select:focus-visible,input:focus-visible,\n",
+ "107e· el emblema fuera de pantalla y las acciones abajo")
+
+s = sustituir(s,
+ "@media print{\n"
+ "  #welcome-screen{display:none!important}\n",
+ "@media print{\n"
+ "  #welcome-screen{display:none!important}\n"
+ "  /* En el papel vuelven los dos logos, a su tamaño. */\n"
+ "  .logo-gmvv, .logo-sep-gmvv{display:inline-block!important}\n"
+ "  .logo-garmel{max-height:none!important}\n"
+ "  body{padding-bottom:0!important}\n",
+ "107f· en el PDF vuelven los dos logos")
+
+s = sustituir(s,
+ ".add-row-btn{margin:8px 16px 4px;padding:6px 14px;",
+ ".add-row-btn{margin:8px 16px 4px;min-height:44px;padding:6px 16px;",
+ "107d5\u00b7 «Agregar subitem», el \u00faltimo que quedaba bajo 44 px")
 
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
