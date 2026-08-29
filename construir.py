@@ -4838,6 +4838,103 @@ s = sustituir(s,
  ".add-row-btn{margin:8px 16px 4px;min-height:44px;padding:6px 16px;",
  "107d5\u00b7 «Agregar subitem», el \u00faltimo que quedaba bajo 44 px")
 
+# ── 108. El PDF gastaba el ancho en las columnas equivocadas ───────────────
+#
+# 108a · LA CANTIDAD PROYECTADA VOLVÍA A FALTAR EN EL PAPEL. El cambio 97
+#   oculta esa columna con `body.ocultar-proyectada`, y esa regla no distingue
+#   pantalla de impresión: en rol Inspector el PDF salía sin ella. El rol
+#   gobierna quién LLENA el dato, no qué lleva el documento — y sin la
+#   proyectada, quien lee el informe no puede comprobar de dónde sale el
+#   porcentaje. La ocultación pasa a ser solo de pantalla.
+#
+# 108b · REPARTO DEL ANCHO. Estaba en 30 % para la descripción y 56 % repartido
+#   entre cinco columnas numéricas. Resultado medido en el PDF: «Construcción
+#   de paredes exteriores» y «Sanitarias y pluviales — Aguas blancas» partían
+#   en dos renglones mientras sobraba blanco a la derecha. Las columnas de
+#   cifras no necesitan más que un número de dos o tres dígitos.
+#
+#   Pasa a 46 % para la descripción, que es lo que hay que leer, y el resto
+#   ajustado a su contenido. No se aprieta: se le quita ancho a lo que no lo
+#   usa y se le da a lo que sí.
+
+s = sustituir(s,
+ "body.ocultar-proyectada th.col-proyectada,\n"
+ "body.ocultar-proyectada td.col-proyectada{display:none!important}",
+ "/* Solo en PANTALLA. En el papel la cantidad proyectada siempre sale: es la\n"
+ "   mitad de la fórmula del avance, y sin ella el informe no se puede\n"
+ "   comprobar. El rol decide quién la llena, no qué lleva el documento. */\n"
+ "@media screen{\n"
+ "  body.ocultar-proyectada th.col-proyectada,\n"
+ "  body.ocultar-proyectada td.col-proyectada{display:none!important}\n"
+ "}",
+ "108a· la proyectada vuelve al PDF en los dos roles")
+
+s = sustituir(s,
+ "  table col, table td:nth-child(1){width:22px!important}\n"
+ "  table td:nth-child(2){width:30%!important}\n"
+ "  table td:nth-child(3),table td:nth-child(4),table td:nth-child(5){width:10%!important}\n"
+ "  table td:nth-child(6){width:12%!important}\n"
+ "  table td:nth-child(7){width:12%!important}",
+ "  /* El ancho va donde se lee. Antes: 30 % para la descripción y 56 % para\n"
+ "     cinco columnas de cifras, así que los nombres largos partían en dos\n"
+ "     renglones y sobraba blanco a la derecha. */\n"
+ "  table th:nth-child(1),table td:nth-child(1){width:20px!important}\n"
+ "  table th:nth-child(2),table td:nth-child(2){width:46%!important;text-align:left!important}\n"
+ "  table th:nth-child(3),table td:nth-child(3){width:9%!important}\n"
+ "  table th:nth-child(4),table td:nth-child(4){width:9%!important}\n"
+ "  table th:nth-child(5),table td:nth-child(5){width:11%!important}\n"
+ "  table th:nth-child(6),table td:nth-child(6){width:9%!important}\n"
+ "  table th:nth-child(7),table td:nth-child(7){width:10%!important}",
+ "108b· el ancho va a la descripción, no a las cifras")
+
+# Los rellenos laterales se comían ancho en columnas de dos dígitos.
+s = sustituir(s,
+ "  tbody td{\n"
+ "    padding:3px 5px!important;",
+ "  tbody td{\n"
+ "    padding:3px 3px!important;",
+ "108c· menos relleno lateral en las celdas")
+
+s = sustituir(s,
+ "  thead th{\n"
+ "    padding:4px 5px!important;",
+ "  thead th{\n"
+ "    padding:4px 3px!important;",
+ "108c2· y en la cabecera")
+
+# La descripción se leía centrada como las cifras.
+s = sustituir(s,
+ "  td.desc{min-width:0!important;max-width:none!important}",
+ "  td.desc{min-width:0!important;max-width:none!important;text-align:left!important;padding-left:5px!important}",
+ "108d· la descripción alineada a la izquierda, que es como se lee")
+
+# ── 109. «PROYECTAD / A»: el título se partía a mitad de palabra ───────────
+# Los encabezados llevaban `word-break:break-word`, que permite cortar en
+# cualquier letra. Con la columna estrecha, «PROYECTADA» salía partida en dos
+# renglones como «PROYECTAD» y «A». Se pasa a `overflow-wrap`, que solo parte
+# cuando la palabra no cabe de ninguna manera, y se le da a esa columna los
+# dos puntos porcentuales que le faltaban, sacándolos de la descripción —que
+# tras el cambio 108 sobra ancho: la subpartida más larga ya cabe en una línea.
+s = sustituir(s,
+ "    white-space:normal!important;\n"
+ "    word-break:break-word;\n"
+ "  }\n"
+ "  tbody td{",
+ "    white-space:normal!important;\n"
+ "    word-break:normal;\n"
+ "    overflow-wrap:break-word;\n"
+ "    hyphens:none;\n"
+ "  }\n"
+ "  tbody td{",
+ "109a· los títulos no se parten a mitad de palabra")
+
+s = sustituir(s,
+ "  table th:nth-child(2),table td:nth-child(2){width:46%!important;text-align:left!important}\n"
+ "  table th:nth-child(3),table td:nth-child(3){width:9%!important}",
+ "  table th:nth-child(2),table td:nth-child(2){width:44%!important;text-align:left!important}\n"
+ "  table th:nth-child(3),table td:nth-child(3){width:11%!important}",
+ "109b· «Cant. proyectada» necesita dos puntos más")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
