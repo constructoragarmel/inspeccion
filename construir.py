@@ -4655,6 +4655,56 @@ s = sustituir(s,
  "    }",
  "105· decir qué consta cuando la torre no trae residente")
 
+# ── 106. «Limpiar todo», que existía pero no se encontraba ─────────────────
+# Pedido al usarlo: un botón para borrar todo lo llenado y empezar de nuevo.
+# La función ya existía —`nuevoFormulario`, comprobado que limpia ubicación,
+# personal, estatus, organismos, observaciones, evaluación, notas de foto,
+# filas extra, hitos no inspeccionados y las fotografías— pero fallaban las dos
+# cosas que la hacen usable:
+#
+#   · SE LLAMABA «Informe en blanco», que suena a «empezar otro informe», no a
+#     «bórrame lo que acabo de escribir».
+#   · Y ESTABA ESCONDIDA tras el menú «⋯ Más». Medido: 0 × 0 px, display:none.
+#
+# Pasa a llamarse «🧹 Limpiar todo» y sube a la fila visible. Para no añadir
+# altura a una cabecera que ya ocupa el 19 % de la pantalla, baja «💾 Guardar»
+# al menú: es el único botón de la fila que duplica algo que ya ocurre solo
+# —el autoguardado corre a los 2 s de la última tecla y cada 30 s— y su
+# resultado se ve al lado, en el rótulo «guardado hh:mm». «Guardar y siguiente»
+# también guarda, así que no queda ningún camino sin guardado.
+#
+# Y el aviso de confirmación dice qué se borra y qué NO: los informes ya
+# guardados en «Mis informes» no se tocan, que es la duda razonable antes de
+# pulsar un botón que se llama «limpiar todo».
+
+s = sustituir(s,
+ '    <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guarda el informe en este teléfono. También se guarda solo cada 30 segundos">💾 <span>Guardar</span></button>\n',
+ '',
+ "106a· «Guardar» sale de la fila visible")
+
+s = sustituir(s,
+ '      <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Vacía el formulario entero, incluidas torre y empresa. Para empezar en otra torre">🆕 <span>Informe en blanco</span></button>\n',
+ '      <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guarda el informe en este teléfono. Se guarda solo a los 2 segundos de la última tecla y cada 30 segundos">💾 <span>Guardar</span></button>\n',
+ "106b· y baja al menú, donde ya está el resto")
+
+s = sustituir(s,
+ '    <button class="hbtn hbtn-mas" id="btn-mas" onclick="toggleMasAcciones()" title="Resto de las acciones">⋯ <span>Más</span></button>',
+ '    <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Borra todo lo escrito en este informe y deja el formulario en blanco. Los informes ya guardados no se tocan">🧹 <span>Limpiar todo</span></button>\n'
+ '    <button class="hbtn hbtn-mas" id="btn-mas" onclick="toggleMasAcciones()" title="Resto de las acciones">⋯ <span>Más</span></button>',
+ "106c· «Limpiar todo» sube a la fila visible")
+
+s = sustituir(s,
+ "  if(!confirm('¿Desea iniciar un nuevo informe? Se limpiarán los campos actuales.')) return;",
+ "  if(!confirm('\u00bfLimpiar todo este informe?\\n\\nSe borra lo que hay en pantalla: torre, "
+ "apartamento, personal, estatus, evaluaci\u00f3n, observaciones y fotograf\u00edas."
+ "\\n\\nLos informes que ya est\u00e1n en \u00abMis informes\u00bb NO se tocan.')) return;",
+ "106d· el aviso dice qué se borra y qué no")
+
+s = sustituir(s,
+ "  showToast('🆕 Formulario limpio para nuevo registro', 'ok');",
+ "  showToast('🧹 Formulario limpio', 'ok');",
+ "106e· y el mensaje de después, igual de directo")
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar

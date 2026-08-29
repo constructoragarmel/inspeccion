@@ -719,15 +719,15 @@ body.ocultar-proyectada td.col-proyectada{display:none!important}
   <div><h1 id="hdr-title">Informe de Inspección Técnica de Obra</h1><p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>
   <div class="hdr-btns">
     <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Guarda este informe y prepara el del siguiente apartamento, conservando torre, empresa y personal">➡️ <span>Guardar y siguiente</span></button>
-    <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guarda el informe en este teléfono. También se guarda solo cada 30 segundos">💾 <span>Guardar</span></button>
     <button class="hbtn hbtn-send" onclick="openSend()" title="Manda los informes a Drive. Hasta que se envían, viven solo en este teléfono">📤 <span>Enviar</span><b id="cnt-pendientes" style="display:none;margin-left:5px"></b></button>
+    <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Borra todo lo escrito en este informe y deja el formulario en blanco. Los informes ya guardados no se tocan">🧹 <span>Limpiar todo</span></button>
     <button class="hbtn hbtn-mas" id="btn-mas" onclick="toggleMasAcciones()" title="Resto de las acciones">⋯ <span>Más</span></button>
     <span id="estado-guardado" style="font-size:11px;font-weight:700;color:#bcc6e0;align-self:center;margin-left:4px"></span>
     <span id="estado-conexion" style="font-size:11px;font-weight:700;align-self:center;margin-left:8px"></span>
     <div class="hdr-sec" id="hdr-sec">
       <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 <span>Mis informes</span><b id="cnt-guardados" style="display:none;margin-left:5px"></b></button>
       <button class="hbtn hbtn-pdf" onclick="imprimirInforme()" title="Genera el PDF del informe que está en pantalla">🖨️ <span>PDF</span></button>
-      <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Vacía el formulario entero, incluidas torre y empresa. Para empezar en otra torre">🆕 <span>Informe en blanco</span></button>
+      <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guarda el informe en este teléfono. Se guarda solo a los 2 segundos de la última tecla y cada 30 segundos">💾 <span>Guardar</span></button>
       <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" style="display:none" title="Activar modo de prueba — los informes quedan marcados como PRUEBA">🧪 <span>Prueba</span></button>
     </div>
     <!-- «Finalizar» retirado: hacía lo mismo que «Guardar y siguiente» pero sin guardar. -->
@@ -2859,7 +2859,7 @@ function siguienteApartamento(){
 }
 
 function nuevoFormulario() {
-  if(!confirm('¿Desea iniciar un nuevo informe? Se limpiarán los campos actuales.')) return;
+  if(!confirm('¿Limpiar todo este informe?\n\nSe borra lo que hay en pantalla: torre, apartamento, personal, estatus, evaluación, observaciones y fotografías.\n\nLos informes que ya están en «Mis informes» NO se tocan.')) return;
   // Un informe nuevo vuelve siempre al modo de la sesión.
   if (formType !== _modoDeSesion) { formType = _modoDeSesion; setupFormTypeUI(); }
   currentEditingIndex = null;
@@ -2886,7 +2886,7 @@ function nuevoFormulario() {
   _numeroDelBorrador = null;
   initAppContent();
   updateNroInforme();
-  showToast('🆕 Formulario limpio para nuevo registro', 'ok');
+  showToast('🧹 Formulario limpio', 'ok');
 }
 
 function finalizarInforme() {
