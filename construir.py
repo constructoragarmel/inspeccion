@@ -932,11 +932,18 @@ s = s.replace("[0,1,2].map(fi=>", "[0,1,2,3,4,5].map(fi=>")
 s = s.replace("[0,1,2].forEach(fi=>", "[0,1,2,3,4,5].forEach(fi=>")
 cambios.append("21h· seis fotografías por hito en vez de tres")
 
-# 21i · La cámara, no la galería. Un atributo.
-s = sustituir(s,
- """<input type="file" accept="image/*" onchange="loadFoto('${p.id}',${fi},this)">""",
- """<input type="file" accept="image/*" capture="environment" onchange="loadFoto('${p.id}',${fi},this)">""",
- "21i· la foto abre la cámara y no la galería", n=2)
+# 21i · La cámara SIN cerrar la puerta a la galería.
+#
+# Estuvo un tiempo con `capture="environment"`, que fuerza la cámara y nada
+# más. Resolvía el problema de origen —abría la galería por defecto, cuando lo
+# normal es fotografiar en el sitio— pero creaba otro: **no dejaba adjuntar**
+# una foto ya tomada, que es justo lo que hace falta cuando se llena el informe
+# al salir de la torre o desde una computadora. Pedido en campo el 31-ago-2026.
+#
+# Sin el atributo, el teléfono ofrece las tres: cámara, galería y archivos. Es
+# una opción más de toque, no una menos.
+# Por eso aquí no se toca nada: el original ya está bien. Este comentario existe
+# para que nadie vuelva a "arreglarlo" añadiendo el atributo.
 
 # ── 22. «No inspeccionado» y «no aplica» dejan de ser un cero ─────────────
 # Hoy, si el inspector no pudo entrar a un apartamento o la torre no tiene
@@ -5372,6 +5379,49 @@ s = sustituir(s,
  "    el.textContent = '● sin señal — el informe queda guardado aquí';",
  "    el.textContent = '● sin señal · " + VERSION + " — el informe queda guardado aquí';",
  "115b· y también cuando no hay señal")
+
+
+# ── 116. Un desplegable vacío guardaba su lista entera de opciones ─────────
+# `gv()` leía `el.value || el.textContent`. El `||` estaba puesto para
+# `nro-display`, que es un `div` y no tiene `value`. Pero en un `<select>` sin
+# elegir, `el.value` es cadena vacía —falsa—, así que caía al `textContent`… que
+# en un select son TODAS sus opciones pegadas.
+#
+# No es teórico. El 31-ago-2026 el informe de ámbito torre `SB-J07-260831-SG`
+# guardó esto en el piso, y así viajó al `.json`, a la hoja de registro y a
+# Smartsheet:
+#
+#   «— Seleccione —  Planta Baja  Piso 01  Piso 02 … Piso 20»
+#
+# Le pasaba a CUALQUIER desplegable que se enviara vacío —convenio, empresa,
+# piso—, no solo en ámbito torre. Se distingue por lo que el elemento es, no por
+# si su valor está vacío: los controles de formulario tienen `value`, y solo lo
+# que no lo tiene se lee por texto.
+s = sustituir(s,
+ "  function gv(id){ const el=document.getElementById(id); return el ? (el.value||el.textContent||'') : ''; }",
+ "  // Un control de formulario se lee por `value` AUNQUE esté vacío. El texto\n"
+ "  // solo se usa para lo que no es un control —`nro-display` es un div—, o un\n"
+ "  // desplegable sin elegir devolvía su lista entera de opciones.\n"
+ "  function gv(id){\n"
+ "    const el = document.getElementById(id);\n"
+ "    if(!el) return '';\n"
+ "    return ('value' in el) ? (el.value || '') : (el.textContent || '');\n"
+ "  }",
+ "116· un desplegable vacío devuelve vacío, no su lista de opciones")
+
+
+# ── 117. El ingeniero residente deja de ser obligatorio para enviar ────────
+# Pedido el 31-ago-2026. Además corrige una incoherencia del propio sistema:
+# `PA-94` dice que **20 de las 46 torres no tienen residente** en el cuadro de
+# Gerencia Técnica, y por eso el instrumento deja el campo en blanco en vez de
+# heredarlo de la torre vecina. Exigirlo para enviar obligaba a inventar un
+# nombre —en un documento que se firma— o a no enviar el informe.
+#
+# El inspector sigue siendo obligatorio: ese sí forma parte del identificador.
+s = sustituir(s,
+ "  if(typeof getResidentesValues === 'function' && !getResidentesValues().length) falta.push('Ingeniero residente');\n",
+ "",
+ "117· el residente ya no bloquea el envío")
 
 
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──

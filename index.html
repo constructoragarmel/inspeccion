@@ -1217,10 +1217,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v36';
+    el.textContent = '● en línea · v37';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v36 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v37 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2174,7 +2174,7 @@ function initAppContent() {
                 <div class="foto-slot" id="fslot_${p.id}_${fi}">
                   <span>📷<br>Foto ${fi+1}</span>
                   <img id="fimg_${p.id}_${fi}" style="display:none">
-                  <input type="file" accept="image/*" capture="environment" onchange="loadFoto('${p.id}',${fi},this)">
+                  <input type="file" accept="image/*" onchange="loadFoto('${p.id}',${fi},this)">
                   <button class="foto-remove" onclick="removeFoto('${p.id}',${fi})">✕</button>
                 </div>`).join('')}
             </div>
@@ -2261,7 +2261,7 @@ function initAppContent() {
                 <div class="foto-slot" id="fslot_${p.id}_${fi}">
                   <span>📷<br>Foto ${fi+1}</span>
                   <img id="fimg_${p.id}_${fi}" style="display:none">
-                  <input type="file" accept="image/*" capture="environment" onchange="loadFoto('${p.id}',${fi},this)">
+                  <input type="file" accept="image/*" onchange="loadFoto('${p.id}',${fi},this)">
                   <button class="foto-remove" onclick="removeFoto('${p.id}',${fi})">✕</button>
                 </div>`).join('')}
             </div>
@@ -2656,7 +2656,14 @@ function _idDelBorradorEnEdicion(){
 }
 
 function getFormData(){
-  function gv(id){ const el=document.getElementById(id); return el ? (el.value||el.textContent||'') : ''; }
+  // Un control de formulario se lee por `value` AUNQUE esté vacío. El texto
+  // solo se usa para lo que no es un control —`nro-display` es un div—, o un
+  // desplegable sin elegir devolvía su lista entera de opciones.
+  function gv(id){
+    const el = document.getElementById(id);
+    if(!el) return '';
+    return ('value' in el) ? (el.value || '') : (el.textContent || '');
+  }
   const d={
     id: _idDelBorradorEnEdicion(),
     formType: formType,
@@ -3300,7 +3307,6 @@ function camposFaltantes(){
     if(!String(document.getElementById('piso')?.value || '')) falta.push('Piso');
     if(!String(document.getElementById('apto')?.value || '').trim()) falta.push('N° de apartamento');
   }
-  if(typeof getResidentesValues === 'function' && !getResidentesValues().length) falta.push('Ingeniero residente');
   if(typeof getInspectoresValues === 'function' && !getInspectoresValues().length) falta.push('Ingeniero inspector');
   if(!document.querySelectorAll('#estatus .ck-lbl.on').length) falta.push('Estatus de la obra');
   return falta;
