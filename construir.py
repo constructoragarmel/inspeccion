@@ -4994,7 +4994,7 @@ s = sustituir(s,
 s = sustituir(s,
 ".ev-btn.NA{border-color:#bdbdbd}",
 ".ev-btn.B{border-color:#43a047;color:#1b5e20}"
-".ev-btn.R{border-color:#ef6c00;color:#e65100}"
+".ev-btn.R{border-color:#ef6c00;color:#bf360c}"   # 5,6:1 sobre blanco; #e65100 daba 3,8
 ".ev-btn.M{border-color:#e53935;color:#b71c1c}"
 ".ev-btn.NA{border-color:#78909c;color:#37474f}",
  "15a2· cada letra insinúa su color desde antes de pulsarla")
