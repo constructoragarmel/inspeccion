@@ -188,27 +188,45 @@ volver a leer dentro de un año.
 
 > ⚠️ **Está pendiente de ratificación de la Ing. Beatriz Sevilla**, que es quien aprobó el desglose.
 
-### Veintiuna subpartidas no se miden: se responden
+### Veintiuna subpartidas no se miden: se marcan por estado
 
 Los **nueve** de *Instalación de servicios*, los **cuatro** de *Ascensor*, los **cuatro** de *Pruebas* y
 **cuatro** de *Acabados exteriores* —accesos y pasillos, iluminación común, barandas, pasamanos—.
 
 Pedir dos cantidades para «Presión de agua» obliga al inspector a escribir `1` y `1` para decir que se
-hizo. En esas filas hay **dos botones, Sí y No**, y **volver a tocar la misma respuesta la borra**.
+hizo. En esas filas hay **cinco botones** (ADR-0026), y **volver a tocar el mismo estado lo borra**. Por
+debajo siguen siendo las mismas dos cantidades, y por eso no cambió nada aguas abajo:
 
-En los tres hitos que son **enteramente** de sí/no —el 3, el 9 y el 11— la columna se llama **«Ejecutada»**
-y no «Cant. ejecutada», y la de proyectada se queda sin rótulo: ahí no hay ninguna cantidad. El hito 10
-está mezclado —una se mide en m² y cuatro se responden—, así que conserva los encabezados de cantidad.
-
-Por debajo siguen siendo las mismas dos cantidades, y por eso no cambió nada aguas abajo:
-
-| Respuesta | Proyectada | Ejecutada | Avance |
+| Estado | Proyectada | Ejecutada | Avance |
 | --- | --- | --- | --- |
-| **Sí** | 1 | 1 | 100 % |
-| **No** | 1 | 0 | 0 % |
-| **Sin responder** | vacía | vacía | no entra al promedio |
+| **No iniciado** | 100 | 0 | 0 % |
+| **Iniciado** | 100 | 25 | 25 % |
+| **En proceso** | 100 | 50 | 50 % |
+| **Avanzado** | 100 | 75 | 75 % |
+| **Culminado** | 100 | 100 | 100 % |
+| *Sin marcar* | vacía | vacía | no entra al promedio |
 
-`N/A` se conserva, que es lo que distingue **«no aplica»** de **«no se hizo»**.
+**Sin marcar no es lo mismo que «No iniciado»**: lo primero no cuenta para el promedio, lo segundo es un
+0 % que sí cuenta. `N/A` se conserva, que es lo que distingue **«no aplica»** de **«no se ha empezado»**.
+
+**Cómo se ven, según dónde.** En el teléfono, los cinco en dos filas —tres y dos— con la palabra y el
+porcentaje, a 44 px cada uno. En la tabla de escritorio la columna es estrecha: van los cinco porcentajes
+en orden y la palabra queda en el `title`. En el papel va la palabra del estado marcado, porque el número
+ya tiene su propia columna.
+
+En los tres hitos que son **enteramente** de estados —el 3, el 9 y el 11— la columna se llama **«Estado»**
+y la de proyectada se queda sin rótulo: ahí no hay ninguna cantidad. El hito 10 está mezclado —una se mide
+en m² y cuatro se marcan—, así que conserva los encabezados de cantidad.
+
+> Los informes enviados con la escala anterior de Sí/No siguen valiendo: eran 1 de 1 y 0 de 1, o sea 100 %
+> y 0 %, que aquí son *Culminado* y *No iniciado*. Un borrador guardado así **se traduce solo al abrirlo**.
+
+### La planta baja se llama Planta Baja
+
+El desplegable de piso decía «Piso 00», que no lo dice nadie en obra. **El identificador no cambia**: la
+planta baja sigue siendo `P00` —es la parte numérica de ADR-0016, ya está incrustada en nombres de archivo
+de Drive, y así sigue ordenando antes del piso 01—. Un borrador guardado con «Piso 00» se abre en «Planta
+Baja».
 
 ## Lo que protege el trabajo en campo
 

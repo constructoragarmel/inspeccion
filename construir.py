@@ -4914,26 +4914,26 @@ s = sustituir(s,
 #   · 28 subpartidas se miden en m², m³ o pza, y llevan su unidad fija;
 #   · 1 admite DOS unidades —acero de refuerzo, en ml o kg— y se elige en el
 #     momento, porque depende de cómo venga computada la partida;
-#   · 21 NO SE MIDEN POR CANTIDAD: son sí/no. Eso no es una unidad, es otro
-#     tipo de dato, y lo resuelve el cambio 112.
+#   · 21 NO SE MIDEN POR CANTIDAD: se marcan por estado de avance. Eso no es
+#     una unidad, es otro tipo de dato, y lo resuelve el cambio 112.
 #
 # El sitio definitivo del dato es el maestro `MAE_Hitos_Subpartidas`; esta
 # tabla es su copia local, como TORRES.
 import json as _json
 
-UD_SN = "sí/no"                       # no se mide: se responde
+UD_ESTADO = "estado"                  # no se mide: se elige en qué punto va
 UNIDADES = {
     "hito_estructura":     ["m²", ["ml", "kg"], "m³"],
     "hito_cerramientos":   ["m²", "m²", "m²"],
-    "hito_servicios":      [UD_SN] * 9,
+    "hito_servicios":      [UD_ESTADO] * 9,
     "hito_acabados":       ["m²"] * 7,
     "hito_puertas":        ["pza"] * 3,
     "hito_ventanas":       ["pza", "pza"],
     "hito_acc_sanitarios": ["pza"] * 7,
     "hito_acc_electricos": ["pza"] * 4,
-    "hito_ascensor":       [UD_SN] * 4,
-    "hito_exteriores":     ["m²"] + [UD_SN] * 4,
-    "hito_pruebas":        [UD_SN] * 4,
+    "hito_ascensor":       [UD_ESTADO] * 4,
+    "hito_exteriores":     ["m²"] + [UD_ESTADO] * 4,
+    "hito_pruebas":        [UD_ESTADO] * 4,
 }
 
 # Si alguien añade una subpartida y no su unidad, esto falla al construir y no
@@ -4951,18 +4951,18 @@ UNIDADES_JS = (
  "// Fuente: Skarlet Gómez, 31-ago-2026 (`PA-100`). Tres formas:\n"
  "//   'm²'          unidad fija\n"
  "//   ['ml','kg']   dos unidades posibles: la elige quien llena\n"
- "//   UD_SN         no se mide por cantidad, se responde sí o no\n"
+ "//   UD_ESTADO     no se mide por cantidad: se elige en qué punto va\n"
  "// El dato definitivo vive en el maestro MAE_Hitos_Subpartidas.\n"
- "const UD_SN = '%s';\n"
+ "const UD_ESTADO = '%s';\n"
  "const UNIDADES = {\n%s\n};\n"
  "\n"
- "function _esSN(pid, i){ return (UNIDADES[pid] || [])[i] === UD_SN; }\n"
+ "function _esEstado(pid, i){ return (UNIDADES[pid] || [])[i] === UD_ESTADO; }\n"
  "\n"
  "// La unidad va pegada al nombre de la subpartida: es el único sitio que se ve\n"
  "// igual en el teléfono, en el escritorio y en el papel.\n"
  "function _ud(pid, i){\n"
  "  const u = (UNIDADES[pid] || [])[i];\n"
- "  if (u === UD_SN) return '';   // los dos botones ya dicen que es sí o no\n"
+ "  if (u === UD_ESTADO) return '';   // los botones de estado ya lo dicen\n"
  "  if (Array.isArray(u)) {\n"
  "    return ' <select class=\"ud-sel\" id=\"ud_' + pid + '_' + i + '\"' +\n"
  "           ' title=\"Unidad de medida de esta subpartida\" onchange=\"_marcarCambio()\">' +\n"
@@ -4984,7 +4984,7 @@ UNIDADES_JS = (
  "  return u || '';\n"
  "}\n"
  "\n"
-) % (UD_SN, "\n".join(
+) % (UD_ESTADO, "\n".join(
      "  %-23s %s," % ("'%s':" % k, _json.dumps(v, ensure_ascii=False))
      for k, v in UNIDADES.items()).rstrip(","))
 
@@ -5045,25 +5045,29 @@ s = sustituir(s,
  "  abrirEleccionDeRol();",
  "111b\u00b7 se entra siempre por la elecci\u00f3n de rol")
 
-# ── 112. Veintiuna subpartidas no se miden: se responden ───────────────────
-# De la respuesta de Skarlet Gómez del 31-ago-2026 (`PA-100`). Los nueve ítems
+# ── 112. Veintiuna subpartidas no se miden: se marcan por estado ───────────
+# De la respuesta de Skarlet Gómez del 31-ago-2026 (`PA-100`): los nueve ítems
 # de INSTALACIÓN DE SERVICIOS, los cuatro de ASCENSOR, los cuatro de PRUEBAS y
-# cuatro de ACABADOS EXTERIORES no tienen cantidad que medir: son SÍ O NO.
+# cuatro de ACABADOS EXTERIORES no tienen cantidad que medir. Pedirle a un
+# inspector dos cantidades para «Presión de agua» lo obliga a escribir 1 y 1 —o
+# a inventarse un número— para decir que se hizo.
 #
-# Pedirle a un inspector dos cantidades para «Presión de agua» lo obliga a
-# escribir 1 y 1 —o peor, a inventarse un número— para decir «se hizo». Por eso
-# esas filas cambian de control: dos botones, Sí y No.
+# Empezaron siendo un sí/no. Se quedaron cortas: **la obra pasa la mayor parte
+# del tiempo entre el sí y el no**, y eso no se podía reportar. Desde el
+# 31-ago-2026 se marcan con **cinco estados** (decisión de Francisco José García
+# Guinand, ADR-0026):
+#
+#   No iniciado 0 % · Iniciado 25 % · En proceso 50 % · Avanzado 75 % · Culminado 100 %
 #
 # POR DEBAJO SIGUEN SIENDO LAS MISMAS DOS CANTIDADES, en dos campos ocultos:
-#   Sí  → proyectada 1, ejecutada 1  → 100 %
-#   No  → proyectada 1, ejecutada 0  →   0 %
-#   sin responder → las dos vacías   → no entra al promedio, igual que antes
+# proyectada 100 y ejecutada el porcentaje del estado. Así el porcentaje, el
+# promedio del hito, el borrador, el PDF y el relevo a Smartsheet siguen
+# funcionando sin tocar nada, y quien lea la hoja ve «100 proyectada, 50
+# ejecutada, 50 %», que se explica solo. Sin tocar, las dos vacías: no cuenta
+# para el promedio, igual que una fila de cantidad en blanco.
 #
-# Así el porcentaje, el promedio del hito, el borrador, el PDF y el relevo a
-# Smartsheet siguen funcionando sin tocar nada: lo que cambia es lo que se le
-# pide a la persona, no la forma del dato. El «faltante» sí se apaga —«falta 1»
-# no significa nada en un sí/no— y `N/A` se conserva, que es lo que distingue
-# «no aplica» de «no se hizo».
+# El «faltante» se apaga —«falta 50» no significa nada aquí— y `N/A` se
+# conserva, que es lo que distingue «no aplica» de «no se ha empezado».
 s = sustituir(s,
  "      const rows = p.items.map((item,i)=>{\n"
  "        const rid=`${p.id}_${i}`;\n"
@@ -5072,62 +5076,91 @@ s = sustituir(s,
  "          <td class=\"desc\">${item}${_ud(p.id,i)}</td>\n"
  "          <td class=\"col-proyectada\"><input type=\"number\" class=\"num\" min=\"0\" id=\"pr_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\" oninput=\"recalcRow(this)\" placeholder=\"0\"></td>\n"
  "          <td class=\"col-ejecutada\"><input type=\"number\" class=\"num\" min=\"0\" id=\"ej_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\" oninput=\"recalcRow(this)\" placeholder=\"0\"></td>\n",
+ "      // Un hito entero de estados no tiene columna de cantidad que rotular.\n"
+ "      const soloEstado = p.items.every((_, k) => _esEstado(p.id, k));\n"
  "      const rows = p.items.map((item,i)=>{\n"
  "        const rid=`${p.id}_${i}`;\n"
- "        // Las de sí/no no piden cantidad: piden respuesta. Los dos campos de\n"
- "        // cantidad siguen ahí, ocultos, para no cambiar la forma del dato.\n"
- "        const sn = _esSN(p.id, i);\n"
+ "        // Las que no se miden no piden cantidad: piden en qué punto van. Los\n"
+ "        // dos campos de cantidad siguen ahí, ocultos, para no cambiar el dato.\n"
+ "        const est = _esEstado(p.id, i);\n"
  "        return `<tr>\n"
  "          <td class=\"n\">${i+1}</td>\n"
  "          <td class=\"desc\">${item}${_ud(p.id,i)}</td>\n"
- "          ${sn ? `\n"
- "          <td class=\"col-proyectada sn-vacia\"><input type=\"hidden\" id=\"pr_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\" data-sn=\"1\"></td>\n"
- "          <td class=\"col-ejecutada sn-cell\"><div class=\"sn\">\n"
- "            <button type=\"button\" class=\"sn-btn si\" data-rid=\"${rid}\" onclick=\"setSN(this,1)\">Sí</button>\n"
- "            <button type=\"button\" class=\"sn-btn no\" data-rid=\"${rid}\" onclick=\"setSN(this,0)\">No</button>\n"
+ "          ${est ? `\n"
+ "          <td class=\"col-proyectada est-vacia\"><input type=\"hidden\" id=\"pr_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\" data-est=\"1\"></td>\n"
+ "          <td class=\"col-ejecutada est-cell\"><div class=\"est\">${ESTADOS.map(e => `\n"
+ "            <button type=\"button\" class=\"est-btn e${e.v}\" data-rid=\"${rid}\" data-v=\"${e.v}\"\n"
+ "                    title=\"${e.n} — ${e.v}%\" onclick=\"setEstado(this,${e.v})\"><b class=\"est-n\">${e.n}</b><i class=\"est-p\">${e.v}%</i></button>`).join('')}\n"
  "          </div><input type=\"hidden\" id=\"ej_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\"></td>` : `\n"
  "          <td class=\"col-proyectada\"><input type=\"number\" class=\"num\" min=\"0\" id=\"pr_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\" oninput=\"recalcRow(this)\" placeholder=\"0\"></td>\n"
  "          <td class=\"col-ejecutada\"><input type=\"number\" class=\"num\" min=\"0\" id=\"ej_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\" oninput=\"recalcRow(this)\" placeholder=\"0\"></td>`}\n",
- "112a· las filas de sí/no cambian de control, no de dato")
+ "112a· las filas sin cantidad cambian de control, no de dato")
 
 s = sustituir(s,
  "function recalcRow(inp){",
- "// Responder una fila de sí/no. Volver a tocar la misma respuesta la borra:\n"
- "// «sin responder» tiene que poder recuperarse, o un toque por error se queda.\n"
- "function setSN(btn, valor){\n"
+ "// Los cinco estados, en orden. El porcentaje NO es decorativo: es el dato que\n"
+ "// se guarda como cantidad ejecutada sobre 100.\n"
+ "const ESTADOS = [\n"
+ "  { v: 0,   n: 'No iniciado' },\n"
+ "  { v: 25,  n: 'Iniciado' },\n"
+ "  { v: 50,  n: 'En proceso' },\n"
+ "  { v: 75,  n: 'Avanzado' },\n"
+ "  { v: 100, n: 'Culminado' }\n"
+ "];\n"
+ "\n"
+ "// Marcar el estado de una fila. Volver a tocar el mismo estado lo borra: «sin\n"
+ "// marcar» tiene que poder recuperarse, o un toque por error se queda puesto.\n"
+ "// Ojo: «No iniciado» NO es lo mismo que sin marcar. Es un 0 % que sí cuenta.\n"
+ "function setEstado(btn, valor){\n"
  "  const rid = btn.dataset.rid;\n"
  "  const pr = document.getElementById('pr_' + rid);\n"
  "  const ej = document.getElementById('ej_' + rid);\n"
  "  if(!pr || !ej) return;\n"
  "  const yaEstaba = (ej.value !== '' && Number(ej.value) === valor);\n"
  "  if(yaEstaba){ pr.value = ''; ej.value = ''; }\n"
- "  else { pr.value = '1'; ej.value = String(valor); }\n"
+ "  else { pr.value = '100'; ej.value = String(valor); }\n"
  "  recalcRow(pr);\n"
  "  if(typeof _marcarCambio === 'function') _marcarCambio();\n"
  "}\n"
  "\n"
  "function recalcRow(inp){",
- "112b· el botón de Sí/No, y cómo se borra una respuesta")
+ "112b· los cinco estados, y cómo se borra una marca")
+
+# Un borrador guardado con la versión de sí/no trae «1 de 1». Se traduce a la
+# escala de estados —100 de 100— al abrirlo, o el porcentaje seguiría bien pero
+# ningún botón quedaría marcado, y al tocarlo se perdería lo que ya decía.
+s = sustituir(s,
+ "function recalcRow(inp){\n"
+ "  const rid=inp.dataset.rid, pid=inp.dataset.p;",
+ "function recalcRow(inp){\n"
+ "  const rid=inp.dataset.rid, pid=inp.dataset.p;\n"
+ "  const _pr = document.getElementById('pr_'+rid);\n"
+ "  if(_pr && _pr.dataset.est && _pr.value === '1'){\n"
+ "    const _ej = document.getElementById('ej_'+rid);\n"
+ "    _pr.value = '100';\n"
+ "    if(_ej) _ej.value = String((parseFloat(_ej.value) || 0) * 100);\n"
+ "  }",
+ "112i· un borrador de la versión de sí/no se traduce a estados")
 
 s = sustituir(s,
  "  const pctEl=document.getElementById('pct_'+rid);\n"
  "  if(pr>0){",
- "  // En un sí/no no hay «faltante»: «falta 1» no significa nada. Y los botones\n"
- "  // se pintan aquí, que es por donde pasa también un borrador al abrirse.\n"
- "  const esSN = document.getElementById('pr_'+rid)?.dataset.sn;\n"
- "  if(esSN){\n"
+ "  // En una fila de estado no hay «faltante»: «falta 50» no significa nada. Y\n"
+ "  // los botones se pintan aquí, que es por donde pasa también un borrador al\n"
+ "  // abrirse.\n"
+ "  const esEstado = document.getElementById('pr_'+rid)?.dataset.est;\n"
+ "  if(esEstado){\n"
  "    fltEl.textContent='—'; fltEl.style.color='#aaa';\n"
  "    const v = document.getElementById('ej_'+rid)?.value;\n"
- "    document.querySelectorAll(`.sn-btn[data-rid=\"${rid}\"]`).forEach(b=>{\n"
- "      const suyo = b.classList.contains('si') ? '1' : '0';\n"
- "      b.classList.toggle('on', v !== '' && v !== undefined && String(Number(v)) === suyo);\n"
+ "    document.querySelectorAll(`.est-btn[data-rid=\"${rid}\"]`).forEach(b=>{\n"
+ "      b.classList.toggle('on', v !== '' && v !== undefined && String(Number(v)) === b.dataset.v);\n"
  "    });\n"
  "  }\n"
  "  const pctEl=document.getElementById('pct_'+rid);\n"
  "  if(pr>0){",
  "112c· sin «faltante», y los botones se pintan desde el dato")
 
-# La unidad viaja con el informe: una cantidad sin unidad no se puede releer
+# La unidad viaja con el informe: una cantidad sin su unidad no se puede releer
 # dentro de un año, y la del acero la elige quien llena.
 s = sustituir(s,
  "        return {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};",
@@ -5141,89 +5174,78 @@ s = sustituir(s,
  "            if(prInp && item.pr !== undefined) prInp.value = item.pr;",
  "112e· y vuelve al abrir el borrador")
 
+# En la tabla de escritorio la columna es estrecha y no caben cinco palabras:
+# van los cinco porcentajes, en orden, y la palabra queda en el `title`. En el
+# teléfono —que es donde se llena— van las dos cosas.
 s = sustituir(s,
  ".ud{display:inline-block;margin-left:6px;",
- ".sn{display:flex;gap:6px}\n"
- ".sn-btn{min-height:44px;min-width:54px;padding:6px 12px;border:2px solid #c9cdd6;border-radius:8px;"
- "background:#fff;color:#37474f;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}\n"
- ".sn-btn.si{border-color:#a5d6a7;color:#2e7d32}\n"
- ".sn-btn.no{border-color:#ef9a9a;color:#c62828}\n"
- ".sn-btn.si.on{background:#2e7d32;border-color:#2e7d32;color:#fff}\n"
- ".sn-btn.no.on{background:#c62828;border-color:#c62828;color:#fff}\n"
+ ".est{display:flex;gap:5px;flex-wrap:wrap}\n"
+ ".est-btn{padding:4px 8px;border:2px solid #90a4ae;border-radius:11px;background:#fff;color:#263238;"
+ "font-size:11px;font-weight:800;cursor:pointer;transition:all .12s;line-height:1.15}\n"
+ ".est-btn .est-n{display:none}\n"
+ ".est-btn .est-p{font-style:normal}\n"
+ ".est-btn.on{color:#fff;border-color:transparent}\n"
+ ".est-btn.e0.on{background:#78909c}\n"
+ ".est-btn.e25.on{background:#5c6bc0}\n"
+ ".est-btn.e50.on{background:#3949ab}\n"
+ ".est-btn.e75.on{background:#283593}\n"
+ ".est-btn.e100.on{background:#1a237e}\n"
  ".ud{display:inline-block;margin-left:6px;",
- "112f· cómo se ven los dos botones")
+ "112f· cómo se ven los cinco estados en la tabla")
 
-# En el teléfono la fila es una tarjeta: la casilla de proyectada no existe en
-# un sí/no, y el rótulo de la otra deja de decir «Ejecutada».
+# En el teléfono la fila es una tarjeta: caben las palabras, y los cinco botones
+# se reparten en dos filas de tres y dos, cada uno con sus 44 px.
 s = sustituir(s,
  "  .tbl-wrap td.col-ejecutada::before{ content:'Ejecutada'; }",
  "  .tbl-wrap td.col-ejecutada::before{ content:'Ejecutada'; }\n"
- "  .tbl-wrap td.sn-vacia{ display:none!important; }\n"
- "  .tbl-wrap td.sn-cell::before{ content:'¿Ejecutado?'; }",
- "112g· en el teléfono, sin casilla de proyectada")
+ "  .tbl-wrap td.est-vacia{ display:none!important; }\n"
+ "  .tbl-wrap td.est-cell{ display:block!important; margin-bottom:7px!important; }\n"
+ "  .tbl-wrap td.est-cell::before{ content:'Estado'; display:block; margin-bottom:6px; }\n"
+ "  .tbl-wrap td.est-cell .est{ gap:7px; }\n"
+ "  .tbl-wrap .est-btn{\n"
+ "    flex:1 1 29%; min-height:44px; display:flex; flex-direction:column;\n"
+ "    align-items:center; justify-content:center; gap:1px; padding:5px 6px;\n"
+ "  }\n"
+ "  .tbl-wrap .est-btn .est-n{ display:block; font-size:12px; }\n"
+ "  .tbl-wrap .est-btn .est-p{ display:block; font-size:10px; opacity:.75; }",
+ "112g· en el teléfono, con las palabras y en dos filas")
 
-# En el papel solo se lee la respuesta, sin el botón que no se eligió.
+# En el papel solo va el estado marcado, con su nombre: el porcentaje ya tiene
+# su propia columna.
 s = sustituir(s,
  "  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;"
  "color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}",
  "  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;"
  "color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}\n"
- "  .sn-btn{display:none!important}\n"
- "  .sn-btn.on{display:inline-block!important;border:none!important;background:none!important;"
- "color:#000!important;padding:0!important;min-height:0!important;min-width:0!important;font-size:9px!important}",
- "112h· en el papel solo va la respuesta")
+ "  .est-btn{display:none!important}\n"
+ "  .est-btn.on{display:inline!important;border:none!important;background:none!important;"
+ "color:#000!important;padding:0!important;font-size:9px!important;font-weight:700!important}\n"
+ "  .est-btn.on .est-n{display:inline!important}\n"
+ "  .est-btn.on .est-p{display:none!important}",
+ "112h· en el papel va el nombre del estado, no el número")
 
 
-# ── 113. Cuatro ajustes de campo, del 31-ago-2026 ──────────────────────────
-# Los cuatro salen de mirar el instrumento en un teléfono, no de una teoría.
+# ── 113. Tres ajustes de campo, del 31-ago-2026 ────────────────────────────
+# Los tres salen de mirar el instrumento en un teléfono, no de una teoría.
 
-# 113a · «Cant. Ejecutada» no dice nada en un hito que se responde sí o no.
-# Solo cambia en los hitos donde TODAS las subpartidas son de sí/no —el 3, el 9
-# y el 11—. El 10 está mezclado: una se mide en m² y cuatro se responden, así
-# que ahí la columna sigue siendo de cantidad y el encabezado no puede mentir.
-s = sustituir(s,
- "      const rows = p.items.map((item,i)=>{",
- "      // Un hito entero de sí/no no tiene columna de cantidad que rotular.\n"
- "      const soloSN = p.items.every((_, k) => _esSN(p.id, k));\n"
- "      const rows = p.items.map((item,i)=>{",
- "113a· saber si el hito es todo de sí/no")
-
+# 113a · «Cant. Ejecutada» no dice nada en un hito que se marca por estado.
+# Solo cambia donde TODAS las subpartidas son de estado —el 3, el 9 y el 11—.
+# El 10 está mezclado: una se mide en m² y cuatro se marcan, así que ahí la
+# columna sigue siendo de cantidad y el encabezado no puede mentir.
 s = sustituir(s,
  "                <th>Cant.<br>Ejecutada</th>",
- "                <th>${soloSN ? 'Ejecutada' : 'Cant.<br>Ejecutada'}</th>",
- "113a2· y entonces la columna se llama solo «Ejecutada»")
+ "                <th>${soloEstado ? 'Estado' : 'Cant.<br>Ejecutada'}</th>",
+ "113a· la columna se llama «Estado» donde no hay cantidades")
 
 # La de proyectada se queda —la estructura de columnas y los permisos por rol
-# dependen de ella—, pero sin rótulo: en un hito de sí/no no hay nada que
-# proyectar, y un encabezado que promete una cantidad que nunca llega confunde.
+# dependen de ella—, pero sin rótulo: ahí no hay nada que proyectar, y un
+# encabezado que promete una cantidad que nunca llega confunde.
 s = sustituir(s,
  "                <th class=\"col-proyectada\">Cant.<br>Proyectada</th>",
- "                <th class=\"col-proyectada\">${soloSN ? '' : 'Cant.<br>Proyectada'}</th>",
- "113a4· y la de proyectada se queda sin rótulo")
+ "                <th class=\"col-proyectada\">${soloEstado ? '' : 'Cant.<br>Proyectada'}</th>",
+ "113a2· y la de proyectada se queda sin rótulo")
 
-# En el teléfono cada fila es una tarjeta y el rótulo va delante del control.
-s = sustituir(s,
- "  .tbl-wrap td.sn-cell::before{ content:'¿Ejecutado?'; }",
- "  .tbl-wrap td.sn-cell::before{ content:'Ejecutada'; }",
- "113a3· el mismo rótulo en el teléfono")
-
-# 113b · Los botones Sí/No estaban fuera de escala. En el escritorio medían el
-# doble que los de B/R/M, que son sus vecinos de fila. Se igualan a ellos, y en
-# el teléfono se quedan en los 44 px que llevan todos los controles.
-s = sustituir(s,
- ".sn-btn{min-height:44px;min-width:54px;padding:6px 12px;border:2px solid #c9cdd6;border-radius:8px;"
- "background:#fff;color:#37474f;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}",
- ".sn-btn{padding:4px 12px;border:2px solid #90a4ae;border-radius:11px;"
- "background:#fff;color:#263238;font-size:11px;font-weight:800;cursor:pointer;transition:all .12s}",
- "113b· los botones Sí/No, del tamaño de sus vecinos")
-
-s = sustituir(s,
- "  .tbl-wrap .ev-btn{ flex:1 1 0; min-height:44px; font-size:14px; }",
- "  .tbl-wrap .ev-btn{ flex:1 1 0; min-height:44px; font-size:14px; }\n"
- "  .tbl-wrap .sn-btn{ min-height:44px; padding:0 18px; font-size:14px; }",
- "113b2· en el teléfono siguen siendo tocables")
-
-# 113c · El botón de «no inspeccionado» se tocaba sin querer. Ocupaba media
+# 113b · El botón de «no inspeccionado» se tocaba sin querer. Ocupaba media
 # cabecera, y la cabecera entera abre y cierra el hito: quien iba a desplegarlo
 # terminaba marcándolo como no inspeccionado. Pasa a ser una pastilla blanca,
 # pequeña y con relieve —se lee como botón, no como parte del título—, y deja de
@@ -5244,7 +5266,7 @@ s = sustituir(s,
  "border:1px solid rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.3)}\n"
  ".no-insp-tgl:active{transform:translateY(1px);box-shadow:none}\n"
  ".no-insp-tgl.on{background:#3e2723;color:#fff;border-color:#fff}",
- "113c· «no inspeccionado» se vuelve una pastilla pequeña con relieve")
+ "113b· «no inspeccionado» se vuelve una pastilla pequeña con relieve")
 
 s = sustituir(s,
  "  .no-insp-tgl, .arrow{\n"
@@ -5257,19 +5279,74 @@ s = sustituir(s,
  "  }\n"
  "  /* La pastilla no crece a 44: es lo que hacía que se tocara sin querer. */\n"
  "  .no-insp-tgl{ min-height:32px; padding:0 11px; font-size:11px; }",
- "113c2· y en el teléfono tampoco ocupa media cabecera")
+ "113b2· y en el teléfono tampoco ocupa media cabecera")
 
-# 113d · El título del hito se montaba encima de la pastilla en pantalla
+# 113c · El título del hito se montaba encima de la pastilla en pantalla
 # estrecha: el h2 no encogía, así que empujaba al bloque de la derecha.
 s = sustituir(s,
  ".p-hdr-l{display:flex;align-items:center;gap:9px}",
  ".p-hdr-l{display:flex;align-items:center;gap:9px;flex:1 1 auto;min-width:0}",
- "113d· el título encoge en vez de empujar")
+ "113c· el título encoge en vez de empujar")
 
+# `anywhere` partía «ACABADOS» en «ACABADO / S». Con `break-word` la palabra
+# baja entera a la línea siguiente y solo se parte si no cabe de ningún modo.
 s = sustituir(s,
  ".p-hdr h2{font-size:13px;font-weight:800;color:#fff}",
- ".p-hdr h2{font-size:13px;font-weight:800;color:#fff;overflow-wrap:anywhere}",
- "113d2· y parte la palabra solo si no cabe de otro modo")
+ ".p-hdr h2{font-size:13px;font-weight:800;color:#fff;min-width:0;"
+ "word-break:normal;overflow-wrap:break-word;hyphens:none}",
+ "113c2· y las palabras no se parten a la mitad")
+
+# En el teléfono, con la pastilla al lado, al título le quedaban 84 px: se
+# montaba encima en vez de envolverse. La cabecera se parte en dos: el nombre
+# del hito completo arriba, y debajo la pastilla, el porcentaje y la flecha.
+# Cuesta media pantalla más en la lista plegada y hace que se lea de un vistazo.
+s = sustituir(s,
+ "  .p-hdr{ padding:6px 10px 6px 16px; }",
+ "  .p-hdr{ padding:8px 12px; flex-wrap:wrap; }\n"
+ "  .p-hdr-l{ flex:1 1 100%; margin-bottom:7px; }\n"
+ "  .p-hdr > div:last-of-type{ margin-left:auto; }",
+ "113c3· en el teléfono la cabecera se parte en dos líneas")
+
+
+# ── 114. La planta baja se llama planta baja ───────────────────────────────
+# «Piso 00» no lo dice nadie en obra. El desplegable lo muestra y lo guarda como
+# **Planta Baja**, que es lo que va al PDF, a la memoria de torre y a Smartsheet.
+#
+# El identificador NO cambia: sigue siendo `P00`. Es la parte numérica de
+# ADR-0016, está incrustada en nombres de archivo de Drive y en claves de filas
+# ya escritas, y una planta baja ordena antes que el piso 01 justamente por ser
+# 00. Lo que cambia es cómo se lee, no cómo se identifica.
+s = sustituir(s,
+ "        <option>Piso 00</option>",
+ "        <option>Planta Baja</option>",
+ "114a· el desplegable dice Planta Baja")
+
+s = sustituir(s,
+ "// El piso es un desplegable con valores tipo «Piso 03»: hay que sacarle el número.\n"
+ "function _digitosFinales(v, ancho){\n"
+ "  const m = String(v == null ? '' : v).match(/(\\d+)\\s*$/);\n"
+ "  return m ? m[1].padStart(ancho, '0') : '';\n"
+ "}",
+ "// El piso es un desplegable con valores tipo «Piso 03»: hay que sacarle el\n"
+ "// número. «Planta Baja» no trae ninguno y vale 00 — el identificador de\n"
+ "// ADR-0016 es numérico y así la planta baja sigue ordenando antes del piso 01.\n"
+ "function _digitosFinales(v, ancho){\n"
+ "  const t = String(v == null ? '' : v);\n"
+ "  if (/planta\\s*baja/i.test(t)) return ''.padStart(ancho, '0');\n"
+ "  const m = t.match(/(\\d+)\\s*$/);\n"
+ "  return m ? m[1].padStart(ancho, '0') : '';\n"
+ "}",
+ "114b· «Planta Baja» vale 00 para el identificador")
+
+# Un borrador guardado antes de esto trae «Piso 00», que ya no es una opción del
+# desplegable: al abrirlo se quedaba vacío y el informe perdía el piso en
+# silencio.
+s = sustituir(s,
+ "  ['fecha','convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(id=>{",
+ "  // Un borrador de antes trae «Piso 00», que ya no existe en el desplegable.\n"
+ "  if (d.piso === 'Piso 00') d.piso = 'Planta Baja';\n"
+ "  ['fecha','convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(id=>{",
+ "114c· un borrador viejo con «Piso 00» abre en Planta Baja")
 
 
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
