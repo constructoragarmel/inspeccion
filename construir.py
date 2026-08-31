@@ -337,7 +337,6 @@ s = sustituir(s,
 
 # (el envío se rehace entero más abajo, cambio 17)
 
-
 # ── 15. Las fotografías salían del tamaño de una estampilla en el PDF ───────
 # En pantalla los recuadros son de 90x70 px, y el PDF los imprimía igual: la
 # foto es la evidencia de la inspección y salía ilegible. En impresión pasan a
@@ -399,7 +398,6 @@ function openSend() {
   document.getElementById('overlay').classList.add('open');
 }""",
  "15b· preparar fotos y observaciones antes de imprimir")
-
 
 # ── 16. Ámbito del informe: torre o apartamento ─────────────────────────────
 # Los hitos 1 y 7 son de torre —no se inspecciona un ascensor en el apartamento
@@ -496,7 +494,6 @@ s = sustituir(s,
  """  formType = d.formType || 'detallado';
   setAmbito(d.ambito || 'apartamento');""",
  "16e· el ámbito vuelve al abrir el borrador")
-
 
 # ── 17. El envío va al relevo de Garmel, no a monday.com ───────────────────
 # ADR-0014 fijó Smartsheet como plataforma y no adoptó Monday. El envío pasa al
@@ -624,7 +621,6 @@ async function enviarAlRelevo() {
 
 """, "17c· enviar al relevo en lugar de a monday.com")
 
-
 # ── 18. Dos textos de la interfaz que todavía nombraban a monday.com ───────
 s = sustituir(s, "⚠️ Torre no registrada en monday.com",
  "⚠️ Torre no registrada en el maestro", "18a· aviso de torre no registrada")
@@ -633,7 +629,6 @@ s = sustituir(s,
  "Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo directamente a monday.com.",
  "Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo.",
  "18b· texto de la lista de guardados")
-
 
 # ── 19. Aplicar el ámbito al terminar de dibujar el formulario ─────────────
 # Sin esto, al abrir se ven los siete hitos, incluidos los de torre, hasta que
@@ -652,7 +647,6 @@ s = sustituir(s,
   setAmbito(ambito);
 }""",
  "19· aplicar el ámbito al dibujar el formulario")
-
 
 # ── 20. Configuración del teléfono sin que el inspector escriba nada ───────
 # El enlace de configuración lleva la clave después del #, que NO sale del
@@ -767,7 +761,6 @@ s = sustituir(s,
       refrescarEstadoClave();
       logEl.textContent += '✅ Archivado en Drive\\n'""",
  "20d· el indicador se actualiza tras un envío bueno")
-
 
 # ── 21. Trabajo de campo: no perder lo escrito, no dejar salir un informe a
 #        medias, y distinguir «cero» de «no lo pude ver» ───────────────────
@@ -939,7 +932,6 @@ s = sustituir(s,
  """<input type="file" accept="image/*" capture="environment" onchange="loadFoto('${p.id}',${fi},this)">""",
  "21i· la foto abre la cámara y no la galería", n=2)
 
-
 # ── 22. «No inspeccionado» y «no aplica» dejan de ser un cero ─────────────
 # Hoy, si el inspector no pudo entrar a un apartamento o la torre no tiene
 # ascensor, la única salida es dejarlo en cero — y cero significa «no está
@@ -1082,7 +1074,6 @@ s = sustituir(s,
   </div>
   <div class="sec-lbl">📍 Ubicación</div>""",
  "22k· leyenda de B / R / M / N-A")
-
 
 # ── 23. Un borrador pertenece a su número de informe ──────────────────────
 # El fallo: si el inspector terminaba el apartamento 04 y cambiaba al 05 sin
@@ -1304,7 +1295,6 @@ s = sustituir(s,
       <button class="m-btn m-confirm" onclick="enviarPendientes()">📤 Enviar todos los pendientes</button>""",
  "26· botón de enviar todos los pendientes")
 
-
 # ── 27. Correcciones salidas de las rondas de prueba ──────────────────────
 
 # 27a · Los acentos y la eñe se borraban en vez de convertirse, y eso hacía
@@ -1405,7 +1395,6 @@ if (navigator.storage && navigator.storage.persist) {
 window.onload = function() {""",
  "27g· pedir almacenamiento permanente")
 
-
 # ── 28. Correcciones del modo por hitos, que es el que usan en campo ──────
 
 # 28a · El porcentaje se guardaba crudo. El distintivo mostraba 100 % y el
@@ -1451,7 +1440,6 @@ s = sustituir(s,
   if(hitosNoInspeccionados[pid]) return;
   const inp = document.getElementById('hitopct_' + pid);""",
  "28c· un hito apagado no recalcula")
-
 
 # ── 29. El informe cuenta y guarda solo los hitos de su ámbito ────────────
 # Un informe de torre estaba sumando al total los hitos de apartamento que
@@ -1762,7 +1750,6 @@ s = sustituir(s,
  "@media(max-width:700px){.hdr-btns .hbtn-mas{display:flex}}",
  "40d· en pantalla grande no cambia nada")
 
-
 # ── 41. Avisar antes de quedarse sin espacio, no cuando ya falló ──────────
 # El aviso que había llega tarde: salta cuando el guardado YA reventó. Chrome
 # en Android tapa el localStorage en 5 MB por origen, y un informe de
@@ -1803,7 +1790,6 @@ s = sustituir(s,
  "\n"
  "function openSavedModal() {",
  "41b· medir el espacio y avisar al 70 %")
-
 
 # ── 42. Fuera la portada: la herramienta abre en el formulario ────────────
 # La portada pedía un toque para no decidir nada: el inspector siempre va al
@@ -1856,7 +1842,6 @@ s = sustituir(s,
  "    showToast('Listo para el siguiente informe', 'ok');\n"
  "  }, 1200);",
  "44· finalizar deja el formulario listo para el siguiente")
-
 
 # ── 45. Los dos contadores de la cabecera ─────────────────────────────────
 # Al quitar la portada se perdió el único momento en que el inspector veía algo
@@ -1925,7 +1910,6 @@ s = sustituir(s,
  "  actualizarContadores();",
  "45g· recontar al abrir la herramienta")
 
-
 # ── 46. Un informe enviado no vuelve solo a «sin enviar» ──────────────────
 # getFormData() arma el borrador desde la pantalla, y la pantalla no sabe si ya
 # se envió. Así que el autoguardado —cada 30 s, sin que nadie toque nada—
@@ -1942,7 +1926,6 @@ s = sustituir(s,
  "      }\n"
  "      list[currentEditingIndex] = data;",
  "46· lo enviado sigue enviado aunque se vuelva a guardar")
-
 
 # ── 47. Decía «máx. 3» y hay seis ranuras ─────────────────────────────────
 # Texto que quedó de cuando eran tres. Quien lo lea deja de tomar fotos a la
@@ -2013,7 +1996,6 @@ s = sustituir(s,
  "  .hdr-btns,.arrow,.add-row-btn,#mode-bar,.hbtn,",
  "49b· en el papel vuelve el nombre completo del hito")
 
-
 # ── 50. Lo marcado tiene que verse en papel, y en blanco y negro ──────────
 # El estatus de la obra, los agentes externos y la evaluación B/R/M señalan lo
 # elegido con texto BLANCO sobre fondo de color. El navegador imprime en modo
@@ -2037,7 +2019,6 @@ s = sustituir(s,
  "  .ck-lbl:not(.on)::before, .ag-btn:not(.on)::before{ content:'▢\\00A0'; color:#888; }\n"
  "  .bar-bg{display:none}",
  "50· lo marcado se ve en papel aunque se impriman sin color")
-
 
 # ── 51. La clave se comprueba, no se cree ─────────────────────────────────
 # El teléfono guardaba lo que viniera en el enlace y decía «configurado»
@@ -2124,7 +2105,6 @@ s = sustituir(s,
  "  if (escala) escala.style.display = (formType === 'hitos') ? 'none' : '';",
  "52b· la escala solo donde hay botones que explicar")
 
-
 # ── 53. Siete hitos son una serie, no siete cosas distintas ───────────────
 # Cada hito traía su propio color: gris azulado, índigo, turquesa, naranja,
 # naranja quemado, rojo y verde. Un arcoíris que además gasta los colores que
@@ -2197,7 +2177,6 @@ for viejo, nuevo, etiq in [
 ]:
     s = sustituir(s, viejo, nuevo, etiq)
 
-
 # ── 55. Los botones tenían que parecer botones ────────────────────────────
 # En la barra azul los botones eran blanco translúcido sobre azul: se leían
 # como texto sobre un fondo, no como algo que se pulsa. Pasan a relleno sólido
@@ -2254,7 +2233,6 @@ s = sustituir(s,
  "    btn.style.background = ''; btn.style.borderColor = '';",
  "55f· al salir del modo prueba, vuelve a su color de clase")
 
-
 # ── 56. El interruptor de «no inspeccionado», legible y fuera del PDF ─────
 # Ya se puede tocar (44 px), pero seguía siendo un ⊘ al 45 % de opacidad que
 # no se lee como un control. Es el que evita que un hito que nadie fue a ver
@@ -2276,7 +2254,6 @@ s = sustituir(s,
  "  .hdr-btns,.arrow,.add-row-btn,#mode-bar,.hbtn,",
  "  .hdr-btns,.arrow,.no-insp-tgl,.add-row-btn,#mode-bar,.hbtn,",
  "56c· el interruptor no sale en el PDF")
-
 
 # ── 57. Oscuro sobre oscuro: el porcentaje era ilegible ───────────────────
 # Auditado con la fórmula de contraste de la WCAG sobre la pantalla real: 67
@@ -2319,7 +2296,6 @@ s = sustituir(s, "background:#e65100;color:#fff", "background:#a63d00;color:#fff
 s = sustituir(s, "el.textContent = '💾 guardado ' + hh + ':' + mm;\n  el.style.color = '#2e7d32';",
                  "el.textContent = '💾 guardado ' + hh + ':' + mm;\n  el.style.color = '#c8e6c9';",
               "57h· «guardado» se lee sobre la barra azul")
-
 
 # ── 58. Ordenar los botones por el recorrido del inspector ───────────────
 # Había ocho botones y cuatro nombres que compiten: «Guardar», «Guardados»,
@@ -2384,7 +2360,6 @@ s = sustituir(s, "'Informe de Inspección por Hitos (Simplificado)'",
                  "'Informe de Inspección por Hitos'",
               "59· fuera «(Simplificado)»")
 
-
 # ── 60. El indicador de conexión tampoco se leía sobre el azul ───────────
 # Verde #2e7d32 sobre la barra azul da 1,12 de contraste, y el naranja #e65100
 # de «sin señal» tampoco pasa. Y «sin señal» es justo lo que el inspector
@@ -2433,7 +2408,6 @@ s = sustituir(s, "el.style.color = '#ffcc80';", "el.style.color = '#ffe9c7';",
               "61f· «sin señal», más claro")
 s = sustituir(s, "el.style.color = '#c8e6c9';", "el.style.color = '#e8f5e9';",
               "61g· «guardado», más claro")
-
 
 # ── 62. La misma opción se dibuja dos veces, y solo una estaba corregida ─
 # El desplegable de torres se reconstruye por JavaScript al elegir el convenio,
@@ -2548,7 +2522,6 @@ s = sustituir(s,
  "                  border:1px solid #bbb!important;padding:2px 6px!important;text-align:center}",
  "67· el porcentaje cabe entero en el papel")
 
-
 # ── 68. Marcar «N/A» no recalculaba el promedio del hito ─────────────────
 # La leyenda del modo detallado promete que N/A «no cuenta para el promedio», y
 # `recalcP` efectivamente lo excluye — pero `setEv` solo pintaba el botón y no
@@ -2580,7 +2553,6 @@ s = sustituir(s,
  "  if(typeof _marcarCambio === 'function') _marcarCambio();\n"
  "}",
  "68· marcar la evaluación recalcula el promedio")
-
 
 # ── 69. Lo escrito en un campo podía romper la lista de informes ─────────
 # «Mis informes» pintaba con innerHTML el número, la torre y el apartamento tal
@@ -2644,7 +2616,6 @@ s = sustituir(s,
  'oninput="recalcHito(\'${p.id}\')"',
  'oninput="this.dataset.crudo=this.value;recalcHito(\'${p.id}\')" onkeydown="if(event.key===\',\'){event.preventDefault();this.value=this.value+\'.\';}"',
  "70b· la coma se escribe como punto directamente")
-
 
 # ── 71. Con dos pestañas abiertas se perdía un informe entero ────────────
 # El teléfono guarda los informes en una lista y la app recordaba en qué
@@ -2752,7 +2723,6 @@ s = sustituir(s,
  "  else if(currentEditingIndex > index) currentEditingIndex--;",
  "71g· borrar el que se edita suelta también su id")
 
-
 # ── 72. Al girar el teléfono se caían todos los arreglos ────────────────
 # Los bloques móviles se activaban por ANCHO (700 px). Un iPhone en horizontal
 # mide 812 o más, así que en horizontal volvía todo lo corregido: la cabecera
@@ -2788,7 +2758,6 @@ s = sustituir(s,
 s = sustituir(s, "@media(max-width:700px){.hdr-btns .hbtn-mas{display:flex}}",
                  "@media(max-width:700px),(max-height:520px){.hdr-btns .hbtn-mas{display:flex}}",
               "72c· «Más» aparece también con el teléfono acostado")
-
 
 # ── 73. El informe impreso deja de ser una foto de la pantalla ───────────
 # En pantalla el instrumento es una herramienta de campo y tiene que seguir
@@ -2900,7 +2869,6 @@ s = sustituir(s,
  '              <label>Porcentaje de avance',
  "73b· poder señalar el campo del porcentaje")
 
-
 # ── 74. Lo que está vacío no ocupa una página ────────────────────────────
 # Un hito sin observación imprimía igual el rótulo «OBSERVACIONES VISUALES DE
 # OBRA — HITO 5…» con un hueco debajo, y otro tanto con «FOTOGRAFÍAS — …».
@@ -2982,7 +2950,6 @@ s = sustituir(s,
  '<h2>${p.nombre}</h2>',
  "76· el título del hito no repite el del informe")
 
-
 # ── 77. Remates del documento ───────────────────────────────────────────
 # Al dejar que los hitos fluyan entre páginas —que es lo que quitó las páginas
 # medio vacías— apareció el efecto contrario: el título del hito 4 quedó al pie
@@ -3030,7 +2997,6 @@ s = sustituir(s,
  "    delete l.dataset.conAsterisco;\n"
  "  });",
  "77c· y devolverlo al volver a la pantalla")
-
 
 # ── 78. El último resto de formulario en el documento ───────────────────
 # «● Auto-generado» junto al número le dice al inspector que no lo escriba él.
@@ -3089,7 +3055,6 @@ s = sustituir(s,
  "              border-radius:0!important;padding:2px 0 2px 8px!important;font-size:9px!important;\n"
  "              margin:0 0 8px!important;color:#333!important}",
  "80· el modo detallado también deja de traer bloques de color")
-
 
 # ── 81. Las observaciones largas se cortaban en el PDF ───────────────────
 # Al imprimir, la altura de cada cuadro de observaciones se calculaba con
@@ -3154,7 +3119,6 @@ s = sustituir(s,
  "    const caja = t.closest('.field') || t.closest('.foto-obs');\n"
  "    if(caja) caja.classList.toggle('vacio-impresion', !(t.value || '').trim());",
  "81d· sin cambio en la marca de vacío")
-
 
 # ── 82. El informe se imprimía siempre en A4 ────────────────────────────
 # `@page{size:A4 portrait}` fija el papel: el PDF sale 210 x 297 mm aunque la
@@ -3246,7 +3210,6 @@ s = sustituir(s,
  "  } catch(e) { return []; }\n"
  "}",
  "85· una ficha rota no tumba la lista de informes")
-
 
 if ONCE_HITOS:
     # ── 86. Los once hitos del desglose de agosto, completos ────────────
@@ -3366,7 +3329,6 @@ s = sustituir(s,
  "  .vacio-impresion{display:none!important}",
  "88f· el aviso de ámbito no va al documento")
 
-
 # ── 89. En el teléfono, cada subpartida deja de ser una fila de tabla ────
 # El modo detallado pasó a ser el instrumento de campo (ADR-0018) y nunca se
 # había medido en un teléfono, porque hasta ahora el de campo era el de hitos.
@@ -3443,7 +3405,6 @@ s = sustituir(s,
  '<td class="col-ejecutada"><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>\n'
  '          <td class="col-eval"><div class="ev">',
  "89b· poder señalar la cantidad ejecutada y la evaluación")
-
 
 # ── 90. En el teléfono los hitos abren plegados ─────────────────────────
 # Con once hitos y las subpartidas apiladas, el formulario abría entero: 17
@@ -4955,7 +4916,6 @@ if ('serviceWorker' in navigator) {
 window.onload = function() {""",
  "13· registrar el service worker")
 
-
 # ══════════════════════════════════════════════════════════════════════════
 # 14. ORTOGRAFÍA Y VOCABULARIO — 30-ago-2026
 #
@@ -4979,7 +4939,7 @@ s = sustituir(s, "Bielorusos", "Bielorrusos",
 for viejo, nuevo, etq in [
     ("ING & ARQ 1111, C.A.", "ING&ARQ 1111, C.A.", "14b1· ING&ARQ, como el maestro"),
     ("JVR INGENIERÍA C,A.",  "JVR INGENIERÍA, C.A.", "14b2· JVR: la coma iba antes del C.A."),
-    ("TSURU, C.A.",          "TESURU, C.A.",       "14b3· TESURU, como el maestro (pendiente de confirmar)"),
+
 ]:
     s = sustituir(s, viejo, nuevo, etq, -1)
 
@@ -5013,7 +4973,6 @@ for viejo, nuevo, etq in [
     s = sustituir(s, viejo, nuevo, etq, -1)
 
 print("  … 14 aplicado")
-
 
 # ══════════════════════════════════════════════════════════════════════════
 # 15. LO QUE LA PRIMERA PRUEBA DE CAMPO DEJÓ EN EVIDENCIA — 30-ago-2026
