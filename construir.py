@@ -5061,6 +5061,44 @@ s = sustituir(s,
 
 print("  … 15 aplicado")
 
+
+# ══════════════════════════════════════════════════════════════════════════
+# 16. LOS NOMBRES DE EMPRESA, COMO SE NOMBRAN ELLAS — 30-ago-2026
+#
+# Fuente: «Recepción de Documentación Técnica y Diagnóstico Inicial por
+# Edificación (Respuestas)», el formulario que llenaron las propias
+# contratistas entre el 10 y el 12-ago, con su nombre y su RIF. Es la única
+# fuente en la que las empresas se nombran a sí mismas; todo lo demás —el
+# Cuadro Resumen, el Control Consolidado, este formulario— es Garmel
+# transcribiendo. Ver C-33.
+#
+# Criterio (Stephanie González): manda lo que escribió la empresa, salvo que
+# lo suyo tenga una falta de ortografía. Por eso «Rio Limon» va con tildes y
+# «C. A» se cierra a «C.A.», pero THAISA se queda con una sola S: así se
+# llaman.
+#
+# Cuatro no son abreviaturas sino nombres distintos, y son las que importan:
+#   · Zerpa Construcciones  →  Zerpa's Ingeniería
+#   · Vialpa C.A.           →  Vialpa S.A.
+#   · Aroa                  →  Proyectos y Construcciones Aroa 93
+#   · Tsuru                 →  Tsuru 5158
+# ══════════════════════════════════════════════════════════════════════════
+for viejo, nuevo in [
+    ("ZERPA CONSTRUCCIONES, C.A.",   "ZERPA'S INGENIERÍA, C.A."),
+    ("CONSTRUCTORA VIALPA, C.A.",    "CONSTRUCTORA VIALPA, S.A."),
+    ("AROA, C.A.",                   "PROYECTOS Y CONSTRUCCIONES AROA 93, C.A."),
+    ("TSURU, C.A.",                  "TSURU 5158, C.A."),
+    ("DRIJECAE, C.A.",               "DRIJECAE 3003, C.A."),
+    ("GRUPO TEPUY, C.A.",            "GRUPO TEPUY 314, C.A."),
+    ("RÍO LIMÓN, C.A.",              "CONSTRUCTORA RÍO LIMÓN, C.A."),
+    ("ALNAVIC, C.A.",                "INVERSIONES ALNAVIC, C.A."),
+    ("THAISSA MM INVERSIONES, C.A.", "THAISA MM INVERSIONES, C.A."),
+    ("CONSTRUCTORA SB 86, C.A.",     "CONSTRUCTORA SB86, C.A."),
+]:
+    s = sustituir(s, viejo, nuevo, "16· %s" % nuevo, -1)
+
+print("  … 16 aplicado")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ index.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
