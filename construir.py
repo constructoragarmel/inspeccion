@@ -5424,6 +5424,201 @@ s = sustituir(s,
  "117· el residente ya no bloquea el envío")
 
 
+# ── 118. El PDF salía con la maqueta del teléfono ──────────────────────────
+# El 31-ago-2026, en las pruebas de campo, un informe impreso desde el teléfono
+# salió en 11 páginas de tarjetas en vez de 4 de tabla: cada subpartida ocupaba
+# un recuadro con «PROYECTADA / EJECUTADA / FALTANTE» uno debajo del otro.
+#
+# La causa: las reglas que convierten la tabla en tarjetas viven en
+# `@media (max-width: 700px), (max-height: 520px), (pointer: coarse)`, SIN la
+# palabra `screen`. Una consulta sin tipo de medio aplica a TODOS, impresión
+# incluida — y `(pointer: coarse)` es verdadera en cualquier teléfono, mida lo
+# que mida la hoja. Como esas reglas usan `!important`, le ganaban a las de
+# `@media print` en todo lo que este no redefine, que es justo la maqueta.
+#
+# Con `screen and` delante de cada condición, la tarjeta se queda en la
+# pantalla y el papel recupera su tabla. **El PDF deja de depender del aparato
+# desde el que se imprime**, que es lo que tiene que pasar en un documento que
+# se firma.
+#
+# De paso se le pone `screen` a las otras cuatro consultas de la hoja. Hoy son
+# inofensivas —cuando se imprime, `max-width` se mide contra el ancho del papel,
+# no del aparato—, pero son de la misma familia, y la regla que conviene poder
+# dar por sentada es que **ninguna maqueta de pantalla llega al papel**.
+for viejo, nuevo in [
+    ("@media (max-width: 700px), (max-height: 520px), (pointer: coarse){",
+     "@media screen and (max-width: 700px), screen and (max-height: 520px), screen and (pointer: coarse){"),
+    ("@media (max-width:700px), (pointer:coarse){",
+     "@media screen and (max-width:700px), screen and (pointer:coarse){"),
+    ("@media (max-width: 480px) {",
+     "@media screen and (max-width: 480px) {"),
+    ("@media(max-width:700px),(max-height:520px){.hdr-btns .hbtn-mas{display:flex}}",
+     "@media screen and (max-width:700px), screen and (max-height:520px){.hdr-btns .hbtn-mas{display:flex}}"),
+    ("@media(max-width:700px){.grid3,.grid4,.grid2{grid-template-columns:1fr}}",
+     "@media screen and (max-width:700px){.grid3,.grid4,.grid2{grid-template-columns:1fr}}"),
+    ("@media(max-width:700px){.content{padding:8px}}",
+     "@media screen and (max-width:700px){.content{padding:8px}}"),
+]:
+    s = sustituir(s, viejo, nuevo, "118· la maqueta de teléfono no se imprime: %s" % viejo[:38], -1)
+
+
+# ── 119. Una fotografía no marcaba el informe como modificado ──────────────
+# También de las pruebas del 31-ago: «para algunos usuarios no se guardaron las
+# imágenes».
+#
+# `loadFoto` es asíncrono —lee el archivo, lo redibuja en un canvas y recién
+# entonces lo pinta—, y ese camino **nunca llamaba a `_marcarCambio()`**. El
+# evento `change` del campo sí programa un autoguardado, pero a los 2 segundos:
+# si el teléfono tarda más en reducir la foto —una imagen grande en un aparato
+# lento—, **el borrador se guarda sin ella y ya nada vuelve a dispararlo**. La
+# foto queda solo en la pantalla; si el navegador desaloja la pestaña en
+# segundo plano —que es exactamente lo que pasa en un teléfono con poca
+# memoria—, se pierde.
+#
+# Se marca el cambio cuando la foto YA ESTÁ puesta, no cuando se elige el
+# archivo. Y al quitarla, igual: borrar también es un cambio que hay que
+# guardar.
+s = sustituir(s,
+ "function _pintarFoto(pid, fi, dato){\n"
+ "  const img  = document.getElementById(`fimg_${pid}_${fi}`);\n"
+ "  const slot = document.getElementById(`fslot_${pid}_${fi}`);\n"
+ "  if(img){ img.src = dato; img.style.display = 'block'; }\n"
+ "  if(slot){ const sp = slot.querySelector('span'); if(sp) sp.style.display = 'none'; }\n"
+ "}",
+ "function _pintarFoto(pid, fi, dato){\n"
+ "  const img  = document.getElementById(`fimg_${pid}_${fi}`);\n"
+ "  const slot = document.getElementById(`fslot_${pid}_${fi}`);\n"
+ "  if(img){ img.src = dato; img.style.display = 'block'; }\n"
+ "  if(slot){ const sp = slot.querySelector('span'); if(sp) sp.style.display = 'none'; }\n"
+ "  // La foto entra tarde —reducirla lleva su tiempo— y para entonces el\n"
+ "  // autoguardado del `change` ya pasó. Sin esto, el borrador se guarda sin\n"
+ "  // ella y nada vuelve a intentarlo.\n"
+ "  if(typeof _marcarCambio === 'function') _marcarCambio();\n"
+ "}",
+ "119a· una foto puesta marca el informe como modificado")
+
+s = sustituir(s,
+ "function removeFoto(pid,fi){\n"
+ "  const img=document.getElementById(`fimg_${pid}_${fi}`);\n"
+ "  const slot=document.getElementById(`fslot_${pid}_${fi}`);\n"
+ "  img.src=''; img.style.display='none';\n"
+ "  slot.querySelector('span').style.display='';\n"
+ "  slot.querySelector('input').value='';\n"
+ "}",
+ "function removeFoto(pid,fi){\n"
+ "  const img=document.getElementById(`fimg_${pid}_${fi}`);\n"
+ "  const slot=document.getElementById(`fslot_${pid}_${fi}`);\n"
+ "  img.src=''; img.style.display='none';\n"
+ "  slot.querySelector('span').style.display='';\n"
+ "  slot.querySelector('input').value='';\n"
+ "  if(typeof _marcarCambio === 'function') _marcarCambio();\n"
+ "}",
+ "119b· y quitarla también")
+
+
+# ── 120. «unidad…» no es una unidad ────────────────────────────────────────
+# En el PDF del 31-ago, el acero de refuerzo salió rotulado «unidad…», que es
+# el texto del desplegable cuando nadie ha elegido. En pantalla invita a
+# elegir; en un documento firmado no dice nada. Se marca el desplegable como
+# vacío —y se desmarca al elegir— para poder esconderlo solo en el papel.
+s = sustituir(s,
+ "    return ' <select class=\"ud-sel\" id=\"ud_' + pid + '_' + i + '\"' +\n"
+ "           ' title=\"Unidad de medida de esta subpartida\" onchange=\"_marcarCambio()\">' +\n",
+ "    return ' <select class=\"ud-sel\" id=\"ud_' + pid + '_' + i + '\" data-vacio=\"1\"' +\n"
+ "           ' title=\"Unidad de medida de esta subpartida\" onchange=\"_unidadElegida(this)\">' +\n",
+ "120a· el desplegable de unidad nace marcado como vacío")
+
+s = sustituir(s,
+ "function _esEstado(pid, i){ return (UNIDADES[pid] || [])[i] === UD_ESTADO; }\n",
+ "function _esEstado(pid, i){ return (UNIDADES[pid] || [])[i] === UD_ESTADO; }\n"
+ "\n"
+ "// El papel no muestra el desplegable sin elegir: «unidad…» no es una unidad.\n"
+ "function _unidadElegida(sel){\n"
+ "  sel.dataset.vacio = sel.value ? '' : '1';\n"
+ "  if(typeof _marcarCambio === 'function') _marcarCambio();\n"
+ "}\n",
+ "120b· y se desmarca al elegir")
+
+s = sustituir(s,
+ "            if(udSel && item.ud) udSel.value = item.ud;",
+ "            if(udSel && item.ud){ udSel.value = item.ud; _unidadElegida(udSel); }",
+ "120c· al abrir un borrador, la unidad guardada cuenta como elegida")
+
+s = sustituir(s,
+ "  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;"
+ "color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}",
+ "  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;"
+ "color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}\n"
+ "  .ud-sel[data-vacio=\"1\"]{display:none!important}",
+ "120d· en el papel, sin unidad elegida no se imprime nada")
+
+
+# ── 121. Un nombre largo de empresa se cortaba en el papel ─────────────────
+# En el PDF del 31-ago, «PROYECTOS Y CONSTRUCCIONES AROA 93, C.A.» salió
+# recortado a media palabra. La causa no es el ancho: es que en el papel esos
+# campos se siguen imprimiendo como `<select>`, y **un desplegable no envuelve
+# el texto**, lo recorta. Le pasa a los tres del encabezado —convenio, empresa,
+# inspector—, y el que más duele es el nombre de la contratista, que es lo que
+# identifica a quién se le está inspeccionando la obra.
+#
+# El valor se copia al contenedor en cada cambio, y en impresión se imprime ese
+# texto —que sí envuelve— en vez del control. No depende de `beforeprint`, que
+# no siempre llega.
+s = sustituir(s,
+ "// El inspector necesita saber si «Enviar» va a funcionar antes de tocarlo.",
+ "// Un <select> no envuelve el texto: lo recorta. Como en el papel los campos\n"
+ "// del encabezado se imprimen como controles, un nombre largo de empresa salía\n"
+ "// cortado. Se copia el valor al contenedor para poder imprimirlo como texto.\n"
+ "function _valorAlPapel(el){\n"
+ "  const campo = el && el.closest && el.closest('.field, .meta-card');\n"
+ "  if(campo) campo.dataset.valor = el.value || '';\n"
+ "}\n"
+ "\n"
+ "function _todosLosValoresAlPapel(){\n"
+ "  document.querySelectorAll('.field select, .meta-card select').forEach(_valorAlPapel);\n"
+ "}\n"
+ "\n"
+ "document.addEventListener('change', function(e){\n"
+ "  if(e.target && e.target.tagName === 'SELECT') _valorAlPapel(e.target);\n"
+ "}, true);\n"
+ "\n"
+ "// El inspector necesita saber si «Enviar» va a funcionar antes de tocarlo.",
+ "121a· el valor del desplegable se copia al contenedor")
+
+# Al abrir un borrador los valores se ponen por código, que no dispara `change`.
+# Y justo antes de imprimir, sin depender de cómo se hayan puesto los valores:
+# «Guardar y siguiente» y el cambio de ámbito los reponen por código, que no
+# dispara `change`.
+s = sustituir(s,
+ "function imprimirInforme(){\n"
+ "  const falta = camposFaltantes();",
+ "function imprimirInforme(){\n"
+ "  _todosLosValoresAlPapel();\n"
+ "  const falta = camposFaltantes();",
+ "121d· y se refrescan justo antes de imprimir")
+
+s = sustituir(s,
+ "  closeSavedModal();\n"
+ "  showToast('📂 Borrador cargado correctamente para edición', 'ok');",
+ "  _todosLosValoresAlPapel();\n"
+ "  closeSavedModal();\n"
+ "  showToast('📂 Borrador cargado correctamente para edición', 'ok');",
+ "121b· y al abrir un borrador, también")
+
+s = sustituir(s,
+ "  .field input, .field select, .meta-card input, .meta-card select{",
+ "  /* El desplegable no se imprime: se imprime su valor, que sí envuelve. */\n"
+ "  .field select, .meta-card select{display:none!important}\n"
+ "  .field[data-valor]::after, .meta-card[data-valor]::after{\n"
+ "    content:attr(data-valor); display:block;\n"
+ "    border-bottom:1px dotted #b9c0cc; padding:1px 0;\n"
+ "    font-size:11px; font-weight:700; color:#111;\n"
+ "    word-break:normal; overflow-wrap:break-word; line-height:1.25;\n"
+ "  }\n"
+ "  .field input, .field select, .meta-card input, .meta-card select{",
+ "121c· en el papel va el texto, no el control")
+
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar

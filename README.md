@@ -228,6 +228,23 @@ planta baja sigue siendo `P00` —es la parte numérica de ADR-0016, ya está in
 de Drive, y así sigue ordenando antes del piso 01—. Un borrador guardado con «Piso 00» se abre en «Planta
 Baja».
 
+### El PDF no depende del aparato desde el que se imprime
+
+Las reglas que convierten la tabla en tarjetas —la maqueta del teléfono— van todas dentro de
+`@media screen`. **Ninguna maqueta de pantalla llega al papel.**
+
+Esto se aprendió fallando: el 31-ago-2026 un informe impreso desde un teléfono salió en **11 páginas de
+tarjetas** en vez de 4 de tabla. Las consultas de medios no llevaban `screen`, y una consulta sin tipo de
+medio aplica también a la impresión — con `(pointer: coarse)`, que es cierta en cualquier teléfono mida lo
+que mida la hoja, y con `!important`, que le ganaba al bloque de impresión.
+
+Dos cosas más que el papel hace distinto, por la misma razón —que es un documento y no una pantalla—:
+
+- **Los desplegables se imprimen como texto, no como controles.** Un `<select>` no envuelve: recorta. Por
+  eso «PROYECTOS Y CONSTRUCCIONES AROA 93, C.A.» salía cortado a media palabra.
+- **Lo que no se eligió no se imprime.** Un desplegable sin elegir mostraba su invitación —`unidad…`,
+  `— Seleccione Inspector —`— como si fuera el dato.
+
 ## Lo que protege el trabajo en campo
 
 | | Por qué |

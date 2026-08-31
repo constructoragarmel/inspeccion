@@ -77,7 +77,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
   margin-bottom: 30px;
   text-align: left;
 }
-@media (max-width: 480px) {
+@media screen and (max-width: 480px) {
   .welcome-features { grid-template-columns: 1fr; }
   .welcome-card { padding: 25px 20px; }
 }
@@ -128,7 +128,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
    fila, como siempre, y «⋯ Más» no hace falta. */
 .hdr-sec{display:contents}
 .hdr-btns .hbtn-mas{display:none}
-@media(max-width:700px),(max-height:520px){.hdr-btns .hbtn-mas{display:flex}}
+@media screen and (max-width:700px), screen and (max-height:520px){.hdr-btns .hbtn-mas{display:flex}}
 .hbtn{padding:8px 14px;border:1.5px solid transparent;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;letter-spacing:.2px}
 .hbtn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
 /* Relleno sólido y contraste real: sobre la barra azul, un botón tiene que
@@ -163,7 +163,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:14px}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px}
 .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin-bottom:14px}
-@media(max-width:700px){.grid3,.grid4,.grid2{grid-template-columns:1fr}}
+@media screen and (max-width:700px){.grid3,.grid4,.grid2{grid-template-columns:1fr}}
 .field{display:flex;flex-direction:column;gap:3px}
 .field.full{grid-column:1/-1}
 .field label{font-size:10px;text-transform:uppercase;font-weight:700;color:#666;letter-spacing:.4px}
@@ -192,7 +192,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 
 /* CONTENT */
 .content{padding:14px 18px;max-width:1440px;margin:0 auto}
-@media(max-width:700px){.content{padding:8px}}
+@media screen and (max-width:700px){.content{padding:8px}}
 
 /* PARTIDA */
 .partida{background:#fff;border-radius:10px;margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;border-left:5px solid #ccc}
@@ -360,7 +360,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 /* PRINT */
 /* ── EN EL TELÉFONO, EN OBRA ───────────────────────────────────────────── */
 /* Se toca con el dedo: da igual la orientación y da igual el tamaño. */
-@media (max-width: 700px), (max-height: 520px), (pointer: coarse){
+@media screen and (max-width: 700px), screen and (max-height: 520px), screen and (pointer: coarse){
   /* Safari hace zoom solo al enfocar un campo de menos de 16px, y después hay
      que despincharlo a mano. A 16px la pantalla deja de saltar. */
   input:not([type=file]), select, textarea{ font-size:16px !important; }
@@ -394,7 +394,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .solo-impresion{display:none}
 
 /* Los dos controles del encabezado de cada hito, tocables con guantes. */
-@media (max-width: 700px), (max-height: 520px), (pointer: coarse){
+@media screen and (max-width: 700px), screen and (max-height: 520px), screen and (pointer: coarse){
   /* ── El detallado, apilado: sin arrastre lateral ─────────────────── */
   .tbl-wrap{ overflow-x:visible!important; }
   .tbl-wrap table{ min-width:0!important; width:100%!important; }
@@ -524,6 +524,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   td.desc{min-width:0!important;max-width:none!important;text-align:left!important;padding-left:5px!important}
   .ud{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;color:#444!important;font-size:8.5px!important;font-weight:600!important}
   .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}
+  .ud-sel[data-vacio="1"]{display:none!important}
   .est-btn{display:none!important}
   .est-btn.on{display:inline!important;border:none!important;background:none!important;color:#000!important;padding:0!important;font-size:9px!important;font-weight:700!important}
   .est-btn.on .est-n{display:inline!important}
@@ -608,6 +609,14 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   /* Los campos rellenados: etiqueta pequeña arriba, valor en negro debajo,
      con una guía discreta. Un recuadro de formulario no aporta nada. */
   .field label{color:#5a6672!important;font-size:8px!important;letter-spacing:.3px}
+  /* El desplegable no se imprime: se imprime su valor, que sí envuelve. */
+  .field select, .meta-card select{display:none!important}
+  .field[data-valor]::after, .meta-card[data-valor]::after{
+    content:attr(data-valor); display:block;
+    border-bottom:1px dotted #b9c0cc; padding:1px 0;
+    font-size:11px; font-weight:700; color:#111;
+    word-break:normal; overflow-wrap:break-word; line-height:1.25;
+  }
   .field input, .field select, .meta-card input, .meta-card select{
     border:none!important;border-bottom:1px dotted #b9c0cc!important;border-radius:0!important;
     background:none!important;padding:1px 0!important;font-size:11px!important;
@@ -687,7 +696,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 /* Las cuatro acciones caían en el tercio superior de la pantalla: con una
    sola mano —la otra sostiene linterna, plano o casco— el pulgar no llega.
    En pantalla estrecha bajan al borde inferior, que es la zona cómoda. */
-@media (max-width:700px), (pointer:coarse){
+@media screen and (max-width:700px), screen and (pointer:coarse){
   .hdr-btns{
     position:fixed; left:0; right:0; bottom:0; z-index:900;
     background:var(--blue); padding:8px 10px calc(8px + env(safe-area-inset-bottom));
@@ -1212,6 +1221,22 @@ window.addEventListener('beforeunload', function(e){
 });
 
 // ── CONEXIÓN ───────────────────────────────────────────────────────────────
+// Un <select> no envuelve el texto: lo recorta. Como en el papel los campos
+// del encabezado se imprimen como controles, un nombre largo de empresa salía
+// cortado. Se copia el valor al contenedor para poder imprimirlo como texto.
+function _valorAlPapel(el){
+  const campo = el && el.closest && el.closest('.field, .meta-card');
+  if(campo) campo.dataset.valor = el.value || '';
+}
+
+function _todosLosValoresAlPapel(){
+  document.querySelectorAll('.field select, .meta-card select').forEach(_valorAlPapel);
+}
+
+document.addEventListener('change', function(e){
+  if(e.target && e.target.tagName === 'SELECT') _valorAlPapel(e.target);
+}, true);
+
 // El inspector necesita saber si «Enviar» va a funcionar antes de tocarlo.
 function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
@@ -1440,14 +1465,20 @@ const UNIDADES = {
 
 function _esEstado(pid, i){ return (UNIDADES[pid] || [])[i] === UD_ESTADO; }
 
+// El papel no muestra el desplegable sin elegir: «unidad…» no es una unidad.
+function _unidadElegida(sel){
+  sel.dataset.vacio = sel.value ? '' : '1';
+  if(typeof _marcarCambio === 'function') _marcarCambio();
+}
+
 // La unidad va pegada al nombre de la subpartida: es el único sitio que se ve
 // igual en el teléfono, en el escritorio y en el papel.
 function _ud(pid, i){
   const u = (UNIDADES[pid] || [])[i];
   if (u === UD_ESTADO) return '';   // los botones de estado ya lo dicen
   if (Array.isArray(u)) {
-    return ' <select class="ud-sel" id="ud_' + pid + '_' + i + '"' +
-           ' title="Unidad de medida de esta subpartida" onchange="_marcarCambio()">' +
+    return ' <select class="ud-sel" id="ud_' + pid + '_' + i + '" data-vacio="1"' +
+           ' title="Unidad de medida de esta subpartida" onchange="_unidadElegida(this)">' +
            '<option value="">unidad…</option>' +
            u.map(function(x){ return '<option value="' + x + '">' + x + '</option>'; }).join('') +
            '</select>';
@@ -2598,6 +2629,10 @@ function _pintarFoto(pid, fi, dato){
   const slot = document.getElementById(`fslot_${pid}_${fi}`);
   if(img){ img.src = dato; img.style.display = 'block'; }
   if(slot){ const sp = slot.querySelector('span'); if(sp) sp.style.display = 'none'; }
+  // La foto entra tarde —reducirla lleva su tiempo— y para entonces el
+  // autoguardado del `change` ya pasó. Sin esto, el borrador se guarda sin
+  // ella y nada vuelve a intentarlo.
+  if(typeof _marcarCambio === 'function') _marcarCambio();
 }
 
 function loadFoto(pid,fi,inp){
@@ -2634,6 +2669,7 @@ function removeFoto(pid,fi){
   img.src=''; img.style.display='none';
   slot.querySelector('span').style.display='';
   slot.querySelector('input').value='';
+  if(typeof _marcarCambio === 'function') _marcarCambio();
 }
 
 // ═══════════════════════════════════════════════
@@ -2958,7 +2994,7 @@ function loadDraftData(index) {
             const prInp = document.getElementById('pr_'+rid);
             const ejInp = document.getElementById('ej_'+rid);
             const udSel = document.getElementById('ud_'+pid+'_'+i);
-            if(udSel && item.ud) udSel.value = item.ud;
+            if(udSel && item.ud){ udSel.value = item.ud; _unidadElegida(udSel); }
             if(prInp && item.pr !== undefined) prInp.value = item.pr;
             if(ejInp && item.ej !== undefined) ejInp.value = item.ej;
             if(item.ev) {
@@ -2995,6 +3031,7 @@ function loadDraftData(index) {
     }
   });
 
+  _todosLosValoresAlPapel();
   closeSavedModal();
   showToast('📂 Borrador cargado correctamente para edición', 'ok');
 }
@@ -3319,6 +3356,7 @@ function _avisarFaltantes(falta){
 // El PDF avisa pero deja seguir: a veces se imprime un informe a medias a
 // propósito. El envío no, porque lo que se archiva mal se queda mal.
 function imprimirInforme(){
+  _todosLosValoresAlPapel();
   const falta = camposFaltantes();
   if(falta.length && !confirm(_avisarFaltantes(falta) + '\n\n¿Generar el PDF de todos modos?')) return;
   window.print();
