@@ -197,8 +197,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 /* PARTIDA */
 .partida{background:#fff;border-radius:10px;margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;border-left:5px solid #ccc}
 .p-hdr{padding:11px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
-.p-hdr-l{display:flex;align-items:center;gap:9px}
-.p-hdr h2{font-size:13px;font-weight:800;color:#fff}
+.p-hdr-l{display:flex;align-items:center;gap:9px;flex:1 1 auto;min-width:0}
+.p-hdr h2{font-size:13px;font-weight:800;color:#fff;overflow-wrap:anywhere}
 .pct-bdg{background:#fff;color:#1a237e;font-weight:900;font-size:14px;padding:3px 11px;border-radius:20px;min-width:52px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .arrow{color:#fff;font-size:15px;transition:transform .2s}
 .partida.collapsed .arrow{transform:rotate(-90deg)}
@@ -215,6 +215,14 @@ tbody tr:hover{background:#fafbff}
 tbody tr.extra-row{background:#fffde7}
 td.n{text-align:center;font-weight:800;color:#bbb;font-size:11px;width:34px}
 td.desc{text-align:left;padding-left:13px;font-size:12px;font-weight:500;min-width:160px}
+.sn{display:flex;gap:6px}
+.sn-btn{padding:4px 12px;border:2px solid #90a4ae;border-radius:11px;background:#fff;color:#263238;font-size:11px;font-weight:800;cursor:pointer;transition:all .12s}
+.sn-btn.si{border-color:#a5d6a7;color:#2e7d32}
+.sn-btn.no{border-color:#ef9a9a;color:#c62828}
+.sn-btn.si.on{background:#2e7d32;border-color:#2e7d32;color:#fff}
+.sn-btn.no.on{background:#c62828;border-color:#c62828;color:#fff}
+.ud{display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid #dfe3ea;border-radius:9px;background:#f4f6fa;color:#5f6b7a;font-size:10.5px;font-weight:700;white-space:nowrap;vertical-align:middle}
+.ud-sel{margin-left:6px;min-height:34px;padding:2px 6px;border:1.5px solid #c9cdd6;border-radius:7px;background:#fff8e1;color:#37474f;font-size:11.5px;font-weight:700;vertical-align:middle}
 td.desc input{width:100%;border:1px solid #e0e0e0;border-radius:5px;padding:4px 7px;font-size:12px;background:#fff8e1}
 td.desc input:focus{outline:none;border-color:var(--yellow)}
 .num{width:68px;border:1.5px solid #e0e0e0;border-radius:6px;padding:5px;font-size:12px;text-align:center;transition:border-color .2s}
@@ -233,8 +241,9 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .ev-btn.B.on{background:#2e7d32;border-color:#2e7d32;color:#fff}
 .ev-btn.R.on{background:#f57f17;border-color:#f57f17;color:#fff}
 .ev-btn.M.on{background:#c62828;border-color:#c62828;color:#fff}
-.no-insp-tgl{min-height:44px;display:inline-flex;align-items:center;gap:4px;padding:0 10px;border-radius:14px;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer;font-size:15px;opacity:.85;padding:0 4px;user-select:none;color:#fff;border:1.5px solid rgba(255,255,255,.5);border-radius:6px;line-height:1}
-.no-insp-tgl.on{opacity:1;background:rgba(0,0,0,.35);border-color:#fff;border-width:2px}
+.no-insp-tgl{display:inline-flex;align-items:center;gap:4px;min-height:28px;padding:0 9px;border-radius:7px;font-size:10.5px;font-weight:800;letter-spacing:.2px;white-space:nowrap;cursor:pointer;user-select:none;line-height:1;color:#1a237e;background:#fff;border:1px solid rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.no-insp-tgl:active{transform:translateY(1px);box-shadow:none}
+.no-insp-tgl.on{background:#3e2723;color:#fff;border-color:#fff}
 .partida.no-inspeccionada .p-body{pointer-events:none}.partida.no-inspeccionada .p-body > *{opacity:.38}.partida.no-inspeccionada .p-body::before{content:'Este hito está marcado como NO INSPECCIONADO, así que no cuenta para el promedio. Para poder llenarlo, toca otra vez el botón de la cabecera.';display:block;margin:10px 12px 0;padding:10px 12px;border-radius:8px;background:#fff8e1;border:1.5px solid #ffb300;color:#4e342e;font-size:13px;font-weight:600;line-height:1.45}
 .partida.no-inspeccionada .p-hdr h2::after{content:' · NO INSPECCIONADO';font-size:10px;opacity:.85}
 .ev-btn.B{border-color:#43a047;color:#1b5e20}.ev-btn.R{border-color:#ef6c00;color:#bf360c}.ev-btn.M{border-color:#e53935;color:#b71c1c}.ev-btn.NA{border-color:#78909c;color:#37474f}
@@ -408,6 +417,8 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   }
   .tbl-wrap td.col-proyectada::before{ content:'Proyectada'; }
   .tbl-wrap td.col-ejecutada::before{ content:'Ejecutada'; }
+  .tbl-wrap td.sn-vacia{ display:none!important; }
+  .tbl-wrap td.sn-cell::before{ content:'Ejecutada'; }
   .tbl-wrap td.col-proyectada::before, .tbl-wrap td.col-ejecutada::before{
     flex:0 0 92px; font-size:11px; font-weight:800; color:#5a6672;
     text-transform:uppercase; letter-spacing:.3px;
@@ -417,6 +428,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   .tbl-wrap td.col-eval{ margin-top:2px!important; }
   .tbl-wrap .ev{ display:flex; gap:7px; }
   .tbl-wrap .ev-btn{ flex:1 1 0; min-height:44px; font-size:14px; }
+  .tbl-wrap .sn-btn{ min-height:44px; padding:0 18px; font-size:14px; }
   /* Lo calculado, en una línea al pie, sin campo que llenar. */
   .tbl-wrap td.falt-cell, .tbl-wrap td.pct-cell{
     display:inline-flex!important; align-items:center; gap:6px;
@@ -430,10 +442,12 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   .tbl-wrap td.pct-cell{ margin-left:16px!important; }
   .tbl-wrap td.pct-cell .bar-bg{ display:none; }
 
-  .no-insp-tgl, .arrow{
+  .arrow{
     min-width:44px; min-height:44px;
     display:inline-flex; align-items:center; justify-content:center;
   }
+  /* La pastilla no crece a 44: es lo que hacía que se tocara sin querer. */
+  .no-insp-tgl{ min-height:32px; padding:0 11px; font-size:11px; }
   .p-hdr{ padding:6px 10px 6px 16px; }
   /* Borrar deja de estar pegado a enviar: son lo contrario una de otra. */
   .saved-item{ flex-wrap:wrap; gap:8px; }
@@ -495,6 +509,10 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
     white-space:normal!important;
   }
   td.desc{min-width:0!important;max-width:none!important;text-align:left!important;padding-left:5px!important}
+  .ud{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;color:#444!important;font-size:8.5px!important;font-weight:600!important}
+  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}
+  .sn-btn{display:none!important}
+  .sn-btn.on{display:inline-block!important;border:none!important;background:none!important;color:#000!important;padding:0!important;min-height:0!important;min-width:0!important;font-size:9px!important}
   td.desc input{
     border:none!important;background:transparent!important;
     font-size:9px;width:100%;padding:0;
@@ -1384,6 +1402,55 @@ function setupFormTypeUI() {
 // ═══════════════════════════════════════════════
 // DATA & STATE (ADAPTADO A HITOS Y SUBPARTIDAS DEL EXCEL GARMEL)
 // ═══════════════════════════════════════════════
+// Unidad de medida de cada subpartida, en el mismo orden que sus `items`.
+// Fuente: Skarlet Gómez, 31-ago-2026 (`PA-100`). Tres formas:
+//   'm²'          unidad fija
+//   ['ml','kg']   dos unidades posibles: la elige quien llena
+//   UD_SN         no se mide por cantidad, se responde sí o no
+// El dato definitivo vive en el maestro MAE_Hitos_Subpartidas.
+const UD_SN = 'sí/no';
+const UNIDADES = {
+  'hito_estructura':      ["m²", ["ml", "kg"], "m³"],
+  'hito_cerramientos':    ["m²", "m²", "m²"],
+  'hito_servicios':       ["sí/no", "sí/no", "sí/no", "sí/no", "sí/no", "sí/no", "sí/no", "sí/no", "sí/no"],
+  'hito_acabados':        ["m²", "m²", "m²", "m²", "m²", "m²", "m²"],
+  'hito_puertas':         ["pza", "pza", "pza"],
+  'hito_ventanas':        ["pza", "pza"],
+  'hito_acc_sanitarios':  ["pza", "pza", "pza", "pza", "pza", "pza", "pza"],
+  'hito_acc_electricos':  ["pza", "pza", "pza", "pza"],
+  'hito_ascensor':        ["sí/no", "sí/no", "sí/no", "sí/no"],
+  'hito_exteriores':      ["m²", "sí/no", "sí/no", "sí/no", "sí/no"],
+  'hito_pruebas':         ["sí/no", "sí/no", "sí/no", "sí/no"]
+};
+
+function _esSN(pid, i){ return (UNIDADES[pid] || [])[i] === UD_SN; }
+
+// La unidad va pegada al nombre de la subpartida: es el único sitio que se ve
+// igual en el teléfono, en el escritorio y en el papel.
+function _ud(pid, i){
+  const u = (UNIDADES[pid] || [])[i];
+  if (u === UD_SN) return '';   // los dos botones ya dicen que es sí o no
+  if (Array.isArray(u)) {
+    return ' <select class="ud-sel" id="ud_' + pid + '_' + i + '"' +
+           ' title="Unidad de medida de esta subpartida" onchange="_marcarCambio()">' +
+           '<option value="">unidad…</option>' +
+           u.map(function(x){ return '<option value="' + x + '">' + x + '</option>'; }).join('') +
+           '</select>';
+  }
+  return u ? ' <span class="ud">' + u + '</span>' : '';
+}
+
+// La unidad que de verdad lleva esta fila, ya elegida. Viaja con el informe:
+// una cantidad sin su unidad no se puede volver a leer dentro de un año.
+function _udValor(pid, i){
+  const u = (UNIDADES[pid] || [])[i];
+  if (Array.isArray(u)) {
+    const sel = document.getElementById('ud_' + pid + '_' + i);
+    return sel ? sel.value : '';
+  }
+  return u || '';
+}
+
 const INSPECTORES_DB = [
   "Edenil Narvaez (CIV-150422)",
   "Skarlet Gómez (CIV-317442)",
@@ -1495,7 +1562,7 @@ const PARTIDAS = [
     "nombre": "HITO 6: VENTANAS", 
     "icon": "", 
     "color": "#0277bd", 
-    "items": ["Instalación de ventanas y vidrios"]
+    "items": ["Instalación de ventanas", "Instalación de vidrios"]
   }, 
   {
     "id": "hito_acc_sanitarios", 
@@ -2107,13 +2174,24 @@ function initAppContent() {
 
   } else {
     PARTIDAS.forEach(p => {
+      // Un hito entero de sí/no no tiene columna de cantidad que rotular.
+      const soloSN = p.items.every((_, k) => _esSN(p.id, k));
       const rows = p.items.map((item,i)=>{
         const rid=`${p.id}_${i}`;
+        // Las de sí/no no piden cantidad: piden respuesta. Los dos campos de
+        // cantidad siguen ahí, ocultos, para no cambiar la forma del dato.
+        const sn = _esSN(p.id, i);
         return `<tr>
           <td class="n">${i+1}</td>
-          <td class="desc">${item}</td>
+          <td class="desc">${item}${_ud(p.id,i)}</td>
+          ${sn ? `
+          <td class="col-proyectada sn-vacia"><input type="hidden" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" data-sn="1"></td>
+          <td class="col-ejecutada sn-cell"><div class="sn">
+            <button type="button" class="sn-btn si" data-rid="${rid}" onclick="setSN(this,1)">Sí</button>
+            <button type="button" class="sn-btn no" data-rid="${rid}" onclick="setSN(this,0)">No</button>
+          </div><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"></td>` : `
           <td class="col-proyectada"><input type="number" class="num" min="0" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>
-          <td class="col-ejecutada"><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>
+          <td class="col-ejecutada"><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>`}
           <td class="col-eval"><div class="ev">
             <button class="ev-btn B" data-rid="${rid}" onclick="setEv(this)">B</button>
             <button class="ev-btn R" data-rid="${rid}" onclick="setEv(this)">R</button>
@@ -2146,8 +2224,8 @@ function initAppContent() {
               <tr>
                 <th style="width:34px">N°</th>
                 <th style="text-align:left;padding-left:13px">Subpartida / Descripción</th>
-                <th class="col-proyectada">Cant.<br>Proyectada</th>
-                <th>Cant.<br>Ejecutada</th>
+                <th class="col-proyectada">${soloSN ? '' : 'Cant.<br>Proyectada'}</th>
+                <th>${soloSN ? 'Ejecutada' : 'Cant.<br>Ejecutada'}</th>
                 <th>Evaluación<br>B / R / M</th>
                 <th>Cant.<br>Faltante</th>
                 <th>%<br>Avance</th>
@@ -2275,6 +2353,20 @@ function recalcHito(pid) {
 // ═══════════════════════════════════════════════
 // CALCULATIONS (DETALLADO)
 // ═══════════════════════════════════════════════
+// Responder una fila de sí/no. Volver a tocar la misma respuesta la borra:
+// «sin responder» tiene que poder recuperarse, o un toque por error se queda.
+function setSN(btn, valor){
+  const rid = btn.dataset.rid;
+  const pr = document.getElementById('pr_' + rid);
+  const ej = document.getElementById('ej_' + rid);
+  if(!pr || !ej) return;
+  const yaEstaba = (ej.value !== '' && Number(ej.value) === valor);
+  if(yaEstaba){ pr.value = ''; ej.value = ''; }
+  else { pr.value = '1'; ej.value = String(valor); }
+  recalcRow(pr);
+  if(typeof _marcarCambio === 'function') _marcarCambio();
+}
+
 function recalcRow(inp){
   const rid=inp.dataset.rid, pid=inp.dataset.p;
   // Una cantidad negativa no existe en obra: se trata como cero en vez de
@@ -2288,6 +2380,17 @@ function recalcRow(inp){
     fltEl.style.color=falt>0?'#e65100':'#2e7d32';
   } else {
     fltEl.textContent='—'; fltEl.style.color='#aaa';
+  }
+  // En un sí/no no hay «faltante»: «falta 1» no significa nada. Y los botones
+  // se pintan aquí, que es por donde pasa también un borrador al abrirse.
+  const esSN = document.getElementById('pr_'+rid)?.dataset.sn;
+  if(esSN){
+    fltEl.textContent='—'; fltEl.style.color='#aaa';
+    const v = document.getElementById('ej_'+rid)?.value;
+    document.querySelectorAll(`.sn-btn[data-rid="${rid}"]`).forEach(b=>{
+      const suyo = b.classList.contains('si') ? '1' : '0';
+      b.classList.toggle('on', v !== '' && v !== undefined && String(Number(v)) === suyo);
+    });
   }
   const pctEl=document.getElementById('pct_'+rid);
   if(pr>0){
@@ -2564,7 +2667,7 @@ function getFormData(){
       d.partidas[p.id]=p.items.map((_,i)=>{
         const rid=`${p.id}_${i}`;
         const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
-        return {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};
+        return {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:'',ud:_udValor(p.id,i)};
       });
       d.partidas[p.id+'_extra']=(extraRows[p.id]||[]).map((row,i)=>{
         const idx=p.items.length+i; const rid=`${p.id}_extra_${idx}`;
@@ -2809,6 +2912,8 @@ function loadDraftData(index) {
             const rid = `${pid}_${i}`;
             const prInp = document.getElementById('pr_'+rid);
             const ejInp = document.getElementById('ej_'+rid);
+            const udSel = document.getElementById('ud_'+pid+'_'+i);
+            if(udSel && item.ud) udSel.value = item.ud;
             if(prInp && item.pr !== undefined) prInp.value = item.pr;
             if(ejInp && item.ej !== undefined) ejInp.value = item.ej;
             if(item.ev) {
@@ -3296,16 +3401,15 @@ window.onload = function() {
   if(f) f.value = today;
   updateDocInfo();
 
-  // Sin portada intermedia: se entra directo al formulario que toque.
-  const modo = new URLSearchParams(location.search).get('modo');
+  // Sin portada intermedia: se entra directo al formulario. Hay uno solo —el
+  // detallado—; el modo por hitos se retiró el 31-ago-2026.
   // El modo de prueba se pide por enlace, no con un botón al lado de «Enviar».
   if (new URLSearchParams(location.search).get('prueba') === '1') {
     const bt = document.getElementById('btn-test');
     if (bt) bt.style.display = '';
   }
   // No se entra al formulario sin haber elegido rol.
-  if (modo === 'hitos') { startApp('hitos'); _appArrancada = true; setModeUI('inspector'); }
-  else { abrirEleccionDeRol(); }
+  abrirEleccionDeRol();
   actualizarContadores();
 };
 </script>

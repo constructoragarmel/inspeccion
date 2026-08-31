@@ -39,6 +39,12 @@ LOGO_GARMEL = b64("garmel.png", "image/png")
 LOGO_GMVV   = b64("gmvv.png", "image/png")
 
 # Los once hitos del Excel de agosto (ver cambio 86).
+#
+# ÚNICA DESVIACIÓN del Excel, y está aprobada: el hito 6 traía una sola
+# subpartida, «Instalación de ventanas y vidrios», y desde el 31-ago-2026 son
+# DOS —ventanas y vidrios se instalan y se cuentan por separado en obra—. Lo
+# pidió Skarlet Gómez y lo aprobó la Ing. Beatriz Sevilla (ADR-0025). El
+# desglose pasa de 50 subpartidas a 51.
 PARTIDAS_ONCE = """const PARTIDAS = [
   {
     "id": "hito_estructura", 
@@ -80,7 +86,7 @@ PARTIDAS_ONCE = """const PARTIDAS = [
     "nombre": "HITO 6: VENTANAS", 
     "icon": "", 
     "color": "#0277bd", 
-    "items": ["Instalación de ventanas y vidrios"]
+    "items": ["Instalación de ventanas", "Instalación de vidrios"]
   }, 
   {
     "id": "hito_acc_sanitarios", 
@@ -4895,6 +4901,376 @@ s = sustituir(s,
  "  table th:nth-child(2),table td:nth-child(2){width:44%!important;text-align:left!important}\n"
  "  table th:nth-child(3),table td:nth-child(3){width:11%!important}",
  "109b· «Cant. proyectada» necesita dos puntos más")
+
+# ── 110. La unidad de medida de cada subpartida ────────────────────────────
+# Lo pide Skarlet Gómez el 31-ago-2026, y es lo que le faltaba a la cantidad
+# para significar algo: el formulario pedía «cantidad proyectada» y «cantidad
+# ejecutada» SIN DECIR DE QUÉ. «12» puede ser 12 puertas o 12 m² de puerta, y
+# el porcentaje sale igual de convincente en los dos casos.
+#
+# La tabla la respondió ella entera el 31-ago (`PA-100`), y la respuesta cambia
+# el instrumento más de lo que parecía:
+#
+#   · 28 subpartidas se miden en m², m³ o pza, y llevan su unidad fija;
+#   · 1 admite DOS unidades —acero de refuerzo, en ml o kg— y se elige en el
+#     momento, porque depende de cómo venga computada la partida;
+#   · 21 NO SE MIDEN POR CANTIDAD: son sí/no. Eso no es una unidad, es otro
+#     tipo de dato, y lo resuelve el cambio 112.
+#
+# El sitio definitivo del dato es el maestro `MAE_Hitos_Subpartidas`; esta
+# tabla es su copia local, como TORRES.
+import json as _json
+
+UD_SN = "sí/no"                       # no se mide: se responde
+UNIDADES = {
+    "hito_estructura":     ["m²", ["ml", "kg"], "m³"],
+    "hito_cerramientos":   ["m²", "m²", "m²"],
+    "hito_servicios":      [UD_SN] * 9,
+    "hito_acabados":       ["m²"] * 7,
+    "hito_puertas":        ["pza"] * 3,
+    "hito_ventanas":       ["pza", "pza"],
+    "hito_acc_sanitarios": ["pza"] * 7,
+    "hito_acc_electricos": ["pza"] * 4,
+    "hito_ascensor":       [UD_SN] * 4,
+    "hito_exteriores":     ["m²"] + [UD_SN] * 4,
+    "hito_pruebas":        [UD_SN] * 4,
+}
+
+# Si alguien añade una subpartida y no su unidad, esto falla al construir y no
+# en el teléfono.
+if ONCE_HITOS:
+    _decl = dict(re.findall(r'"id":\s*"([a-z_0-9]+)".*?"items":\s*(\[[^\]]*\])',
+                            PARTIDAS_ONCE, re.S))
+    for _id, _lista in _decl.items():
+        _n, _m = len(_json.loads(_lista)), len(UNIDADES.get(_id, []))
+        if _n != _m:
+            sys.exit("✗ %s tiene %d subpartidas y %d unidades" % (_id, _n, _m))
+
+UNIDADES_JS = (
+ "// Unidad de medida de cada subpartida, en el mismo orden que sus `items`.\n"
+ "// Fuente: Skarlet Gómez, 31-ago-2026 (`PA-100`). Tres formas:\n"
+ "//   'm²'          unidad fija\n"
+ "//   ['ml','kg']   dos unidades posibles: la elige quien llena\n"
+ "//   UD_SN         no se mide por cantidad, se responde sí o no\n"
+ "// El dato definitivo vive en el maestro MAE_Hitos_Subpartidas.\n"
+ "const UD_SN = '%s';\n"
+ "const UNIDADES = {\n%s\n};\n"
+ "\n"
+ "function _esSN(pid, i){ return (UNIDADES[pid] || [])[i] === UD_SN; }\n"
+ "\n"
+ "// La unidad va pegada al nombre de la subpartida: es el único sitio que se ve\n"
+ "// igual en el teléfono, en el escritorio y en el papel.\n"
+ "function _ud(pid, i){\n"
+ "  const u = (UNIDADES[pid] || [])[i];\n"
+ "  if (u === UD_SN) return '';   // los dos botones ya dicen que es sí o no\n"
+ "  if (Array.isArray(u)) {\n"
+ "    return ' <select class=\"ud-sel\" id=\"ud_' + pid + '_' + i + '\"' +\n"
+ "           ' title=\"Unidad de medida de esta subpartida\" onchange=\"_marcarCambio()\">' +\n"
+ "           '<option value=\"\">unidad…</option>' +\n"
+ "           u.map(function(x){ return '<option value=\"' + x + '\">' + x + '</option>'; }).join('') +\n"
+ "           '</select>';\n"
+ "  }\n"
+ "  return u ? ' <span class=\"ud\">' + u + '</span>' : '';\n"
+ "}\n"
+ "\n"
+ "// La unidad que de verdad lleva esta fila, ya elegida. Viaja con el informe:\n"
+ "// una cantidad sin su unidad no se puede volver a leer dentro de un año.\n"
+ "function _udValor(pid, i){\n"
+ "  const u = (UNIDADES[pid] || [])[i];\n"
+ "  if (Array.isArray(u)) {\n"
+ "    const sel = document.getElementById('ud_' + pid + '_' + i);\n"
+ "    return sel ? sel.value : '';\n"
+ "  }\n"
+ "  return u || '';\n"
+ "}\n"
+ "\n"
+) % (UD_SN, "\n".join(
+     "  %-23s %s," % ("'%s':" % k, _json.dumps(v, ensure_ascii=False))
+     for k, v in UNIDADES.items()).rstrip(","))
+
+s = sustituir(s,
+ "const INSPECTORES_DB = [",
+ UNIDADES_JS + "const INSPECTORES_DB = [",
+ "110a· la tabla de unidades que respondió Skarlet")
+
+s = sustituir(s,
+ "          <td class=\"desc\">${item}</td>",
+ "          <td class=\"desc\">${item}${_ud(p.id,i)}</td>",
+ "110b· la unidad, al lado del nombre de la subpartida")
+
+s = sustituir(s,
+ "td.desc{text-align:left;padding-left:13px;font-size:12px;font-weight:500;min-width:160px}",
+ "td.desc{text-align:left;padding-left:13px;font-size:12px;font-weight:500;min-width:160px}\n"
+ ".ud{display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid #dfe3ea;border-radius:9px;"
+ "background:#f4f6fa;color:#5f6b7a;font-size:10.5px;font-weight:700;white-space:nowrap;vertical-align:middle}\n"
+ ".ud-sel{margin-left:6px;min-height:34px;padding:2px 6px;border:1.5px solid #c9cdd6;border-radius:7px;"
+ "background:#fff8e1;color:#37474f;font-size:11.5px;font-weight:700;vertical-align:middle}",
+ "110c· cómo se ven la unidad y el selector en pantalla")
+
+# En el papel no lleva recuadro: es un documento, no una interfaz.
+s = sustituir(s,
+ "  td.desc{min-width:0!important;max-width:none!important;text-align:left!important;padding-left:5px!important}",
+ "  td.desc{min-width:0!important;max-width:none!important;text-align:left!important;padding-left:5px!important}\n"
+ "  .ud{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;"
+ "color:#444!important;font-size:8.5px!important;font-weight:600!important}\n"
+ "  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;"
+ "color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}",
+ "110d· y en el papel, sin recuadro")
+
+
+# ── 111. Se retira el modo por hitos ───────────────────────────────────────
+# Decidido por Francisco José García Guinand el 31-ago-2026. Deja sin efecto lo
+# que ADR-0018 §2 conservaba: el modo por hitos pedía UN PORCENTAJE POR HITO, A
+# OJO, y el detallado lo calcula por cantidad proyectada contra ejecutada. Son
+# avance declarado y avance verificado, y tener los dos vivos significa
+# consolidar juntas dos cosas que no se miden igual, sin nada que las distinga.
+#
+# Se retira LA ENTRADA, no la máquina de leerlo: `?modo=hitos` deja de existir
+# y ya no hay forma de empezar un informe así. Los borradores que quedaran
+# guardados en un teléfono desde agosto SIGUEN ABRIÉNDOSE como se llenaron —de
+# eso se ocupa el cambio 101—, porque borrar esas ramas los volvería ilegibles.
+# El modo de prueba no se toca: es `?prueba=1`, y es otra cosa.
+s = sustituir(s,
+ "  // Sin portada intermedia: se entra directo al formulario que toque.\n"
+ "  const modo = new URLSearchParams(location.search).get('modo');\n",
+ "  // Sin portada intermedia: se entra directo al formulario. Hay uno solo —el\n"
+ "  // detallado—; el modo por hitos se retir\u00f3 el 31-ago-2026.\n",
+ "111a\u00b7 se retira el par\u00e1metro ?modo")
+
+s = sustituir(s,
+ "  // No se entra al formulario sin haber elegido rol.\n"
+ "  if (modo === 'hitos') { startApp('hitos'); _appArrancada = true; setModeUI('inspector'); }\n"
+ "  else { abrirEleccionDeRol(); }",
+ "  // No se entra al formulario sin haber elegido rol.\n"
+ "  abrirEleccionDeRol();",
+ "111b\u00b7 se entra siempre por la elecci\u00f3n de rol")
+
+# ── 112. Veintiuna subpartidas no se miden: se responden ───────────────────
+# De la respuesta de Skarlet Gómez del 31-ago-2026 (`PA-100`). Los nueve ítems
+# de INSTALACIÓN DE SERVICIOS, los cuatro de ASCENSOR, los cuatro de PRUEBAS y
+# cuatro de ACABADOS EXTERIORES no tienen cantidad que medir: son SÍ O NO.
+#
+# Pedirle a un inspector dos cantidades para «Presión de agua» lo obliga a
+# escribir 1 y 1 —o peor, a inventarse un número— para decir «se hizo». Por eso
+# esas filas cambian de control: dos botones, Sí y No.
+#
+# POR DEBAJO SIGUEN SIENDO LAS MISMAS DOS CANTIDADES, en dos campos ocultos:
+#   Sí  → proyectada 1, ejecutada 1  → 100 %
+#   No  → proyectada 1, ejecutada 0  →   0 %
+#   sin responder → las dos vacías   → no entra al promedio, igual que antes
+#
+# Así el porcentaje, el promedio del hito, el borrador, el PDF y el relevo a
+# Smartsheet siguen funcionando sin tocar nada: lo que cambia es lo que se le
+# pide a la persona, no la forma del dato. El «faltante» sí se apaga —«falta 1»
+# no significa nada en un sí/no— y `N/A` se conserva, que es lo que distingue
+# «no aplica» de «no se hizo».
+s = sustituir(s,
+ "      const rows = p.items.map((item,i)=>{\n"
+ "        const rid=`${p.id}_${i}`;\n"
+ "        return `<tr>\n"
+ "          <td class=\"n\">${i+1}</td>\n"
+ "          <td class=\"desc\">${item}${_ud(p.id,i)}</td>\n"
+ "          <td class=\"col-proyectada\"><input type=\"number\" class=\"num\" min=\"0\" id=\"pr_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\" oninput=\"recalcRow(this)\" placeholder=\"0\"></td>\n"
+ "          <td class=\"col-ejecutada\"><input type=\"number\" class=\"num\" min=\"0\" id=\"ej_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\" oninput=\"recalcRow(this)\" placeholder=\"0\"></td>\n",
+ "      const rows = p.items.map((item,i)=>{\n"
+ "        const rid=`${p.id}_${i}`;\n"
+ "        // Las de sí/no no piden cantidad: piden respuesta. Los dos campos de\n"
+ "        // cantidad siguen ahí, ocultos, para no cambiar la forma del dato.\n"
+ "        const sn = _esSN(p.id, i);\n"
+ "        return `<tr>\n"
+ "          <td class=\"n\">${i+1}</td>\n"
+ "          <td class=\"desc\">${item}${_ud(p.id,i)}</td>\n"
+ "          ${sn ? `\n"
+ "          <td class=\"col-proyectada sn-vacia\"><input type=\"hidden\" id=\"pr_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\" data-sn=\"1\"></td>\n"
+ "          <td class=\"col-ejecutada sn-cell\"><div class=\"sn\">\n"
+ "            <button type=\"button\" class=\"sn-btn si\" data-rid=\"${rid}\" onclick=\"setSN(this,1)\">Sí</button>\n"
+ "            <button type=\"button\" class=\"sn-btn no\" data-rid=\"${rid}\" onclick=\"setSN(this,0)\">No</button>\n"
+ "          </div><input type=\"hidden\" id=\"ej_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\"></td>` : `\n"
+ "          <td class=\"col-proyectada\"><input type=\"number\" class=\"num\" min=\"0\" id=\"pr_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\" oninput=\"recalcRow(this)\" placeholder=\"0\"></td>\n"
+ "          <td class=\"col-ejecutada\"><input type=\"number\" class=\"num\" min=\"0\" id=\"ej_${rid}\" data-rid=\"${rid}\" data-p=\"${p.id}\" oninput=\"recalcRow(this)\" placeholder=\"0\"></td>`}\n",
+ "112a· las filas de sí/no cambian de control, no de dato")
+
+s = sustituir(s,
+ "function recalcRow(inp){",
+ "// Responder una fila de sí/no. Volver a tocar la misma respuesta la borra:\n"
+ "// «sin responder» tiene que poder recuperarse, o un toque por error se queda.\n"
+ "function setSN(btn, valor){\n"
+ "  const rid = btn.dataset.rid;\n"
+ "  const pr = document.getElementById('pr_' + rid);\n"
+ "  const ej = document.getElementById('ej_' + rid);\n"
+ "  if(!pr || !ej) return;\n"
+ "  const yaEstaba = (ej.value !== '' && Number(ej.value) === valor);\n"
+ "  if(yaEstaba){ pr.value = ''; ej.value = ''; }\n"
+ "  else { pr.value = '1'; ej.value = String(valor); }\n"
+ "  recalcRow(pr);\n"
+ "  if(typeof _marcarCambio === 'function') _marcarCambio();\n"
+ "}\n"
+ "\n"
+ "function recalcRow(inp){",
+ "112b· el botón de Sí/No, y cómo se borra una respuesta")
+
+s = sustituir(s,
+ "  const pctEl=document.getElementById('pct_'+rid);\n"
+ "  if(pr>0){",
+ "  // En un sí/no no hay «faltante»: «falta 1» no significa nada. Y los botones\n"
+ "  // se pintan aquí, que es por donde pasa también un borrador al abrirse.\n"
+ "  const esSN = document.getElementById('pr_'+rid)?.dataset.sn;\n"
+ "  if(esSN){\n"
+ "    fltEl.textContent='—'; fltEl.style.color='#aaa';\n"
+ "    const v = document.getElementById('ej_'+rid)?.value;\n"
+ "    document.querySelectorAll(`.sn-btn[data-rid=\"${rid}\"]`).forEach(b=>{\n"
+ "      const suyo = b.classList.contains('si') ? '1' : '0';\n"
+ "      b.classList.toggle('on', v !== '' && v !== undefined && String(Number(v)) === suyo);\n"
+ "    });\n"
+ "  }\n"
+ "  const pctEl=document.getElementById('pct_'+rid);\n"
+ "  if(pr>0){",
+ "112c· sin «faltante», y los botones se pintan desde el dato")
+
+# La unidad viaja con el informe: una cantidad sin unidad no se puede releer
+# dentro de un año, y la del acero la elige quien llena.
+s = sustituir(s,
+ "        return {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};",
+ "        return {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:'',ud:_udValor(p.id,i)};",
+ "112d· la unidad se guarda con la medición")
+
+s = sustituir(s,
+ "            if(prInp && item.pr !== undefined) prInp.value = item.pr;",
+ "            const udSel = document.getElementById('ud_'+pid+'_'+i);\n"
+ "            if(udSel && item.ud) udSel.value = item.ud;\n"
+ "            if(prInp && item.pr !== undefined) prInp.value = item.pr;",
+ "112e· y vuelve al abrir el borrador")
+
+s = sustituir(s,
+ ".ud{display:inline-block;margin-left:6px;",
+ ".sn{display:flex;gap:6px}\n"
+ ".sn-btn{min-height:44px;min-width:54px;padding:6px 12px;border:2px solid #c9cdd6;border-radius:8px;"
+ "background:#fff;color:#37474f;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}\n"
+ ".sn-btn.si{border-color:#a5d6a7;color:#2e7d32}\n"
+ ".sn-btn.no{border-color:#ef9a9a;color:#c62828}\n"
+ ".sn-btn.si.on{background:#2e7d32;border-color:#2e7d32;color:#fff}\n"
+ ".sn-btn.no.on{background:#c62828;border-color:#c62828;color:#fff}\n"
+ ".ud{display:inline-block;margin-left:6px;",
+ "112f· cómo se ven los dos botones")
+
+# En el teléfono la fila es una tarjeta: la casilla de proyectada no existe en
+# un sí/no, y el rótulo de la otra deja de decir «Ejecutada».
+s = sustituir(s,
+ "  .tbl-wrap td.col-ejecutada::before{ content:'Ejecutada'; }",
+ "  .tbl-wrap td.col-ejecutada::before{ content:'Ejecutada'; }\n"
+ "  .tbl-wrap td.sn-vacia{ display:none!important; }\n"
+ "  .tbl-wrap td.sn-cell::before{ content:'¿Ejecutado?'; }",
+ "112g· en el teléfono, sin casilla de proyectada")
+
+# En el papel solo se lee la respuesta, sin el botón que no se eligió.
+s = sustituir(s,
+ "  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;"
+ "color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}",
+ "  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;"
+ "color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}\n"
+ "  .sn-btn{display:none!important}\n"
+ "  .sn-btn.on{display:inline-block!important;border:none!important;background:none!important;"
+ "color:#000!important;padding:0!important;min-height:0!important;min-width:0!important;font-size:9px!important}",
+ "112h· en el papel solo va la respuesta")
+
+
+# ── 113. Cuatro ajustes de campo, del 31-ago-2026 ──────────────────────────
+# Los cuatro salen de mirar el instrumento en un teléfono, no de una teoría.
+
+# 113a · «Cant. Ejecutada» no dice nada en un hito que se responde sí o no.
+# Solo cambia en los hitos donde TODAS las subpartidas son de sí/no —el 3, el 9
+# y el 11—. El 10 está mezclado: una se mide en m² y cuatro se responden, así
+# que ahí la columna sigue siendo de cantidad y el encabezado no puede mentir.
+s = sustituir(s,
+ "      const rows = p.items.map((item,i)=>{",
+ "      // Un hito entero de sí/no no tiene columna de cantidad que rotular.\n"
+ "      const soloSN = p.items.every((_, k) => _esSN(p.id, k));\n"
+ "      const rows = p.items.map((item,i)=>{",
+ "113a· saber si el hito es todo de sí/no")
+
+s = sustituir(s,
+ "                <th>Cant.<br>Ejecutada</th>",
+ "                <th>${soloSN ? 'Ejecutada' : 'Cant.<br>Ejecutada'}</th>",
+ "113a2· y entonces la columna se llama solo «Ejecutada»")
+
+# La de proyectada se queda —la estructura de columnas y los permisos por rol
+# dependen de ella—, pero sin rótulo: en un hito de sí/no no hay nada que
+# proyectar, y un encabezado que promete una cantidad que nunca llega confunde.
+s = sustituir(s,
+ "                <th class=\"col-proyectada\">Cant.<br>Proyectada</th>",
+ "                <th class=\"col-proyectada\">${soloSN ? '' : 'Cant.<br>Proyectada'}</th>",
+ "113a4· y la de proyectada se queda sin rótulo")
+
+# En el teléfono cada fila es una tarjeta y el rótulo va delante del control.
+s = sustituir(s,
+ "  .tbl-wrap td.sn-cell::before{ content:'¿Ejecutado?'; }",
+ "  .tbl-wrap td.sn-cell::before{ content:'Ejecutada'; }",
+ "113a3· el mismo rótulo en el teléfono")
+
+# 113b · Los botones Sí/No estaban fuera de escala. En el escritorio medían el
+# doble que los de B/R/M, que son sus vecinos de fila. Se igualan a ellos, y en
+# el teléfono se quedan en los 44 px que llevan todos los controles.
+s = sustituir(s,
+ ".sn-btn{min-height:44px;min-width:54px;padding:6px 12px;border:2px solid #c9cdd6;border-radius:8px;"
+ "background:#fff;color:#37474f;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s}",
+ ".sn-btn{padding:4px 12px;border:2px solid #90a4ae;border-radius:11px;"
+ "background:#fff;color:#263238;font-size:11px;font-weight:800;cursor:pointer;transition:all .12s}",
+ "113b· los botones Sí/No, del tamaño de sus vecinos")
+
+s = sustituir(s,
+ "  .tbl-wrap .ev-btn{ flex:1 1 0; min-height:44px; font-size:14px; }",
+ "  .tbl-wrap .ev-btn{ flex:1 1 0; min-height:44px; font-size:14px; }\n"
+ "  .tbl-wrap .sn-btn{ min-height:44px; padding:0 18px; font-size:14px; }",
+ "113b2· en el teléfono siguen siendo tocables")
+
+# 113c · El botón de «no inspeccionado» se tocaba sin querer. Ocupaba media
+# cabecera, y la cabecera entera abre y cierra el hito: quien iba a desplegarlo
+# terminaba marcándolo como no inspeccionado. Pasa a ser una pastilla blanca,
+# pequeña y con relieve —se lee como botón, no como parte del título—, y deja de
+# competir por el sitio donde la gente toca para abrir.
+#
+# ⚠️ Baja de los 44 px que el resto de los controles respeta. Es deliberado: no
+# es una acción de llenado, es una excepción que se marca de vez en cuando, y el
+# daño de tocarla por error es mayor que el de fallar el toque.
+s = sustituir(s,
+ ".no-insp-tgl{min-height:44px;display:inline-flex;align-items:center;gap:4px;padding:0 10px;"
+ "border-radius:14px;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer;font-size:15px;"
+ "opacity:.85;padding:0 4px;user-select:none;color:#fff;border:1.5px solid rgba(255,255,255,.5);"
+ "border-radius:6px;line-height:1}\n"
+ ".no-insp-tgl.on{opacity:1;background:rgba(0,0,0,.35);border-color:#fff;border-width:2px}",
+ ".no-insp-tgl{display:inline-flex;align-items:center;gap:4px;min-height:28px;padding:0 9px;"
+ "border-radius:7px;font-size:10.5px;font-weight:800;letter-spacing:.2px;white-space:nowrap;"
+ "cursor:pointer;user-select:none;line-height:1;color:#1a237e;background:#fff;"
+ "border:1px solid rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.3)}\n"
+ ".no-insp-tgl:active{transform:translateY(1px);box-shadow:none}\n"
+ ".no-insp-tgl.on{background:#3e2723;color:#fff;border-color:#fff}",
+ "113c· «no inspeccionado» se vuelve una pastilla pequeña con relieve")
+
+s = sustituir(s,
+ "  .no-insp-tgl, .arrow{\n"
+ "    min-width:44px; min-height:44px;\n"
+ "    display:inline-flex; align-items:center; justify-content:center;\n"
+ "  }",
+ "  .arrow{\n"
+ "    min-width:44px; min-height:44px;\n"
+ "    display:inline-flex; align-items:center; justify-content:center;\n"
+ "  }\n"
+ "  /* La pastilla no crece a 44: es lo que hacía que se tocara sin querer. */\n"
+ "  .no-insp-tgl{ min-height:32px; padding:0 11px; font-size:11px; }",
+ "113c2· y en el teléfono tampoco ocupa media cabecera")
+
+# 113d · El título del hito se montaba encima de la pastilla en pantalla
+# estrecha: el h2 no encogía, así que empujaba al bloque de la derecha.
+s = sustituir(s,
+ ".p-hdr-l{display:flex;align-items:center;gap:9px}",
+ ".p-hdr-l{display:flex;align-items:center;gap:9px;flex:1 1 auto;min-width:0}",
+ "113d· el título encoge en vez de empujar")
+
+s = sustituir(s,
+ ".p-hdr h2{font-size:13px;font-weight:800;color:#fff}",
+ ".p-hdr h2{font-size:13px;font-weight:800;color:#fff;overflow-wrap:anywhere}",
+ "113d2· y parte la palabra solo si no cabe de otro modo")
+
 
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,

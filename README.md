@@ -139,9 +139,13 @@ copia nueva la próxima vez que tengan internet. Si no se sube, siguen abriendo 
 
 ## Los once hitos y el ámbito del informe
 
-La inspección se estructura en **once hitos con cincuenta subpartidas**, acordados por la
+La inspección se estructura en **once hitos con cincuenta y una subpartidas**, acordados por la
 **Ing. Beatriz Sevilla** con Skarlet Gómez. La fuente es el Excel *Hitos en desglose Ciudad Tiuna.
 Agosto* (ADR-0018 del repositorio de contexto).
+
+> **Única desviación del Excel, y está aprobada**: el hito 6 traía una sola subpartida, *«Instalación de
+> ventanas y vidrios»*, y desde el 31-ago-2026 son **dos** —se instalan y se cuentan por separado en obra—.
+> Lo pidió Skarlet Gómez y lo aprobó la Ing. Sevilla (ADR-0025). De ahí que sean 51 y no 50.
 
 | # | Hito | # | Hito |
 | --- | --- | --- | --- |
@@ -152,42 +156,59 @@ Agosto* (ADR-0018 del repositorio de contexto).
 | 5 | Puertas | 11 | Pruebas |
 | 6 | Ventanas | | |
 
-### El modo detallado es el instrumento de campo
+### Hay un solo modo de llenado: el detallado
 
-Hay **dos modos de llenado**, y el enlace pelado abre el **detallado**. El otro se conserva en
-`?modo=hitos` y no se retira.
+**El modo por hitos se retiró el 31-ago-2026** (decisión de Francisco José García Guinand; ADR-0023 del
+repositorio de contexto). `?modo=hitos` ya no existe y no hay forma de empezar un informe así.
 
-**El motivo es de medición, no de gusto.** El modo por hitos pide **un porcentaje por hito, a ojo**. El
+**El motivo es de medición, no de gusto.** El modo por hitos pedía **un porcentaje por hito, a ojo**. El
 detallado lo **calcula**, por cantidad proyectada contra cantidad ejecutada en cada subpartida. Es la
-diferencia entre **avance declarado y avance verificado**, y de ahí sale la fórmula del porcentaje.
+diferencia entre **avance declarado y avance verificado**, y tener los dos vivos significaba consolidar
+juntas dos cosas que no se miden igual, sin nada que las distinguiera.
 
-### Dos ámbitos
+> Lo que sí se conserva es **leer** un borrador viejo: un informe guardado en un teléfono en agosto con el
+> modo por hitos **sigue abriéndose como se llenó**. Borrar esa parte lo volvería ilegible.
 
-| Ámbito | Hitos que muestra | Piso y apartamento | Identificador |
+### La unidad de medida de cada subpartida
+
+Cada subpartida lleva **su unidad al lado del nombre** —`Frisos  m²`—, en el teléfono, en el escritorio y
+en el papel. Sin unidad, `12` puede ser 12 puertas o 12 m² de puerta, y el porcentaje sale igual de
+convincente en los dos casos.
+
+Las cincuenta las respondió **Skarlet Gómez** el 31-ago-2026 (ADR-0024 del repositorio de contexto):
+
+| | Cuántas | Cuáles |
+| --- | --- | --- |
+| **Unidad fija** | 29 | m² en cerramientos, acabados y fachada · m³ en vaciados · pza en puertas, ventanas, vidrios y accesorios |
+| **Dos unidades, se elige al llenar** | 1 | *Acero de refuerzo*: **ml o kg**, según cómo venga computada la partida |
+| **Sin cantidad: sí o no** | 21 | Ver abajo |
+
+**La unidad elegida viaja dentro del informe**, junto a la cantidad. Una cantidad sin su unidad no se puede
+volver a leer dentro de un año.
+
+> ⚠️ **Está pendiente de ratificación de la Ing. Beatriz Sevilla**, que es quien aprobó el desglose.
+
+### Veintiuna subpartidas no se miden: se responden
+
+Los **nueve** de *Instalación de servicios*, los **cuatro** de *Ascensor*, los **cuatro** de *Pruebas* y
+**cuatro** de *Acabados exteriores* —accesos y pasillos, iluminación común, barandas, pasamanos—.
+
+Pedir dos cantidades para «Presión de agua» obliga al inspector a escribir `1` y `1` para decir que se
+hizo. En esas filas hay **dos botones, Sí y No**, y **volver a tocar la misma respuesta la borra**.
+
+En los tres hitos que son **enteramente** de sí/no —el 3, el 9 y el 11— la columna se llama **«Ejecutada»**
+y no «Cant. ejecutada», y la de proyectada se queda sin rótulo: ahí no hay ninguna cantidad. El hito 10
+está mezclado —una se mide en m² y cuatro se responden—, así que conserva los encabezados de cantidad.
+
+Por debajo siguen siendo las mismas dos cantidades, y por eso no cambió nada aguas abajo:
+
+| Respuesta | Proyectada | Ejecutada | Avance |
 | --- | --- | --- | --- |
-| 🚪 **Apartamento** | los **once** | obligatorios | `EZ-T05-P03A04-…` |
-| 🏢 **Torre completa** | los **once** | no aplican | `EZ-T05-260828-CF` |
+| **Sí** | 1 | 1 | 100 % |
+| **No** | 1 | 0 | 0 % |
+| **Sin responder** | vacía | vacía | no entra al promedio |
 
-**El ámbito no recorta la lista.** Decide si el informe es de una vivienda o de la torre entera —y con eso,
-si se piden piso y apartamento y cómo sale el número—, pero **los once hitos y las cincuenta subpartidas
-están disponibles en los dos**, a petición de Skarlet Gómez.
-
-> **El hito que no aplique se marca como «hito no inspeccionado»**, y así **no cuenta para el promedio**.
-> Eso es distinto de ponerle cero: un cero significa *no está construido*. Ocultarlo no significaba nada y
-> no quedaba registrado en ninguna parte.
-
-> ⚠️ **Qué hito corresponde a qué ámbito sigue siendo criterio de ingeniería y sigue sin confirmarse.**
-> Hubo un reparto provisional —cuatro hitos de torre y siete de apartamento— y se retiró del instrumento:
-> dejaba dos hitos mezclados (el **2** lleva *impermeabilización de azotea* y el **3** *equipamiento de
-> cuarto de módulos*, que son de torre), y ocultar hitos apoyándose en él decidía por el inspector algo que
-> nadie había decidido. La propuesta sigue escrita en ADR-0018 §3, que es donde se decide si vuelve.
-
-> **Contra incendio no está entre los once.** Rociadores, gabinetes, extintores y detectores de humo
-> existían en la partición anterior y no aparecen en el Excel. Está preguntado a Ingeniería si es
-> deliberado; el formulario **no los añade por su cuenta**.
-
-**El Excel no trae pesos**: es estructura, no ponderación. El promedio de subpartidas es simple, y ese
-número **no debe sostener nada financiero**.
+`N/A` se conserva, que es lo que distingue **«no aplica»** de **«no se hizo»**.
 
 ## Lo que protege el trabajo en campo
 
