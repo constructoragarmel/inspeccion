@@ -3,7 +3,7 @@
 // Al subir una versión nueva hay que subir el número de VERSION: eso es lo que
 // hace que los teléfonos se traigan la copia nueva la próxima vez que tengan
 // internet. Si no se sube, siguen abriendo la vieja.
-const VERSION = 'garmel-inspeccion-v37';
+const VERSION = 'garmel-inspeccion-v38';
 const ARCHIVOS = [
   './',
   './index.html',
@@ -20,11 +20,23 @@ self.addEventListener('install', e => {
   );
 });
 
+// Al activarse una versión nueva se le AVISA a la página, que decide qué hacer:
+// si nadie ha tocado el formulario se recarga sola, y si hay algo escrito
+// espera con un aviso. Sin esto había que abrir el enlace dos veces —la primera
+// servía la copia vieja y traía la nueva por detrás—, y quien abría una sola vez
+// se quedaba con la versión anterior sin enterarse.
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys()
-      .then(ks => Promise.all(ks.filter(k => k !== VERSION).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
+    caches.keys().then(ks => {
+      const viejas = ks.filter(k => k !== VERSION);
+      // Si no había ninguna copia anterior, esta es la primera instalación:
+      // la página ya es la de esta versión y no hay nada que avisar.
+      const esActualizacion = viejas.length > 0;
+      return Promise.all(viejas.map(k => caches.delete(k)))
+        .then(() => self.clients.claim())
+        .then(() => esActualizacion ? self.clients.matchAll({ type: 'window' }) : [])
+        .then(cs => cs.forEach(c => c.postMessage({ garmel: 'version-nueva', version: VERSION })));
+    })
   );
 });
 

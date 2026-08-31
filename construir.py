@@ -5619,6 +5619,95 @@ s = sustituir(s,
  "121c· en el papel va el texto, no el control")
 
 
+# ── 122. Se acabó lo de abrir el enlace dos veces ──────────────────────────
+# El service worker sirve primero la copia local —por eso abre sin señal y al
+# instante— y se trae la nueva por detrás. La consecuencia era que **una versión
+# nueva no se veía hasta la segunda apertura**, y quien abría una sola vez
+# trabajaba con la anterior sin enterarse. El 31-ago pasó de verdad: un teléfono
+# en v33 mandaba informes que el relevo rechazaba.
+#
+# Lo que NO se hizo, y por qué: pedir el documento a la red primero. Habría
+# resuelto lo mismo, pero el archivo pesa 226 KB y en una torre con señal mala
+# eso son segundos de espera **en cada apertura**, todos los días, para algo que
+# cambia una vez por semana. Se paga caro un problema raro.
+#
+# Lo que se hace: el service worker **avisa** cuando termina de instalar una
+# versión nueva, y la página decide.
+#
+#   · Si nadie ha tocado el formulario, se recarga sola. El inspector que abre
+#     por la mañana ve la última sin hacer nada.
+#   · Si hay algo escrito, NO se toca: aparece un aviso para actualizar cuando
+#     convenga. Recargar encima de un informe a medio llenar sería peor que la
+#     versión vieja.
+s = sustituir(s,
+ "// El inspector necesita saber si «Enviar» va a funcionar antes de tocarlo.",
+ "// ¿Alguien escribió algo en este informe? Distinto de «hay cambios sin\n"
+ "// guardar»: eso se apaga solo al autoguardar, y aquí hace falta saber si la\n"
+ "// pantalla está virgen para poder recargarla sin quitarle trabajo a nadie.\n"
+ "let _huboInteraccion = false;\n"
+ "\n"
+ "function _avisarVersionNueva(){\n"
+ "  if(!_huboInteraccion && !_hayCambiosSinGuardar){ location.reload(); return; }\n"
+ "  const b = document.getElementById('aviso-version');\n"
+ "  if(b) b.style.display = 'flex';\n"
+ "}\n"
+ "\n"
+ "if('serviceWorker' in navigator){\n"
+ "  navigator.serviceWorker.addEventListener('message', function(e){\n"
+ "    if(e.data && e.data.garmel === 'version-nueva') _avisarVersionNueva();\n"
+ "  });\n"
+ "}\n"
+ "\n"
+ "// El inspector necesita saber si «Enviar» va a funcionar antes de tocarlo.",
+ "122a· la página escucha al service worker y decide")
+
+s = sustituir(s,
+ "function _marcarCambio(){\n"
+ "  _hayCambiosSinGuardar = true;",
+ "function _marcarCambio(){\n"
+ "  _huboInteraccion = true;\n"
+ "  _hayCambiosSinGuardar = true;",
+ "122b· tocar el formulario cuenta como interacción")
+
+# El aviso va encima de la barra de acciones, no dentro: la zona del pulgar es
+# para llenar el informe, no para avisos.
+s = sustituir(s,
+ '  <div class="hdr-btns">',
+ '  <div class="hdr-btns">\n'
+ '<div id="aviso-version" onclick="location.reload()" title="Tocar para actualizar"\n'
+ '     style="display:none;align-items:center;justify-content:center;gap:8px;cursor:pointer;\n'
+ '            min-height:44px;background:#f9a825;color:#1a1a1a;font-size:13px;font-weight:800;\n'
+ '            padding:10px 16px;border-bottom:1px solid rgba(0,0,0,.15)">\n'
+ '  ⟳ Hay una versión nueva — tocar para actualizar\n'
+ '</div>',
+ "122c· el aviso, cuando hay algo escrito y no se puede recargar solo")
+
+# En el teléfono las acciones viven pegadas al borde inferior. El aviso se cuelga
+# JUSTO ENCIMA de ellas, no del borde de la pantalla: tapar «Enviar» con un aviso
+# de mantenimiento sería peor que la versión vieja.
+s = sustituir(s,
+ "  /* Y el contenido deja sitio para no quedar debajo de la barra. */\n"
+ "  body{padding-bottom:150px}",
+ "  /* Y el contenido deja sitio para no quedar debajo de la barra. */\n"
+ "  body{padding-bottom:150px}\n"
+ "  /* El aviso se cuelga del borde superior de la barra —encima de las\n"
+ "     acciones, nunca sobre ellas—: tapar «Enviar» con un aviso de\n"
+ "     mantenimiento sería peor que quedarse con la versión vieja. */\n"
+ "  #aviso-version{\n"
+ "    position:absolute; left:0; right:0; bottom:100%;\n"
+ "    border-bottom:none; box-shadow:0 -3px 10px rgba(0,0,0,.25);\n"
+ "  }\n"
+ "  .hdr-btns{ overflow:visible }",
+ "122c2· en el teléfono, justo encima de las acciones y sin taparlas")
+
+# En el papel no existe.
+s = sustituir(s,
+ "  #aviso-ambito{display:none!important}",
+ "  #aviso-version{display:none!important}\n"
+ "  #aviso-ambito{display:none!important}",
+ "122d· y no sale en el PDF")
+
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar

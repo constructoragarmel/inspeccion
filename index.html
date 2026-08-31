@@ -681,6 +681,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
               border-radius:0!important;padding:2px 0 2px 8px!important;font-size:9px!important;
               margin:0 0 8px!important;color:#333!important}
 
+  #aviso-version{display:none!important}
   #aviso-ambito{display:none!important}
 }
 
@@ -704,6 +705,14 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   }
   /* Y el contenido deja sitio para no quedar debajo de la barra. */
   body{padding-bottom:150px}
+  /* El aviso se cuelga del borde superior de la barra —encima de las
+     acciones, nunca sobre ellas—: tapar «Enviar» con un aviso de
+     mantenimiento sería peor que quedarse con la versión vieja. */
+  #aviso-version{
+    position:absolute; left:0; right:0; bottom:100%;
+    border-bottom:none; box-shadow:0 -3px 10px rgba(0,0,0,.25);
+  }
+  .hdr-btns{ overflow:visible }
   /* El menú «Más» se despliega hacia arriba, no hacia fuera de la pantalla. */
   .hdr-sec{flex-direction:column-reverse}
 }
@@ -797,6 +806,12 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 <div class="hdr">
   <div><h1 id="hdr-title">Informe de Inspección Técnica de Obra</h1><p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>
   <div class="hdr-btns">
+<div id="aviso-version" onclick="location.reload()" title="Tocar para actualizar"
+     style="display:none;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+            min-height:44px;background:#f9a825;color:#1a1a1a;font-size:13px;font-weight:800;
+            padding:10px 16px;border-bottom:1px solid rgba(0,0,0,.15)">
+  ⟳ Hay una versión nueva — tocar para actualizar
+</div>
     <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Guarda este informe y prepara el del siguiente apartamento, conservando torre, empresa y personal">➡️ <span>Guardar y siguiente</span></button>
     <button class="hbtn hbtn-send" onclick="openSend()" title="Manda los informes a Drive. Hasta que se envían, viven solo en este teléfono">📤 <span>Enviar</span><b id="cnt-pendientes" style="display:none;margin-left:5px"></b></button>
     <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Borra todo lo escrito en este informe y deja el formulario en blanco. Los informes ya guardados no se tocan">🧹 <span>Limpiar todo</span></button>
@@ -1148,6 +1163,7 @@ let _hayCambiosSinGuardar = false;
 let _tempAutoguardado = null;
 
 function _marcarCambio(){
+  _huboInteraccion = true;
   _hayCambiosSinGuardar = true;
   clearTimeout(_tempAutoguardado);
   _tempAutoguardado = setTimeout(autoguardar, 2000);
@@ -1237,15 +1253,32 @@ document.addEventListener('change', function(e){
   if(e.target && e.target.tagName === 'SELECT') _valorAlPapel(e.target);
 }, true);
 
+// ¿Alguien escribió algo en este informe? Distinto de «hay cambios sin
+// guardar»: eso se apaga solo al autoguardar, y aquí hace falta saber si la
+// pantalla está virgen para poder recargarla sin quitarle trabajo a nadie.
+let _huboInteraccion = false;
+
+function _avisarVersionNueva(){
+  if(!_huboInteraccion && !_hayCambiosSinGuardar){ location.reload(); return; }
+  const b = document.getElementById('aviso-version');
+  if(b) b.style.display = 'flex';
+}
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message', function(e){
+    if(e.data && e.data.garmel === 'version-nueva') _avisarVersionNueva();
+  });
+}
+
 // El inspector necesita saber si «Enviar» va a funcionar antes de tocarlo.
 function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v37';
+    el.textContent = '● en línea · v38';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v37 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v38 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
