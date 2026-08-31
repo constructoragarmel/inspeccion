@@ -4955,6 +4955,153 @@ if ('serviceWorker' in navigator) {
 window.onload = function() {""",
  "13· registrar el service worker")
 
+
+# ══════════════════════════════════════════════════════════════════════════
+# 14. ORTOGRAFÍA Y VOCABULARIO — 30-ago-2026
+#
+# Sale de la primera prueba en manos de alguien que no había visto el
+# formulario (Francisco José García Guinand) y de una revisión ortográfica
+# completa. Lo que se corrige aquí es de dos clases distintas:
+#
+#   · erratas del original, que se arreglan sin consultar a nadie;
+#   · nombres propios, que se alinean al maestro de Smartsheet. Esto último
+#     NO es cosmético: el relevo escribe en Smartsheet el nombre que el
+#     formulario tiene, y si difiere en una coma no agrupa con el maestro.
+# ══════════════════════════════════════════════════════════════════════════
+
+# ── 14a. «Bielorrusos» lleva dos erres. Viene mal del original, 37 veces ──
+s = sustituir(s, "Bielorusos", "Bielorrusos",
+              "14a· Bielorusos → Bielorrusos (todas)", -1)
+
+# ── 14b. Nombres de empresa, exactamente como en MAE_Contratistas ─────────
+# ⚠️ TESURU sale del Cuadro Resumen del 28-ago; el resto de las fuentes dice
+#    TSURU. Se sigue el maestro, pero está pendiente de confirmar cuál es.
+for viejo, nuevo, etq in [
+    ("ING & ARQ 1111, C.A.", "ING&ARQ 1111, C.A.", "14b1· ING&ARQ, como el maestro"),
+    ("JVR INGENIERÍA C,A.",  "JVR INGENIERÍA, C.A.", "14b2· JVR: la coma iba antes del C.A."),
+    ("TSURU, C.A.",          "TESURU, C.A.",       "14b3· TESURU, como el maestro (pendiente de confirmar)"),
+]:
+    s = sustituir(s, viejo, nuevo, etq, -1)
+
+# ── 14c. Nombres de ingenieros residentes, como en MAE_Torres ─────────────
+for viejo, nuevo in [
+    ("ING.ASTRID LARES",   "ING. ASTRID LARES"),
+    ("ING.RADAMEZ RIVAS",  "ING. RADAMEZ RIVAS"),
+    ("ING FELIX PINTO",    "ING. FELIX PINTO"),
+    ("ING HARRY ARTEAGA",  "ING. HARRY ARTEAGA"),
+    ("ING MANUEL PAEZ",    "ING. MANUEL PAEZ"),
+    ("ING JOSE V GONZALES","ING. JOSE V. GONZALES"),
+    ("ING MARIA T MARCANO","ING. MARIA T. MARCANO"),
+    ("ING. JOANNY TAPIA / ING. JHOANNY LOPEZ",  "ING. JOANNY TAPIA · ING. JHOANNY LOPEZ"),
+    ("ING. JUAN COLMENARES ARQ EVER AVENDAÑO",  "ING. JUAN COLMENARES · ARQ. EVER AVENDAÑO"),
+]:
+    s = sustituir(s, viejo, nuevo, "14c· residente: %s" % nuevo, -1)
+
+# ── 14d. «Subitems» es un anglicismo, y el formulario ya se contradecía ───
+# En un mensaje decía «subpartidas medidas» y en cinco sitios «subitems».
+# Subpartida es el término de ADR-0018 y el de todo el resto del sistema.
+for viejo, nuevo, etq in [
+    ("HITOS Y SUBITEMS", "HITOS Y SUBPARTIDAS", "14d1· título"),
+    ("Hitos y Subitems del Excel", "Hitos y Subpartidas del Excel", "14d2· subtítulo"),
+    ("los subitems inspeccionados", "las subpartidas inspeccionadas", "14d3· ayuda del hito"),
+    ("Descripción del subitem...", "Descripción de la subpartida...", "14d4· placeholder"),
+    ("Eliminar subitem", "Eliminar subpartida", "14d5· botón"),
+    ("Subitem / Descripción", "Subpartida / Descripción", "14d6· cabecera de la tabla"),
+    ("Agregar subitem adicional", "Agregar subpartida adicional", "14d7· botón de agregar"),
+    ("los hitos y subitems del Excel", "los hitos y subpartidas del Excel", "14d8· comentario del código"),
+]:
+    s = sustituir(s, viejo, nuevo, etq, -1)
+
+print("  … 14 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 15. LO QUE LA PRIMERA PRUEBA DE CAMPO DEJÓ EN EVIDENCIA — 30-ago-2026
+#
+# Tres tropiezos de alguien que llenaba el formulario por primera vez. Los
+# tres son de lo mismo: la interfaz decía una cosa y hacía otra.
+# ══════════════════════════════════════════════════════════════════════════
+
+# ── 15a. Los botones B/R/M parecían deshabilitados ────────────────────────
+# Estaban en gris #bbb sobre fondo #f5f5f5: contraste ~2:1, menos de la mitad
+# del mínimo legible, y exactamente el aspecto convencional de un control que
+# no se puede pulsar. Hubo que decirle que sí funcionaban. Ahora el estado sin
+# elegir se lee como «pulsable pero vacío», y cada letra insinúa su color.
+s = sustituir(s,
+".ev-btn{padding:4px 9px;border:1.5px solid #ddd;border-radius:11px;font-size:11px;font-weight:800;cursor:pointer;background:#f5f5f5;color:#bbb;transition:all .12s}",
+".ev-btn{padding:4px 9px;border:2px solid #78909c;border-radius:11px;font-size:11px;font-weight:800;cursor:pointer;background:#fff;color:#263238;transition:all .12s}",
+ "15a· los botones de evaluación no parecen deshabilitados")
+
+s = sustituir(s,
+".ev-btn.NA{border-color:#bdbdbd}",
+".ev-btn.B{border-color:#43a047;color:#1b5e20}"
+".ev-btn.R{border-color:#ef6c00;color:#e65100}"
+".ev-btn.M{border-color:#e53935;color:#b71c1c}"
+".ev-btn.NA{border-color:#78909c;color:#37474f}",
+ "15a2· cada letra insinúa su color desde antes de pulsarla")
+
+# ── 15b. Un hito «no inspeccionado» se veía gris y sin explicación ────────
+# Se marcaba sin querer, y al desplegarlo aparecía todo apagado y sin poder
+# escribir, sin decir por qué ni cómo revertirlo. El aviso se pone DENTRO del
+# cuerpo pero como ::before, que no lo alcanza el atenuado de los hijos.
+s = sustituir(s,
+".partida.no-inspeccionada .p-body{opacity:.38;pointer-events:none}",
+".partida.no-inspeccionada .p-body{pointer-events:none}"
+".partida.no-inspeccionada .p-body > *{opacity:.38}"
+".partida.no-inspeccionada .p-body::before{content:'Este hito está marcado como NO INSPECCIONADO, "
+"así que no cuenta para el promedio. Para poder llenarlo, toca otra vez el botón de la cabecera.';"
+"display:block;margin:10px 12px 0;padding:10px 12px;border-radius:8px;background:#fff8e1;"
+"border:1.5px solid #ffb300;color:#4e342e;font-size:13px;font-weight:600;line-height:1.45}",
+ "15b· decir por qué el hito está apagado y cómo revertirlo")
+
+# ── 15c. «Enviar» no decía que estuviera enviando ─────────────────────────
+# El botón sí se deshabilitaba, así que no llegó a duplicar nada, pero eso no
+# se ve: se pulsó varias veces porque el envío tarda unos segundos y lo único
+# que aparecía era una línea de texto plano al pie.
+s = sustituir(s,
+".m-btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer}",
+".m-btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer}"
+".m-btn:disabled{opacity:.6;cursor:progress;filter:grayscale(.35)}",
+ "15c1· un botón deshabilitado tiene que verse deshabilitado")
+
+s = sustituir(s,
+"""  const btn   = document.getElementById('btn-enviar-relevo');
+
+  if(!clave){ alert('Escriba la clave de env\u00edo.'); return; }""",
+"""  const btn   = document.getElementById('btn-enviar-relevo');
+
+  // Segunda defensa contra el doble env\u00edo. La primera es que el bot\u00f3n queda
+  // deshabilitado; esta cubre que se llame por cualquier otra v\u00eda.
+  if(btn.disabled) return;
+
+  if(!clave){ alert('Escriba la clave de env\u00edo.'); return; }""",
+ "15c2· no reenviar si ya hay un envío en curso")
+
+s = sustituir(s,
+"""  btn.disabled = true;
+
+  // Con se\u00f1al mala un env\u00edo puede quedarse esperando para siempre.""",
+"""  const textoBtn = btn.innerHTML;
+  btn.innerHTML = '\u23f3 Enviando\u2026';
+  btn.disabled = true;
+
+  // Con se\u00f1al mala un env\u00edo puede quedarse esperando para siempre.""",
+ "15c3· el botón dice «Enviando…» mientras dura")
+
+s = sustituir(s,
+"""  } finally {
+    clearTimeout(reloj);
+    btn.disabled = false;
+  }""",
+"""  } finally {
+    clearTimeout(reloj);
+    btn.disabled = false;
+    btn.innerHTML = textoBtn;
+  }""",
+ "15c4· y vuelve a su texto al terminar")
+
+print("  … 15 aplicado")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ index.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

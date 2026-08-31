@@ -228,16 +228,16 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .g{color:#1b5e20}.y{color:#8f4b00}.r{color:#b71c1c}
 .bg{background:#43a047}.by{background:#fbc02d}.br{background:#e53935}
 .ev{display:flex;gap:3px;justify-content:center}
-.ev-btn{padding:4px 9px;border:1.5px solid #ddd;border-radius:11px;font-size:11px;font-weight:800;cursor:pointer;background:#f5f5f5;color:#bbb;transition:all .12s}
+.ev-btn{padding:4px 9px;border:2px solid #78909c;border-radius:11px;font-size:11px;font-weight:800;cursor:pointer;background:#fff;color:#263238;transition:all .12s}
 .ev-btn:hover{transform:scale(1.08)}
 .ev-btn.B.on{background:#2e7d32;border-color:#2e7d32;color:#fff}
 .ev-btn.R.on{background:#f57f17;border-color:#f57f17;color:#fff}
 .ev-btn.M.on{background:#c62828;border-color:#c62828;color:#fff}
 .no-insp-tgl{min-height:44px;display:inline-flex;align-items:center;gap:4px;padding:0 10px;border-radius:14px;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer;font-size:15px;opacity:.85;padding:0 4px;user-select:none;color:#fff;border:1.5px solid rgba(255,255,255,.5);border-radius:6px;line-height:1}
 .no-insp-tgl.on{opacity:1;background:rgba(0,0,0,.35);border-color:#fff;border-width:2px}
-.partida.no-inspeccionada .p-body{opacity:.38;pointer-events:none}
+.partida.no-inspeccionada .p-body{pointer-events:none}.partida.no-inspeccionada .p-body > *{opacity:.38}.partida.no-inspeccionada .p-body::before{content:'Este hito está marcado como NO INSPECCIONADO, así que no cuenta para el promedio. Para poder llenarlo, toca otra vez el botón de la cabecera.';display:block;margin:10px 12px 0;padding:10px 12px;border-radius:8px;background:#fff8e1;border:1.5px solid #ffb300;color:#4e342e;font-size:13px;font-weight:600;line-height:1.45}
 .partida.no-inspeccionada .p-hdr h2::after{content:' · NO INSPECCIONADO';font-size:10px;opacity:.85}
-.ev-btn.NA{border-color:#bdbdbd}
+.ev-btn.B{border-color:#43a047;color:#1b5e20}.ev-btn.R{border-color:#ef6c00;color:#e65100}.ev-btn.M{border-color:#e53935;color:#b71c1c}.ev-btn.NA{border-color:#78909c;color:#37474f}
 .ev-btn.NA.on{background:#757575;border-color:#757575;color:#fff}
 
 /* ADD ROW BTN */
@@ -308,7 +308,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .modal input{width:100%;border:2px solid #ddd;border-radius:7px;padding:9px 12px;font-size:12px;font-family:monospace;margin-bottom:12px}
 .modal input:focus{outline:none;border-color:var(--blue2)}
 .m-btns{display:flex;gap:8px}
-.m-btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer}
+.m-btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer}.m-btn:disabled{opacity:.6;cursor:progress;filter:grayscale(.35)}
 .m-cancel{background:#f0f0f0;color:#555}
 .m-confirm{background:var(--green);color:#fff}
 .m-log{background:#0d0d0d;border-radius:7px;padding:11px;font-family:monospace;font-size:11px;color:#69f0ae;margin-top:10px;display:none;max-height:140px;overflow-y:auto;white-space:pre-wrap;line-height:1.6}
@@ -833,7 +833,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
         <option value="">— Seleccione —</option>
         <option>Convenio Chinos</option>
         <option>Convenio Rusos</option>
-        <option>Convenio Bielorusos</option>
+        <option>Convenio Bielorrusos</option>
       </select>
     </div>
   </div>
@@ -854,14 +854,14 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
         <option>CONSTRUCTORA VIALPA, C.A.</option>
         <option>DRIJECAE, C.A.</option>
         <option>GRUPO TEPUY, C.A.</option>
-        <option>ING & ARQ 1111, C.A.</option>
-        <option>JVR INGENIERÍA C,A.</option>
+        <option>ING&ARQ 1111, C.A.</option>
+        <option>JVR INGENIERÍA, C.A.</option>
         <option>MASTER REFORMAS RR, C.A.</option>
         <option>PROCODIMA, C.A.</option>
         <option>RACAR INGENIEROS, C.A.</option>
         <option>RÍO LIMÓN, C.A.</option>
         <option>THAISSA MM INVERSIONES, C.A.</option>
-        <option>TSURU, C.A.</option>
+        <option>TESURU, C.A.</option>
         <option>ZERPA CONSTRUCCIONES, C.A.</option>
       </select>
     </div>
@@ -992,7 +992,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 </div>
 
 <!-- SECCIÓN EVALUACIÓN -->
-<div class="sec-div">EVALUACIÓN DE AVANCE POR HITOS Y SUBITEMS<span id="aviso-ambito" style="display:block;text-transform:none;letter-spacing:0;font-weight:600;font-size:11.5px;color:#1a237e;margin-top:5px"></span></div>
+<div class="sec-div">EVALUACIÓN DE AVANCE POR HITOS Y SUBPARTIDAS<span id="aviso-ambito" style="display:block;text-transform:none;letter-spacing:0;font-weight:600;font-size:11.5px;color:#1a237e;margin-top:5px"></span></div>
 <div class="content" id="main-content"></div>
 
 <!-- SERVICIOS PÚBLICOS -->
@@ -1376,13 +1376,13 @@ function setupFormTypeUI() {
     if (logoTitle) logoTitle.textContent = 'INFORME DE GERENCIA TÉCNICA DE INSPECCIÓN';
   } else {
     if (hdrTitle) hdrTitle.textContent = 'Informe de Inspección Técnica de Obra';
-    if (hdrSub) hdrSub.textContent = 'Sistema GARMEL · Evaluación por Hitos y Subitems del Excel';
+    if (hdrSub) hdrSub.textContent = 'Sistema GARMEL · Evaluación por Hitos y Subpartidas del Excel';
     if (logoTitle) logoTitle.textContent = 'INFORME DE GERENCIA TÉCNICA DE INSPECCIÓN';
   }
 }
 
 // ═══════════════════════════════════════════════
-// DATA & STATE (ADAPTADO A HITOS Y SUBITEMS DEL EXCEL GARMEL)
+// DATA & STATE (ADAPTADO A HITOS Y SUBPARTIDAS DEL EXCEL GARMEL)
 // ═══════════════════════════════════════════════
 const INSPECTORES_DB = [
   "Edenil Narvaez (CIV-150422)",
@@ -1396,55 +1396,55 @@ const INSPECTORES_DB = [
 ];
 
 const TORRES = [
-  {t:'T-01',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:"ING HARRY ARTEAGA"},
-  {t:'T-02',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:"ING MARIA T MARCANO"},
-  {t:'T-03',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:""},
-  {t:'T-04',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:""},
-  {t:'T-05',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:"ING. ANTONIO CUICAS"},
-  {t:'T-06',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:"ING JOSE V GONZALES"},
-  {t:'T-07',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:""},
-  {t:'T-08',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:""},
-  {t:'T-09',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:"ING MANUEL PAEZ"},
-  {t:'T-10',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
-  {t:'T-11',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
-  {t:'T-12',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
-  {t:'T-13',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:"ING. LEONARDO TORRES"},
-  {t:'T-14',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
-  {t:'T-15',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
-  {t:'T-16',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
-  {t:'T-17',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:"ING FELIX PINTO"},
-  {t:'T-18',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-19',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-45',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-46',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-47',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-48',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-49',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-50',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-51',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-52',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-53',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:"ING. ANDREA LEON"},
-  {t:'T-54',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:"ING.ASTRID LARES"},
-  {t:'T-55',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:""},
-  {t:'T-56',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
-  {t:'T-57',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
-  {t:'T-58',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
+  {t:'T-01',  c:'Convenio Bielorrusos',   e:"RÍO LIMÓN, C.A.",               r:"ING. HARRY ARTEAGA"},
+  {t:'T-02',  c:'Convenio Bielorrusos',   e:"RÍO LIMÓN, C.A.",               r:"ING. MARIA T. MARCANO"},
+  {t:'T-03',  c:'Convenio Bielorrusos',   e:"RÍO LIMÓN, C.A.",               r:""},
+  {t:'T-04',  c:'Convenio Bielorrusos',   e:"RÍO LIMÓN, C.A.",               r:""},
+  {t:'T-05',  c:'Convenio Bielorrusos',   e:"ALNAVIC, C.A.",                 r:"ING. ANTONIO CUICAS"},
+  {t:'T-06',  c:'Convenio Bielorrusos',   e:"ALNAVIC, C.A.",                 r:"ING. JOSE V. GONZALES"},
+  {t:'T-07',  c:'Convenio Bielorrusos',   e:"ALNAVIC, C.A.",                 r:""},
+  {t:'T-08',  c:'Convenio Bielorrusos',   e:"ALNAVIC, C.A.",                 r:""},
+  {t:'T-09',  c:'Convenio Bielorrusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:"ING. MANUEL PAEZ"},
+  {t:'T-10',  c:'Convenio Bielorrusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
+  {t:'T-11',  c:'Convenio Bielorrusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
+  {t:'T-12',  c:'Convenio Bielorrusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
+  {t:'T-13',  c:'Convenio Bielorrusos',   e:"PROCODIMA, C.A.",               r:"ING. LEONARDO TORRES"},
+  {t:'T-14',  c:'Convenio Bielorrusos',   e:"PROCODIMA, C.A.",               r:""},
+  {t:'T-15',  c:'Convenio Bielorrusos',   e:"PROCODIMA, C.A.",               r:""},
+  {t:'T-16',  c:'Convenio Bielorrusos',   e:"PROCODIMA, C.A.",               r:""},
+  {t:'T-17',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTORY, S.A.",        r:"ING. FELIX PINTO"},
+  {t:'T-18',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-19',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-45',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-46',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-47',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-48',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-49',  c:'Convenio Bielorrusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-50',  c:'Convenio Bielorrusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-51',  c:'Convenio Bielorrusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-52',  c:'Convenio Bielorrusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-53',  c:'Convenio Bielorrusos',   e:"CIVIKA PRO, C.A.",              r:"ING. ANDREA LEON"},
+  {t:'T-54',  c:'Convenio Bielorrusos',   e:"CIVIKA PRO, C.A.",              r:"ING. ASTRID LARES"},
+  {t:'T-55',  c:'Convenio Bielorrusos',   e:"CIVIKA PRO, C.A.",              r:""},
+  {t:'T-56',  c:'Convenio Bielorrusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
+  {t:'T-57',  c:'Convenio Bielorrusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
+  {t:'T-58',  c:'Convenio Bielorrusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
   {t:'T-04',  c:'Convenio Rusos',        e:"AROA, C.A.",                    r:""},
-  {t:'T-07',  c:'Convenio Rusos',        e:"TSURU, C.A.",                   r:"MILTON RODRIGUEZ"},
+  {t:'T-07',  c:'Convenio Rusos',        e:"TESURU, C.A.",                   r:"MILTON RODRIGUEZ"},
   {t:'T-12',  c:'Convenio Rusos',        e:"ZERPA CONSTRUCCIONES, C.A.",    r:"ING. IVAN MEDINA"},
   {t:'T-13',  c:'Convenio Rusos',        e:"MASTER REFORMAS RR, C.A.",      r:"ING. ERICK MARTINEZ"},
   {t:'T-38',  c:'Convenio Rusos',        e:"CONSTRUCTORA 5010, C.A.",       r:"ING. JOSE MARTINEZ"},
-  {t:'T-39',  c:'Convenio Rusos',        e:"JVR INGENIERÍA C,A.",           r:"ING. JUAN COLMENARES ARQ EVER AVENDAÑO"},
+  {t:'T-39',  c:'Convenio Rusos',        e:"JVR INGENIERÍA, C.A.",           r:"ING. JUAN COLMENARES · ARQ. EVER AVENDAÑO"},
   {t:'D-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA VIALPA, C.A.",     r:"ING ADRIAN OLIVARES"},
-  {t:'J-07',  c:'Convenio Chinos',       e:"ING & ARQ 1111, C.A.",          r:"ING. JOANNY TAPIA / ING. JHOANNY LOPEZ"},
+  {t:'J-07',  c:'Convenio Chinos',       e:"ING&ARQ 1111, C.A.",          r:"ING. JOANNY TAPIA · ING. JHOANNY LOPEZ"},
   {t:'J-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA SB 86, C.A.",      r:"ING. JULIO LUQUEZ"},
   {t:'J-09',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:"ING. GERARDO ARGARIN"},
   {t:'J-10',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:""},
-  {t:'J-11',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:"ING.RADAMEZ RIVAS"},
+  {t:'J-11',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:"ING. RADAMEZ RIVAS"},
   {t:'J-12',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:""},
 ];
 
-// Estructura actualizada con los hitos y subitems del Excel del proyecto
+// Estructura actualizada con los hitos y subpartidas del Excel del proyecto
 // Una escala de azules, de la más oscura a la más clara, para que los siete
 // hitos se lean como una serie ordenada. El color de cada hito en el archivo
 // original se conserva en el dato; lo que cambia es cómo se pinta.
@@ -1548,8 +1548,8 @@ const CONVENIO_DATA = (function(){
 const BOARD_ID = '18427790814';
 var INFORMES_BOARD = '18427793795';
 var INFORMES_FILE_COL = 'file_mm6gtav2';
-var GROUP_MAP_PDF = {"Convenio Bielorusos":"group_mm6j9pbr","Convenio Rusos":"group_mm6j6m1g","Convenio Chinos":"group_mm6js7c2"};
-var GROUP_TO_CONV_MAP = {'group_mm6j9pbr':'Convenio Bielorusos','group_mm6j6m1g':'Convenio Rusos','group_mm6js7c2':'Convenio Chinos'};
+var GROUP_MAP_PDF = {"Convenio Bielorrusos":"group_mm6j9pbr","Convenio Rusos":"group_mm6j6m1g","Convenio Chinos":"group_mm6js7c2"};
+var GROUP_TO_CONV_MAP = {'group_mm6j9pbr':'Convenio Bielorrusos','group_mm6j6m1g':'Convenio Rusos','group_mm6js7c2':'Convenio Chinos'};
 
 let reportCounter = parseInt(localStorage.getItem('garmel_cnt') || '0');
 let TEST_MODE = false;
@@ -1757,7 +1757,7 @@ function getTorreActual() {
 }
 
 const SECTOR_POR_CONVENIO = {
-  'Convenio Bielorusos': 'EZ',   // Ezequiel Zamora
+  'Convenio Bielorrusos': 'EZ',   // Ezequiel Zamora
   'Convenio Rusos':      'SR',   // Simón Rodríguez
   'Convenio Chinos':     'SB'    // Simón Bolívar
 };
@@ -2078,7 +2078,7 @@ function initAppContent() {
             </div>
             <div class="field">
               <label>Observaciones visuales de obra<span class="solo-impresion"> — ${p.nombre}</span></label>
-              <textarea id="hitoobs_${p.id}" placeholder="Describa brevemente los subitems inspeccionados de forma somera en este hito..."></textarea>
+              <textarea id="hitoobs_${p.id}" placeholder="Describa brevemente las subpartidas inspeccionadas de forma somera en este hito..."></textarea>
             </div>
           </div>
           <div class="foto-sec">
@@ -2145,7 +2145,7 @@ function initAppContent() {
             <thead style="background:${colorHito(p)}">
               <tr>
                 <th style="width:34px">N°</th>
-                <th style="text-align:left;padding-left:13px">Subitem / Descripción</th>
+                <th style="text-align:left;padding-left:13px">Subpartida / Descripción</th>
                 <th class="col-proyectada">Cant.<br>Proyectada</th>
                 <th>Cant.<br>Ejecutada</th>
                 <th>Evaluación<br>B / R / M</th>
@@ -2156,7 +2156,7 @@ function initAppContent() {
             <tbody id="tbody_${p.id}">${rows}</tbody>
             <tbody id="${extraId}"></tbody>
           </table></div>
-          <button class="add-row-btn" onclick="addRow('${p.id}')">＋ Agregar subitem adicional</button>
+          <button class="add-row-btn" onclick="addRow('${p.id}')">＋ Agregar subpartida adicional</button>
           <div class="foto-sec">
             <div class="foto-sec-title">📷 Fotografías — ${p.nombre}<span class="solo-pantalla"> (máx. 6)</span></div>
             <div class="foto-grid" id="fotos_${p.id}">
@@ -2420,9 +2420,9 @@ function addRow(pid, customDesc='', customPr='', customEj='', customEv=''){
   tr.dataset.rid=rid;
   tr.innerHTML=`
     <td class="n" style="position:relative">
-      <button onclick="deleteExtraRow('${rid}','${pid}')" title="Eliminar subitem" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#ffebee;border:1px solid #ffcdd2;color:#c62828;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;line-height:1;padding:0;display:flex;align-items:center;justify-content:center">✕</button>
+      <button onclick="deleteExtraRow('${rid}','${pid}')" title="Eliminar subpartida" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#ffebee;border:1px solid #ffcdd2;color:#c62828;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;line-height:1;padding:0;display:flex;align-items:center;justify-content:center">✕</button>
     </td>
-    <td class="desc"><input type="text" placeholder="Descripción del subitem..." id="desc_${rid}" value="${customDesc}" oninput="saveExtraDesc('${pid}',${extraRows[pid].length-1},this.value)"></td>
+    <td class="desc"><input type="text" placeholder="Descripción de la subpartida..." id="desc_${rid}" value="${customDesc}" oninput="saveExtraDesc('${pid}',${extraRows[pid].length-1},this.value)"></td>
     <td class="col-proyectada"><input type="number" class="num" min="0" id="pr_${rid}" data-rid="${rid}" data-p="${pid}" value="${customPr}" oninput="recalcRow(this)" placeholder="0"></td>
     <td><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${pid}" value="${customEj}" oninput="recalcRow(this)" placeholder="0"></td>
     <td><div class="ev">
@@ -3186,6 +3186,10 @@ async function enviarAlRelevo() {
   const logEl = document.getElementById('sendLog');
   const btn   = document.getElementById('btn-enviar-relevo');
 
+  // Segunda defensa contra el doble envío. La primera es que el botón queda
+  // deshabilitado; esta cubre que se llame por cualquier otra vía.
+  if(btn.disabled) return;
+
   if(!clave){ alert('Escriba la clave de envío.'); return; }
 
   const datos = getFormData();
@@ -3193,6 +3197,8 @@ async function enviarAlRelevo() {
   logEl.style.display = 'block';
   logEl.textContent = 'Enviando ' + datos.nro + '…\n' +
                       fotos.length + ' fotografía(s)\n';
+  const textoBtn = btn.innerHTML;
+  btn.innerHTML = '⏳ Enviando…';
   btn.disabled = true;
 
   // Con señal mala un envío puede quedarse esperando para siempre. A los 90
@@ -3253,6 +3259,7 @@ async function enviarAlRelevo() {
   } finally {
     clearTimeout(reloj);
     btn.disabled = false;
+    btn.innerHTML = textoBtn;
   }
 }
 
