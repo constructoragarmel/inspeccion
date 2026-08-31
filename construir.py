@@ -5349,6 +5349,31 @@ s = sustituir(s,
  "114c· un borrador viejo con «Piso 00» abre en Planta Baja")
 
 
+# ── 115. El teléfono dice qué versión está usando ──────────────────────────
+# Hasta ahora no había forma de saberlo, y eso importa el día de una prueba en
+# campo: un teléfono que abrió el enlace UNA sola vez sigue sirviendo la copia
+# vieja —el service worker entrega primero lo local y se trae lo nuevo por
+# detrás—, y con una copia de antes del 31-ago el relevo RECHAZA el informe,
+# porque el hito 6 le llega con una subpartida donde espera dos.
+#
+# La versión sale de `sw.js`, que es donde ya se sube al publicar: un solo sitio
+# que tocar. Va pegada al indicador de conexión, que es lo que el inspector ya
+# mira antes de enviar. Si ahí no dice nada, la copia es vieja: cerrar y volver
+# a abrir.
+VERSION = re.search(r"VERSION = 'garmel-inspeccion-(v\d+)'",
+                    open(os.path.join(RAIZ, "sw.js"), encoding="utf-8").read()).group(1)
+
+s = sustituir(s,
+ "    el.textContent = '● en línea';",
+ "    el.textContent = '● en línea · " + VERSION + "';",
+ "115a· la versión al lado de «en línea»")
+
+s = sustituir(s,
+ "    el.textContent = '● sin señal — el informe queda guardado aquí';",
+ "    el.textContent = '● sin señal · " + VERSION + " — el informe queda guardado aquí';",
+ "115b· y también cuando no hay señal")
+
+
 # ── 13. Registrar el service worker, que es lo que hace que abra sin señal ──
 s = sustituir(s,
 """// Inicialización general al cargar
