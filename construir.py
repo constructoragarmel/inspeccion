@@ -36,7 +36,7 @@ def sustituir(s, viejo, nuevo, etiqueta, n=1):
 s = open(ORIG, encoding="utf-8").read()
 
 LOGO_GARMEL = b64("garmel.png", "image/png")
-LOGO_GMVV   = b64("gmvv.png", "image/png")
+LOGO_MINHVI = b64("minhvi.png", "image/png")   # ver cambio 3
 
 # Los once hitos del Excel de agosto (ver cambio 86).
 #
@@ -143,15 +143,24 @@ s = sustituir(s,
 # ── 3. Logos reales en el encabezado del informe ────────────────────────────
 # Eran una «C» y una «G» dibujadas a mano, y un emblema oficial aproximado
 # con tres polígonos de colores. Van al PDF, así que son la cara del informe.
+#
+# El emblema oficial es el del **Ministerio del Poder Popular para Hábitat y
+# Vivienda**, no el de la Gran Misión Vivienda Venezuela: cambiado el
+# 31-ago-2026 a pedido de Francisco José García Guinand. El archivo es el logo
+# institucional horizontal en azul, tomado de la biblioteca del propio sitio del
+# ministerio —minhvi.gob.ve—; la versión del encabezado de esa página es BLANCA
+# y sobre papel blanco no se ve. Es apaisado —4,5 a 1—, así que va a 40 px de
+# alto y no a los 52 del anterior, que era casi cuadrado.
 ini_l = s.index('<div style="display:flex;align-items:center;gap:18px">\n    <div style="text-align:center">')
 fin_l = s.index('<div>\n      <h2 id="logo-title"')
 s = sustituir(s, s[ini_l:fin_l],
  '<div style="display:flex;align-items:center;gap:18px">\n'
  '    <img src="' + LOGO_GARMEL + '" alt="Constructora Garmel, C.A." '
  'style="height:56px;width:auto;flex-shrink:0">\n'
- '    <div style="width:1px;height:50px;background:#e0e0e0"></div>\n'
- '    <img src="' + LOGO_GMVV + '" alt="Gran Misión Vivienda Venezuela" '
- 'style="height:52px;width:auto;flex-shrink:0">\n'
+ '    <div class="logo-sep-minhvi" style="width:1px;height:50px;background:#e0e0e0"></div>\n'
+ '    <img class="logo-minhvi" src="' + LOGO_MINHVI + '" '
+ 'alt="Ministerio del Poder Popular para Hábitat y Vivienda" '
+ 'style="height:40px;width:auto;flex-shrink:0">\n'
  '    <div style="width:1px;height:50px;background:#e0e0e0"></div>\n'
  '    ',
  "3· logos reales en el encabezado del informe")
@@ -4695,12 +4704,8 @@ s = sustituir(s,
  '<img class="logo-garmel" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeAAAAE/',
  "107a· marcar el logo de Garmel")
 
-s = sustituir(s,
- '<div style="width:1px;height:50px;background:#e0e0e0"></div>\n'
- '    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAVQAAAGW',
- '<div class="logo-sep-gmvv" style="width:1px;height:50px;background:#e0e0e0"></div>\n'
- '    <img class="logo-gmvv" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAVQAAAGW',
- "107a2· marcar el emblema oficial y su separador")
+# 107a2 · ya no hace falta: el emblema y su separador nacen con su clase
+# puesta en el cambio 3, que es donde se insertan.
 
 # 107b · El título se acorta y el subtítulo desaparece: «Gerencia GARMEL ·
 #   Evaluación por Hitos y Subitems» describía la mecánica interna del
@@ -4772,10 +4777,14 @@ s = sustituir(s,
 # ── 107e/f. El emblema fuera de pantalla, y las acciones al alcance del pulgar
 s = sustituir(s,
  "button:focus-visible,select:focus-visible,input:focus-visible,\n",
- "/* El emblema oficial no ayuda a llenar el informe y se lleva 22 % de la\n"
- "   pantalla del teléfono. Sale del formulario y vuelve en el PDF, que es\n"
- "   donde es identidad del documento. El de Garmel se queda, más pequeño. */\n"
- ".logo-gmvv, .logo-sep-gmvv{display:none}\n"
+ "/* El emblema oficial se lleva el 22 % de la pantalla de un teléfono y no\n"
+ "   ayuda a llenar el informe, así que ahí no está. En una pantalla ancha sí\n"
+ "   cabe sin quitarle sitio a nada, y en el PDF es la identidad del documento,\n"
+ "   así que en los dos se muestra. Estuvo oculto en TODAS las pantallas hasta\n"
+ "   el 31-ago-2026; se acota al teléfono, que es de donde salía el motivo. */\n"
+ "@media screen and (max-width:700px), screen and (pointer:coarse){\n"
+ "  .logo-minhvi, .logo-sep-minhvi{display:none}\n"
+ "}\n"
  ".logo-garmel{max-height:34px;width:auto}\n"
  "\n"
  "/* Las cuatro acciones caían en el tercio superior de la pantalla: con una\n"
@@ -4802,7 +4811,7 @@ s = sustituir(s,
  "@media print{\n"
  "  #welcome-screen{display:none!important}\n"
  "  /* En el papel vuelven los dos logos, a su tamaño. */\n"
- "  .logo-gmvv, .logo-sep-gmvv{display:inline-block!important}\n"
+ "  .logo-minhvi, .logo-sep-minhvi{display:inline-block!important}\n"
  "  .logo-garmel{max-height:none!important}\n"
  "  body{padding-bottom:0!important}\n",
  "107f· en el PDF vuelven los dos logos")
