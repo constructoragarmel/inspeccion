@@ -172,6 +172,10 @@ s = sustituir(s,
 # 88 KB al archivo. El bandeado que eso introduce en los degradados de la
 # bandera solo se ve ampliando al triple; a los 40 px a los que se usa, y en el
 # papel, no aparece.
+#
+# El de Garmel va igual, por el mismo motivo: 37 KB a 9 KB, sin diferencia
+# visible ni siquiera al doble de su tamaño de uso. Es un monograma negro, así
+# que la paleta no tiene degradados que estropear.
 ini_l = s.index('<div style="display:flex;align-items:center;gap:18px">\n    <div style="text-align:center">')
 fin_l = s.index('<div>\n      <h2 id="logo-title"')
 s = sustituir(s, s[ini_l:fin_l],
