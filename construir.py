@@ -6455,6 +6455,178 @@ print("  … 125 aplicado")
 
 
 # ══════════════════════════════════════════════════════════════════════════
+# 126. LO QUE ENCONTRÓ EL PRIMER ENVÍO REAL — 1-sep-2026
+#
+# Tres cosas, y dos son pérdida de datos. Reportadas desde el teléfono, no
+# encontradas en escritorio.
+# ══════════════════════════════════════════════════════════════════════════
+
+# ── 126a. Guardar podía fallar en silencio y el formulario se limpiaba igual ──
+# `saveDraft` traga el error y avisa con un mensaje, pero no devolvía nada. Los
+# dos botones que CIERRAN el informe —«Guardar y siguiente» y «Finalizar»— lo
+# llamaban y seguían adelante pasara lo que pasara: limpiaban la pantalla aunque
+# el guardado no hubiera entrado.
+#
+# Con el teléfono lleno eso es exactamente lo que ocurrió: el informe se
+# borraba de la pantalla y en «Mis informes» quedaba la versión anterior, sin
+# las fotografías y sin lo último escrito. Se leía como «el formulario pierde
+# cosas al editar», y en realidad era que nunca llegó a guardar.
+#
+# Ahora `saveDraft` dice si pudo, y quien cierra el informe solo cierra si sí.
+s = sustituir(s,
+ """    _numeroDelBorrador = document.getElementById('nro-display')?.textContent || null;
+    actualizarContadores();
+    if(!silencioso) avisarSiQuedaPocoEspacio();
+  } catch(e){""",
+ """    _numeroDelBorrador = document.getElementById('nro-display')?.textContent || null;
+    actualizarContadores();
+    if(!silencioso) avisarSiQuedaPocoEspacio();
+    return true;
+  } catch(e){""",
+ "126a1· saveDraft dice que sí pudo")
+
+s = sustituir(s,
+ """    if(!sinEspacio && window.console) console.error('Fallo al guardar:', e);
+  }
+}""",
+ """    if(!sinEspacio && window.console) console.error('Fallo al guardar:', e);
+    return false;
+  }
+}""",
+ "126a2· y dice que no cuando no pudo")
+
+# ── 126b. «Guardar y siguiente» ya no limpia si no guardó ──────────────────
+s = sustituir(s,
+ """  saveDraft();                       // el informe actual queda con su propia ficha
+  currentEditingIndex = null;        // el siguiente no lo pisa""",
+ """  // Si no se pudo guardar, NO se limpia: el informe sigue en pantalla, que es
+  // el único sitio donde existe. Antes se limpiaba igual y se perdía.
+  if (!saveDraft()) {
+    alert('No se pudo guardar este informe, así que NO se va a limpiar la pantalla.\\n\\n' +
+          'Lo más probable es que el teléfono esté lleno: entre a «Mis informes», ' +
+          'envíe o borre los que ya no hagan falta, y vuelva a intentarlo. ' +
+          'Lo que tiene en pantalla no se ha perdido.');
+    return;
+  }
+  currentEditingIndex = null;        // el siguiente no lo pisa""",
+ "126b· «siguiente apto.» no limpia lo que no pudo guardar")
+
+# ── 126c. «Finalizar» tampoco, y además ahora guarda ───────────────────────
+# No guardaba nunca: confiaba en que el autoguardado hubiera pasado. Si ese
+# falló —o si aún no había saltado—, finalizar borraba el informe.
+s = sustituir(s,
+ """function finalizarInforme() {
+  if(!TEST_MODE) {""",
+ """function finalizarInforme() {
+  // Guardar ANTES de cerrar. Antes no guardaba: daba por hecho que el
+  // autoguardado ya había pasado, y si había fallado el informe se perdía.
+  if (!saveDraft(true)) {
+    alert('No se pudo guardar este informe, así que NO se va a cerrar.\\n\\n' +
+          'Entre a «Mis informes», envíe o borre los que ya no hagan falta, ' +
+          'y vuelva a intentarlo. Lo que tiene en pantalla no se ha perdido.');
+    return;
+  }
+  if(!TEST_MODE) {""",
+ "126c· «finalizar» guarda primero, y no cierra si no pudo")
+
+# ── 126d. Enviar dos veces mandaba todo dos veces ──────────────────────────
+# `enviarPendientes` no tenía ningún seguro: una segunda pulsación arrancaba un
+# segundo recorrido sobre la misma lista, y cada informe salía duplicado. Pasó
+# de verdad el 1-sep: los tres informes llegaron a Drive por partida doble.
+#
+# La causa de fondo es de interfaz, no de código: el progreso era un aviso
+# flotante que se desvanece a los dos segundos. Subiendo fotografías de 300 KB
+# por datos móviles, el inspector se queda mirando una pantalla quieta y vuelve
+# a pulsar. Ahora hay un cartel que TAPA la pantalla mientras dura y va diciendo
+# por cuál va; mientras esté puesto, no se puede empezar otra tanda.
+s = sustituir(s,
+ """async function enviarPendientes(){
+  const clave = localStorage.getItem('garmel_clave_envio') || '';""",
+ """let _tandaEnCurso = false;
+
+function _cartelEnvio(texto){
+  let c = document.getElementById('cartel-envio');
+  if(!texto){ if(c) c.remove(); return; }
+  if(!c){
+    c = document.createElement('div');
+    c.id = 'cartel-envio';
+    c.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(17,24,39,.88);' +
+      'display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;' +
+      'color:#fff;font-size:17px;font-weight:700;line-height:1.5';
+    document.body.appendChild(c);
+  }
+  c.textContent = texto;
+}
+
+async function enviarPendientes(){
+  // Sin esto, una segunda pulsación manda todo otra vez.
+  if(_tandaEnCurso){ showToast('Ya hay un envío en curso. Espere a que termine.', 'err'); return; }
+  const clave = localStorage.getItem('garmel_clave_envio') || '';""",
+ "126d1· un solo envío a la vez, con cartel que no se desvanece")
+
+s = sustituir(s,
+ """  let bien = 0, mal = 0;
+  for(const x of pendientes){
+    showToast('Enviando ' + (bien + mal + 1) + ' de ' + pendientes.length + '…', 'ok');
+    const ok = await _enviarUno(x.b, clave);
+    if(ok){ bien++; } else { mal++; }
+  }
+  renderSavedList();""",
+ """  _tandaEnCurso = true;
+  let bien = 0, mal = 0;
+  try {
+    for(const x of pendientes){
+      _cartelEnvio('📤 Enviando ' + (bien + mal + 1) + ' de ' + pendientes.length + '…\\n\\n' +
+                   'No cierre esta pantalla ni vuelva a pulsar Enviar.');
+      const ok = await _enviarUno(x.b, clave);
+      if(ok){ bien++; } else { mal++; }
+    }
+  } finally {
+    _cartelEnvio('');
+    _tandaEnCurso = false;
+  }
+  renderSavedList();""",
+ "126d2· el cartel dice por cuál va y se quita al terminar")
+
+# ── 126e. Borrar de una vez los que ya se enviaron ─────────────────────────
+# Pedido desde el teléfono, y es además el remedio de la memoria llena: los
+# informes enviados ya están a salvo en Drive y solo ocupan sitio. Uno a uno son
+# muchos toques justo cuando el teléfono ya no deja trabajar.
+s = sustituir(s,
+ """    <p>Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo.</p>""",
+ """    <p>Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo.</p>
+    <button type="button" class="s-btn s-btn-del" style="width:100%;margin-bottom:10px"
+            onclick="borrarEnviados()">🧹 Borrar los que ya se enviaron</button>""",
+ "126e1· botón para vaciar los enviados")
+
+s = sustituir(s,
+ """function renderSavedList() {""",
+ """// Los enviados ya están en Drive: aquí solo ocupan sitio. Se borran juntos,
+// que uno a uno son muchos toques justo cuando el teléfono ya no deja trabajar.
+// Los que NO se han enviado no se tocan nunca.
+function borrarEnviados(){
+  const lista = getSavedReports();
+  const enviados = lista.filter(function(b){ return b && b.enviado; });
+  if(!enviados.length){ showToast('No hay informes enviados que borrar', 'ok'); return; }
+  if(!confirm('Se van a borrar de este teléfono ' + enviados.length + ' informe(s) YA ENVIADOS.\\n\\n' +
+              'Siguen guardados en Drive: esto solo libera espacio aquí.\\n\\n' +
+              'Los que todavía no se han enviado NO se tocan.')) return;
+  const quedan = lista.filter(function(b){ return !(b && b.enviado); });
+  localStorage.setItem('garmel_reports_list', JSON.stringify(quedan));
+  currentEditingIndex = null; _idEnEdicion = null; _abiertoParaEditar = false;
+  _ultimoAvisoEspacio = 0;          // que pueda volver a avisar si aún queda poco
+  renderSavedList();
+  actualizarContadores();
+  showToast('🧹 Borrados ' + enviados.length + ' informe(s) enviados', 'ok');
+}
+
+function renderSavedList() {""",
+ "126e2· borrarEnviados, sin tocar los pendientes")
+
+print("  … 126 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
 # 16. LOS NOMBRES DE EMPRESA, COMO SE NOMBRAN ELLAS — 30-ago-2026
 #
 # Fuente: «Recepción de Documentación Técnica y Diagnóstico Inicial por

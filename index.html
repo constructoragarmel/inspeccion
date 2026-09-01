@@ -1122,6 +1122,8 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
   <div class="modal">
     <h3>📁 Informes Guardados Localmente</h3>
     <p>Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo.</p>
+    <button type="button" class="s-btn s-btn-del" style="width:100%;margin-bottom:10px"
+            onclick="borrarEnviados()">🧹 Borrar los que ya se enviaron</button>
     
     <div class="saved-list-container" id="savedListContent"></div>
 
@@ -1296,10 +1298,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v42';
+    el.textContent = '● en línea · v43';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v42 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v43 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2919,12 +2921,14 @@ function saveDraft(silencioso){
     _numeroDelBorrador = document.getElementById('nro-display')?.textContent || null;
     actualizarContadores();
     if(!silencioso) avisarSiQuedaPocoEspacio();
+    return true;
   } catch(e){
     const sinEspacio = /quota|exceeded|storage/i.test(e.name + ' ' + e.message);
     showToast(sinEspacio
       ? '❌ El teléfono se quedó sin espacio. Envíe o elimine informes guardados antes de seguir.'
       : '❌ No se pudo guardar el informe. Anote lo importante y avise a la oficina.', 'err');
     if(!sinEspacio && window.console) console.error('Fallo al guardar:', e);
+    return false;
   }
 }
 
@@ -2983,6 +2987,25 @@ function _txt(v){
   return String(v == null ? '' : v)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Los enviados ya están en Drive: aquí solo ocupan sitio. Se borran juntos,
+// que uno a uno son muchos toques justo cuando el teléfono ya no deja trabajar.
+// Los que NO se han enviado no se tocan nunca.
+function borrarEnviados(){
+  const lista = getSavedReports();
+  const enviados = lista.filter(function(b){ return b && b.enviado; });
+  if(!enviados.length){ showToast('No hay informes enviados que borrar', 'ok'); return; }
+  if(!confirm('Se van a borrar de este teléfono ' + enviados.length + ' informe(s) YA ENVIADOS.\n\n' +
+              'Siguen guardados en Drive: esto solo libera espacio aquí.\n\n' +
+              'Los que todavía no se han enviado NO se tocan.')) return;
+  const quedan = lista.filter(function(b){ return !(b && b.enviado); });
+  localStorage.setItem('garmel_reports_list', JSON.stringify(quedan));
+  currentEditingIndex = null; _idEnEdicion = null; _abiertoParaEditar = false;
+  _ultimoAvisoEspacio = 0;          // que pueda volver a avisar si aún queda poco
+  renderSavedList();
+  actualizarContadores();
+  showToast('🧹 Borrados ' + enviados.length + ' informe(s) enviados', 'ok');
 }
 
 function renderSavedList() {
@@ -3179,7 +3202,15 @@ function siguienteApartamento(){
   if(falta.length && !confirm(_avisarFaltantes(falta) +
       '\n\n¿Guardar así y pasar al siguiente apartamento?')) return;
 
-  saveDraft();                       // el informe actual queda con su propia ficha
+  // Si no se pudo guardar, NO se limpia: el informe sigue en pantalla, que es
+  // el único sitio donde existe. Antes se limpiaba igual y se perdía.
+  if (!saveDraft()) {
+    alert('No se pudo guardar este informe, así que NO se va a limpiar la pantalla.\n\n' +
+          'Lo más probable es que el teléfono esté lleno: entre a «Mis informes», ' +
+          'envíe o borre los que ya no hagan falta, y vuelva a intentarlo. ' +
+          'Lo que tiene en pantalla no se ha perdido.');
+    return;
+  }
   currentEditingIndex = null;        // el siguiente no lo pisa
   _idEnEdicion = null;
   _numeroDelBorrador = null;
@@ -3230,6 +3261,14 @@ function nuevoFormulario() {
 }
 
 function finalizarInforme() {
+  // Guardar ANTES de cerrar. Antes no guardaba: daba por hecho que el
+  // autoguardado ya había pasado, y si había fallado el informe se perdía.
+  if (!saveDraft(true)) {
+    alert('No se pudo guardar este informe, así que NO se va a cerrar.\n\n' +
+          'Entre a «Mis informes», envíe o borre los que ya no hagan falta, ' +
+          'y vuelva a intentarlo. Lo que tiene en pantalla no se ha perdido.');
+    return;
+  }
   if(!TEST_MODE) {
     reportCounter++;
     localStorage.setItem('garmel_cnt', String(reportCounter));
@@ -3383,7 +3422,25 @@ function sendSavedDirect(index) {
 // ── 26 · Enviar todo lo pendiente de una vez ────────────────────────────
 // Al volver a la oficina con doce informes, mandarlos de a uno es tedioso y se
 // queda alguno por el camino.
+let _tandaEnCurso = false;
+
+function _cartelEnvio(texto){
+  let c = document.getElementById('cartel-envio');
+  if(!texto){ if(c) c.remove(); return; }
+  if(!c){
+    c = document.createElement('div');
+    c.id = 'cartel-envio';
+    c.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(17,24,39,.88);' +
+      'display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;' +
+      'color:#fff;font-size:17px;font-weight:700;line-height:1.5';
+    document.body.appendChild(c);
+  }
+  c.textContent = texto;
+}
+
 async function enviarPendientes(){
+  // Sin esto, una segunda pulsación manda todo otra vez.
+  if(_tandaEnCurso){ showToast('Ya hay un envío en curso. Espere a que termine.', 'err'); return; }
   const clave = localStorage.getItem('garmel_clave_envio') || '';
   if(!clave){ alert('Este teléfono todavía no está configurado. Abra Enviar y escriba la clave una vez.'); return; }
 
@@ -3393,11 +3450,18 @@ async function enviarPendientes(){
   if(!pendientes.length){ showToast('No hay informes sin enviar', 'ok'); return; }
   if(!confirm('Se van a enviar ' + pendientes.length + ' informe(s) sin enviar. ¿Continuar?')) return;
 
+  _tandaEnCurso = true;
   let bien = 0, mal = 0;
-  for(const x of pendientes){
-    showToast('Enviando ' + (bien + mal + 1) + ' de ' + pendientes.length + '…', 'ok');
-    const ok = await _enviarUno(x.b, clave);
-    if(ok){ bien++; } else { mal++; }
+  try {
+    for(const x of pendientes){
+      _cartelEnvio('📤 Enviando ' + (bien + mal + 1) + ' de ' + pendientes.length + '…\n\n' +
+                   'No cierre esta pantalla ni vuelva a pulsar Enviar.');
+      const ok = await _enviarUno(x.b, clave);
+      if(ok){ bien++; } else { mal++; }
+    }
+  } finally {
+    _cartelEnvio('');
+    _tandaEnCurso = false;
   }
   renderSavedList();
   alert('Enviados: ' + bien + '\nCon problemas: ' + mal +
