@@ -146,11 +146,25 @@ s = sustituir(s,
 #
 # El emblema oficial es el del **Ministerio del Poder Popular para Hábitat y
 # Vivienda**, no el de la Gran Misión Vivienda Venezuela: cambiado el
-# 31-ago-2026 a pedido de Francisco José García Guinand. El archivo es el logo
-# institucional horizontal en azul, tomado de la biblioteca del propio sitio del
-# ministerio —minhvi.gob.ve—; la versión del encabezado de esa página es BLANCA
-# y sobre papel blanco no se ve. Es apaisado —4,5 a 1—, así que va a 40 px de
-# alto y no a los 52 del anterior, que era casi cuadrado.
+# 31-ago-2026 a pedido de Francisco José García Guinand.
+#
+# El archivo sale de un **documento oficial del propio ministerio** —la
+# *Declaración Jurada de Compromiso de Responsabilidad Social*, que Garmel
+# aportó el 31-ago-2026—, extraído del `.docx`. Esa procedencia importa: es el
+# emblema tal como el ministerio lo usa en un papel que se firma, y no una
+# reconstrucción nuestra.
+#
+# Resuelve además la discordancia del texto. La versión tomada antes de la
+# biblioteca del sitio —minhvi.gob.ve— decía «para **la** Hábitat y Vivienda»,
+# y el glosario registra la forma oficial **sin** «la». La del documento no
+# lleva «la»: las dos fuentes ya coinciden, sin que hiciera falta editarle el
+# emblema a un ministerio.
+#
+# Va **a todo color** —la bandera en amarillo, azul y rojo—, no en azul
+# monocromo. El fondo blanco del JPEG se hizo transparente por inundación desde
+# los bordes, que es lo único que respeta el blanco de adentro: las estrellas y
+# la franja de la bandera. Es apaisado —4 a 1—, así que va a 40 px de alto,
+# donde mide 160 px de ancho.
 ini_l = s.index('<div style="display:flex;align-items:center;gap:18px">\n    <div style="text-align:center">')
 fin_l = s.index('<div>\n      <h2 id="logo-title"')
 s = sustituir(s, s[ini_l:fin_l],
