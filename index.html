@@ -1298,10 +1298,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v46';
+    el.textContent = '● en línea · v47';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v46 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v47 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2615,6 +2615,41 @@ function recalcP(pid){
 // aporta al promedio de la torre, y queda registrado como tal en el informe.
 let hitosNoInspeccionados = {};
 
+// ¿Este hito tiene ALGO? Una cantidad, una evaluación, un estado, una
+// fotografía o una observación. Cualquier cosa cuenta.
+function _hitoTieneAlgo(pid){
+  const conValor = Array.prototype.slice
+    .call(document.querySelectorAll(`input[id^="pr_"][data-p="${pid}"], input[id^="ej_"][data-p="${pid}"]`))
+    .some(function(e){ return String(e.value || '').trim() !== ''; });
+  if (conValor) return true;
+  if (document.querySelector(`.ev-btn.on[data-rid^="${pid}_"]`)) return true;
+  if (document.querySelector(`.est-btn.on[data-rid^="${pid}_"]`)) return true;
+  const obs = document.getElementById('fotobs_' + pid);
+  if (obs && String(obs.value || '').trim()) return true;
+  for (let i = 0; i < 6; i++) {
+    const im = document.getElementById(`fimg_${pid}_${i}`);
+    if (im && String(im.src || '').indexOf('data:') === 0) return true;
+  }
+  return false;
+}
+
+// Ofrece convertir en «no inspeccionado» los hitos que quedaron sin nada.
+// Devuelve false solo si el inspector cancela la acción entera.
+function ofrecerMarcarVacios(){
+  if (typeof formType !== 'undefined' && formType === 'hitos') return true;
+  const vacios = _hitosDelAmbito().filter(function(p){
+    return !hitosNoInspeccionados[p.id] && !_hitoTieneAlgo(p.id);
+  });
+  if (!vacios.length) return true;
+  const si = confirm('Quedaron ' + vacios.length + ' hito(s) sin ningún dato:\n\n' +
+    vacios.map(function(p){ return '\u00b7 ' + p.nombre; }).join('\n') +
+    '\n\n¿Marcarlos como NO INSPECCIONADOS?\n\n' +
+    'Así el informe DICE que no se verificaron, en vez de mostrar casillas en ' +
+    'blanco. Para el promedio da igual: ni unos ni otros cuentan.');
+  if (si) vacios.forEach(function(p){ toggleNoInspeccionado(p.id); });
+  return true;
+}
+
 function toggleNoInspeccionado(pid){
   hitosNoInspeccionados[pid] = !hitosNoInspeccionados[pid];
   _pintarNoInspeccionado(pid);
@@ -3245,6 +3280,7 @@ function siguienteApartamento(){
   if(falta.length && !confirm(_avisarFaltantes(falta) +
       '\n\n¿Guardar así y pasar al siguiente apartamento?')) return;
 
+  ofrecerMarcarVacios();
   // Un informe sin nada medido no merece ficha propia.
   const _hayAlgo = (typeof _tieneContenido === 'function') ? _tieneContenido(getFormData()) : true;
   // Si hay algo y no se pudo guardar, NO se limpia: el informe sigue en
@@ -3310,6 +3346,7 @@ function finalizarInforme() {
   // autoguardado ya había pasado, y si había fallado el informe se perdía.
   // Un informe sin nada medido no deja ficha: finalizar dos veces seguidas no
   // puede sembrar informes vacíos.
+  ofrecerMarcarVacios();
   const _hayAlgoF = (typeof _tieneContenido === 'function') ? _tieneContenido(getFormData()) : true;
   if (_hayAlgoF && !saveDraft(true)) {
     alert('No se pudo guardar este informe, así que NO se va a cerrar.\n\n' +
@@ -3423,6 +3460,7 @@ function refrescarEstadoClave(){
 // El relevo comprueba la clave ANTES que cualquier otra cosa, así que
 // cualquier respuesta distinta de «Clave incorrecta» significa que pasó.
 async function probarClave(){
+  ofrecerMarcarVacios();
   const clave = (document.getElementById('claveEnvio').value || '').trim();
   const logEl = document.getElementById('sendLog');
   const btn   = document.getElementById('btn-probar-clave');

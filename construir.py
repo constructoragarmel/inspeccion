@@ -6873,6 +6873,87 @@ print("  … 130 aplicado")
 
 
 # ══════════════════════════════════════════════════════════════════════════
+# 131. OFRECER MARCAR COMO NO INSPECCIONADO LO QUE QUEDÓ SIN LLENAR — 1-sep-2026
+#
+# Pedido desde el teléfono. Un hito sin ningún dato y uno marcado NO
+# INSPECCIONADO valen lo mismo para el promedio —ninguno cuenta—, pero en el
+# papel no dicen lo mismo: el primero enseña una tabla de casillas vacías, que
+# se lee como descuido; el segundo DICE que no se verificó.
+#
+# Se ofrece al cerrar el informe y al enviarlo desde pantalla. Se PREGUNTA, no se
+# hace solo: marcar un hito es una afirmación del inspector sobre lo que hizo en
+# obra, no una deducción que pueda sacar el formulario. Y responder que no deja
+# el informe exactamente como estaba.
+# ══════════════════════════════════════════════════════════════════════════
+s = sustituir(s,
+ """function toggleNoInspeccionado(pid){""",
+ """// ¿Este hito tiene ALGO? Una cantidad, una evaluación, un estado, una
+// fotografía o una observación. Cualquier cosa cuenta.
+function _hitoTieneAlgo(pid){
+  const conValor = Array.prototype.slice
+    .call(document.querySelectorAll(`input[id^="pr_"][data-p="${pid}"], input[id^="ej_"][data-p="${pid}"]`))
+    .some(function(e){ return String(e.value || '').trim() !== ''; });
+  if (conValor) return true;
+  if (document.querySelector(`.ev-btn.on[data-rid^="${pid}_"]`)) return true;
+  if (document.querySelector(`.est-btn.on[data-rid^="${pid}_"]`)) return true;
+  const obs = document.getElementById('fotobs_' + pid);
+  if (obs && String(obs.value || '').trim()) return true;
+  for (let i = 0; i < 6; i++) {
+    const im = document.getElementById(`fimg_${pid}_${i}`);
+    if (im && String(im.src || '').indexOf('data:') === 0) return true;
+  }
+  return false;
+}
+
+// Ofrece convertir en «no inspeccionado» los hitos que quedaron sin nada.
+// Devuelve false solo si el inspector cancela la acción entera.
+function ofrecerMarcarVacios(){
+  if (typeof formType !== 'undefined' && formType === 'hitos') return true;
+  const vacios = _hitosDelAmbito().filter(function(p){
+    return !hitosNoInspeccionados[p.id] && !_hitoTieneAlgo(p.id);
+  });
+  if (!vacios.length) return true;
+  const si = confirm('Quedaron ' + vacios.length + ' hito(s) sin ningún dato:\\n\\n' +
+    vacios.map(function(p){ return '\\u00b7 ' + p.nombre; }).join('\\n') +
+    '\\n\\n¿Marcarlos como NO INSPECCIONADOS?\\n\\n' +
+    'Así el informe DICE que no se verificaron, en vez de mostrar casillas en ' +
+    'blanco. Para el promedio da igual: ni unos ni otros cuentan.');
+  if (si) vacios.forEach(function(p){ toggleNoInspeccionado(p.id); });
+  return true;
+}
+
+function toggleNoInspeccionado(pid){""",
+ "131a· ofrecer marcar como no inspeccionado lo que quedó vacío")
+
+# Al cerrar el informe con «siguiente apto.»
+s = sustituir(s,
+ """  // Un informe sin nada medido no merece ficha propia.
+  const _hayAlgo = (typeof _tieneContenido === 'function') ? _tieneContenido(getFormData()) : true;""",
+ """  ofrecerMarcarVacios();
+  // Un informe sin nada medido no merece ficha propia.
+  const _hayAlgo = (typeof _tieneContenido === 'function') ? _tieneContenido(getFormData()) : true;""",
+ "131b· al pasar al siguiente apartamento")
+
+# Al finalizar
+s = sustituir(s,
+ """  const _hayAlgoF = (typeof _tieneContenido === 'function') ? _tieneContenido(getFormData()) : true;""",
+ """  ofrecerMarcarVacios();
+  const _hayAlgoF = (typeof _tieneContenido === 'function') ? _tieneContenido(getFormData()) : true;""",
+ "131c· al finalizar el informe")
+
+# Y al enviar desde pantalla, que es el último momento en que se puede
+s = sustituir(s,
+ """  const clave = (document.getElementById('claveEnvio').value || '').trim();
+  const logEl = document.getElementById('sendLog');""",
+ """  ofrecerMarcarVacios();
+  const clave = (document.getElementById('claveEnvio').value || '').trim();
+  const logEl = document.getElementById('sendLog');""",
+ "131d· y al enviar desde la pantalla")
+
+print("  … 131 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
 # 16. LOS NOMBRES DE EMPRESA, COMO SE NOMBRAN ELLAS — 30-ago-2026
 #
 # Fuente: «Recepción de Documentación Técnica y Diagnóstico Inicial por
