@@ -5898,6 +5898,97 @@ print("  … 15 aplicado")
 
 
 # ══════════════════════════════════════════════════════════════════════════
+# 17. EDITAR UN INFORME NO DEBE DUPLICARLO — 31-ago-2026
+#
+# Reportado por Skarlet Gómez tras las pruebas de campo: «cuando abrimos para
+# editar se genera un duplicado; debería abrirse ese mismo archivo y guardar el
+# cambio a medida que editemos».
+#
+# La causa NO es el guardado. `saveDraft` busca por `id` y actualiza en su sitio,
+# y eso funciona. Es `_separarSiCambioElInforme()`: vigila el número del informe
+# y, si cambia mientras se edita un borrador que ya tiene contenido, da por hecho
+# que es OTRO informe y le abre ficha nueva.
+#
+# Esa vigilancia existe por un motivo real, y hay que conservarla: el inspector
+# que termina un apartamento y, sin pulsar «siguiente apto.», cambia el número y
+# sigue llenando. Sin ella, el segundo se guardaba ENCIMA del primero.
+#
+# Lo que no sabe distinguir es esa situación de la contraria: abrir un informe
+# guardado para CORREGIRLE algo. Como el número se compone de torre, piso,
+# apartamento, fecha e inspector, enmendar cualquiera de esos campos lo cambia
+# —que es justo lo que uno va a hacer al abrir un informe a corregir— y el
+# formulario reacciona como si hubiera empezado uno nuevo.
+#
+# Se arregla distinguiéndolas, no quitando la protección. Un informe abierto
+# desde «Mis informes» queda marcado como EN EDICIÓN y no se separa nunca;
+# llenar de corrido sigue protegido igual que antes. Y no hace falta inventar
+# cómo se sale de ese estado: ya existen tres acciones explícitas que cierran el
+# informe —«siguiente apto.», «limpiar» y «finalizar»—, más el borrado del propio
+# borrador. Las cuatro levantan la marca.
+# ══════════════════════════════════════════════════════════════════════════
+s = sustituir(s,
+ "let _numeroDelBorrador = null;",
+ "let _numeroDelBorrador = null;\n"
+ "\n"
+ "// Un informe abierto desde «Mis informes» se está CORRIGIENDO, no llenando de\n"
+ "// corrido: cambiarle el piso o la fecha es enmendar este informe, no empezar\n"
+ "// otro. Mientras esta marca esté puesta, no se separa jamás.\n"
+ "let _abiertoParaEditar = false;",
+ "17a· marca de informe abierto para editar")
+
+s = sustituir(s,
+ """function _separarSiCambioElInforme(){
+  if(currentEditingIndex === null) return;""",
+ """function _separarSiCambioElInforme(){
+  if(_abiertoParaEditar) return;   // se corrige este informe, no se empieza otro
+  if(currentEditingIndex === null) return;""",
+ "17b· no separar lo que se abrió para editar")
+
+s = sustituir(s,
+ """  currentEditingIndex = index;
+  _idEnEdicion = d.id || null;""",
+ """  currentEditingIndex = index;
+  _idEnEdicion = d.id || null;
+  _abiertoParaEditar = true;""",
+ "17c· al abrir para editar, marcarlo")
+
+s = sustituir(s,
+ """  currentEditingIndex = null;        // el siguiente no lo pisa
+  _idEnEdicion = null;
+  _numeroDelBorrador = null;""",
+ """  currentEditingIndex = null;        // el siguiente no lo pisa
+  _idEnEdicion = null;
+  _numeroDelBorrador = null;
+  _abiertoParaEditar = false;""",
+ "17d· «siguiente apto.» levanta la marca")
+
+s = sustituir(s,
+ """  currentEditingIndex = null;
+  _idEnEdicion = null;
+  document.getElementById('fecha').value = '';""",
+ """  currentEditingIndex = null;
+  _idEnEdicion = null;
+  _abiertoParaEditar = false;
+  document.getElementById('fecha').value = '';""",
+ "17e· «limpiar» levanta la marca")
+
+s = sustituir(s,
+ """    currentEditingIndex = null;   // el siguiente informe no pisa al que acaba de cerrarse
+    _numeroDelBorrador = null;""",
+ """    currentEditingIndex = null;   // el siguiente informe no pisa al que acaba de cerrarse
+    _numeroDelBorrador = null;
+    _abiertoParaEditar = false;""",
+ "17f· «finalizar» levanta la marca")
+
+s = sustituir(s,
+ """  if(currentEditingIndex === index){ currentEditingIndex = null; _idEnEdicion = null; }""",
+ """  if(currentEditingIndex === index){ currentEditingIndex = null; _idEnEdicion = null; _abiertoParaEditar = false; }""",
+ "17g· borrar el borrador en edición levanta la marca")
+
+print("  … 17 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
 # 16. LOS NOMBRES DE EMPRESA, COMO SE NOMBRAN ELLAS — 30-ago-2026
 #
 # Fuente: «Recepción de Documentación Técnica y Diagnóstico Inicial por

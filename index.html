@@ -1196,7 +1196,13 @@ function _tieneContenido(d){
 // su propia ficha.
 let _numeroDelBorrador = null;
 
+// Un informe abierto desde «Mis informes» se está CORRIGIENDO, no llenando de
+// corrido: cambiarle el piso o la fecha es enmendar este informe, no empezar
+// otro. Mientras esta marca esté puesta, no se separa jamás.
+let _abiertoParaEditar = false;
+
 function _separarSiCambioElInforme(){
+  if(_abiertoParaEditar) return;   // se corrige este informe, no se empieza otro
   if(currentEditingIndex === null) return;
   const numeroAhora = document.getElementById('nro-display')?.textContent || '';
   if(!_numeroDelBorrador || _numeroDelBorrador === numeroAhora) return;
@@ -2952,6 +2958,7 @@ function loadDraftData(index) {
 
   currentEditingIndex = index;
   _idEnEdicion = d.id || null;
+  _abiertoParaEditar = true;
 
   // Un borrador de antes trae «Piso 00», que ya no existe en el desplegable.
   if (d.piso === 'Piso 00') d.piso = 'Planta Baja';
@@ -3078,7 +3085,7 @@ function deleteSavedReport(index) {
   const list = getSavedReports();
   list.splice(index, 1);
   localStorage.setItem('garmel_reports_list', JSON.stringify(list));
-  if(currentEditingIndex === index){ currentEditingIndex = null; _idEnEdicion = null; }
+  if(currentEditingIndex === index){ currentEditingIndex = null; _idEnEdicion = null; _abiertoParaEditar = false; }
   else if(currentEditingIndex > index) currentEditingIndex--;
   renderSavedList();
   actualizarContadores();
@@ -3097,6 +3104,7 @@ function siguienteApartamento(){
   currentEditingIndex = null;        // el siguiente no lo pisa
   _idEnEdicion = null;
   _numeroDelBorrador = null;
+  _abiertoParaEditar = false;
 
   document.getElementById('apto').value = '';
   document.getElementById('obs_general').value = '';
@@ -3116,6 +3124,7 @@ function nuevoFormulario() {
   if (formType !== _modoDeSesion) { formType = _modoDeSesion; setupFormTypeUI(); }
   currentEditingIndex = null;
   _idEnEdicion = null;
+  _abiertoParaEditar = false;
   document.getElementById('fecha').value = '';
   document.getElementById('convenio').value = '';
   document.getElementById('empresa').value = '';
@@ -3150,6 +3159,7 @@ function finalizarInforme() {
   setTimeout(function(){
     currentEditingIndex = null;   // el siguiente informe no pisa al que acaba de cerrarse
     _numeroDelBorrador = null;
+    _abiertoParaEditar = false;
     hitosNoInspeccionados = {};
     if (formType !== _modoDeSesion) { formType = _modoDeSesion; setupFormTypeUI(); }
     ['apto', 'obs_general', 'obs_sp'].forEach(function(id){
