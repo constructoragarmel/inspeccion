@@ -226,7 +226,7 @@ td.desc{text-align:left;padding-left:13px;font-size:12px;font-weight:500;min-wid
 .est-btn.e75.on{background:#283593}
 .est-btn.e100.on{background:#1a237e}
 .ud{display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid #dfe3ea;border-radius:9px;background:#f4f6fa;color:#5f6b7a;font-size:10.5px;font-weight:700;white-space:nowrap;vertical-align:middle}
-.ud-sel{margin-left:6px;min-height:34px;padding:2px 6px;border:1.5px solid #c9cdd6;border-radius:7px;background:#fff8e1;color:#37474f;font-size:11.5px;font-weight:700;vertical-align:middle}
+.ud-sel{margin-left:6px;min-height:44px;padding:2px 6px;border:1.5px solid #c9cdd6;border-radius:7px;background:#fff8e1;color:#37474f;font-size:11.5px;font-weight:700;vertical-align:middle}
 td.desc input{width:100%;border:1px solid #e0e0e0;border-radius:5px;padding:4px 7px;font-size:12px;background:#fff8e1}
 td.desc input:focus{outline:none;border-color:var(--yellow)}
 .num{width:68px;border:1.5px solid #e0e0e0;border-radius:6px;padding:5px;font-size:12px;text-align:center;transition:border-color .2s}
@@ -523,7 +523,7 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   }
   td.desc{min-width:0!important;max-width:none!important;text-align:left!important;padding-left:5px!important}
   .ud{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;color:#444!important;font-size:8.5px!important;font-weight:600!important}
-  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}
+  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;min-height:0!important;color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}
   .ud-sel[data-vacio="1"]{display:none!important}
   .est-btn{display:none!important}
   .est-btn.on{display:inline!important;border:none!important;background:none!important;color:#000!important;padding:0!important;font-size:9px!important;font-weight:700!important}
@@ -1224,6 +1224,10 @@ function autoguardar(){
     if(!t || t === '—') return;            // todavía no hay nada que valga la pena
     _separarSiCambioElInforme();
     saveDraft(true);
+    // El autoguardado también avisa. En obra no se pulsa «Guardar»: se llena y
+    // se envía, así que el aviso que solo vivía en el guardado manual no lo veía
+    // nadie.
+    avisarSiQuedaPocoEspacio();
     _numeroDelBorrador = document.getElementById('nro-display')?.textContent || null;
     _hayCambiosSinGuardar = false;
     _pintarEstadoGuardado(new Date());
@@ -1286,10 +1290,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v40';
+    el.textContent = '● en línea · v41';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v40 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v41 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2536,7 +2540,10 @@ function recalcRow(inp){
   const ej=Math.max(0, parseFloat(document.getElementById('ej_'+rid)?.value)||0);
   const falt=Math.max(0,pr-ej);
   const fltEl=document.getElementById('flt_'+rid);
-  if(pr>0||ej>0){
+  // Sin cantidad proyectada no se sabe cuánto falta. Antes bastaba con que
+  // hubiera ejecutada, y entonces «faltante» salía 0 en verde: «no falta nada»,
+  // dicho sobre algo que nadie ha medido.
+  if(pr>0){
     fltEl.textContent=falt;
     fltEl.style.color=falt>0?'#e65100':'#2e7d32';
   } else {
@@ -2558,10 +2565,10 @@ function recalcRow(inp){
     const pct=Math.min(100,Math.round((ej/pr)*100));
     const cls=pCls(pct);
     pctEl.innerHTML=`<div class="pv ${cls.n}">${pct}%</div><div class="bar-bg"><div class="bar-fill ${cls.b}" style="width:${pct}%"></div></div>`;
-  } else if(ej>0) {
-    pctEl.innerHTML=`<div class="pv g">✓</div>`;
   } else {
-    pctEl.innerHTML='<span style="color:#ccc">—</span>';
+    // Ni tic ni verde. Un ✓ verde aquí decía «bien» sobre un dato que no
+    // existe, y el PDF —que deja la celda vacía— habría dicho lo contrario.
+    pctEl.innerHTML='<span style="color:#ccc" title="Sin cantidad proyectada no se puede calcular el avance">—</span>';
   }
   recalcP(pid);
 }
@@ -2925,12 +2932,18 @@ function espacioUsado(){
   catch(e){ return 0; }
 }
 
+let _ultimoAvisoEspacio = 0;
 function avisarSiQuedaPocoEspacio(){
   const usado = espacioUsado();
   if(usado < TOPE_ALMACEN * 0.7) return;
+  // Un aviso que salta cada dos segundos se vuelve invisible.
+  const ahora = Date.now();
+  if(ahora - _ultimoAvisoEspacio < 300000) return;
+  _ultimoAvisoEspacio = ahora;
   const sinEnviar = getSavedReports().filter(function(b){ return !b.enviado; }).length;
+  const cuantos = sinEnviar === 1 ? 'el informe pendiente' : 'los ' + sinEnviar + ' informes pendientes';
   showToast('⚠️ El teléfono va lleno: ' + Math.round(usado/1048576*10)/10 +
-            ' MB en informes sin enviar. Envíe los ' + sinEnviar + ' pendientes antes de seguir.', 'err');
+            ' MB sin enviar. Envíe ' + cuantos + ' antes de seguir.', 'err');
 }
 
 // Cuántos informes hay guardados y cuántos siguen sin enviar. Se repinta cada

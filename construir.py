@@ -6248,6 +6248,124 @@ print("  … 19 aplicado")
 
 
 # ══════════════════════════════════════════════════════════════════════════
+# 123. TRES COSAS QUE ENCONTRÓ EL CONTROL DE CALIDAD DEL 1-SEP — 1-sep-2026
+#
+# Veinte comprobaciones sobre la v40, medidas en el navegador a 375×812 y sobre
+# el PDF real. Estas son las tres que fallaron.
+# ══════════════════════════════════════════════════════════════════════════
+
+# ── 123a. El desplegable de unidad medía 34 px ─────────────────────────────
+# Era el ÚNICO control de llenado por debajo de 44 px con los once hitos
+# abiertos —392 controles visibles, uno solo corto—. Es el del acero, la
+# subpartida que admite dos unidades (ADR-0024), así que hay que tocarlo de
+# verdad. La otra excepción, la pastilla de «no inspeccionado» a 32 px, sigue
+# siendo deliberada: vive dentro de la cabecera que abre el hito.
+s = sustituir(s,
+ ".ud-sel{margin-left:6px;min-height:34px;",
+ ".ud-sel{margin-left:6px;min-height:44px;",
+ "123a· el selector de unidad llega a 44 px")
+
+# En el papel no: ahí un alto de 44 px engordaría la fila sin motivo.
+s = sustituir(s,
+ "  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;"
+ "color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}",
+ "  .ud-sel{border:none!important;background:none!important;padding:0!important;margin-left:4px!important;"
+ "min-height:0!important;"
+ "color:#444!important;font-size:8.5px!important;font-weight:600!important;-webkit-appearance:none;appearance:none}",
+ "123a2· y en el papel vuelve a su alto natural", -1)
+
+# ── 123b. El tic verde decía «bien» donde no se sabía nada ─────────────────
+# Con cantidad ejecutada pero SIN proyectada, la fila pintaba un ✓ VERDE en la
+# columna de avance y un «0» verde en la de faltante. Las dos cosas se leen como
+# aprobación —«esto está completo, no falta nada»— cuando lo cierto es que **no
+# se puede saber**: sin proyectada no hay porcentaje ni faltante.
+#
+# No es un caso raro: hoy es el caso de TODOS los informes, porque la cantidad
+# proyectada por apartamento no está definida (`PA-101`). El inspector ve una
+# pantalla llena de tics verdes que no significan nada.
+#
+# Y contradecía al papel: el informe oficial deja esa celda vacía y explica
+# arriba por qué. Ahora las dos dicen lo mismo — un guion gris—, que es el
+# invariante que este sistema tiene que sostener: pantalla y documento no pueden
+# decir cosas distintas del mismo dato.
+s = sustituir(s,
+ """  if(pr>0||ej>0){
+    fltEl.textContent=falt;
+    fltEl.style.color=falt>0?'#e65100':'#2e7d32';
+  } else {
+    fltEl.textContent='—'; fltEl.style.color='#aaa';
+  }""",
+ """  // Sin cantidad proyectada no se sabe cuánto falta. Antes bastaba con que
+  // hubiera ejecutada, y entonces «faltante» salía 0 en verde: «no falta nada»,
+  // dicho sobre algo que nadie ha medido.
+  if(pr>0){
+    fltEl.textContent=falt;
+    fltEl.style.color=falt>0?'#e65100':'#2e7d32';
+  } else {
+    fltEl.textContent='—'; fltEl.style.color='#aaa';
+  }""",
+ "123b· sin proyectada no se sabe cuánto falta")
+
+s = sustituir(s,
+ """  } else if(ej>0) {
+    pctEl.innerHTML=`<div class="pv g">✓</div>`;
+  } else {
+    pctEl.innerHTML='<span style="color:#ccc">—</span>';
+  }""",
+ """  } else {
+    // Ni tic ni verde. Un ✓ verde aquí decía «bien» sobre un dato que no
+    // existe, y el PDF —que deja la celda vacía— habría dicho lo contrario.
+    pctEl.innerHTML='<span style="color:#ccc" title="Sin cantidad proyectada no se puede calcular el avance">—</span>';
+  }""",
+ "123c· fuera el tic verde del avance sin proyectada")
+
+# ── 123d. El aviso de poco espacio no salía nunca en obra ──────────────────
+# Estaba detrás de `if(!silencioso)`, y en campo TODO se autoguarda: el aviso
+# solo aparecía si el inspector pulsaba «Guardar» a mano. Medido: 66 fotografías
+# —seis por hito en los once— dejan un borrador de 7,5 MB, el 151 % del tope que
+# el propio código asume, sin una sola advertencia.
+#
+# Ahora también avisa el autoguardado, pero **como mucho una vez cada cinco
+# minutos**: sin freno saltaría cada dos segundos y el inspector aprendería a
+# ignorarlo, que es peor que no avisar.
+s = sustituir(s,
+ """function avisarSiQuedaPocoEspacio(){
+  const usado = espacioUsado();
+  if(usado < TOPE_ALMACEN * 0.7) return;
+  const sinEnviar = getSavedReports().filter(function(b){ return !b.enviado; }).length;
+  showToast('⚠️ El teléfono va lleno: ' + Math.round(usado/1048576*10)/10 +
+            ' MB en informes sin enviar. Envíe los ' + sinEnviar + ' pendientes antes de seguir.', 'err');
+}""",
+ """let _ultimoAvisoEspacio = 0;
+function avisarSiQuedaPocoEspacio(){
+  const usado = espacioUsado();
+  if(usado < TOPE_ALMACEN * 0.7) return;
+  // Un aviso que salta cada dos segundos se vuelve invisible.
+  const ahora = Date.now();
+  if(ahora - _ultimoAvisoEspacio < 300000) return;
+  _ultimoAvisoEspacio = ahora;
+  const sinEnviar = getSavedReports().filter(function(b){ return !b.enviado; }).length;
+  const cuantos = sinEnviar === 1 ? 'el informe pendiente' : 'los ' + sinEnviar + ' informes pendientes';
+  showToast('⚠️ El teléfono va lleno: ' + Math.round(usado/1048576*10)/10 +
+            ' MB sin enviar. Envíe ' + cuantos + ' antes de seguir.', 'err');
+}""",
+ "123d· avisar como mucho cada cinco minutos, y decirlo bien en singular")
+
+s = sustituir(s,
+ """    _separarSiCambioElInforme();
+    saveDraft(true);""",
+ """    _separarSiCambioElInforme();
+    saveDraft(true);
+    // El autoguardado también avisa. En obra no se pulsa «Guardar»: se llena y
+    // se envía, así que el aviso que solo vivía en el guardado manual no lo veía
+    // nadie.
+    avisarSiQuedaPocoEspacio();""",
+ "123e· el autoguardado también avisa del espacio")
+
+print("  … 123 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
 # 16. LOS NOMBRES DE EMPRESA, COMO SE NOMBRAN ELLAS — 30-ago-2026
 #
 # Fuente: «Recepción de Documentación Técnica y Diagnóstico Inicial por
