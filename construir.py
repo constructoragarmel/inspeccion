@@ -165,6 +165,13 @@ s = sustituir(s,
 # los bordes, que es lo único que respeta el blanco de adentro: las estrellas y
 # la franja de la bandera. Es apaisado —4 a 1—, así que va a 40 px de alto,
 # donde mide 160 px de ancho.
+#
+# Va con PALETA de 256 colores, no en color verdadero: 23 KB en vez de 113 KB,
+# a igual resolución. Esto no es pulcritud, es alcance — el formulario entero se
+# descarga dentro de una torre con mala señal, y el color verdadero le sumaba
+# 88 KB al archivo. El bandeado que eso introduce en los degradados de la
+# bandera solo se ve ampliando al triple; a los 40 px a los que se usa, y en el
+# papel, no aparece.
 ini_l = s.index('<div style="display:flex;align-items:center;gap:18px">\n    <div style="text-align:center">')
 fin_l = s.index('<div>\n      <h2 id="logo-title"')
 s = sustituir(s, s[ini_l:fin_l],
