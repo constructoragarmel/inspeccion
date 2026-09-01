@@ -6663,6 +6663,216 @@ print("  … 127 aplicado")
 
 
 # ══════════════════════════════════════════════════════════════════════════
+# 128. ABRIR UN BORRADOR CON UN «N/A» LO ABRÍA A MEDIAS — 1-sep-2026
+#
+# Este es el que estaba detrás de «al editar se borran las fotos y también el
+# contenido», y no era falta de espacio.
+#
+# La evaluación se guarda por su TEXTO —«B», «R», «M», «N/A»—, y la clase del
+# botón es «NA», sin barra. Al reabrir, el código construía el selector así:
+#
+#     document.querySelector(`.ev-btn[data-rid="${rid}"].${item.ev}`)
+#
+# Con «N/A» eso da `.ev-btn[...].N/A`, que **no es un selector CSS válido**:
+# `querySelector` lanza SyntaxError. Y esa excepción abortaba `loadDraftData`
+# en el sitio, así que TODO lo que venía después no llegaba a restaurarse: el
+# resto de cantidades, las filas agregadas en campo, las fotografías y las
+# observaciones por hito, que se reponen al final.
+#
+# Basta con que UNA subpartida de las 51 esté marcada N/A —y «no aplica» es de
+# las más usadas— para que el informe se abra a medias. Sin ningún aviso: el
+# inspector ve un informe incompleto y cree que se le borró.
+#
+# Se arregla buscando el botón por su TEXTO, que es exactamente lo que se
+# guardó, en vez de armar un selector con el dato. Y se envuelve la restauración
+# entera: si algo vuelve a fallar, se dice, en vez de dejar el informe a medias
+# y callar.
+# ══════════════════════════════════════════════════════════════════════════
+s = sustituir(s,
+ """            if(item.ev) {
+              const b = document.querySelector(`.ev-btn[data-rid="${rid}"].${item.ev}`);
+              if(b) setEv(b);
+            }""",
+ """            if(item.ev) {
+              // Por TEXTO, no por clase: lo guardado es «N/A» y la clase «NA»,
+              // y `.N/A` ni es CSS válido ni casaría.
+              const guardada = String(item.ev).trim();
+              const b = Array.prototype.slice
+                .call(document.querySelectorAll(`.ev-btn[data-rid="${rid}"]`))
+                .filter(function(x){ return x.textContent.trim() === guardada; })[0];
+              if(b) setEv(b);
+            }""",
+ "128a· la evaluación se busca por su texto, no por su clase")
+
+# Un fallo restaurando no puede dejar el informe a medias y callado. Es la
+# familia de fallo que más daño ha hecho en este proyecto.
+s = sustituir(s,
+ """      Object.keys(d.partidas).forEach(pid => {
+        if(pid.endsWith('_extra')) return;
+        const arr = d.partidas[pid];""",
+ """      Object.keys(d.partidas).forEach(pid => {
+       try {
+        if(pid.endsWith('_extra')) return;
+        const arr = d.partidas[pid];""",
+ "128b1· cada hito se restaura por su cuenta")
+
+s = sustituir(s,
+ """            if(prInp || ejInp) recalcRow(prInp || ejInp);
+          });
+        }
+      });""",
+ """            if(prInp || ejInp) recalcRow(prInp || ejInp);
+          });
+        }
+       } catch(e) {
+        // Que falle un hito no puede dejar sin restaurar los otros diez, ni las
+        // fotografías, que se reponen al final. Y sobre todo: no puede pasar en
+        // silencio.
+        _falloAlAbrir.push(pid);
+        if(window.console) console.error('No se pudo restaurar ' + pid + ':', e);
+       }
+      });""",
+ "128b2· y si falla, se anota en vez de abortarlo todo")
+
+s = sustituir(s,
+ """function loadDraftData(index) {
+  const list = getSavedReports();""",
+ """let _falloAlAbrir = [];
+function loadDraftData(index) {
+  _falloAlAbrir = [];
+  const list = getSavedReports();""",
+ "128b3· la lista de lo que no se pudo restaurar")
+
+s = sustituir(s,
+ """  showToast('📂 Borrador cargado correctamente para edición', 'ok');""",
+ """  if (_falloAlAbrir.length) {
+    showToast('⚠️ El informe se abrió INCOMPLETO: no se pudo restaurar ' +
+              _falloAlAbrir.length + ' hito(s). NO lo envíe así — avise a la oficina.', 'err');
+  } else {
+    showToast('📂 Borrador cargado correctamente para edición', 'ok');
+  }""",
+ "128b4· decirlo cuando el informe no se abre entero")
+
+print("  … 128 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 129. DOS FALLOS QUE OCURRÍAN EN SILENCIO — 1-sep-2026
+#
+# De auditar los quince `catch` del formulario. Diez son inofensivos —cosas
+# cosméticas, o que ya avisan más arriba—. Estos dos no.
+# ══════════════════════════════════════════════════════════════════════════
+
+# ── 129a. Una lista ilegible se llevaba por delante todos los informes ─────
+# `getSavedReports()` devolvía [] si lo guardado no se podía leer. Y `saveDraft`
+# hace: leer la lista → añadir → escribir. Encadenado:
+#
+#     lista ilegible → getSavedReports() = [] → se escribe una lista de 1
+#                    → los informes sin enviar del teléfono, borrados
+#
+# Y «Mis informes» aparecía vacío, así que el inspector veía desaparecer su
+# trabajo sin una palabra. No es probable —localStorage escribe entero o no
+# escribe—, pero el coste de que pase una vez es perder una jornada de campo.
+#
+# Ahora, si había algo y no se pudo leer, se guarda una COPIA DE RESCATE antes
+# de seguir y se avisa con todas las letras. Guardar no se bloquea: el informe
+# que el inspector tiene delante también importa, y la copia conserva lo demás.
+s = sustituir(s,
+ """function getSavedReports() {
+  try {
+    const l = JSON.parse(localStorage.getItem('garmel_reports_list') || '[]');""",
+ """let _listaIlegible = false;
+function getSavedReports() {
+  const crudo = localStorage.getItem('garmel_reports_list');
+  try {
+    const l = JSON.parse(crudo || '[]');""",
+ "129a1· leer el crudo antes de interpretarlo")
+
+s = sustituir(s,
+ """    return Array.isArray(l) ? l.filter(function(b){ return b && typeof b === 'object'; }) : [];
+  } catch(e) { return []; }
+}""",
+ """    return Array.isArray(l) ? l.filter(function(b){ return b && typeof b === 'object'; }) : [];
+  } catch(e) {
+    // Había algo y no se pudo leer. Devolver [] a secas haría que el siguiente
+    // guardado escribiera encima y se perdiera TODO lo que hay en el teléfono.
+    if (crudo && !_listaIlegible) {
+      _listaIlegible = true;
+      try { localStorage.setItem('garmel_reports_rescate_' + Date.now(), crudo); } catch(_) {}
+      if (typeof showToast === 'function') {
+        showToast('❌ No se pudieron leer los informes guardados. Se hizo una copia de ' +
+                  'rescate en este teléfono. NO borre nada y avise a la oficina.', 'err');
+      }
+      if (window.console) console.error('Lista de informes ilegible:', e);
+    }
+    return [];
+  }
+}""",
+ "129a2· copia de rescate y aviso en vez de silencio")
+
+# ── 129b. Si no se pudo marcar como enviado, se reenvía ────────────────────
+# `catch(e){}` pelado. Un informe que se envió bien pero no se pudo marcar queda
+# como pendiente, y la siguiente tanda lo manda otra vez: duplicado en Drive.
+# Es la misma cara del problema de los duplicados del 1-sep, por el otro lado.
+s = sustituir(s,
+ """    if(cambio) localStorage.setItem('garmel_reports_list', JSON.stringify(lista));
+    actualizarContadores();
+  }catch(e){}""",
+ """    if(cambio) localStorage.setItem('garmel_reports_list', JSON.stringify(lista));
+    actualizarContadores();
+  }catch(e){
+    // Se envió bien pero no se pudo anotar. Si esto pasa callado, la próxima
+    // tanda lo manda otra vez y aparece duplicado en Drive.
+    if (typeof showToast === 'function') {
+      showToast('⚠️ ' + nro + ' SÍ se envió, pero no se pudo marcar como enviado en este ' +
+                'teléfono. No lo vuelva a enviar: ya está en Drive.', 'err');
+    }
+    if (window.console) console.error('No se pudo marcar como enviado:', e);
+  }""",
+ "129b· decirlo cuando el informe se envió pero no se pudo marcar")
+
+print("  … 129 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 130. PULSAR DOS VECES «SIGUIENTE» CREABA INFORMES VACÍOS — 1-sep-2026
+#
+# Medido: tres pulsaciones seguidas dejaron TRES fichas, dos de ellas sin nada
+# medido —solo la cabecera, que «siguiente» conserva a propósito—. Y un informe
+# vacío se puede enviar: acaba en Drive y en Smartsheet ocupando una fila que no
+# dice nada.
+#
+# Ya existía `_tieneContenido()`, que sabe distinguir un informe con algo medido
+# de uno que solo tiene cabecera. Se usa aquí: si no hay nada, se limpia sin
+# crear ficha. Lo mismo en «Finalizar».
+# ══════════════════════════════════════════════════════════════════════════
+s = sustituir(s,
+ """  // Si no se pudo guardar, NO se limpia: el informe sigue en pantalla, que es
+  // el único sitio donde existe. Antes se limpiaba igual y se perdía.
+  if (!saveDraft()) {""",
+ """  // Un informe sin nada medido no merece ficha propia.
+  const _hayAlgo = (typeof _tieneContenido === 'function') ? _tieneContenido(getFormData()) : true;
+  // Si hay algo y no se pudo guardar, NO se limpia: el informe sigue en
+  // pantalla, que es el único sitio donde existe. Antes se limpiaba igual.
+  if (_hayAlgo && !saveDraft()) {""",
+ "130a· «siguiente» no crea ficha de un informe vacío")
+
+s = sustituir(s,
+ """  // Guardar ANTES de cerrar. Antes no guardaba: daba por hecho que el
+  // autoguardado ya había pasado, y si había fallado el informe se perdía.
+  if (!saveDraft(true)) {""",
+ """  // Guardar ANTES de cerrar. Antes no guardaba: daba por hecho que el
+  // autoguardado ya había pasado, y si había fallado el informe se perdía.
+  // Un informe sin nada medido no deja ficha: finalizar dos veces seguidas no
+  // puede sembrar informes vacíos.
+  const _hayAlgoF = (typeof _tieneContenido === 'function') ? _tieneContenido(getFormData()) : true;
+  if (_hayAlgoF && !saveDraft(true)) {""",
+ "130b· «finalizar» tampoco")
+
+print("  … 130 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
 # 16. LOS NOMBRES DE EMPRESA, COMO SE NOMBRAN ELLAS — 30-ago-2026
 #
 # Fuente: «Recepción de Documentación Técnica y Diagnóstico Inicial por

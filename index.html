@@ -1298,10 +1298,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v44';
+    el.textContent = '● en línea · v46';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v44 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v46 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2878,17 +2878,40 @@ function _marcarComoEnviado(nro){
     });
     if(cambio) localStorage.setItem('garmel_reports_list', JSON.stringify(lista));
     actualizarContadores();
-  }catch(e){}
+  }catch(e){
+    // Se envió bien pero no se pudo anotar. Si esto pasa callado, la próxima
+    // tanda lo manda otra vez y aparece duplicado en Drive.
+    if (typeof showToast === 'function') {
+      showToast('⚠️ ' + nro + ' SÍ se envió, pero no se pudo marcar como enviado en este ' +
+                'teléfono. No lo vuelva a enviar: ya está en Drive.', 'err');
+    }
+    if (window.console) console.error('No se pudo marcar como enviado:', e);
+  }
 }
 
+let _listaIlegible = false;
 function getSavedReports() {
+  const crudo = localStorage.getItem('garmel_reports_list');
   try {
-    const l = JSON.parse(localStorage.getItem('garmel_reports_list') || '[]');
+    const l = JSON.parse(crudo || '[]');
     // Un hueco en la lista no debe dejar sin acceso al resto: se descartan las
     // fichas que no son un informe, y si lo guardado no es siquiera una lista
     // se empieza de cero en vez de reventar.
     return Array.isArray(l) ? l.filter(function(b){ return b && typeof b === 'object'; }) : [];
-  } catch(e) { return []; }
+  } catch(e) {
+    // Había algo y no se pudo leer. Devolver [] a secas haría que el siguiente
+    // guardado escribiera encima y se perdiera TODO lo que hay en el teléfono.
+    if (crudo && !_listaIlegible) {
+      _listaIlegible = true;
+      try { localStorage.setItem('garmel_reports_rescate_' + Date.now(), crudo); } catch(_) {}
+      if (typeof showToast === 'function') {
+        showToast('❌ No se pudieron leer los informes guardados. Se hizo una copia de ' +
+                  'rescate en este teléfono. NO borre nada y avise a la oficina.', 'err');
+      }
+      if (window.console) console.error('Lista de informes ilegible:', e);
+    }
+    return [];
+  }
 }
 
 function saveDraft(silencioso){
@@ -3033,7 +3056,9 @@ function renderSavedList() {
   `).join('');
 }
 
+let _falloAlAbrir = [];
 function loadDraftData(index) {
+  _falloAlAbrir = [];
   const list = getSavedReports();
   const d = list[index];
   if (!d) return;
@@ -3124,6 +3149,7 @@ function loadDraftData(index) {
       });
     } else {
       Object.keys(d.partidas).forEach(pid => {
+       try {
         if(pid.endsWith('_extra')) return;
         const arr = d.partidas[pid];
         if(Array.isArray(arr)) {
@@ -3136,12 +3162,24 @@ function loadDraftData(index) {
             if(prInp && item.pr !== undefined) prInp.value = item.pr;
             if(ejInp && item.ej !== undefined) ejInp.value = item.ej;
             if(item.ev) {
-              const b = document.querySelector(`.ev-btn[data-rid="${rid}"].${item.ev}`);
+              // Por TEXTO, no por clase: lo guardado es «N/A» y la clase «NA»,
+              // y `.N/A` ni es CSS válido ni casaría.
+              const guardada = String(item.ev).trim();
+              const b = Array.prototype.slice
+                .call(document.querySelectorAll(`.ev-btn[data-rid="${rid}"]`))
+                .filter(function(x){ return x.textContent.trim() === guardada; })[0];
               if(b) setEv(b);
             }
             if(prInp || ejInp) recalcRow(prInp || ejInp);
           });
         }
+       } catch(e) {
+        // Que falle un hito no puede dejar sin restaurar los otros diez, ni las
+        // fotografías, que se reponen al final. Y sobre todo: no puede pasar en
+        // silencio.
+        _falloAlAbrir.push(pid);
+        if(window.console) console.error('No se pudo restaurar ' + pid + ':', e);
+       }
       });
       // Las filas que el inspector agregó en campo. La fuente buena es
       // `partidas[pid+'_extra']`, que trae lo MEDIDO; `extraRows` solo tiene la
@@ -3179,7 +3217,12 @@ function loadDraftData(index) {
 
   _todosLosValoresAlPapel();
   closeSavedModal();
-  showToast('📂 Borrador cargado correctamente para edición', 'ok');
+  if (_falloAlAbrir.length) {
+    showToast('⚠️ El informe se abrió INCOMPLETO: no se pudo restaurar ' +
+              _falloAlAbrir.length + ' hito(s). NO lo envíe así — avise a la oficina.', 'err');
+  } else {
+    showToast('📂 Borrador cargado correctamente para edición', 'ok');
+  }
 }
 
 function deleteSavedReport(index) {
@@ -3202,9 +3245,11 @@ function siguienteApartamento(){
   if(falta.length && !confirm(_avisarFaltantes(falta) +
       '\n\n¿Guardar así y pasar al siguiente apartamento?')) return;
 
-  // Si no se pudo guardar, NO se limpia: el informe sigue en pantalla, que es
-  // el único sitio donde existe. Antes se limpiaba igual y se perdía.
-  if (!saveDraft()) {
+  // Un informe sin nada medido no merece ficha propia.
+  const _hayAlgo = (typeof _tieneContenido === 'function') ? _tieneContenido(getFormData()) : true;
+  // Si hay algo y no se pudo guardar, NO se limpia: el informe sigue en
+  // pantalla, que es el único sitio donde existe. Antes se limpiaba igual.
+  if (_hayAlgo && !saveDraft()) {
     alert('No se pudo guardar este informe, así que NO se va a limpiar la pantalla.\n\n' +
           'Lo más probable es que el teléfono esté lleno: entre a «Mis informes», ' +
           'envíe o borre los que ya no hagan falta, y vuelva a intentarlo. ' +
@@ -3263,7 +3308,10 @@ function nuevoFormulario() {
 function finalizarInforme() {
   // Guardar ANTES de cerrar. Antes no guardaba: daba por hecho que el
   // autoguardado ya había pasado, y si había fallado el informe se perdía.
-  if (!saveDraft(true)) {
+  // Un informe sin nada medido no deja ficha: finalizar dos veces seguidas no
+  // puede sembrar informes vacíos.
+  const _hayAlgoF = (typeof _tieneContenido === 'function') ? _tieneContenido(getFormData()) : true;
+  if (_hayAlgoF && !saveDraft(true)) {
     alert('No se pudo guardar este informe, así que NO se va a cerrar.\n\n' +
           'Entre a «Mis informes», envíe o borre los que ya no hagan falta, ' +
           'y vuelva a intentarlo. Lo que tiene en pantalla no se ha perdido.');
