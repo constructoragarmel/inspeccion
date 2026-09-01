@@ -6627,6 +6627,42 @@ print("  … 126 aplicado")
 
 
 # ══════════════════════════════════════════════════════════════════════════
+# 127. EL ENLACE DE PRUEBA NO ENTRABA EN MODO PRUEBA — 1-sep-2026
+#
+# `?prueba=1` solo hacía VISIBLE el botón de modo prueba. Había que encontrarlo
+# además, pulsarlo y confirmar un diálogo. Pero tanto el nombre del parámetro
+# como la documentación dicen que ese enlace «marca los informes como PRUEBA-»,
+# y quien lo abre da por hecho que ya está dentro.
+#
+# Pasó el 1-sep-2026: tres informes de prueba se archivaron en la carpeta real
+# como si fueran inspecciones de obra, sin prefijo que los distinguiera. Ese es
+# exactamente el daño que el modo de prueba existe para evitar.
+#
+# Ahora el enlace entra en modo prueba y lo dice. El botón sigue ahí para poder
+# salirse, que es la dirección en la que equivocarse no ensucia nada.
+# ══════════════════════════════════════════════════════════════════════════
+s = sustituir(s,
+ """  if (new URLSearchParams(location.search).get('prueba') === '1') {
+    const bt = document.getElementById('btn-test');
+    if (bt) bt.style.display = '';
+  }""",
+ """  if (new URLSearchParams(location.search).get('prueba') === '1') {
+    const bt = document.getElementById('btn-test');
+    if (bt) bt.style.display = '';
+    // El enlace de prueba ENTRA en modo prueba, no solo enseña el botón.
+    TEST_MODE = true;
+    if (bt) { bt.style.background = '#c62828'; bt.style.borderColor = '#ef5350'; }
+    updateNroInforme();
+    setTimeout(function(){
+      showToast('🧪 Modo prueba activado por el enlace — los informes saldrán como PRUEBA-', 'err');
+    }, 900);
+  }""",
+ "127· el enlace de prueba entra en modo prueba")
+
+print("  … 127 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
 # 16. LOS NOMBRES DE EMPRESA, COMO SE NOMBRAN ELLAS — 30-ago-2026
 #
 # Fuente: «Recepción de Documentación Técnica y Diagnóstico Inicial por

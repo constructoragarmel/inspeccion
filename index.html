@@ -1298,10 +1298,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v43';
+    el.textContent = '● en línea · v44';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v43 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v44 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -3679,6 +3679,13 @@ window.onload = function() {
   if (new URLSearchParams(location.search).get('prueba') === '1') {
     const bt = document.getElementById('btn-test');
     if (bt) bt.style.display = '';
+    // El enlace de prueba ENTRA en modo prueba, no solo enseña el botón.
+    TEST_MODE = true;
+    if (bt) { bt.style.background = '#c62828'; bt.style.borderColor = '#ef5350'; }
+    updateNroInforme();
+    setTimeout(function(){
+      showToast('🧪 Modo prueba activado por el enlace — los informes saldrán como PRUEBA-', 'err');
+    }, 900);
   }
   // No se entra al formulario sin haber elegido rol.
   abrirEleccionDeRol();
