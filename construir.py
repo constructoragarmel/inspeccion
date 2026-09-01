@@ -5996,6 +5996,254 @@ print("  … 17 aplicado")
 
 
 # ══════════════════════════════════════════════════════════════════════════
+# 19. LA TORRE PRIMERO, Y LA CASCADA AL REVÉS — 1-sep-2026
+#
+# Pedido por Skarlet Gómez: «Torre debe estar al inicio, ya que si no nos
+# sabemos el nombre de la empresa o ingeniero, al colocar el nro de una vez se
+# llenan los demás campos».
+#
+# El formulario iba justo al revés: se elegía convenio, eso recortaba la lista
+# de empresas, y la empresa recortaba la de torres. El inspector que llega a una
+# torre y no sabe de qué empresa es —que es el caso normal— no podía empezar por
+# lo único que sí sabe. Ahora la torre es el primer campo y fija las tres cosas:
+# convenio, empresa y residente. Salen rellenas y se pueden cambiar, por si en
+# obra la ejecuta otra.
+#
+# CUATRO TORRES NO ADMITEN ESO, y no es descuido nuestro: T-04, T-07, T-12 y
+# T-13 están en el maestro con DOS convenios y DOS empresas cada una. Es la
+# contradicción C-06/C-24 del repositorio de contexto —«el número de torre no
+# identifica una torre: hace falta el sector»—, que sigue sin resolverse. Ahí no
+# se adivina: el desplegable de convenio se queda con las dos zonas posibles y
+# un aviso, y al elegir una se llenan empresa y residente como en las demás.
+# ══════════════════════════════════════════════════════════════════════════
+
+# 18a/b · la torre sale de donde estaba y pasa a ser el primer campo
+_ini_t = s.index('    <div class="field">\n      <label>Torre *</label>')
+_fin_t = s.index('    <div class="field">\n      <label>Piso *</label>')
+if not (_ini_t < _fin_t):
+    sys.exit("✗ 19: el bloque de la torre no precede al del piso")
+_bloque_torre = s[_ini_t:_fin_t]
+s = s[:_ini_t] + s[_fin_t:]
+cambios.append("19a· sacar la torre del bloque de ámbito")
+s = sustituir(s,
+ '    <div class="field">\n      <label>Fecha de inspección *</label>',
+ _bloque_torre + '    <div class="field">\n      <label>Fecha de inspección *</label>',
+ "19b· la torre, primer campo del informe")
+
+# 18c/d · el convenio baja a donde está la empresa: los dos los llena la torre
+_ini_c = s.index('    <div class="field">\n      <label>Convenio *</label>')
+_fin_c = s.index('  </div>\n\n  <div class="sec-lbl">Empresa y Personal</div>')
+if not (_ini_c < _fin_c):
+    sys.exit("✗ 19: el bloque del convenio no está donde se esperaba")
+_bloque_conv = s[_ini_c:_fin_c]
+s = s[:_ini_c] + s[_fin_c:]
+cambios.append("19c· sacar el convenio de la cabecera")
+s = sustituir(s,
+ '    <div class="field">\n      <label>Empresa ejecutora *</label>',
+ _bloque_conv + '    <div class="field">\n      <label>Empresa ejecutora *</label>',
+ "19d· el convenio, junto a la empresa que determina")
+
+# 18e · el aviso de las torres que están en dos zonas
+s = sustituir(s,
+ '      <label>Convenio *</label>\n      <select id="convenio"',
+ '      <label>Convenio *</label>\n'
+ '      <span id="aviso-zona" style="display:none;font-size:11.5px;font-weight:600;color:#8f4b00;margin-bottom:4px"></span>\n'
+ '      <select id="convenio"',
+ "19e· aviso de torre en dos zonas")
+
+# 18f · el bloque de ámbito se queda con tres campos, no cuatro
+s = sustituir(s, '<div class="grid4">', '<div class="grid3">',
+ "19f· el bloque de ámbito pasa a tres columnas")
+
+# ── 18g. filtrarPorConvenio deja de recortar la lista de torres ─────────────
+# Recortarla es lo que impedía empezar por la torre: la que el inspector tiene
+# delante desaparecía de la lista si el convenio elegido no era el suyo.
+s = sustituir(s,
+ """  const empSel = document.getElementById('empresa');
+  const torSel = document.getElementById('torre');
+
+  const prevEmp = empSel.value;
+  const prevTor = torSel.value;
+
+  empSel.innerHTML = '<option value="">— Seleccione —</option>';
+  torSel.innerHTML = '<option value="">— Seleccione —</option>';""",
+ """  const empSel = document.getElementById('empresa');
+
+  // La lista de torres YA NO se recorta. La torre es el primer campo y es ella
+  // la que fija el convenio: recortarla aquí volvería a esconder justo la que
+  // el inspector tiene delante.
+  const prevEmp = empSel.value;
+
+  empSel.innerHTML = '<option value="">— Seleccione —</option>';""",
+ "19g1· no vaciar la lista de torres")
+
+s = sustituir(s,
+ """    cdata.torres.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      torSel.appendChild(opt);
+    });
+  } else {""",
+ """  } else {""",
+ "19g2· no rellenar torres desde el convenio")
+
+s = sustituir(s,
+ """    const allEmpresas = [], allTorres = [];
+    Object.values(CONVENIO_DATA).forEach(cd => {
+      Object.keys(cd.empresas).forEach(e => { if (!allEmpresas.includes(e)) allEmpresas.push(e); });
+      cd.torres.forEach(t => { if (!allTorres.includes(t)) allTorres.push(t); });
+    });""",
+ """    const allEmpresas = [];
+    Object.values(CONVENIO_DATA).forEach(cd => {
+      Object.keys(cd.empresas).forEach(e => { if (!allEmpresas.includes(e)) allEmpresas.push(e); });
+    });""",
+ "19g3· ya no se acumulan todas las torres")
+
+s = sustituir(s,
+ """    allTorres.sort().forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      torSel.appendChild(opt);
+    });
+  }
+""",
+ """  }
+""",
+ "19g4· quitar el volcado de todas las torres")
+
+s = sustituir(s,
+ """  const noReg = document.createElement('option');
+  noReg.value = 'NO_REG';
+  noReg.textContent = '⚠️ No registrada — ingresar manualmente';
+  noReg.style.color = '#8f4b00';
+  noReg.style.fontWeight = '700';
+  torSel.appendChild(noReg);
+
+  if (prevEmp && Array.from(empSel.options).some(o => o.value === prevEmp)) empSel.value = prevEmp;
+  else empSel.value = '';
+
+  if (prevTor && Array.from(torSel.options).some(o => o.value === prevTor)) torSel.value = prevTor;
+  else torSel.value = '';
+""",
+ """  // «No registrada» ya vive en el HTML: la lista de torres no se reconstruye.
+  // Y la empresa que el maestro le asigna a ESTA torre gana, que es el punto de
+  // todo esto. Si no está en la lista, se respeta la que hubiera.
+  const _tor = (document.getElementById('torre') || {}).value || '';
+  // Con la zona SIN elegir no se deduce nada: empresaDeTorre ignora el
+  // convenio cuando llega vacío y devolvería la primera fila de la torre, que
+  // en las cuatro ambiguas es adivinar a cara o cruz.
+  const _empMaestro = (conv && typeof empresaDeTorre === 'function') ? empresaDeTorre(conv, _tor) : '';
+  if (_empMaestro && Array.from(empSel.options).some(o => o.value === _empMaestro)) empSel.value = _empMaestro;
+  else if (prevEmp && Array.from(empSel.options).some(o => o.value === prevEmp)) empSel.value = prevEmp;
+  else empSel.value = '';
+""",
+ "19g5· la empresa la pone la torre")
+
+# ── 18h. La torre rellena convenio, empresa y residente ────────────────────
+s = sustituir(s,
+ """function handleTorreChange() {""",
+ """// Las zonas del maestro en las que figura una torre. Son DOS en T-04, T-07,
+// T-12 y T-13 —contradicción C-06/C-24, todavía abierta—, y ahí no se adivina.
+function _zonasDeTorre(t){
+  if (typeof TORRES === 'undefined' || !t || t === 'NO_REG') return [];
+  const z = [];
+  TORRES.forEach(function(f){ if (f.t === t && f.c && z.indexOf(f.c) === -1) z.push(f.c); });
+  return z;
+}
+
+// Las zonas se leen del propio desplegable la primera vez, no se escriben aquí:
+// así no hay una segunda lista que mantener al día.
+let _zonasTodas = null;
+function _opcionesDeConvenio(permitidas){
+  const sel = document.getElementById('convenio');
+  if (!sel) return;
+  if (_zonasTodas === null) {
+    _zonasTodas = Array.prototype.slice.call(sel.options)
+      .map(function(o){ return o.value; }).filter(Boolean);
+  }
+  const previo = sel.value;
+  const lista = (permitidas && permitidas.length) ? permitidas : _zonasTodas;
+  sel.innerHTML = '<option value="">— Seleccione —</option>';
+  lista.forEach(function(c){
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    sel.appendChild(o);
+  });
+  if (previo && Array.prototype.slice.call(sel.options).some(function(o){ return o.value === previo; })) {
+    sel.value = previo;
+  }
+}
+
+function _rellenarDesdeLaTorre(t){
+  const convSel = document.getElementById('convenio');
+  const avisoZ  = document.getElementById('aviso-zona');
+  if (!convSel) return;
+  const zonas = _zonasDeTorre(t);
+
+  if (zonas.length === 1) {
+    _opcionesDeConvenio(null);
+    convSel.value = zonas[0];
+    _convenioPrevio = zonas[0];
+    if (avisoZ) avisoZ.style.display = 'none';
+    filtrarPorConvenio();          // y con el convenio caen empresa y residente
+    return;
+  }
+
+  if (zonas.length > 1) {
+    // Dos zonas posibles. No se elige por el inspector: se le dan las dos.
+    _opcionesDeConvenio(zonas);
+    convSel.value = '';
+    _convenioPrevio = '';
+    // La empresa de la torre anterior no puede quedarse: se leería como que ya
+    // está contestado, y aquí justamente no lo está.
+    const _e = document.getElementById('empresa'); if (_e) _e.value = '';
+    if (avisoZ) {
+      avisoZ.textContent = '⚠️ La torre ' + t + ' figura en dos zonas del maestro. Elija cuál y se llenan empresa y residente.';
+      avisoZ.style.display = 'block';
+    }
+    filtrarPorConvenio();
+    return;
+  }
+
+  // Sin torre, o una que no está en el maestro: se devuelven todas las zonas y
+  // no se toca nada de lo que haya escrito el inspector.
+  _opcionesDeConvenio(null);
+  if (avisoZ) avisoZ.style.display = 'none';
+}
+
+function handleTorreChange() {""",
+ "19h· la torre fija zona, empresa y residente")
+
+s = sustituir(s,
+ """  // La empresa la determina la torre, no al revés: antes el inspector de la
+  // Torre 01 no tenía a Río Limón en la lista porque la torre estaba en otro
+  // convenio. Se preselecciona la que asigna el cuadro y se puede cambiar, por
+  // si en obra la ejecuta otra.
+  const conv   = document.getElementById('convenio').value;
+  const emp    = empresaDeTorre(conv, val);
+  const empSel = document.getElementById('empresa');
+  if (emp && empSel && Array.prototype.slice.call(empSel.options).some(function(o){ return o.value === emp; })) {
+    empSel.value = emp;
+  }
+  autoResidenteConv();""",
+ """  // La torre manda: fija la zona y, con ella, empresa y residente. El
+  // inspector que solo sabe en qué torre está ya puede empezar por ahí.
+  _rellenarDesdeLaTorre(val);
+  autoResidenteConv();""",
+ "19i· handleTorreChange delega en la torre")
+
+# 18j · al abrir un borrador, devolver las tres zonas antes de restaurar: si
+# quedaron recortadas por la torre anterior, el convenio guardado no entraría.
+s = sustituir(s,
+ """  ['fecha','convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(id=>{""",
+ """  if (typeof _opcionesDeConvenio === 'function') _opcionesDeConvenio(null);
+  ['fecha','convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(id=>{""",
+ "19j· restaurar un borrador con todas las zonas disponibles")
+
+print("  … 19 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
 # 16. LOS NOMBRES DE EMPRESA, COMO SE NOMBRAN ELLAS — 30-ago-2026
 #
 # Fuente: «Recepción de Documentación Técnica y Diagnóstico Inicial por

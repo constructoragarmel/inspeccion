@@ -880,6 +880,59 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
   <div class="sec-lbl">Identificación del Proyecto</div>
   <div class="grid3">
     <div class="field">
+      <label>Torre *</label>
+      <select id="torre" onchange="handleTorreChange()">
+        <option value="">— Seleccione —</option>
+        <option>D-08</option>
+        <option>J-07</option>
+        <option>J-08</option>
+        <option>J-09</option>
+        <option>J-10</option>
+        <option>J-11</option>
+        <option>J-12</option>
+        <option>T-01</option>
+        <option>T-02</option>
+        <option>T-03</option>
+        <option>T-04</option>
+        <option>T-05</option>
+        <option>T-06</option>
+        <option>T-07</option>
+        <option>T-08</option>
+        <option>T-09</option>
+        <option>T-10</option>
+        <option>T-11</option>
+        <option>T-12</option>
+        <option>T-13</option>
+        <option>T-14</option>
+        <option>T-15</option>
+        <option>T-16</option>
+        <option>T-17</option>
+        <option>T-18</option>
+        <option>T-19</option>
+        <option>T-38</option>
+        <option>T-39</option>
+        <option>T-45</option>
+        <option>T-46</option>
+        <option>T-47</option>
+        <option>T-48</option>
+        <option>T-49</option>
+        <option>T-50</option>
+        <option>T-51</option>
+        <option>T-52</option>
+        <option>T-53</option>
+        <option>T-54</option>
+        <option>T-55</option>
+        <option>T-56</option>
+        <option>T-57</option>
+        <option>T-58</option>
+        <option value="NO_REG" style="color:#8f4b00;font-weight:700">⚠️ No registrada — ingresar manualmente</option>
+      </select>
+      <div id="torre-manual-wrap" style="display:none;margin-top:6px;position:relative;z-index:10">
+        <input type="text" id="torre-manual" placeholder="Nombre de la torre..." oninput="updateNroInforme()" style="width:100%;border:1.5px solid #ff9800;border-radius:7px;padding:7px 10px;font-size:13px;background:#fff8e1">
+        <span style="font-size:10px;color:#8f4b00;font-weight:700;margin-top:2px;display:block">⚠️ Torre no registrada en el maestro</span>
+      </div>
+    </div>
+    <div class="field">
       <label>Fecha de inspección *</label>
       <input type="date" id="fecha" onchange="updateDocInfo()">
     </div>
@@ -888,8 +941,13 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
       <div id="nro-display" style="padding:7px 10px;border-radius:7px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:1.5px solid #a5d6a7;font-size:12px;font-weight:800;color:#1b5e20;font-family:monospace;letter-spacing:.4px">XX-T---P--A---------</div>
       <span class="hint-formato" style="font-size:10px;color:#5f6b7a;margin-top:2px;display:block">Formato: Sector-Torre-Piso/Apto-Fecha-Inspector</span>
     </div>
+  </div>
+
+  <div class="sec-lbl">Empresa y Personal</div>
+  <div class="grid3">
     <div class="field">
       <label>Convenio *</label>
+      <span id="aviso-zona" style="display:none;font-size:11.5px;font-weight:600;color:#8f4b00;margin-bottom:4px"></span>
       <select id="convenio" onchange="handleConvenioChange(this)">
         <option value="">— Seleccione —</option>
         <option>Convenio Chinos</option>
@@ -897,10 +955,6 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
         <option>Convenio Bielorrusos</option>
       </select>
     </div>
-  </div>
-
-  <div class="sec-lbl">Empresa y Personal</div>
-  <div class="grid3">
     <div class="field">
       <label>Empresa ejecutora *</label>
       <span id="aviso-empresa" style="display:none;font-size:11.5px;font-weight:600;color:#8f4b00;margin-bottom:4px"></span>
@@ -955,60 +1009,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
       style="padding:10px 16px;border:2px solid #c9cdd6;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:#fff;color:#37474f">🏢 Torre completa</button>
     <span id="ambito-nota" style="font-size:11px;color:#5a6672"></span>
   </div>
-  <div class="grid4">
-    <div class="field">
-      <label>Torre *</label>
-      <select id="torre" onchange="handleTorreChange()">
-        <option value="">— Seleccione —</option>
-        <option>D-08</option>
-        <option>J-07</option>
-        <option>J-08</option>
-        <option>J-09</option>
-        <option>J-10</option>
-        <option>J-11</option>
-        <option>J-12</option>
-        <option>T-01</option>
-        <option>T-02</option>
-        <option>T-03</option>
-        <option>T-04</option>
-        <option>T-05</option>
-        <option>T-06</option>
-        <option>T-07</option>
-        <option>T-08</option>
-        <option>T-09</option>
-        <option>T-10</option>
-        <option>T-11</option>
-        <option>T-12</option>
-        <option>T-13</option>
-        <option>T-14</option>
-        <option>T-15</option>
-        <option>T-16</option>
-        <option>T-17</option>
-        <option>T-18</option>
-        <option>T-19</option>
-        <option>T-38</option>
-        <option>T-39</option>
-        <option>T-45</option>
-        <option>T-46</option>
-        <option>T-47</option>
-        <option>T-48</option>
-        <option>T-49</option>
-        <option>T-50</option>
-        <option>T-51</option>
-        <option>T-52</option>
-        <option>T-53</option>
-        <option>T-54</option>
-        <option>T-55</option>
-        <option>T-56</option>
-        <option>T-57</option>
-        <option>T-58</option>
-        <option value="NO_REG" style="color:#8f4b00;font-weight:700">⚠️ No registrada — ingresar manualmente</option>
-      </select>
-      <div id="torre-manual-wrap" style="display:none;margin-top:6px;position:relative;z-index:10">
-        <input type="text" id="torre-manual" placeholder="Nombre de la torre..." oninput="updateNroInforme()" style="width:100%;border:1.5px solid #ff9800;border-radius:7px;padding:7px 10px;font-size:13px;background:#fff8e1">
-        <span style="font-size:10px;color:#8f4b00;font-weight:700;margin-top:2px;display:block">⚠️ Torre no registrada en el maestro</span>
-      </div>
-    </div>
+  <div class="grid3">
     <div class="field">
       <label>Piso *</label>
       <select id="piso" onchange="updateDocInfo()">
@@ -2016,13 +2017,13 @@ function handleConvenioChange(sel){
 function filtrarPorConvenio() {
   const conv   = document.getElementById('convenio').value;
   const empSel = document.getElementById('empresa');
-  const torSel = document.getElementById('torre');
 
+  // La lista de torres YA NO se recorta. La torre es el primer campo y es ella
+  // la que fija el convenio: recortarla aquí volvería a esconder justo la que
+  // el inspector tiene delante.
   const prevEmp = empSel.value;
-  const prevTor = torSel.value;
 
   empSel.innerHTML = '<option value="">— Seleccione —</option>';
-  torSel.innerHTML = '<option value="">— Seleccione —</option>';
 
   if (conv && CONVENIO_DATA[conv]) {
     const cdata = CONVENIO_DATA[conv];
@@ -2031,41 +2032,29 @@ function filtrarPorConvenio() {
       opt.value = emp; opt.textContent = emp;
       empSel.appendChild(opt);
     });
-    cdata.torres.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t; opt.textContent = t;
-      torSel.appendChild(opt);
-    });
   } else {
-    const allEmpresas = [], allTorres = [];
+    const allEmpresas = [];
     Object.values(CONVENIO_DATA).forEach(cd => {
       Object.keys(cd.empresas).forEach(e => { if (!allEmpresas.includes(e)) allEmpresas.push(e); });
-      cd.torres.forEach(t => { if (!allTorres.includes(t)) allTorres.push(t); });
     });
     allEmpresas.sort().forEach(emp => {
       const opt = document.createElement('option');
       opt.value = emp; opt.textContent = emp;
       empSel.appendChild(opt);
     });
-    allTorres.sort().forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t; opt.textContent = t;
-      torSel.appendChild(opt);
-    });
   }
 
-  const noReg = document.createElement('option');
-  noReg.value = 'NO_REG';
-  noReg.textContent = '⚠️ No registrada — ingresar manualmente';
-  noReg.style.color = '#8f4b00';
-  noReg.style.fontWeight = '700';
-  torSel.appendChild(noReg);
-
-  if (prevEmp && Array.from(empSel.options).some(o => o.value === prevEmp)) empSel.value = prevEmp;
+  // «No registrada» ya vive en el HTML: la lista de torres no se reconstruye.
+  // Y la empresa que el maestro le asigna a ESTA torre gana, que es el punto de
+  // todo esto. Si no está en la lista, se respeta la que hubiera.
+  const _tor = (document.getElementById('torre') || {}).value || '';
+  // Con la zona SIN elegir no se deduce nada: empresaDeTorre ignora el
+  // convenio cuando llega vacío y devolvería la primera fila de la torre, que
+  // en las cuatro ambiguas es adivinar a cara o cruz.
+  const _empMaestro = (conv && typeof empresaDeTorre === 'function') ? empresaDeTorre(conv, _tor) : '';
+  if (_empMaestro && Array.from(empSel.options).some(o => o.value === _empMaestro)) empSel.value = _empMaestro;
+  else if (prevEmp && Array.from(empSel.options).some(o => o.value === prevEmp)) empSel.value = prevEmp;
   else empSel.value = '';
-
-  if (prevTor && Array.from(torSel.options).some(o => o.value === prevTor)) torSel.value = prevTor;
-  else torSel.value = '';
 
   autoResidenteConv();
   updateNroInforme();
@@ -2165,6 +2154,75 @@ function handleEmpresaChange(){
   updateNroInforme();
 }
 
+// Las zonas del maestro en las que figura una torre. Son DOS en T-04, T-07,
+// T-12 y T-13 —contradicción C-06/C-24, todavía abierta—, y ahí no se adivina.
+function _zonasDeTorre(t){
+  if (typeof TORRES === 'undefined' || !t || t === 'NO_REG') return [];
+  const z = [];
+  TORRES.forEach(function(f){ if (f.t === t && f.c && z.indexOf(f.c) === -1) z.push(f.c); });
+  return z;
+}
+
+// Las zonas se leen del propio desplegable la primera vez, no se escriben aquí:
+// así no hay una segunda lista que mantener al día.
+let _zonasTodas = null;
+function _opcionesDeConvenio(permitidas){
+  const sel = document.getElementById('convenio');
+  if (!sel) return;
+  if (_zonasTodas === null) {
+    _zonasTodas = Array.prototype.slice.call(sel.options)
+      .map(function(o){ return o.value; }).filter(Boolean);
+  }
+  const previo = sel.value;
+  const lista = (permitidas && permitidas.length) ? permitidas : _zonasTodas;
+  sel.innerHTML = '<option value="">— Seleccione —</option>';
+  lista.forEach(function(c){
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    sel.appendChild(o);
+  });
+  if (previo && Array.prototype.slice.call(sel.options).some(function(o){ return o.value === previo; })) {
+    sel.value = previo;
+  }
+}
+
+function _rellenarDesdeLaTorre(t){
+  const convSel = document.getElementById('convenio');
+  const avisoZ  = document.getElementById('aviso-zona');
+  if (!convSel) return;
+  const zonas = _zonasDeTorre(t);
+
+  if (zonas.length === 1) {
+    _opcionesDeConvenio(null);
+    convSel.value = zonas[0];
+    _convenioPrevio = zonas[0];
+    if (avisoZ) avisoZ.style.display = 'none';
+    filtrarPorConvenio();          // y con el convenio caen empresa y residente
+    return;
+  }
+
+  if (zonas.length > 1) {
+    // Dos zonas posibles. No se elige por el inspector: se le dan las dos.
+    _opcionesDeConvenio(zonas);
+    convSel.value = '';
+    _convenioPrevio = '';
+    // La empresa de la torre anterior no puede quedarse: se leería como que ya
+    // está contestado, y aquí justamente no lo está.
+    const _e = document.getElementById('empresa'); if (_e) _e.value = '';
+    if (avisoZ) {
+      avisoZ.textContent = '⚠️ La torre ' + t + ' figura en dos zonas del maestro. Elija cuál y se llenan empresa y residente.';
+      avisoZ.style.display = 'block';
+    }
+    filtrarPorConvenio();
+    return;
+  }
+
+  // Sin torre, o una que no está en el maestro: se devuelven todas las zonas y
+  // no se toca nada de lo que haya escrito el inspector.
+  _opcionesDeConvenio(null);
+  if (avisoZ) avisoZ.style.display = 'none';
+}
+
 function handleTorreChange() {
   const val  = document.getElementById('torre').value;
   const wrap = document.getElementById('torre-manual-wrap');
@@ -2172,16 +2230,9 @@ function handleTorreChange() {
     wrap.style.display = (val === 'NO_REG') ? 'block' : 'none';
     if (val === 'NO_REG') setTimeout(() => document.getElementById('torre-manual')?.focus(), 50);
   }
-  // La empresa la determina la torre, no al revés: antes el inspector de la
-  // Torre 01 no tenía a Río Limón en la lista porque la torre estaba en otro
-  // convenio. Se preselecciona la que asigna el cuadro y se puede cambiar, por
-  // si en obra la ejecuta otra.
-  const conv   = document.getElementById('convenio').value;
-  const emp    = empresaDeTorre(conv, val);
-  const empSel = document.getElementById('empresa');
-  if (emp && empSel && Array.prototype.slice.call(empSel.options).some(function(o){ return o.value === emp; })) {
-    empSel.value = emp;
-  }
+  // La torre manda: fija la zona y, con ella, empresa y residente. El
+  // inspector que solo sabe en qué torre está ya puede empezar por ahí.
+  _rellenarDesdeLaTorre(val);
   autoResidenteConv();
   updateNroInforme();
   renderMemoriaTable();
@@ -2962,6 +3013,7 @@ function loadDraftData(index) {
 
   // Un borrador de antes trae «Piso 00», que ya no existe en el desplegable.
   if (d.piso === 'Piso 00') d.piso = 'Planta Baja';
+  if (typeof _opcionesDeConvenio === 'function') _opcionesDeConvenio(null);
   ['fecha','convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(id=>{
     const el=document.getElementById(id); if(el&&d[id]!==undefined) el.value=d[id];
   });
