@@ -129,6 +129,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 .hdr-sec{display:contents}
 .hdr-btns .hbtn-mas{display:none}
 @media screen and (max-width:700px), screen and (max-height:520px){.hdr-btns .hbtn-mas{display:flex}}
+/* Con el teclado abierto queda muy poca pantalla: se repliega lo informativo
+   —hora de guardado y estado de conexión—, nunca las acciones. */
+@media screen and (max-height:520px){
+  .hdr-btns{padding:4px 10px!important;gap:4px!important}
+  #estado-guardado,#estado-conexion{display:none!important}
+}
 .hbtn{padding:8px 14px;border:1.5px solid transparent;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;letter-spacing:.2px}
 .hbtn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
 /* Relleno sólido y contraste real: sobre la barra azul, un botón tiene que
@@ -1290,10 +1296,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v41';
+    el.textContent = '● en línea · v42';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v41 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v42 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -3114,16 +3120,24 @@ function loadDraftData(index) {
           });
         }
       });
-      if(d.extraRows) {
-        Object.keys(d.extraRows).forEach(pid => {
-          const rows = d.extraRows[pid];
-          if(Array.isArray(rows)) {
-            rows.forEach(r => {
-              addRow(pid, r.desc, r.pr, r.ej, r.ev);
-            });
-          }
-        });
-      }
+      // Las filas que el inspector agregó en campo. La fuente buena es
+      // `partidas[pid+'_extra']`, que trae lo MEDIDO; `extraRows` solo tiene la
+      // descripción y se queda para poder abrir borradores viejos.
+      const _pidsExtra = {};
+      Object.keys(d.partidas || {}).forEach(k => {
+        if (k.length > 6 && k.slice(-6) === '_extra') _pidsExtra[k.slice(0, -6)] = true;
+      });
+      Object.keys(d.extraRows || {}).forEach(pid => { _pidsExtra[pid] = true; });
+
+      Object.keys(_pidsExtra).forEach(pid => {
+        const medidas = (d.partidas || {})[pid + '_extra'];
+        const rows = Array.isArray(medidas) && medidas.length
+          ? medidas
+          : ((d.extraRows || {})[pid] || []);
+        if (Array.isArray(rows)) {
+          rows.forEach(r => { addRow(pid, r.desc || '', r.pr || '', r.ej || '', r.ev || ''); });
+        }
+      });
     }
   }
 

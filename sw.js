@@ -3,9 +3,11 @@
 // Al subir una versión nueva hay que subir el número de VERSION: eso es lo que
 // hace que los teléfonos se traigan la copia nueva la próxima vez que tengan
 // internet. Si no se sube, siguen abriendo la vieja.
-const VERSION = 'garmel-inspeccion-v41';
+const VERSION = 'garmel-inspeccion-v42';
 const ARCHIVOS = [
-  './',
+  // './' NO va en la lista: toda navegación se guarda bajo './index.html'
+  // —ver claveDeCache— y tenerla suelta dejaba DOS copias de 210 KB del mismo
+  // archivo en el teléfono.
   './index.html',
   './manifest.json',
   './icon-192.png',
@@ -40,16 +42,28 @@ self.addEventListener('activate', e => {
   );
 });
 
+// El formulario es UN archivo, se pida como se pida. `?prueba=1` no lo cambia,
+// y guardarlo aparte dejaba dos copias de 210 KB en el teléfono; con cada
+// dirección distinta, una más. Se guarda siempre bajo la misma clave.
+function claveDeCache(request) {
+  const u = new URL(request.url);
+  if (request.mode === 'navigate' || u.pathname === '/' || u.pathname.endsWith('/index.html')) {
+    return new Request(new URL('./index.html', self.registration.scope).href);
+  }
+  return request;
+}
+
 // Primero la copia local — así abre instantáneo y sin señal. En paralelo, si
 // hay internet, se trae la versión nueva y la deja lista para la próxima vez.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  const clave = claveDeCache(e.request);
   e.respondWith(
-    caches.match(e.request).then(guardada => {
+    caches.match(clave).then(guardada => {
       const red = fetch(e.request).then(r => {
         if (r && r.status === 200 && r.type === 'basic') {
           const copia = r.clone();
-          caches.open(VERSION).then(c => c.put(e.request, copia));
+          caches.open(VERSION).then(c => c.put(clave, copia));
         }
         return r;
       }).catch(() => guardada);

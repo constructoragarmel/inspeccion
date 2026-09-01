@@ -6366,6 +6366,95 @@ print("  … 123 aplicado")
 
 
 # ══════════════════════════════════════════════════════════════════════════
+# 124. LAS FILAS AGREGADAS EN CAMPO PERDÍAN SU MEDICIÓN AL REABRIR — 1-sep-2026
+#
+# El inspector agrega «Rodapié» en obra, mide 18 m² y evalúa B. Guarda. En la
+# oficina reabre el informe para enviarlo, y la fila vuelve VACÍA: queda la
+# descripción y se pierde la medición. Como el envío lee la pantalla, el informe
+# se manda sin ese dato, y nadie se entera.
+#
+# La causa es que había DOS sitios con las mismas filas y no decían lo mismo:
+#
+#   extraRows[pid]           → {desc:'Rodapié', pr:'', ej:'',   ev:''}
+#   partidas[pid+'_extra']   → {desc:'Rodapié', pr:'', ej:'18', ev:'B'}
+#
+# `extraRows` se llena al CREAR la fila y solo se le actualiza la descripción;
+# las cantidades viven en el DOM y se recogen al guardar, en `partidas`. Pero al
+# reabrir, el formulario reconstruía desde `extraRows` —el que no sabe nada— y
+# nunca miraba `partidas`.
+#
+# Es la misma familia que el fallo de las fotografías del 31-ago: correcto
+# mientras la página sigue abierta, perdido en cuanto se recarga. Y afecta
+# justo a las partidas que NO están en el maestro, que son las únicas que nadie
+# puede reconstruir después mirando otra cosa.
+#
+# Ahora se reconstruye desde `partidas[pid+'_extra']`, que es el que tiene lo
+# medido, y `extraRows` queda solo de respaldo para borradores viejos.
+# ══════════════════════════════════════════════════════════════════════════
+s = sustituir(s,
+ """      if(d.extraRows) {
+        Object.keys(d.extraRows).forEach(pid => {
+          const rows = d.extraRows[pid];
+          if(Array.isArray(rows)) {
+            rows.forEach(r => {
+              addRow(pid, r.desc, r.pr, r.ej, r.ev);
+            });
+          }
+        });
+      }""",
+ """      // Las filas que el inspector agregó en campo. La fuente buena es
+      // `partidas[pid+'_extra']`, que trae lo MEDIDO; `extraRows` solo tiene la
+      // descripción y se queda para poder abrir borradores viejos.
+      const _pidsExtra = {};
+      Object.keys(d.partidas || {}).forEach(k => {
+        if (k.length > 6 && k.slice(-6) === '_extra') _pidsExtra[k.slice(0, -6)] = true;
+      });
+      Object.keys(d.extraRows || {}).forEach(pid => { _pidsExtra[pid] = true; });
+
+      Object.keys(_pidsExtra).forEach(pid => {
+        const medidas = (d.partidas || {})[pid + '_extra'];
+        const rows = Array.isArray(medidas) && medidas.length
+          ? medidas
+          : ((d.extraRows || {})[pid] || []);
+        if (Array.isArray(rows)) {
+          rows.forEach(r => { addRow(pid, r.desc || '', r.pr || '', r.ej || '', r.ev || ''); });
+        }
+      });""",
+ "124· reconstruir las filas de campo con lo que se midió")
+
+print("  … 124 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# 125. LA BARRA DE ACCIONES CON EL TECLADO ABIERTO — 1-sep-2026
+#
+# Medido a 375×380, que es lo que queda de pantalla en un teléfono con el
+# teclado abierto: la barra ocupaba 131 px, el 34 % de lo visible. Un tercio del
+# espacio en botones, justo mientras el inspector escribe una cantidad.
+#
+# No se quita ninguna acción: las cuatro siguen ahí y siguen midiendo 44 px, que
+# es la regla. Lo que se repliega es lo que NO se necesita mientras se escribe:
+# la hora del último guardado y el indicador de conexión con la versión. Las dos
+# vuelven en cuanto se cierra el teclado, y ninguna es algo que se consulte con
+# el dedo en un campo. Se aprieta además el relleno.
+#
+# El aviso de versión nueva no se toca: ese sí hay que verlo cuando aparece.
+# ══════════════════════════════════════════════════════════════════════════
+s = sustituir(s,
+ "@media screen and (max-width:700px), screen and (max-height:520px){.hdr-btns .hbtn-mas{display:flex}}",
+ "@media screen and (max-width:700px), screen and (max-height:520px){.hdr-btns .hbtn-mas{display:flex}}\n"
+ "/* Con el teclado abierto queda muy poca pantalla: se repliega lo informativo\n"
+ "   —hora de guardado y estado de conexión—, nunca las acciones. */\n"
+ "@media screen and (max-height:520px){\n"
+ "  .hdr-btns{padding:4px 10px!important;gap:4px!important}\n"
+ "  #estado-guardado,#estado-conexion{display:none!important}\n"
+ "}",
+ "125· replegar lo informativo cuando el teclado se come la pantalla")
+
+print("  … 125 aplicado")
+
+
+# ══════════════════════════════════════════════════════════════════════════
 # 16. LOS NOMBRES DE EMPRESA, COMO SE NOMBRAN ELLAS — 30-ago-2026
 #
 # Fuente: «Recepción de Documentación Técnica y Diagnóstico Inicial por
