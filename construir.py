@@ -10,6 +10,12 @@ deja de encontrar su ancla, el script falla en vez de producir un archivo a medi
 import base64, os, re, sys
 
 RAIZ = os.path.dirname(os.path.abspath(__file__))
+
+# Los maestros que comparten todos los formularios de campo. Viven en comun/
+# para que un segundo instrumento no los copie y se desincronice — que es lo
+# que ya pasó con el borrador de servicios del 2-sep-2026 (C-36).
+sys.path.insert(0, os.path.join(RAIZ, "comun"))
+import maestros
 ORIG = os.path.join(RAIZ, "fuente", "Formularios.V8272026.html")
 SALIDA = os.path.join(RAIZ, "index.html")
 LOGOS = os.path.join(RAIZ, "recursos")
@@ -3621,54 +3627,7 @@ s = sustituir(s,
 
 s = sustituir(s,
  """const EMPRESA_RESIDENTE = {"ALNAVIC, C.A.": "ING. ANTONIO CUICAS", "AROA, C.A.": "", "BELZARUBEZHSTORY, S.A.": "ING. FELIX PINTO", "CIVIKA PRO, C.A.": "", "CONSTRUCTORA 5010, C.A.": "ING. JOSE MARTINEZ", "CONSTRUCTORA SB 86, C.A.": "ING. JULIO LUQUEZ", "CONSTRUCTORA VIALPA, C.A.": "ING. ADRIAN OLIVARES", "DRIJECAE, C.A.": "", "GRUPO TEPUY, C.A.": "", "ING & ARQ 1111, C.A.": "ING. JHOANNY LOPEZ", "JVR INGENIERÍA C,A.": "ING. JUAN COLMENARES / ARQ. EVER AVENDAÑO", "MASTER REFORMAS RR, C.A.": "ING. ERICK MARTINEZ", "PROCODIMA, C.A.": "ING. LEONARDO TORRES", "RACAR INGENIEROS, C.A.": "ING. GERARDO ARGARIN", "RÍO LIMÓN, C.A.": "ING. HARRY ARTEAGA", "THAISSA MM INVERSIONES, C.A.": "ING. MANUEL PAEZ", "TSURU, C.A.": "MILTON RODRIGUEZ", "ZERPA CONSTRUCCIONES, C.A.": "ING. IVAN MEDINA"};""",
- """const TORRES = [
-  {t:'T-01',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:"ING HARRY ARTEAGA"},
-  {t:'T-02',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:"ING MARIA T MARCANO"},
-  {t:'T-03',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:""},
-  {t:'T-04',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:""},
-  {t:'T-05',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:"ING. ANTONIO CUICAS"},
-  {t:'T-06',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:"ING JOSE V GONZALES"},
-  {t:'T-07',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:""},
-  {t:'T-08',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:""},
-  {t:'T-09',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:"ING MANUEL PAEZ"},
-  {t:'T-10',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
-  {t:'T-11',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
-  {t:'T-12',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:""},
-  {t:'T-13',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:"ING. LEONARDO TORRES"},
-  {t:'T-14',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
-  {t:'T-15',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
-  {t:'T-16',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
-  {t:'T-17',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:"ING FELIX PINTO"},
-  {t:'T-18',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-19',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-45',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-46',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-47',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-48',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-49',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-50',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-51',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-52',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-53',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:"ING. ANDREA LEON"},
-  {t:'T-54',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:"ING.ASTRID LARES"},
-  {t:'T-55',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:""},
-  {t:'T-56',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
-  {t:'T-57',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
-  {t:'T-58',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
-  {t:'T-04',  c:'Convenio Rusos',        e:"AROA, C.A.",                    r:""},
-  {t:'T-07',  c:'Convenio Rusos',        e:"TSURU, C.A.",                   r:"MILTON RODRIGUEZ"},
-  {t:'T-12',  c:'Convenio Rusos',        e:"ZERPA CONSTRUCCIONES, C.A.",    r:"ING. IVAN MEDINA"},
-  {t:'T-13',  c:'Convenio Rusos',        e:"MASTER REFORMAS RR, C.A.",      r:"ING. ERICK MARTINEZ"},
-  {t:'T-38',  c:'Convenio Rusos',        e:"CONSTRUCTORA 5010, C.A.",       r:"ING. JOSE MARTINEZ"},
-  {t:'T-39',  c:'Convenio Rusos',        e:"JVR INGENIERÍA C,A.",           r:"ING. JUAN COLMENARES ARQ EVER AVENDAÑO"},
-  {t:'D-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA VIALPA, C.A.",     r:"ING ADRIAN OLIVARES"},
-  {t:'J-07',  c:'Convenio Chinos',       e:"ING & ARQ 1111, C.A.",          r:"ING. JOANNY TAPIA / ING. JHOANNY LOPEZ"},
-  {t:'J-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA SB 86, C.A.",      r:"ING. JULIO LUQUEZ"},
-  {t:'J-09',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:"ING. GERARDO ARGARIN"},
-  {t:'J-10',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:""},
-  {t:'J-11',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:"ING.RADAMEZ RIVAS"},
-  {t:'J-12',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:""},
-];""",
+ maestros.TORRES_JS,
  "92a\u00b7 la tabla de torres del cuadro del 28-ago, con su empresa y su residente")
 
 # CONVENIO_DATA se deriva de TORRES en vez de escribirse aparte: así no pueden
@@ -6974,23 +6933,12 @@ print("  … 131 aplicado")
 #   · Aroa                  →  Proyectos y Construcciones Aroa 93
 #   · Tsuru                 →  Tsuru 5158
 # ══════════════════════════════════════════════════════════════════════════
-for viejo, nuevo in [
-    ("ZERPA CONSTRUCCIONES, C.A.",   "ZERPA'S INGENIERÍA, C.A."),
-    ("CONSTRUCTORA VIALPA, C.A.",    "CONSTRUCTORA VIALPA, S.A."),
-    ("AROA, C.A.",                   "PROYECTOS Y CONSTRUCCIONES AROA 93, C.A."),
-    ("TSURU, C.A.",                  "TSURU 5158, C.A."),
-    ("DRIJECAE, C.A.",               "DRIJECAE 3003, C.A."),
-    ("GRUPO TEPUY, C.A.",            "GRUPO TEPUY 314, C.A."),
-    ("RÍO LIMÓN, C.A.",              "CONSTRUCTORA RÍO LIMÓN, C.A."),
-    ("ALNAVIC, C.A.",                "INVERSIONES ALNAVIC, C.A."),
-    ("THAISSA MM INVERSIONES, C.A.", "THAISA MM INVERSIONES, C.A."),
-    ("CONSTRUCTORA SB 86, C.A.",     "CONSTRUCTORA SB86, C.A."),
-]:
+for viejo, nuevo in maestros.CORRECCIONES_EMPRESA:
     s = sustituir(s, viejo, nuevo, "16· %s" % nuevo, -1)
 
 print("  … 16 aplicado")
 
-# ── 131. El padrón de inspectores, contra el Sheet de cargos ───────────────
+# ── 132. El padrón de inspectores, contra el Sheet de cargos ───────────────
 # La lista venía intacta del original de Skarlet Gómez y NADIE la mantenía:
 # construir.py solo la usaba de ancla (cambio 110a). Tenía ocho nombres, seis
 # de ellos con el apellido mal escrito —«Azcarte» por Azcarate, «Córdobes» por
@@ -7020,8 +6968,8 @@ print("  … 16 aplicado")
 # las usa, y dos iguales el mismo día en el mismo apartamento colisionarían.
 s = sustituir(s,
 'const INSPECTORES_DB = [\n  "Edenil Narvaez (CIV-150422)",\n  "Skarlet Gómez (CIV-317442)",\n  "Christian Fricke (CIV-184558)",\n  "Genesis Córdobes (CIV-307057)",\n  "Charbel Abdul (CIV-NC)",\n  "Martha Azcarte (CIV-87616)",\n  "Leidy Villamizar (CIV-258266)",\n  "Gabriel Barrios (CIV-NC)"\n];',
-'const INSPECTORES_DB = [\n  "Alejandro Bastidas (CIV-NC)",\n  "Birmania Rada (CIV-NC)",\n  "Charbel Abdul (CIV en trámite)",\n  "Christian Fricke (CIV-184.558)",\n  "Edenil Narváez (CIV-150.422)",\n  "Gabriel Barrios (CIV-NC)",\n  "Génesis Cordobés (CIV-307.057)",\n  "Girlenys Lacruz (CIV-288.041)",\n  "Hernán Escobar (CIV-NC)",\n  "Leidy Villamizar (CIV-258.266)",\n  "Lizeira Aragort (CIV-298.127)",\n  "Martha Azcarate (CIV-87.616)",\n  "Oriana Plaza (CIV en trámite)",\n  "Skarlet Gómez (CIV-317.442)"\n];',
- "131\u00b7 el padr\u00f3n de inspectores, contra el Sheet de cargos")
+maestros.INSPECTORES_JS,
+ "132\u00b7 el padr\u00f3n de inspectores, contra el Sheet de cargos")
 
 
 open(SALIDA, "w", encoding="utf-8").write(s)
