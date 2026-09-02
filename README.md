@@ -139,13 +139,16 @@ copia nueva la próxima vez que tengan internet. Si no se sube, siguen abriendo 
 
 ## Los once hitos y el ámbito del informe
 
-La inspección se estructura en **once hitos con cincuenta y una subpartidas**, acordados por la
+La inspección se estructura en **once hitos con cincuenta y dos subpartidas**, acordados por la
 **Ing. Beatriz Sevilla** con Skarlet Gómez. La fuente es el Excel *Hitos en desglose Ciudad Tiuna.
 Agosto* (ADR-0018 del repositorio de contexto).
 
 > **Única desviación del Excel, y está aprobada**: el hito 6 traía una sola subpartida, *«Instalación de
 > ventanas y vidrios»*, y desde el 31-ago-2026 son **dos** —se instalan y se cuentan por separado en obra—.
 > Lo pidió Skarlet Gómez y lo aprobó la Ing. Sevilla (ADR-0025). De ahí que sean 51 y no 50.
+>
+> Y desde el 2-sep-2026 son **52**: se sumó **8.5 Lámparas**, que era una de las filas que los inspectores
+> agregaron a mano en las pruebas de campo del 31-ago. La pidió Skarlet Gómez y ratificó su unidad — `pza`.
 
 | # | Hito | # | Hito |
 | --- | --- | --- | --- |
