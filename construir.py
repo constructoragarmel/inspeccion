@@ -100,7 +100,7 @@ PARTIDAS_ONCE = """const PARTIDAS = [
     "nombre": "HITO 8: ACCESORIOS ELÉCTRICOS", 
     "icon": "", 
     "color": "#0d47a1", 
-    "items": ["Tomacorrientes", "Interruptores", "Toma de data", "Breakers"]
+    "items": ["Tomacorrientes", "Interruptores", "Toma de data", "Breakers", "Lámparas"]
   }, 
   {
     "id": "hito_ascensor", 
@@ -4971,7 +4971,7 @@ UNIDADES = {
     "hito_puertas":        ["pza"] * 3,
     "hito_ventanas":       ["pza", "pza"],
     "hito_acc_sanitarios": ["pza"] * 7,
-    "hito_acc_electricos": ["pza"] * 4,
+    "hito_acc_electricos": ["pza"] * 5,
     "hito_ascensor":       [UD_ESTADO] * 4,
     "hito_exteriores":     ["m²"] + [UD_ESTADO] * 4,
     "hito_pruebas":        [UD_ESTADO] * 4,
