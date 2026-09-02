@@ -6990,6 +6990,40 @@ for viejo, nuevo in [
 
 print("  … 16 aplicado")
 
+# ── 131. El padrón de inspectores, contra el Sheet de cargos ───────────────
+# La lista venía intacta del original de Skarlet Gómez y NADIE la mantenía:
+# construir.py solo la usaba de ancla (cambio 110a). Tenía ocho nombres, seis
+# de ellos con el apellido mal escrito —«Azcarte» por Azcarate, «Córdobes» por
+# Cordobés, «Narvaez» sin tilde—, y faltaban seis personas que ya están en obra.
+#
+# Dos de las que faltaban YA FIRMARON informes el 31-ago-2026, metidas a mano
+# por «Otro / Ingresar manualmente», y así quedaron en el registro: «Lizeira
+# Aragort» sin CIV, y «Girlenys Lacruz (CIV -288.041)» con un espacio de más.
+# Ese es el síntoma: la vía manual funciona, pero mete nombres con formato
+# distinto en un documento que se firma y se entrega al MINHVI.
+#
+# Fuente: «Ciudad Tiuna - Cargos, Funciones y Responsabilidades» (Drive), las
+# 14 filas marcadas «En Obra». De ahí sale la ortografía y el CIV. Se deja el
+# nombre CORTO —nombre y primer apellido—, que es lo que cabe en el teléfono,
+# y el CIV CON PUNTO, que es la forma oficial. Decidido por Francisco José
+# García Guinand el 2-sep-2026.
+#
+# El CIV de Skarlet Gómez (317.442) NO está en el Sheet: viene de su propio
+# formulario. Se conserva porque es el suyo, aunque el resto de lo que aportó
+# ese archivo sea referencial.
+#
+# Van los 14 «En Obra», no solo los Ingenieros Inspectores: la lista ya mezclaba
+# coordinadores y una administradora de contratos, y Birmania Rada (SHA) va a
+# firmar informes de seguridad industrial.
+#
+# Comprobado que las 14 iniciales son distintas entre sí: el número del informe
+# las usa, y dos iguales el mismo día en el mismo apartamento colisionarían.
+s = sustituir(s,
+'const INSPECTORES_DB = [\n  "Edenil Narvaez (CIV-150422)",\n  "Skarlet Gómez (CIV-317442)",\n  "Christian Fricke (CIV-184558)",\n  "Genesis Córdobes (CIV-307057)",\n  "Charbel Abdul (CIV-NC)",\n  "Martha Azcarte (CIV-87616)",\n  "Leidy Villamizar (CIV-258266)",\n  "Gabriel Barrios (CIV-NC)"\n];',
+'const INSPECTORES_DB = [\n  "Alejandro Bastidas (CIV-NC)",\n  "Birmania Rada (CIV-NC)",\n  "Charbel Abdul (CIV en trámite)",\n  "Christian Fricke (CIV-184.558)",\n  "Edenil Narváez (CIV-150.422)",\n  "Gabriel Barrios (CIV-NC)",\n  "Génesis Cordobés (CIV-307.057)",\n  "Girlenys Lacruz (CIV-288.041)",\n  "Hernán Escobar (CIV-NC)",\n  "Leidy Villamizar (CIV-258.266)",\n  "Lizeira Aragort (CIV-298.127)",\n  "Martha Azcarate (CIV-87.616)",\n  "Oriana Plaza (CIV en trámite)",\n  "Skarlet Gómez (CIV-317.442)"\n];',
+ "131\u00b7 el padr\u00f3n de inspectores, contra el Sheet de cargos")
+
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ index.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
