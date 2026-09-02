@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inspección de Servicios — GARMEL</title>
+<style>
+:root{--azul:#1a237e;--azul-cl:#e8eaf6;--borde:#cbd5e1;--texto:#1e293b;--fondo:#f1f5f9}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--fondo);
+     color:var(--texto);margin:0;padding:0 0 92px;font-size:15px;line-height:1.45}
+header{background:var(--azul);color:#fff;padding:12px 14px;position:sticky;top:0;z-index:30}
+header h1{margin:0;font-size:15px;font-weight:700;letter-spacing:.3px}
+header .nro{font-size:12px;opacity:.85;margin-top:3px;font-variant-numeric:tabular-nums}
+.envoltorio{max-width:900px;margin:0 auto;padding:12px}
+.tarjeta{background:#fff;border-radius:10px;padding:14px;margin-bottom:12px;
+         box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.campo{display:flex;flex-direction:column}
+.campo label{font-weight:600;font-size:13px;color:#475569;margin-bottom:4px}
+input,select,textarea{font:inherit;padding:10px;border:1px solid var(--borde);
+       border-radius:6px;background:#fff;min-height:44px;width:100%}
+textarea{min-height:64px;resize:vertical}
+.pestanas{display:flex;gap:8px;margin:12px 0}
+.pestanas button{flex:1;min-height:44px;border:none;border-radius:8px;font-weight:700;
+      font-size:14px;background:#e2e8f0;color:#475569}
+.pestanas button.on{background:var(--azul);color:#fff}
+.panel{display:none}.panel.on{display:block}
+.titulo-srv{background:var(--azul);color:#fff;padding:10px 12px;border-radius:6px;
+      font-weight:700;font-size:14px;margin:18px 0 10px}
+.item{border:1px solid var(--borde);border-radius:8px;padding:10px;margin-bottom:8px;background:#fff}
+.item .nombre{font-weight:600;font-size:14px;margin-bottom:8px}
+.sino{display:flex;gap:8px;margin-bottom:8px}
+.sino button{flex:1;min-height:44px;border:1px solid var(--borde);border-radius:6px;
+      background:#fff;font-weight:700;font-size:14px;color:#475569}
+.sino button.si-on{background:#166534;color:#fff;border-color:#166534}
+.sino button.no-on{background:#991b1b;color:#fff;border-color:#991b1b}
+.vacio{padding:14px;text-align:center;color:#64748b;font-size:13px;
+      border:1px dashed var(--borde);border-radius:8px;background:#f8fafc}
+.btn-add{min-height:44px;width:100%;border:1px dashed var(--azul);background:var(--azul-cl);
+      color:var(--azul);font-weight:700;border-radius:8px;margin-bottom:10px}
+.fila-apto{border:1px solid var(--borde);border-radius:8px;padding:10px;margin-bottom:8px;background:#fff}
+.fila-apto .cab,#inspectores .cab{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}
+/* Un hijo de flex con width:100% no baja de su ancho de contenido salvo que
+   se le permita: sin esto el botón de quitar se cae a la línea siguiente. */
+.cab>select,.cab>input{min-width:0;flex:1}
+.cab>.quitar{flex:0 0 44px}
+.quitar{min-width:44px;min-height:44px;border:none;border-radius:6px;background:#fee2e2;
+      color:#991b1b;font-weight:700;font-size:16px}
+.acciones{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--borde);
+      display:flex;gap:8px;padding:8px;z-index:40}
+.acciones button{flex:1;min-height:48px;border:none;border-radius:8px;font-weight:700;font-size:14px}
+.b1{background:#e2e8f0;color:#334155}.b2{background:var(--azul);color:#fff}
+.pie{text-align:center;font-size:12px;color:#64748b;padding:6px}
+.fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:8px}
+.foto{border:1px solid var(--borde);border-radius:6px;padding:6px;background:#fff}
+.foto img{width:100%;height:80px;object-fit:cover;border-radius:4px}
+.foto button{width:100%;min-height:32px;margin-top:4px;border:none;border-radius:4px;
+      background:#fee2e2;color:#991b1b;font-size:12px;font-weight:600}
+.aviso{background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:10px;
+      font-size:13px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>INSPECCIÓN DE SERVICIOS PÚBLICOS</h1>
+  <div class="nro" id="nro">—</div>
+</header>
+
+<div class="envoltorio">
+  <div class="tarjeta">
+    <div class="rejilla">
+      <!-- La TORRE va primera y determina lo demás. El inspector llega a una
+           torre sabiendo la torre, no la empresa. -->
+      <div class="campo">
+        <label for="torre">Torre</label>
+        <select id="torre"><option value="">— Seleccione torre —</option></select>
+      </div>
+      <div class="campo">
+        <label for="convenio">Convenio</label>
+        <select id="convenio"><option value="">—</option></select>
+      </div>
+      <div class="campo">
+        <label for="empresa">Empresa ejecutora</label>
+        <input type="text" id="empresa" placeholder="Se llena al elegir la torre">
+      </div>
+      <div class="campo">
+        <label for="residente">Ingeniero residente</label>
+        <input type="text" id="residente" placeholder="Se llena al elegir la torre">
+      </div>
+      <div class="campo">
+        <label for="fecha">Fecha de inspección</label>
+        <input type="date" id="fecha">
+      </div>
+      <div class="campo">
+        <label for="estatus">Estatus de obra</label>
+        <select id="estatus">
+          <option value="">—</option><option>Iniciada</option>
+          <option>En progreso</option><option>Culminada</option><option>Paralizada</option>
+        </select>
+      </div>
+    </div>
+    <div id="aviso-torre"></div>
+    <div class="campo" style="margin-top:12px">
+      <label>Inspector(es)</label>
+      <div id="inspectores"></div>
+      <button type="button" class="btn-add" onclick="addInspector()">＋ Agregar inspector</button>
+    </div>
+  </div>
+
+  <div class="pestanas">
+    <button type="button" id="tab-a" class="on" onclick="verPanel('a')">A) General</button>
+    <button type="button" id="tab-b" onclick="verPanel('b')">B) Apartamentos</button>
+  </div>
+
+  <div id="panel-a" class="panel on"></div>
+  <div id="panel-b" class="panel"></div>
+
+  <div class="tarjeta">
+    <label style="font-weight:600;font-size:13px;color:#475569">Observación general</label>
+    <textarea id="obs_general" placeholder="Lo que no cabe en ningún servicio..."></textarea>
+  </div>
+
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v1</div>
+</div>
+
+<div class="acciones">
+  <button type="button" class="b1" onclick="verInformes()">Mis informes (<span id="cnt">0</span>)</button>
+  <button type="button" class="b1" onclick="guardar(true)">Guardar</button>
+  <button type="button" class="b2" onclick="enviar()">Enviar</button>
+</div>
+
+<script>
+const TORRES_DATA = [
+  {t:'T-01',  c:'Convenio Bielorusos',   e:"CONSTRUCTORA RÍO LIMÓN, C.A.",               r:"ING HARRY ARTEAGA"},
+  {t:'T-02',  c:'Convenio Bielorusos',   e:"CONSTRUCTORA RÍO LIMÓN, C.A.",               r:"ING MARIA T MARCANO"},
+  {t:'T-03',  c:'Convenio Bielorusos',   e:"CONSTRUCTORA RÍO LIMÓN, C.A.",               r:""},
+  {t:'T-04',  c:'Convenio Bielorusos',   e:"CONSTRUCTORA RÍO LIMÓN, C.A.",               r:""},
+  {t:'T-05',  c:'Convenio Bielorusos',   e:"INVERSIONES ALNAVIC, C.A.",                 r:"ING. ANTONIO CUICAS"},
+  {t:'T-06',  c:'Convenio Bielorusos',   e:"INVERSIONES ALNAVIC, C.A.",                 r:"ING JOSE V GONZALES"},
+  {t:'T-07',  c:'Convenio Bielorusos',   e:"INVERSIONES ALNAVIC, C.A.",                 r:""},
+  {t:'T-08',  c:'Convenio Bielorusos',   e:"INVERSIONES ALNAVIC, C.A.",                 r:""},
+  {t:'T-09',  c:'Convenio Bielorusos',   e:"THAISA MM INVERSIONES, C.A.",  r:"ING MANUEL PAEZ"},
+  {t:'T-10',  c:'Convenio Bielorusos',   e:"THAISA MM INVERSIONES, C.A.",  r:""},
+  {t:'T-11',  c:'Convenio Bielorusos',   e:"THAISA MM INVERSIONES, C.A.",  r:""},
+  {t:'T-12',  c:'Convenio Bielorusos',   e:"THAISA MM INVERSIONES, C.A.",  r:""},
+  {t:'T-13',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:"ING. LEONARDO TORRES"},
+  {t:'T-14',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
+  {t:'T-15',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
+  {t:'T-16',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
+  {t:'T-17',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:"ING FELIX PINTO"},
+  {t:'T-18',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-19',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-45',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-46',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-47',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-48',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-49',  c:'Convenio Bielorusos',   e:"DRIJECAE 3003, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-50',  c:'Convenio Bielorusos',   e:"DRIJECAE 3003, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-51',  c:'Convenio Bielorusos',   e:"DRIJECAE 3003, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-52',  c:'Convenio Bielorusos',   e:"DRIJECAE 3003, C.A.",                r:"ARQ. MARIANO RIVAS"},
+  {t:'T-53',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:"ING. ANDREA LEON"},
+  {t:'T-54',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:"ING.ASTRID LARES"},
+  {t:'T-55',  c:'Convenio Bielorusos',   e:"CIVIKA PRO, C.A.",              r:""},
+  {t:'T-56',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY 314, C.A.",             r:"ING. JIMMY CASIOPO"},
+  {t:'T-57',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY 314, C.A.",             r:"ING. JIMMY CASIOPO"},
+  {t:'T-58',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY 314, C.A.",             r:"ING. JIMMY CASIOPO"},
+  {t:'T-04',  c:'Convenio Rusos',        e:"PROYECTOS Y CONSTRUCCIONES AROA 93, C.A.",                    r:""},
+  {t:'T-07',  c:'Convenio Rusos',        e:"TSURU 5158, C.A.",                   r:"MILTON RODRIGUEZ"},
+  {t:'T-12',  c:'Convenio Rusos',        e:"ZERPA'S INGENIERÍA, C.A.",    r:"ING. IVAN MEDINA"},
+  {t:'T-13',  c:'Convenio Rusos',        e:"MASTER REFORMAS RR, C.A.",      r:"ING. ERICK MARTINEZ"},
+  {t:'T-38',  c:'Convenio Rusos',        e:"CONSTRUCTORA 5010, C.A.",       r:"ING. JOSE MARTINEZ"},
+  {t:'T-39',  c:'Convenio Rusos',        e:"JVR INGENIERÍA C,A.",           r:"ING. JUAN COLMENARES ARQ EVER AVENDAÑO"},
+  {t:'D-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA VIALPA, S.A.",     r:"ING ADRIAN OLIVARES"},
+  {t:'J-07',  c:'Convenio Chinos',       e:"ING & ARQ 1111, C.A.",          r:"ING. JOANNY TAPIA / ING. JHOANNY LOPEZ"},
+  {t:'J-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA SB86, C.A.",      r:"ING. JULIO LUQUEZ"},
+  {t:'J-09',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:"ING. GERARDO ARGARIN"},
+  {t:'J-10',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:""},
+  {t:'J-11',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:"ING.RADAMEZ RIVAS"},
+  {t:'J-12',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:""},
+];
+const SECTOR_POR_CONVENIO = {
+  'Convenio Bielorusos': 'EZ',   // Ezequiel Zamora
+  'Convenio Rusos':      'SR',   // Simón Rodríguez
+  'Convenio Chinos':     'SB'    // Simón Bolívar
+};
+const INSPECTORES_DB = [
+  "Alejandro Bastidas (CIV-NC)",
+  "Birmania Rada (CIV-NC)",
+  "Charbel Abdul (CIV en trámite)",
+  "Christian Fricke (CIV-184.558)",
+  "Edenil Narváez (CIV-150.422)",
+  "Gabriel Barrios (CIV-NC)",
+  "Génesis Cordobés (CIV-307.057)",
+  "Girlenys Lacruz (CIV-288.041)",
+  "Hernán Escobar (CIV-NC)",
+  "Leidy Villamizar (CIV-258.266)",
+  "Lizeira Aragort (CIV-298.127)",
+  "Martha Azcarate (CIV-87.616)",
+  "Oriana Plaza (CIV en trámite)",
+  "Skarlet Gómez (CIV-317.442)"
+];
+const GENERAL = [
+  {
+    "id": "srv_electrico",
+    "nombre": "1. SERVICIOS ELÉCTRICOS",
+    "items": [
+      "Ubicación de Punto de Conexión",
+      "Conexiones Exteriores",
+      "Transformador Energizado",
+      "Conexión entre Transformador y Módulo",
+      "Instalación de Módulos para Medidores",
+      "Instalación de Medidores"
+    ]
+  },
+  {
+    "id": "srv_cantv",
+    "nombre": "2. SERVICIOS DE CANTV",
+    "items": [
+      "Ubicación de Tanquilla de Conexión",
+      "Conexiones Exteriores",
+      "Conexión con Módulo Principal",
+      "Cableado en Pasillos",
+      "Colocación de Cajas de Paso",
+      "Colocación Cajas FAT"
+    ]
+  },
+  {
+    "id": "srv_agua",
+    "nombre": "3. AGUA POTABLE",
+    "items": [
+      "Conexiones Exteriores",
+      "Colocación de Llave de Paso",
+      "Colocación de Válvula Reguladora de Presión",
+      "Colocación de Tubería Montante",
+      "Construcción de Manifold",
+      "Prueba de Hermeticidad"
+    ]
+  },
+  {
+    "id": "srv_gas",
+    "nombre": "4. PDVSA / GAS DOMÉSTICO",
+    "items": [
+      "Conexión a Red Principal",
+      "Construcción de Caseta Regulación Principal",
+      "Instalación de Regulación Secundaria",
+      "Prueba a Tubería entre Ascendente y Caseta",
+      "Colocación de Tubería Ascendente",
+      "Colocación de Unión Universal entre Pisos",
+      "Colocación de Válvula",
+      "Construcción de Manifold"
+    ]
+  },
+  {
+    "id": "srv_aguas_servidas",
+    "nombre": "5. AGUAS SERVIDAS",
+    "items": []
+  },
+  {
+    "id": "srv_incendio",
+    "nombre": "6. SERVICIOS CONTRA INCENDIO",
+    "items": []
+  },
+  {
+    "id": "srv_pluviales",
+    "nombre": "7. AGUAS PLUVIALES",
+    "items": []
+  }
+];
+const APARTAMENTOS = [
+  {
+    "id": "apto_electrico",
+    "nombre": "ELÉCTRICO",
+    "columnas": [
+      [
+        "Cableado",
+        "sino"
+      ],
+      [
+        "Tomacorrientes",
+        "cant"
+      ],
+      [
+        "Interruptores",
+        "cant"
+      ],
+      [
+        "Tablero",
+        "sino"
+      ],
+      [
+        "Energizado",
+        "sino"
+      ],
+      [
+        "Observaciones",
+        "obs"
+      ]
+    ]
+  },
+  {
+    "id": "apto_cantv",
+    "nombre": "CANTV",
+    "columnas": [
+      [
+        "Puntos de conexión",
+        "cant"
+      ],
+      [
+        "Instalados",
+        "sino"
+      ],
+      [
+        "Observaciones",
+        "obs"
+      ]
+    ]
+  },
+  {
+    "id": "apto_agua",
+    "nombre": "AGUA POTABLE",
+    "columnas": [
+      [
+        "Puntos de servicio",
+        "cant"
+      ],
+      [
+        "Instalados",
+        "sino"
+      ],
+      [
+        "Observaciones",
+        "obs"
+      ]
+    ]
+  },
+  {
+    "id": "apto_gas",
+    "nombre": "GAS DOMÉSTICO (PDVSA)",
+    "columnas": [
+      [
+        "Puntos de suministro",
+        "cant"
+      ],
+      [
+        "Instalados",
+        "sino"
+      ],
+      [
+        "Observaciones",
+        "obs"
+      ]
+    ]
+  },
+  {
+    "id": "apto_aguas_servidas",
+    "nombre": "AGUAS SERVIDAS",
+    "columnas": [
+      [
+        "Puntos de descarga",
+        "cant"
+      ],
+      [
+        "Instalados",
+        "sino"
+      ],
+      [
+        "Observaciones",
+        "obs"
+      ]
+    ]
+  }
+];
+const UNIDAD = "pza";
+const MAX_FOTOS_SECCION = 3;
+const MAX_FOTO_PX = 1280;
+const CALIDAD_FOTO = 0.72;
+const RELEVO_URL = "https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQiGp3CCZmIWTnsWBD0KEw5quMkexDcBieUESBkmTspqAsvjoXQ/exec";
+
+// ── Cascada: la torre manda ───────────────────────────────────────────────
+// Cuatro torres (T-04, T-07, T-12, T-13) están en el maestro DOS VECES, con dos
+// convenios y dos empresas. Ahí el formulario NO adivina: deja los campos en
+// blanco, ofrece las dos posibilidades y lo dice. Inventar una de las dos en un
+// documento que se firma es peor que dejarlo vacío.
+function torresUnicas(){
+  const vistas = [];
+  TORRES_DATA.forEach(x => { if (!vistas.includes(x.t)) vistas.push(x.t); });
+  return vistas;
+}
+function entradasDe(t){ return TORRES_DATA.filter(x => x.t === t); }
+
+function alElegirTorre(){
+  const t = document.getElementById('torre').value;
+  const conv = document.getElementById('convenio');
+  const aviso = document.getElementById('aviso-torre');
+  conv.innerHTML = '<option value="">—</option>';
+  aviso.innerHTML = '';
+  if (!t) { document.getElementById('empresa').value = '';
+            document.getElementById('residente').value = ''; return actualizarNro(); }
+
+  const filas = entradasDe(t);
+  filas.forEach(f => {
+    const o = document.createElement('option');
+    o.value = f.c; o.textContent = f.c; conv.appendChild(o);
+  });
+
+  if (filas.length === 1) {
+    conv.value = filas[0].c;
+    document.getElementById('empresa').value = filas[0].e || '';
+    document.getElementById('residente').value = filas[0].r || '';
+  } else {
+    document.getElementById('empresa').value = '';
+    document.getElementById('residente').value = '';
+    aviso.innerHTML = '<div class="aviso">⚠️ <b>' + t + '</b> figura en el maestro con ' +
+      filas.length + ' convenios distintos. Elija cuál corresponde: el formulario no lo adivina.</div>';
+  }
+  actualizarNro(); marcar();
+}
+
+function alElegirConvenio(){
+  const t = document.getElementById('torre').value;
+  const c = document.getElementById('convenio').value;
+  const f = TORRES_DATA.find(x => x.t === t && x.c === c);
+  if (f) { document.getElementById('empresa').value = f.e || '';
+           document.getElementById('residente').value = f.r || ''; }
+  // El aviso pedía elegir; una vez elegido deja de ser un aviso y pasa a ser
+  // constancia de que aquí hubo que decidir, que es lo que importa después.
+  const av = document.querySelector('#aviso-torre .aviso');
+  if (av && c) {
+    av.style.background = '#ecfdf5'; av.style.borderColor = '#059669';
+    av.innerHTML = '✓ <b>' + t + '</b> tiene 2 convenios en el maestro. ' +
+                   'Se registró <b>' + c + '</b>.';
+  }
+  actualizarNro(); marcar();
+}
+
+// ── El identificador ──────────────────────────────────────────────────────
+// SRV-EZ-T45-260902-HE — sin piso ni apartamento, porque el informe es DE LA
+// TORRE. El grano lo fija la propuesta: el ámbito más pequeño que una persona
+// recorre de una vez y firma.
+function limpiar(v){
+  return (v == null ? '' : String(v)).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+         .trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+}
+function iniciales(){
+  const l = inspectoresElegidos();
+  if (!l.length) return '--';
+  const p = String(l[0]).replace(/^(ING|ARQ)\.?\s*/i,'').trim().split(/\s+/);
+  return limpiar((p[0]||'')[0] + ((p[1]||'')[0]||'')) || '--';
+}
+function actualizarNro(){
+  const t = document.getElementById('torre').value;
+  const c = document.getElementById('convenio').value;
+  const f = document.getElementById('fecha').value;
+  const sec = SECTOR_POR_CONVENIO[c] || 'XX';
+  const fec = f ? f.slice(2).replace(/-/g,'') : '------';
+  document.getElementById('nro').textContent =
+    'SRV-' + sec + '-' + (limpiar(t) || '---') + '-' + fec + '-' + iniciales();
+}
+function numeroInforme(){ return document.getElementById('nro').textContent; }
+
+// ── Inspectores ───────────────────────────────────────────────────────────
+function addInspector(valor){
+  const cont = document.getElementById('inspectores');
+  const fila = document.createElement('div');
+  fila.className = 'cab'; fila.style.marginBottom = '6px';
+  let ops = '<option value="">— Seleccione inspector —</option>';
+  let propio = !!valor;
+  INSPECTORES_DB.forEach(i => {
+    if (i === valor) propio = false;
+    ops += '<option value="' + i + '"' + (i === valor ? ' selected' : '') + '>' + i + '</option>';
+  });
+  ops += '<option value="OTRO"' + (propio ? ' selected' : '') + '>⚠️ Otro / escribir</option>';
+  fila.innerHTML = '<select onchange="cambioInspector(this)" style="flex:1">' + ops + '</select>' +
+                   '<button type="button" class="quitar" onclick="this.parentElement.remove();actualizarNro();marcar()">✕</button>';
+  cont.appendChild(fila);
+  if (propio){
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'manual'; inp.placeholder = 'Nombre y CIV...';
+    inp.value = valor; inp.oninput = () => { actualizarNro(); marcar(); };
+    fila.insertBefore(inp, fila.lastChild);
+  }
+  actualizarNro();
+}
+function cambioInspector(sel){
+  const fila = sel.parentElement;
+  const ya = fila.querySelector('.manual');
+  if (sel.value === 'OTRO' && !ya){
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'manual'; inp.placeholder = 'Nombre y CIV...';
+    inp.oninput = () => { actualizarNro(); marcar(); };
+    fila.insertBefore(inp, fila.lastChild);
+  } else if (sel.value !== 'OTRO' && ya) { ya.remove(); }
+  actualizarNro(); marcar();
+}
+function inspectoresElegidos(){
+  return [...document.querySelectorAll('#inspectores .cab')].map(f => {
+    const s = f.querySelector('select'), m = f.querySelector('.manual');
+    return (s.value === 'OTRO') ? (m ? m.value.trim() : '') : s.value;
+  }).filter(Boolean);
+}
+
+// ── A) Los servicios generales ────────────────────────────────────────────
+// Tres servicios llegan SIN ÍTEMS y eso no es un fallo: es el estado real del
+// levantamiento. En vez de fingir contenido, se dice que falta y se deja el
+// mismo campo libre que ya tenía el borrador.
+function pintarGeneral(){
+  const cont = document.getElementById('panel-a');
+  cont.innerHTML = '';
+  GENERAL.forEach(srv => {
+    const bloque = document.createElement('div');
+    let html = '<div class="titulo-srv">' + srv.nombre + '</div>';
+    if (!srv.items.length){
+      html += '<div class="vacio">Este servicio todavía no tiene lista de ítems.<br>' +
+              'Agréguelos abajo mientras Ingeniería la define.</div>';
+    }
+    html += '<div id="items-' + srv.id + '"></div>' +
+            '<button type="button" class="btn-add" onclick="addItem(\'' + srv.id + '\')">＋ Agregar ítem</button>' +
+            '<div class="tarjeta"><label style="font-weight:600;font-size:13px;color:#475569">' +
+            'Fotografías — ' + srv.nombre + ' (máx. ' + MAX_FOTOS_SECCION + ')</label>' +
+            '<input type="file" accept="image/*" multiple onchange="tomarFotos(event,\'' + srv.id + '\')">' +
+            '<div class="fotos" id="fotos-' + srv.id + '"></div></div>';
+    bloque.innerHTML = html;
+    cont.appendChild(bloque);
+    srv.items.forEach(nombre => addItem(srv.id, nombre, true));
+  });
+}
+
+// Un ítem: Sí / No / SIN MARCAR. Los tres estados importan — sin marcar NO es
+// «No», igual que en el formulario de inspección sin marcar no es «No iniciado».
+function addItem(sid, nombre, fijo){
+  const cont = document.getElementById('items-' + sid);
+  const d = document.createElement('div');
+  d.className = 'item'; d.dataset.fijo = fijo ? '1' : '0';
+  d.innerHTML =
+    (fijo ? '<div class="nombre">' + nombre + '</div>'
+          : '<input type="text" class="nombre-libre" placeholder="Escriba el ítem..." oninput="marcar()">') +
+    '<div class="sino">' +
+      '<button type="button" onclick="marcarSN(this,\'SI\')">SÍ</button>' +
+      '<button type="button" onclick="marcarSN(this,\'NO\')">NO</button>' +
+    '</div>' +
+    '<textarea placeholder="Observaciones..." oninput="marcar()"></textarea>' +
+    (fijo ? '' : '<button type="button" class="quitar" style="width:100%;margin-top:6px" onclick="this.closest(\'.item\').remove();marcar()">Quitar</button>');
+  cont.appendChild(d);
+}
+
+// Se puede DESELECCIONAR, que es lo único de la forma del borrador que se
+// conserva: volver a «sin contestar» tiene que ser posible.
+function marcarSN(btn, v){
+  const grupo = btn.parentElement;
+  const ya = btn.classList.contains('si-on') || btn.classList.contains('no-on');
+  [...grupo.children].forEach(b => b.classList.remove('si-on','no-on'));
+  if (!ya) btn.classList.add(v === 'SI' ? 'si-on' : 'no-on');
+  marcar();
+}
+function valorSN(item){
+  const g = item.querySelector('.sino');
+  if (g.querySelector('.si-on')) return 'SI';
+  if (g.querySelector('.no-on')) return 'NO';
+  return '';
+}
+
+// ── B) Apartamentos y áreas comunes ───────────────────────────────────────
+// Se agregan A MANO, no se precargan los 60 a 150 de la torre (decidido el
+// 2-sep-2026). El apartamento y el piso se escriben UNA vez por fila y valen
+// para las cinco tablas: en el borrador se repetían cinco veces, y un
+// apartamento ya cuesta 120 toques en el otro formulario.
+function pintarApartamentos(){
+  const cont = document.getElementById('panel-b');
+  cont.innerHTML = '<div class="vacio" id="b-vacio">Todavía no hay apartamentos. ' +
+    'Agregue los que haya visitado hoy.</div><div id="filas-apto"></div>' +
+    '<button type="button" class="btn-add" onclick="addApartamento()">＋ Agregar apartamento</button>';
+}
+
+function addApartamento(datos){
+  const v = document.getElementById('b-vacio'); if (v) v.style.display = 'none';
+  const cont = document.getElementById('filas-apto');
+  const d = document.createElement('div');
+  d.className = 'fila-apto';
+  let html = '<div class="cab">' +
+    '<input type="text" class="apto" placeholder="Apto / área" oninput="marcar()" style="flex:2">' +
+    '<select class="piso" onchange="marcar()" style="flex:1"><option value="">Piso</option>' +
+    '<option value="PB">Planta Baja</option>';
+  for (let i = 1; i <= 20; i++) html += '<option value="P' + String(i).padStart(2,'0') + '">Piso ' + String(i).padStart(2,'0') + '</option>';
+  html += '</select><button type="button" class="quitar" onclick="quitarApto(this)">✕</button></div>';
+
+  APARTAMENTOS.forEach(tabla => {
+    html += '<div style="margin-top:8px"><div style="font-weight:600;font-size:13px;color:var(--azul)">' +
+            tabla.nombre + '</div>';
+    tabla.columnas.forEach(col => {
+      const [etiqueta, tipo] = col;
+      const id = tabla.id + '__' + etiqueta;
+      if (tipo === 'sino'){
+        html += '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
+                '<span style="flex:1;font-size:13px">' + etiqueta + '</span>' +
+                '<div class="sino" style="flex:1;margin:0" data-campo="' + id + '">' +
+                '<button type="button" onclick="marcarSN(this,\'SI\')">SÍ</button>' +
+                '<button type="button" onclick="marcarSN(this,\'NO\')">NO</button></div></div>';
+      } else if (tipo === 'cant'){
+        html += '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
+                '<span style="flex:1;font-size:13px">' + etiqueta + '</span>' +
+                '<input type="number" inputmode="numeric" data-campo="' + id + '" ' +
+                'oninput="marcar()" style="flex:1" placeholder="0">' +
+                '<span style="font-size:12px;font-weight:600;color:#64748b">' + UNIDAD + '</span></div>';
+      } else {
+        html += '<textarea data-campo="' + id + '" placeholder="' + etiqueta + '..." ' +
+                'oninput="marcar()" style="margin-top:6px"></textarea>';
+      }
+    });
+    html += '</div>';
+  });
+  d.innerHTML = html;
+  cont.appendChild(d);
+  if (datos) cargarApto(d, datos);
+  marcar();
+}
+
+function quitarApto(btn){
+  btn.closest('.fila-apto').remove();
+  if (!document.querySelectorAll('#filas-apto .fila-apto').length){
+    const v = document.getElementById('b-vacio'); if (v) v.style.display = '';
+  }
+  marcar();
+}
+
+function verPanel(cual){
+  document.getElementById('panel-a').classList.toggle('on', cual === 'a');
+  document.getElementById('panel-b').classList.toggle('on', cual === 'b');
+  document.getElementById('tab-a').classList.toggle('on', cual === 'a');
+  document.getElementById('tab-b').classList.toggle('on', cual === 'b');
+}
+
+// ── Fotografías ───────────────────────────────────────────────────────────
+// Se reducen ANTES de guardarlas, con los mismos valores medidos en el otro
+// formulario. Una foto de cámara en crudo no cabe en el almacenamiento del
+// navegador, y aquí hay doce secciones donde ponerlas.
+function tomarFotos(ev, sid){
+  const grid = document.getElementById('fotos-' + sid);
+  const files = [...ev.target.files];
+  ev.target.value = '';
+  files.forEach(f => {
+    if (grid.children.length >= MAX_FOTOS_SECCION){
+      alert('Máximo ' + MAX_FOTOS_SECCION + ' fotografías por servicio.');
+      return;
+    }
+    reducir(f, dataUrl => {
+      const c = document.createElement('div');
+      c.className = 'foto';
+      c.innerHTML = '<img src="' + dataUrl + '">' +
+        '<textarea placeholder="Descripción..." oninput="marcar()" style="min-height:44px;font-size:12px"></textarea>' +
+        '<button type="button" onclick="this.parentElement.remove();marcar()">Eliminar</button>';
+      grid.appendChild(c);
+      marcar();   // ⚠️ la foto marca el informe como modificado: en el otro
+                  // formulario no lo hacía y por eso se perdían fotografías en
+                  // teléfonos lentos, que tardaban más que el autoguardado
+    });
+  });
+}
+
+function reducir(file, listo){
+  const r = new FileReader();
+  r.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      let {width: w, height: h} = img;
+      if (w > MAX_FOTO_PX || h > MAX_FOTO_PX){
+        const f = MAX_FOTO_PX / Math.max(w, h);
+        w = Math.round(w * f); h = Math.round(h * f);
+      }
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      listo(cv.toDataURL('image/jpeg', CALIDAD_FOTO));
+    };
+    img.src = e.target.result;
+  };
+  r.readAsDataURL(file);
+}
+
+// ── Guardado ──────────────────────────────────────────────────────────────
+// A los 2 s de la última tecla y cada 30, igual que el otro. Y con la lección
+// que costó cara: GUARDAR PUEDE FALLAR, y cuando falla no se limpia nada, para
+// que el informe siga donde único existe — el teléfono.
+const CLAVE_LISTA = 'garmel_srv_list';
+let sucio = false, temporizador = null, idActual = null;
+
+function marcar(){
+  sucio = true;
+  clearTimeout(temporizador);
+  temporizador = setTimeout(() => guardar(false), 2000);
+}
+setInterval(() => { if (sucio) guardar(false); }, 30000);
+
+function datosDelFormulario(){
+  const val = id => (document.getElementById(id) || {}).value || '';
+  const general = GENERAL.map(srv => ({
+    id: srv.id, nombre: srv.nombre,
+    items: [...document.querySelectorAll('#items-' + srv.id + ' .item')].map(it => ({
+      nombre: it.dataset.fijo === '1' ? it.querySelector('.nombre').textContent
+                                      : (it.querySelector('.nombre-libre').value || '').trim(),
+      agregado: it.dataset.fijo !== '1',
+      sn: valorSN(it),
+      obs: (it.querySelector('textarea').value || '').trim()
+    })),
+    fotos: [...document.querySelectorAll('#fotos-' + srv.id + ' .foto')].map(f => ({
+      dato: f.querySelector('img').src,
+      pie: (f.querySelector('textarea').value || '').trim()
+    }))
+  }));
+  const aptos = [...document.querySelectorAll('#filas-apto .fila-apto')].map(fila => {
+    const campos = {};
+    fila.querySelectorAll('[data-campo]').forEach(el => {
+      campos[el.dataset.campo] = el.classList.contains('sino')
+        ? (el.querySelector('.si-on') ? 'SI' : el.querySelector('.no-on') ? 'NO' : '')
+        : (el.value || '').trim();
+    });
+    return { apto: fila.querySelector('.apto').value.trim(),
+             piso: fila.querySelector('.piso').value, campos };
+  });
+  return {
+    id: idActual || ('srv_' + Date.now()),
+    tipo: 'servicios',
+    nro: numeroInforme(),
+    torre: val('torre'), convenio: val('convenio'), empresa: val('empresa'),
+    residente: val('residente'), fecha: val('fecha'), estatus: val('estatus'),
+    inspectores: inspectoresElegidos(),
+    obs_general: val('obs_general'),
+    general, apartamentos: aptos,
+    guardado: new Date().toISOString()
+  };
+}
+
+function guardar(avisar){
+  const d = datosDelFormulario();
+  idActual = d.id;
+  try {
+    const lista = JSON.parse(localStorage.getItem(CLAVE_LISTA) || '[]');
+    const i = lista.findIndex(x => x.id === d.id);
+    if (i >= 0) lista[i] = d; else lista.push(d);
+    localStorage.setItem(CLAVE_LISTA, JSON.stringify(lista));
+    sucio = false;
+    actualizarContador();
+    if (avisar) alert('Informe guardado en este teléfono.');
+    return true;
+  } catch (e) {
+    // No se limpia nada. El informe sigue en pantalla, que es donde único está.
+    alert('⚠️ NO SE PUDO GUARDAR: el almacenamiento del teléfono está lleno.\n\n' +
+          'El informe SIGUE EN PANTALLA y no se ha perdido. Envíe los que tenga ' +
+          'pendientes y use «Borrar los que ya se enviaron» para hacer sitio.');
+    return false;
+  }
+}
+
+function listaGuardada(){
+  try { return JSON.parse(localStorage.getItem(CLAVE_LISTA) || '[]'); } catch(e){ return []; }
+}
+function actualizarContador(){
+  const n = listaGuardada().filter(x => !x.enviado).length;
+  document.getElementById('cnt').textContent = n;
+}
+function verInformes(){
+  const l = listaGuardada();
+  if (!l.length) return alert('No hay informes guardados en este teléfono.');
+  alert('Informes en este teléfono:\n\n' +
+        l.map(x => (x.enviado ? '✓ ' : '• ') + x.nro).join('\n') +
+        '\n\nLos marcados con • existen SOLO aquí hasta que se envíen.');
+}
+
+// ⚠️ SIN CONSTRUIR TODAVÍA: el envío al relevo y el service worker. Hasta que
+// estén, este formulario NO sirve en obra — guarda en el teléfono y nada más.
+function enviar(){
+  alert('El envío todavía no está construido.\n\n' +
+        'Este formulario es para revisar la forma y el contenido con Hernán ' +
+        'Escobar. Lo que llene aquí se guarda en el teléfono, pero NO llega a Drive.');
+}
+
+// ── Arranque ──────────────────────────────────────────────────────────────
+(function(){
+  const sel = document.getElementById('torre');
+  torresUnicas().forEach(t => {
+    const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
+  });
+  sel.onchange = alElegirTorre;
+  document.getElementById('convenio').onchange = alElegirConvenio;
+  document.getElementById('fecha').valueAsDate = new Date();
+  document.getElementById('fecha').onchange = () => { actualizarNro(); marcar(); };
+  document.getElementById('estatus').onchange = marcar;
+  document.getElementById('obs_general').oninput = marcar;
+  pintarGeneral(); pintarApartamentos(); addInspector();
+  actualizarNro(); actualizarContador();
+  const con = () => document.getElementById('conexion').textContent =
+    navigator.onLine ? 'en línea' : 'sin señal — el informe queda guardado aquí';
+  addEventListener('online', con); addEventListener('offline', con); con();
+})();
+
+</script>
+</body>
+</html>
