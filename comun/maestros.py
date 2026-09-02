@@ -147,3 +147,30 @@ CORRECCIONES_EMPRESA = [
     ("THAISSA MM INVERSIONES, C.A.", "THAISA MM INVERSIONES, C.A."),
     ("CONSTRUCTORA SB 86, C.A.",     "CONSTRUCTORA SB86, C.A."),
 ]
+
+
+# ── Cómo se escriben de verdad las cosas ───────────────────────────────────
+#
+# Correcciones de ORTOGRAFÍA sobre los maestros, aplicadas al final y sobre el
+# HTML ya montado. Viven aquí y no en un generador porque son del dato: el
+# formulario de servicios salió el 2-sep-2026 diciendo «Bielorusos» treinta y
+# cuatro veces mientras el de inspección decía «Bielorrusos» treinta y siete,
+# desde la MISMA tabla. Un maestro compartido con la corrección en un solo lado
+# no está compartido.
+CORRECCIONES_TEXTO = [
+    # «Bielorrusos» lleva dos erres. Viene mal del original de Skarlet Gómez.
+    ("Bielorusos", "Bielorrusos"),
+    # Nombres de ingeniero residente, como en MAE_Torres.
+    ("ING.ASTRID LARES",    "ING. ASTRID LARES"),
+    ("ING.RADAMEZ RIVAS",   "ING. RADAMEZ RIVAS"),
+    ("ING FELIX PINTO",     "ING. FELIX PINTO"),
+    ("ING HARRY ARTEAGA",   "ING. HARRY ARTEAGA"),
+    ("ING MANUEL PAEZ",     "ING. MANUEL PAEZ"),
+    ("ING JOSE V GONZALES", "ING. JOSE V. GONZALES"),
+    ("ING MARIA T MARCANO", "ING. MARIA T. MARCANO"),
+    # Se le escapó a la lista original: estaba sin punto en LOS DOS
+    # formularios por igual, no por desincronización sino porque nadie lo miró.
+    ("ING ADRIAN OLIVARES",  "ING. ADRIAN OLIVARES"),
+    ("ING. JOANNY TAPIA / ING. JHOANNY LOPEZ", "ING. JOANNY TAPIA \u00b7 ING. JHOANNY LOPEZ"),
+    ("ING. JUAN COLMENARES ARQ EVER AVENDA\u00d1O", "ING. JUAN COLMENARES \u00b7 ARQ. EVER AVENDA\u00d1O"),
+]

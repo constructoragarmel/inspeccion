@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(RAIZ, "servicios"))
 import maestros
 import contenido
 
-SALIDA = os.path.join(RAIZ, "index-servicios.html")
+SALIDA = os.path.join(RAIZ, "servicios.html")
 
 # Calibradas en el formulario de inspección y medidas en obra. Se repiten con su
 # valor para que los dos instrumentos se comporten IGUAL en el mismo teléfono:
@@ -69,6 +69,22 @@ header .nro{font-size:12px;opacity:.85;margin-top:3px;font-variant-numeric:tabul
 .campo label{font-weight:600;font-size:13px;color:#475569;margin-bottom:4px}
 input,select,textarea{font:inherit;padding:10px;border:1px solid var(--borde);
        border-radius:6px;background:#fff;min-height:44px;width:100%}
+
+/* Safari hace zoom SOLO al enfocar un campo de menos de 16 px, y después hay que
+   despincharlo a mano. El cuerpo va a 15 px por densidad, así que los campos se
+   suben aparte.
+
+   Y el criterio NO es el ancho: un iPhone en horizontal mide 812 px y volvería
+   a caer todo lo corregido. Se toca con el dedo, así que manda el PUNTERO y, de
+   refuerzo, el alto — que en horizontal es lo que se queda corto. */
+@media (max-width:700px), (max-height:520px), (pointer:coarse){
+  input:not([type=file]),select,textarea{font-size:16px !important}
+}
+
+/* Foco visible al tabular. `:focus-visible` no se dispara al tocar la pantalla,
+   así que en obra no cambia nada; en la computadora de oficina sí. */
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{
+  outline:3px solid #1565c0;outline-offset:2px}
 textarea{min-height:64px;resize:vertical}
 .pestanas{display:flex;gap:8px;margin:12px 0}
 .pestanas button{flex:1;min-height:44px;border:none;border-radius:8px;font-weight:700;
@@ -582,6 +598,7 @@ function guardar(avisar){
     localStorage.setItem(CLAVE_LISTA, JSON.stringify(lista));
     sucio = false;
     actualizarContador();
+    vigilarEspacio();
     if (avisar) alert('Informe guardado en este teléfono.');
     return true;
   } catch (e) {
@@ -603,9 +620,38 @@ function actualizarContador(){
 function verInformes(){
   const l = listaGuardada();
   if (!l.length) return alert('No hay informes guardados en este teléfono.');
-  alert('Informes en este teléfono:\\n\\n' +
+  const enviados = l.filter(x => x.enviado).length;
+  let txt = 'Informes en este teléfono:\\n\\n' +
         l.map(x => (x.enviado ? '✓ ' : '• ') + x.nro).join('\\n') +
-        '\\n\\nLos marcados con • existen SOLO aquí hasta que se envíen.');
+        '\\n\\nLos marcados con • existen SOLO aquí hasta que se envíen.';
+  if (enviados) txt += '\\n\\n¿Borrar los ' + enviados + ' que ya se enviaron? ' +
+        'Están a salvo en Drive y aquí solo ocupan sitio.';
+  if (enviados && confirm(txt)) borrarEnviados(); else alert(txt);
+}
+
+// El remedio cuando el teléfono se llena: lo enviado está a salvo en Drive.
+function borrarEnviados(){
+  const quedan = listaGuardada().filter(x => !x.enviado);
+  localStorage.setItem(CLAVE_LISTA, JSON.stringify(quedan));
+  actualizarContador();
+  alert('Listo. Quedan ' + quedan.length + ' informes sin enviar en este teléfono.');
+}
+
+// ⚠️ AVISAR ANTES DE QUE FALLE, no cuando ya falló. En el otro formulario el
+// aviso de poco espacio no llegaba nunca a verse en obra: para cuando saltaba,
+// el guardado ya había reventado. Aquí se mira en cada guardado, y como este
+// informe puede llevar 36 fotografías, se llena antes.
+function vigilarEspacio(){
+  let bytes = 0;
+  try { for (const k in localStorage) if (Object.hasOwn(localStorage, k))
+          bytes += (localStorage[k] || '').length * 2; } catch(e){ return; }
+  const tope = @@TOPE@@;
+  if (bytes > tope * 0.8){
+    const pct = Math.round(bytes / tope * 100);
+    alert('⚠️ Este teléfono va por el ' + pct + '% de su espacio.\\n\\n' +
+          'Envíe los informes pendientes y use «Mis informes» para borrar los ' +
+          'que ya se enviaron, antes de que deje de guardar.');
+  }
 }
 
 // ⚠️ SIN CONSTRUIR TODAVÍA: el envío al relevo y el service worker. Hasta que
@@ -624,7 +670,14 @@ function enviar(){
   });
   sel.onchange = alElegirTorre;
   document.getElementById('convenio').onchange = alElegirConvenio;
-  document.getElementById('fecha').valueAsDate = new Date();
+  // `valueAsDate` y `toISOString()` dan la fecha UTC. Venezuela es UTC−4, así
+  // que a partir de las 8 de la noche el formulario abriría con el día
+  // siguiente — y esa fecha entra en el número del informe y en el nombre del
+  // archivo en Drive.
+  const hoy = new Date();
+  document.getElementById('fecha').value = hoy.getFullYear() + '-' +
+      String(hoy.getMonth() + 1).padStart(2, '0') + '-' +
+      String(hoy.getDate()).padStart(2, '0');
   document.getElementById('fecha').onchange = () => { actualizarNro(); marcar(); };
   document.getElementById('estatus').onchange = marcar;
   document.getElementById('obs_general').oninput = marcar;
@@ -661,7 +714,9 @@ def construir():
         .replace('@@MAXPX@@', str(MAX_FOTO_PX))
         .replace('@@CALIDAD@@', str(CALIDAD_FOTO))
         .replace('@@RELEVO@@', json.dumps(RELEVO_URL))
-        .replace('@@JS@@', JS))
+        .replace('@@JS@@', JS)
+        # este va DESPUÉS del JS: el marcador vive dentro del motor
+        .replace('@@TOPE@@', str(TOPE_ALMACEN)))
 
     if '@@' in pagina:
         import re as _re
@@ -669,7 +724,7 @@ def construir():
 
     # Las correcciones de nombre de empresa, al final y sobre el HTML ya
     # montado — mismo criterio y misma tabla que el formulario de inspección.
-    for viejo, nuevo in maestros.CORRECCIONES_EMPRESA:
+    for viejo, nuevo in maestros.CORRECCIONES_EMPRESA + maestros.CORRECCIONES_TEXTO:
         pagina = pagina.replace(viejo, nuevo)
 
     open(SALIDA, "w", encoding="utf-8").write(pagina)
@@ -678,7 +733,7 @@ def construir():
 
 if __name__ == "__main__":
     p = construir()
-    print("✓ index-servicios.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
+    print("✓ servicios.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
     print("  servicios generales: %d  ·  ítems definidos: %d" %
           (len(contenido.GENERAL), contenido.total_items()))
     faltan = contenido.servicios_sin_contenido()

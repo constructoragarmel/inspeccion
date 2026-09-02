@@ -17,7 +17,7 @@ RAIZ = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(RAIZ, "comun"))
 import maestros
 ORIG = os.path.join(RAIZ, "fuente", "Formularios.V8272026.html")
-SALIDA = os.path.join(RAIZ, "index.html")
+SALIDA = os.path.join(RAIZ, "inspeccion.html")
 LOGOS = os.path.join(RAIZ, "recursos")
 
 # ── Los once hitos del desglose de agosto: transcritos y DESACTIVADOS ──────
@@ -5735,7 +5735,11 @@ window.onload = function() {""",
 # ══════════════════════════════════════════════════════════════════════════
 
 # ── 14a. «Bielorrusos» lleva dos erres. Viene mal del original, 37 veces ──
-s = sustituir(s, "Bielorusos", "Bielorrusos",
+# La pareja vive en comun/maestros.py: el formulario de servicios salió
+# diciendo «Bielorusos» desde la MISMA tabla, por tenerla corregida en un
+# solo lado. Una corrección del dato que solo un generador aplica no es una
+# corrección del dato.
+s = sustituir(s, maestros.CORRECCIONES_TEXTO[0][0], maestros.CORRECCIONES_TEXTO[0][1],
               "14a· Bielorusos → Bielorrusos (todas)", -1)
 
 # ── 14b. Nombres de empresa, exactamente como en MAE_Contratistas ─────────
@@ -5749,17 +5753,8 @@ for viejo, nuevo, etq in [
     s = sustituir(s, viejo, nuevo, etq, -1)
 
 # ── 14c. Nombres de ingenieros residentes, como en MAE_Torres ─────────────
-for viejo, nuevo in [
-    ("ING.ASTRID LARES",   "ING. ASTRID LARES"),
-    ("ING.RADAMEZ RIVAS",  "ING. RADAMEZ RIVAS"),
-    ("ING FELIX PINTO",    "ING. FELIX PINTO"),
-    ("ING HARRY ARTEAGA",  "ING. HARRY ARTEAGA"),
-    ("ING MANUEL PAEZ",    "ING. MANUEL PAEZ"),
-    ("ING JOSE V GONZALES","ING. JOSE V. GONZALES"),
-    ("ING MARIA T MARCANO","ING. MARIA T. MARCANO"),
-    ("ING. JOANNY TAPIA / ING. JHOANNY LOPEZ",  "ING. JOANNY TAPIA · ING. JHOANNY LOPEZ"),
-    ("ING. JUAN COLMENARES ARQ EVER AVENDAÑO",  "ING. JUAN COLMENARES · ARQ. EVER AVENDAÑO"),
-]:
+# La tabla vive en comun/maestros.py, junto al resto de correcciones del dato.
+for viejo, nuevo in maestros.CORRECCIONES_TEXTO[1:]:
     s = sustituir(s, viejo, nuevo, "14c· residente: %s" % nuevo, -1)
 
 # ── 14d. «Subitems» es un anglicismo, y el formulario ya se contradecía ───
@@ -6974,6 +6969,6 @@ maestros.INSPECTORES_JS,
 
 open(SALIDA, "w", encoding="utf-8").write(s)
 
-print("✓ index.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
+print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
 for i, c in enumerate(cambios, 1):
     print("   %s" % c)
