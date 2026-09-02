@@ -5,6 +5,14 @@ Formulario de campo para el levantamiento de avance de obra por partidas en
 
 **Dirección para los inspectores:** https://constructoragarmel.github.io/inspeccion/
 
+> Desde el 2-sep-2026 esa dirección abre un **menú** que reparte entre los formularios de campo:
+> **inspección de obra**, **servicios públicos** y —cuando exista— **seguridad industrial**. Antes abría
+> directamente el de inspección, que ahora vive en `inspeccion.html`.
+>
+> El menú no es la portada que se retiró en su día: aquella pedía un toque para no decidir nada, y esta
+> decide cuál de los tres se va a llenar. Además **captura la clave de configuración**, **propaga el modo
+> de prueba** y dice **cuántos informes viven solo en ese teléfono**, por formulario.
+
 ---
 
 ## Origen

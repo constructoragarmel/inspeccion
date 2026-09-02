@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Construye index.html — la pantalla que elige formulario.
+
+POR QUÉ EXISTE. Hasta el 2-sep-2026 había un solo instrumento y `index.html` ERA
+ese instrumento: el enlace que tienen los inspectores abría directamente el
+formulario. Con tres —inspección, servicios y seguridad industrial— hace falta
+una entrada que reparta.
+
+⚠️ ESTO NO ES LA PORTADA QUE SE RETIRÓ. El cambio 42 de `construir.py` quitó una
+portada porque «pedía un toque para no decidir nada». Esta sí decide: cuál de los
+tres formularios se va a llenar. Un toque que elige no es el mismo que un toque
+que solo estorba.
+
+QUÉ HACE ADEMÁS DE REPARTIR, y es lo que la justifica del todo:
+
+  · CAPTURA LA CLAVE del enlace de configuración. Antes la recogía el formulario;
+    ahora la primera pantalla es esta, así que si no la recogiera, el enlace de
+    configuración dejaría de funcionar.
+  · PROPAGA EL MODO DE PRUEBA. El `?prueba=1` tiene que llegar al formulario, o
+    el enlace de prueba deja de marcar los informes como prueba — que ya pasó una
+    vez y acabó con tres informes de prueba archivados como reales.
+  · DICE CUÁNTOS INFORMES VIVEN SOLO EN ESTE TELÉFONO, por formulario. Es el dato
+    que más importa en obra y hasta ahora había que entrar para verlo.
+"""
+import os, sys
+
+RAIZ = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(RAIZ, "comun"))
+import maestros  # noqa: F401  (se importa para que el menú falle si falta comun/)
+
+SALIDA = os.path.join(RAIZ, "index.html")
+
+# El tercero todavía no existe: falta que Birmania Rada diga qué necesita
+# registrar (`PA-105`). Se muestra APAGADO en vez de esconderlo, para que se vea
+# que viene y nadie lo pida por separado.
+FORMULARIOS = [
+    {"id": "inspeccion", "archivo": "inspeccion.html",
+     "titulo": "Inspección de obra",
+     "sub": "Por apartamento y por torre · once hitos",
+     "lista": "garmel_reports_list", "activo": True},
+    {"id": "servicios", "archivo": "servicios.html",
+     "titulo": "Servicios públicos",
+     "sub": "Por torre · electricidad, CANTV, agua, gas",
+     "lista": "garmel_srv_list", "activo": True},
+    {"id": "sha", "archivo": "",
+     "titulo": "Seguridad industrial",
+     "sub": "En preparación — falta definir qué se registra",
+     "lista": "", "activo": False},
+]
+
+PAGINA = """<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a237e">
+<link rel="manifest" href="manifest.json">
+<title>Formularios de campo — GARMEL</title>
+<style>
+:root{--azul:#1a237e;--borde:#cbd5e1;--fondo:#f1f5f9}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--fondo);
+     color:#1e293b;margin:0;padding:0;font-size:15px;line-height:1.45}
+header{background:var(--azul);color:#fff;padding:18px 16px}
+header h1{margin:0;font-size:17px;font-weight:700}
+header p{margin:4px 0 0;font-size:13px;opacity:.85}
+main{max-width:620px;margin:0 auto;padding:16px}
+a.tarjeta,div.tarjeta{display:block;background:#fff;border:1px solid var(--borde);
+     border-radius:12px;padding:16px;margin-bottom:12px;text-decoration:none;color:inherit;
+     min-height:44px}
+a.tarjeta:active{background:#eef2ff}
+.tarjeta.apagada{opacity:.55;background:#f8fafc}
+.tarjeta h2{margin:0;font-size:16px;font-weight:700;color:var(--azul)}
+.tarjeta .sub{margin-top:4px;font-size:13px;color:#64748b}
+.pend{display:inline-block;margin-top:10px;font-size:13px;font-weight:700;
+     background:#fef3c7;border:1px solid #f59e0b;border-radius:999px;padding:4px 12px}
+.pend.cero{background:#ecfdf5;border-color:#059669;color:#065f46;font-weight:600}
+.estado{background:#fff;border:1px solid var(--borde);border-radius:10px;padding:12px;
+     font-size:13px;margin-bottom:12px}
+.prueba{background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px;
+     font-size:13px;font-weight:700;margin-bottom:12px}
+.pie{text-align:center;font-size:12px;color:#64748b;padding:10px 16px 24px}
+a.tarjeta:focus-visible,div.tarjeta:focus-visible{outline:3px solid #1565c0;outline-offset:2px}
+@media (max-width:700px),(max-height:520px),(pointer:coarse){
+  body{font-size:16px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Formularios de campo</h1>
+  <p>Constructora Garmel, C.A. · Ciudad Tiuna</p>
+</header>
+<main>
+  <div id="prueba"></div>
+  <div class="estado" id="estado">Comprobando este teléfono…</div>
+  <div id="lista"></div>
+  <div class="pie">● <span id="conexion">en línea</span> · @@VERSION@@</div>
+</main>
+
+<script>
+const FORMULARIOS = @@FORMULARIOS@@;
+
+// ── La clave de configuración ─────────────────────────────────────────────
+// El enlace se abre UNA vez y este teléfono queda configurado para siempre. La
+// clave va después del `#`, que es lo que hace que no viaje por la red ni quede
+// en los registros de GitHub. Se borra de la barra de direcciones en el acto.
+//
+// Antes la recogía el formulario. Ahora la primera pantalla es esta, así que si
+// no la recogiera aquí, el enlace de configuración dejaría de funcionar.
+(function(){
+  const m = (location.hash || '').match(/[#&]clave=([^&]+)/);
+  if (m && m[1]) {
+    try { localStorage.setItem('garmel_clave_envio', decodeURIComponent(m[1])); } catch(e){}
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+})();
+
+// ── El modo de prueba viaja con el enlace ─────────────────────────────────
+// Si no se propagara, el enlace de prueba abriría el menú en modo prueba y el
+// formulario en modo real. Eso ya pasó una vez por otro camino, y acabó con tres
+// informes de prueba archivados como inspecciones de verdad.
+const ESPRUEBA = new URLSearchParams(location.search).get('prueba') === '1';
+
+function sinEnviar(clave){
+  if (!clave) return null;
+  try {
+    const l = JSON.parse(localStorage.getItem(clave) || '[]');
+    return Array.isArray(l) ? l.filter(x => x && !x.enviado).length : 0;
+  } catch(e){ return 0; }   // una lista ilegible no puede tumbar el menú
+}
+
+function pintar(){
+  if (ESPRUEBA) document.getElementById('prueba').innerHTML =
+    '<div class="prueba">⚠️ MODO DE PRUEBA — los informes se marcan como PRUEBA-</div>';
+
+  let hay = false;
+  try { hay = !!localStorage.getItem('garmel_clave_envio'); } catch(e){}
+  document.getElementById('estado').innerHTML = hay
+    ? '✓ Este teléfono está configurado para enviar.'
+    : '⚠️ Este teléfono <b>todavía no está configurado</b>. Abra el enlace de ' +
+      'configuración que le enviaron; se llenan informes igual, pero no se pueden enviar.';
+
+  const cont = document.getElementById('lista');
+  cont.innerHTML = '';
+  FORMULARIOS.forEach(f => {
+    const n = sinEnviar(f.lista);
+    let dentro = '<h2>' + f.titulo + '</h2><div class="sub">' + f.sub + '</div>';
+    if (n !== null) dentro += n
+      ? '<span class="pend">' + n + ' sin enviar — solo en este teléfono</span>'
+      : '<span class="pend cero">Nada pendiente de enviar</span>';
+    if (f.activo){
+      const a = document.createElement('a');
+      a.className = 'tarjeta';
+      a.href = f.archivo + (ESPRUEBA ? '?prueba=1' : '');
+      a.innerHTML = dentro;
+      cont.appendChild(a);
+    } else {
+      const d = document.createElement('div');
+      d.className = 'tarjeta apagada';
+      d.innerHTML = dentro;
+      cont.appendChild(d);
+    }
+  });
+}
+
+const con = () => document.getElementById('conexion').textContent =
+  navigator.onLine ? 'en línea' : 'sin señal — se puede llenar igual';
+addEventListener('online', con); addEventListener('offline', con);
+pintar(); con();
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+</script>
+</body>
+</html>
+"""
+
+
+def construir():
+    import json, re
+    version = re.search(r"VERSION = 'garmel-inspeccion-(v\d+)'",
+                        open(os.path.join(RAIZ, "sw.js"), encoding="utf-8").read()).group(1)
+    p = (PAGINA
+         .replace('@@FORMULARIOS@@', json.dumps(FORMULARIOS, ensure_ascii=False, indent=2))
+         .replace('@@VERSION@@', version))
+    if '@@' in p:
+        sys.exit("✗ Quedaron marcadores sin sustituir")
+    open(SALIDA, "w", encoding="utf-8").write(p)
+    return p
+
+
+if __name__ == "__main__":
+    construir()
+    print("✓ index.html (menú) construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
+    for f in FORMULARIOS:
+        estado = "→ " + f["archivo"] if f["activo"] else "apagado"
+        print("   %-22s %s" % (f["titulo"], estado))

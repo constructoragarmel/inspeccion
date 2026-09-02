@@ -3,12 +3,14 @@
 // Al subir una versión nueva hay que subir el número de VERSION: eso es lo que
 // hace que los teléfonos se traigan la copia nueva la próxima vez que tengan
 // internet. Si no se sube, siguen abriendo la vieja.
-const VERSION = 'garmel-inspeccion-v47';
+const VERSION = 'garmel-inspeccion-v48';
 const ARCHIVOS = [
   // './' NO va en la lista: toda navegación se guarda bajo './index.html'
   // —ver claveDeCache— y tenerla suelta dejaba DOS copias de 210 KB del mismo
   // archivo en el teléfono.
-  './index.html',
+  './index.html',        // el menú
+  './inspeccion.html',   // el formulario de torre y apartamento
+  './servicios.html',    // el de servicios públicos
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
@@ -47,7 +49,11 @@ self.addEventListener('activate', e => {
 // dirección distinta, una más. Se guarda siempre bajo la misma clave.
 function claveDeCache(request) {
   const u = new URL(request.url);
-  if (request.mode === 'navigate' || u.pathname === '/' || u.pathname.endsWith('/index.html')) {
+  // Solo la RAÍZ se colapsa a index.html. Antes se colapsaba CUALQUIER
+  // navegación, que estaba bien con una sola página y deja de estarlo con tres:
+  // abrir servicios.html habría devuelto el menú desde la caché, sin red y sin
+  // ningún aviso. Cada página tiene ahora su propia entrada.
+  if (u.pathname === '/' || u.pathname.endsWith('/')) {
     return new Request(new URL('./index.html', self.registration.scope).href);
   }
   return request;
