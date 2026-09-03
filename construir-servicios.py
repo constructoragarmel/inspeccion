@@ -45,7 +45,12 @@ RELEVO_URL   = "https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQiGp3
 # sección, que daban 48— y el almacenamiento del teléfono se llena entre 5 y 10 MB.
 MAX_FOTOS_SECCION = 3
 
-VERSION = "v1"
+# La versión sale de `sw.js`, que es donde ya se sube al publicar: un solo sitio
+# que tocar, y el pie dice lo mismo en los tres —menú, inspección y servicios—.
+# Con una constante propia el pie decía «v1» mientras el sitio iba por la v48.
+import re as _re
+VERSION = _re.search(r"VERSION = 'garmel-inspeccion-(v\d+)'",
+                     open(os.path.join(RAIZ, "sw.js"), encoding="utf-8").read()).group(1)
 
 # ══════════════════════════════════════════════════════════════════════════
 # ESTILOS. Móvil primero: esto se llena de pie en una torre, con una mano.
