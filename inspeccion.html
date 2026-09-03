@@ -1298,10 +1298,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v50';
+    el.textContent = '● en línea · v51';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v50 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v51 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -3761,6 +3761,10 @@ if (navigator.storage && navigator.storage.persist) {
 // A partir de ahí abre sin señal, indefinidamente, y se actualiza solo cuando
 // vuelve a haber conexión.
 // ═══════════════════════════════════════════════
+document.addEventListener('visibilitychange', function(){
+  if (document.hidden && typeof saveDraft === 'function' && typeof _tieneContenido === 'function' &&
+      _tieneContenido(getFormData())) { try { saveDraft(); } catch(e){} }
+});
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });

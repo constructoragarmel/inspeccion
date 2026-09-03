@@ -7021,6 +7021,21 @@ s = sustituir(s,
       }""",
  "134\u00b7 al marcar enviado se sueltan las fotograf\u00edas de la copia local")
 
+# ── 135. Guardar al irse a otra aplicación ─────────────────────────────────
+# El autoguardado espera 2 s desde la última tecla. En un teléfono, entre esa
+# tecla y una llamada entrante —o la cámara del sistema— caben esos 2 s, y el
+# navegador puede descargar la pestaña mientras está detrás. Ya se avisaba al
+# cerrar con cambios (beforeunload); ahora además se guarda en el acto cuando
+# la página deja de verse. Servicios lo hace igual desde el mismo día.
+s = sustituir(s,
+ "if ('serviceWorker' in navigator) {",
+ "document.addEventListener('visibilitychange', function(){\n"
+ "  if (document.hidden && typeof saveDraft === 'function' && typeof _tieneContenido === 'function' &&\n"
+ "      _tieneContenido(getFormData())) { try { saveDraft(); } catch(e){} }\n"
+ "});\n"
+ "if ('serviceWorker' in navigator) {",
+ "135\u00b7 guardar al irse a otra aplicaci\u00f3n")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
