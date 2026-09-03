@@ -6967,6 +6967,38 @@ maestros.INSPECTORES_JS,
  "132\u00b7 el padr\u00f3n de inspectores, contra el Sheet de cargos")
 
 
+# ── 133. El rol ya no se pregunta: el menú de formularios decide ─────────────
+# Desde el 2-sep-2026 hay un menú delante —inspección, servicios, seguridad
+# industrial— y «Inspección de obra» abría, encima, esta otra pantalla para
+# elegir entre Inspector y Gerencia de Planificación. Dos menús seguidos para
+# llegar al formulario, y el segundo ya no decide nada: la planificación vive en
+# Smartsheet (propuesta del 2-sep), no en la app de campo.
+#
+# Se entra directo como Inspector. El rol de Planificación no se borra —sigue
+# siendo lo que muestra la cantidad proyectada—, pero se llega por la dirección,
+# ?rol=planificacion, que es donde vive lo que no debe tocarse por accidente en
+# una torre. El «Cambiar» de la barra se oculta por lo mismo. La pantalla y su
+# CSS se conservan: es la que mantiene el rol fuera del PDF.
+s = sustituir(s,
+ """function abrirEleccionDeRol(){
+  const w = document.getElementById('welcome-screen');
+  if (!w) return;""",
+ """function abrirEleccionDeRol(){
+  // Se decide por la dirección y no se pregunta. Lo recordado en el teléfono
+  // se ignora a propósito: quien eligió Planificación un día no debe entrar
+  // así al siguiente sin pedirlo.
+  const pedido = new URLSearchParams(location.search).get('rol');
+  elegirRol(pedido === 'planificacion' ? 'planificacion' : 'inspector');
+  return;
+  const w = document.getElementById('welcome-screen');
+  if (!w) return;""",
+ "133a\u00b7 se entra directo como inspector; planificaci\u00f3n por ?rol=")
+
+s = sustituir(s,
+ """<button id="btn-cambiar-rol" onclick="abrirEleccionDeRol()" style="min-height:44px;""",
+ """<button id="btn-cambiar-rol" onclick="abrirEleccionDeRol()" style="display:none;min-height:44px;""",
+ "133b\u00b7 y el bot\u00f3n de cambiar rol se oculta")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

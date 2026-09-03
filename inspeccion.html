@@ -860,7 +860,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 </div>
 <div id="mode-bar" style="background:#fff;padding:10px 22px;display:flex;align-items:center;gap:10px;border-bottom:3px solid var(--blue-l);flex-wrap:wrap">
   <span id="mode-badge" style="padding:4px 12px;border-radius:12px;font-size:11.5px;font-weight:700;background:var(--blue-l);color:var(--blue);border:1px solid #c5cae9"></span>
-  <button id="btn-cambiar-rol" onclick="abrirEleccionDeRol()" style="min-height:44px;padding:4px 12px;border:1.5px solid #c9cdd6;border-radius:16px;font-size:11.5px;font-weight:700;cursor:pointer;background:#fff;color:#37474f">Cambiar</button>
+  <button id="btn-cambiar-rol" onclick="abrirEleccionDeRol()" style="display:none;min-height:44px;padding:4px 12px;border:1.5px solid #c9cdd6;border-radius:16px;font-size:11.5px;font-weight:700;cursor:pointer;background:#fff;color:#37474f">Cambiar</button>
 </div>
 
 <!-- LOGO BAR -->
@@ -1433,6 +1433,12 @@ function setAmbito(a){
 // El rol se elige antes de ver nada, y se recuerda en este teléfono para
 // dejarlo resaltado la próxima vez.
 function abrirEleccionDeRol(){
+  // Se decide por la dirección y no se pregunta. Lo recordado en el teléfono
+  // se ignora a propósito: quien eligió Planificación un día no debe entrar
+  // así al siguiente sin pedirlo.
+  const pedido = new URLSearchParams(location.search).get('rol');
+  elegirRol(pedido === 'planificacion' ? 'planificacion' : 'inspector');
+  return;
   const w = document.getElementById('welcome-screen');
   if (!w) return;
   const previo = localStorage.getItem('garmel_rol') || '';
