@@ -3,7 +3,7 @@
 // Al subir una versión nueva hay que subir el número de VERSION: eso es lo que
 // hace que los teléfonos se traigan la copia nueva la próxima vez que tengan
 // internet. Si no se sube, siguen abriendo la vieja.
-const VERSION = 'garmel-inspeccion-v51';
+const VERSION = 'garmel-inspeccion-v52';
 const ARCHIVOS = [
   // './' NO va en la lista: toda navegación se guarda bajo './index.html'
   // —ver claveDeCache— y tenerla suelta dejaba DOS copias de 210 KB del mismo
@@ -56,6 +56,14 @@ function claveDeCache(request) {
   if (u.pathname === '/' || u.pathname.endsWith('/')) {
     return new Request(new URL('./index.html', self.registration.scope).href);
   }
+  // La query NO forma parte de la clave. `servicios.html?prueba=1` y
+  // `inspeccion.html?rol=planificacion` son la misma página que sin query, y
+  // con la query dentro de la clave ninguna de las dos abría sin señal: la
+  // copia guardada era la de la dirección pelada, y no casaba.
+  if (u.origin === self.location.origin && u.search) {
+    u.search = '';
+    return new Request(u.href);
+  }
   return request;
 }
 
@@ -65,7 +73,7 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const clave = claveDeCache(e.request);
   e.respondWith(
-    caches.match(clave).then(guardada => {
+    caches.match(clave, { ignoreSearch: true }).then(guardada => {
       const red = fetch(e.request).then(r => {
         if (r && r.status === 200 && r.type === 'basic') {
           const copia = r.clone();
