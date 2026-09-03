@@ -307,9 +307,15 @@ function actualizarNro(){
   const sec = SECTOR_POR_CONVENIO[c] || 'XX';
   const fec = f ? f.slice(2).replace(/-/g,'') : '------';
   document.getElementById('nro').textContent =
-    'SRV-' + sec + '-' + (limpiar(t) || '---') + '-' + fec + '-' + iniciales();
+    (TEST_MODE ? 'PRUEBA-' : '') + 'SRV-' + sec + '-' + (limpiar(t) || '---') + '-' + fec + '-' + iniciales();
 }
 function numeroInforme(){ return document.getElementById('nro').textContent; }
+
+// ── Modo de prueba ────────────────────────────────────────────────────────
+// Entra por el enlace —?prueba=1—, que el menú propaga. Marca los informes
+// como PRUEBA- y lo dice en pantalla: tres informes de prueba acabaron una vez
+// archivados como inspecciones reales por no tener este prefijo.
+const TEST_MODE = new URLSearchParams(location.search).get('prueba') === '1';
 """
 
 JS += """
@@ -654,12 +660,160 @@ function vigilarEspacio(){
   }
 }
 
-// ⚠️ SIN CONSTRUIR TODAVÍA: el envío al relevo y el service worker. Hasta que
-// estén, este formulario NO sirve en obra — guarda en el teléfono y nada más.
-function enviar(){
-  alert('El envío todavía no está construido.\\n\\n' +
-        'Este formulario es para revisar la forma y el contenido con Hernán ' +
-        'Escobar. Lo que llene aquí se guarda en el teléfono, pero NO llega a Drive.');
+// ── Envío al relevo ───────────────────────────────────────────────────────
+// Mismo contrato que el formulario de inspección, con una etiqueta más:
+// `tipo: 'servicios'`. El relevo archiva datos y fotografías, anota la fila en
+// el registro y se detiene ahí —sin PDF ni Smartsheet, que todavía no existen
+// para servicios—. Lo que llega a Drive es lo que después se puede rehacer.
+let _tandaEnCurso = false;
+
+function faltan(d){
+  const f = [];
+  if (!d.torre)    f.push('la torre');
+  if (!d.convenio) f.push('el convenio');
+  if (!d.fecha)    f.push('la fecha');
+  if (!d.inspectores.length) f.push('el inspector');
+  return f;
+}
+
+// Las fotografías viajan aparte, con nombre, para poder consultarlas fuera del
+// informe. En los datos queda solo su pie, que es texto.
+function sobreDe(d, clave){
+  const fotos = [];
+  const datos = JSON.parse(JSON.stringify(d));
+  datos.general.forEach(srv => {
+    srv.fotos = (srv.fotos || []).map((f, k) => {
+      if (f.dato) fotos.push({ nombre: srv.id + '-' + (k + 1), dato: f.dato });
+      return { pie: f.pie || '' };
+    });
+  });
+  // El registro del relevo lee `estatus` y `residentes` como LISTAS —les hace
+  // .join()— porque así viajan desde inspección. Un texto suelto reventaría
+  // dentro de anotarEnRegistro y el relevo contestaría ok:false a todos.
+  datos.estatus    = d.estatus   ? [d.estatus]   : [];
+  datos.residentes = d.residente ? [d.residente] : [];
+  return { clave, numero: d.nro, tipo: 'servicios', ambito: 'torre',
+           sector: SECTOR_POR_CONVENIO[d.convenio] || 'XX', torre: d.torre,
+           datos, fotos };
+}
+
+// El cartel tapa la pantalla mientras dura la tanda: un aviso que se desvanece
+// a los dos segundos hacía que el inspector volviera a pulsar y mandara todo
+// dos veces.
+function cartel(texto){
+  let c = document.getElementById('cartel-envio');
+  if (!texto){ if (c) c.remove(); return; }
+  if (!c){
+    c = document.createElement('div'); c.id = 'cartel-envio';
+    c.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(17,24,39,.88);' +
+      'display:flex;align-items:center;justify-content:center;text-align:center;' +
+      'padding:24px;color:#fff;font-size:17px;font-weight:700;line-height:1.5;white-space:pre-line';
+    document.body.appendChild(c);
+  }
+  c.textContent = texto;
+}
+
+async function enviarUno(d, clave){
+  // Con señal mala el envío se quedaba colgado sin decir nada; a los 90 s se
+  // corta solo y el informe sigue guardado para reintentarlo.
+  const corte = new AbortController();
+  const reloj = setTimeout(() => corte.abort(), 90000);
+  try {
+    const r = await fetch(RELEVO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(sobreDe(d, clave)),
+      signal: corte.signal
+    });
+    const res = await r.json();
+    if (res.ok){ marcarEnviado(d.id, d.nro); return { ok: true }; }
+    return { ok: false, error: res.error || 'Error desconocido' };
+  } catch (e) {
+    return { ok: false, error: (e && e.name === 'AbortError') ? 'Sin respuesta en 90 segundos' : String(e) };
+  } finally { clearTimeout(reloj); }
+}
+
+function marcarEnviado(id, nro){
+  try {
+    const l = listaGuardada();
+    const x = l.find(y => y.id === id);
+    if (x){ x.enviado = new Date().toLocaleString(); }
+    localStorage.setItem(CLAVE_LISTA, JSON.stringify(l));
+    actualizarContador();
+  } catch (e) {
+    // Se envió bien pero no se pudo anotar. Si esto pasa callado, la próxima
+    // tanda lo manda otra vez y aparece duplicado en Drive.
+    alert('⚠️ ' + nro + ' SÍ se envió, pero no se pudo marcar como enviado en este ' +
+          'teléfono. No lo vuelva a enviar: ya está en Drive.');
+  }
+}
+
+// Al inspector se le dice qué hacer, no qué falló por dentro. El detalle
+// técnico queda en la consola, que es donde sirve para diagnosticar.
+function explicar(err){
+  if (/clave/i.test(err))  return 'La clave de este teléfono no es válida. Abra otra vez el enlace de configuración.';
+  if (/sector/i.test(err)) return 'El informe no tiene convenio, y sin convenio no sabe a qué sector va.';
+  if (/faltan/i.test(err)) return 'Al informe le faltan datos de cabecera: ' + err;
+  if (/90 segundos/.test(err)) return 'No hubo respuesta. Con señal, vuelva a pulsar Enviar.';
+  return 'El relevo no pudo archivarlo. El informe sigue guardado aquí: reinténtelo, y si vuelve a fallar avise a la oficina.';
+}
+
+async function enviar(){
+  if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }
+  let clave = '';
+  try { clave = localStorage.getItem('garmel_clave_envio') || ''; } catch(e){}
+  if (!clave){
+    alert('⚠️ Este teléfono todavía no está configurado para enviar.\\n\\n' +
+          'Abra el enlace de configuración que le enviaron. El informe queda guardado aquí.');
+    return;
+  }
+  // Lo que está en pantalla se guarda primero: se envía lo guardado, no lo que
+  // se ve, y así lo que viaja es exactamente lo que queda en el teléfono.
+  const actual = datosDelFormulario();
+  const f = faltan(actual);
+  if (f.length && (actual.torre || actual.apartamentos.length || actual.general.some(g => g.items.some(i => i.sn || i.obs)))){
+    alert('A este informe le falta ' + f.join(', ') + '. Complételo antes de enviar.');
+    return;
+  }
+  if (!f.length) guardar(false);
+
+  const pendientes = listaGuardada().filter(x => !x.enviado && !faltan(x).length);
+  if (!pendientes.length){ alert('No hay informes pendientes de enviar.'); return; }
+
+  _tandaEnCurso = true;
+  let bien = 0; const fallos = [];
+  try {
+    for (const d of pendientes){
+      cartel('📤 Enviando ' + (bien + fallos.length + 1) + ' de ' + pendientes.length + '…\\n\\n' +
+             'No cierre esta pantalla ni vuelva a pulsar Enviar.');
+      const r = await enviarUno(d, clave);
+      if (r.ok) bien++; else { fallos.push(d.nro + ': ' + explicar(r.error)); console.error(d.nro, r.error); }
+    }
+  } finally { cartel(''); _tandaEnCurso = false; }
+
+  actualizarContador();
+  alert((bien ? '✓ ' + bien + ' informe(s) enviado(s) a Drive.\\n\\n' : '') +
+        (fallos.length ? '✗ ' + fallos.length + ' sin enviar — siguen guardados aquí:\\n\\n' + fallos.join('\\n\\n') : ''));
+}
+
+// ── Sin señal: la copia local y el aviso de versión nueva ─────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+  // Cuando entra una versión nueva: si nadie ha tocado el formulario se
+  // recarga sola; si hay algo escrito, se avisa y se espera. Recargar sobre
+  // un informe a medio llenar sería peor que la versión vieja.
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (!e.data || e.data.garmel !== 'version-nueva') return;
+    if (!sucio && !document.querySelectorAll('#filas-apto .fila-apto').length && !document.getElementById('torre').value){
+      location.reload(); return;
+    }
+    const b = document.createElement('div');
+    b.style.cssText = 'position:fixed;left:0;right:0;bottom:66px;background:#fef3c7;border-top:1px solid #f59e0b;' +
+      'padding:10px 14px;font-size:13px;font-weight:700;text-align:center;z-index:39';
+    b.textContent = 'Hay una versión nueva. Guarde y toque aquí para actualizar.';
+    b.onclick = () => { guardar(false); location.reload(); };
+    document.body.appendChild(b);
+  });
 }
 
 // ── Arranque ──────────────────────────────────────────────────────────────
@@ -681,6 +835,11 @@ function enviar(){
   document.getElementById('fecha').onchange = () => { actualizarNro(); marcar(); };
   document.getElementById('estatus').onchange = marcar;
   document.getElementById('obs_general').oninput = marcar;
+  if (TEST_MODE){
+    const a = document.createElement('div'); a.className = 'aviso';
+    a.style.margin = '12px'; a.textContent = '⚠️ MODO DE PRUEBA — este informe se archiva como PRUEBA-';
+    document.querySelector('.envoltorio').prepend(a);
+  }
   pintarGeneral(); pintarApartamentos(); addInspector();
   actualizarNro(); actualizarContador();
   const con = () => document.getElementById('conexion').textContent =
