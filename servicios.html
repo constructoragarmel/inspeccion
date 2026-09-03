@@ -179,7 +179,7 @@ textarea{min-height:64px;resize:vertical}
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún servicio..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v51</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v52</div>
 </div>
 
 <div class="acciones">
@@ -763,13 +763,18 @@ function verPanel(cual){
 // navegador, y aquí hay doce secciones donde ponerlas.
 function tomarFotos(ev, gridId){
   const grid = document.getElementById(gridId);
-  const files = [...ev.target.files];
+  let files = [...ev.target.files];
   ev.target.value = '';
+  // El tope se decide AQUÍ, sobre los archivos elegidos, y no dentro de cada
+  // reducción: reducir es asíncrono, y contando el grid al llegar cada foto,
+  // cinco elegidas de golpe pasaban las cinco porque el grid seguía vacío.
+  const sitio = MAX_FOTOS_SECCION - grid.children.length;
+  if (files.length > sitio){
+    alert('Máximo ' + MAX_FOTOS_SECCION + ' fotografías por sección. ' +
+          (sitio > 0 ? 'Se toman las ' + sitio + ' primeras.' : 'No cabe ninguna más aquí.'));
+    files = files.slice(0, Math.max(sitio, 0));
+  }
   files.forEach(f => {
-    if (grid.children.length >= MAX_FOTOS_SECCION){
-      alert('Máximo ' + MAX_FOTOS_SECCION + ' fotografías por sección.');
-      return;
-    }
     reducir(f, dataUrl => { pintarFotos(grid, [{ dato: dataUrl, pie: '' }], true); marcar(); });
   });
 }
