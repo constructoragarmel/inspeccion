@@ -741,6 +741,16 @@ function guardar(avisar){
   try {
     const lista = JSON.parse(localStorage.getItem(CLAVE_LISTA) || '[]');
     const i = lista.findIndex(x => x.id === d.id);
+    // Un informe YA ENVIADO no vuelve a «sin enviar» por editarlo: conserva la
+    // marca y queda anotado que se editó después. La tanda no lo manda sola;
+    // reenviarlo es una decisión explícita desde Mis informes. Sin esto, la
+    // siguiente tanda lo reenviaba callada —sin fotos, que ya se soltaron— y
+    // duplicaba su fila en Smartsheet.
+    if (i >= 0 && lista[i].enviado){
+      d.enviado = lista[i].enviado;
+      d.editadoTras = new Date().toLocaleString();
+      // las fotos ya soltadas siguen soltadas: lo que se guarda es lo que hay
+    }
     if (i >= 0) lista[i] = d; else lista.push(d);
     localStorage.setItem(CLAVE_LISTA, JSON.stringify(lista));
     sucio = false;
@@ -779,9 +789,10 @@ function abrirInformes(){
       html += '<div class="ficha"><div class="n">' + x.nro + '</div>' +
         '<div class="s">📍 ' + (x.torre || '—') + ' · 📅 ' + (x.fecha || '—') + ' · ' + (x.apartamentos || []).length + ' apto(s)</div>' +
         '<div class="s" style="font-weight:700;color:' + (x.enviado ? '#166534' : '#a15c07') + '">' +
-        (x.enviado ? '✅ Enviado ' + x.enviado : '⏳ Sin enviar') + '</div>' +
+        (x.enviado ? '✅ Enviado ' + x.enviado + (x.editadoTras ? ' · ✏️ editado después (' + x.editadoTras + ')' : '') : '⏳ Sin enviar') + '</div>' +
         '<div class="b"><button type="button" onclick="cargarInforme(\\'' + x.id + '\\')">📂 Editar</button>' +
-        (x.enviado ? '' : '<button type="button" class="env" onclick="enviarSolo(\\'' + x.id + '\\')">📤 Enviar</button>') +
+        (x.enviado ? (x.editadoTras ? '<button type="button" class="env" onclick="enviarSolo(\\'' + x.id + '\\')">🔁 Reenviar</button>' : '')
+                   : '<button type="button" class="env" onclick="enviarSolo(\\'' + x.id + '\\')">📤 Enviar</button>') +
         '<button type="button" class="del" onclick="borrarInforme(\\'' + x.id + '\\')">🗑️ Borrar</button></div></div>';
     });
   }
@@ -1003,6 +1014,7 @@ function marcarEnviado(id, nro){
     const x = l.find(y => y.id === id);
     if (x){
       x.enviado = new Date().toLocaleString();
+      delete x.editadoTras;
       // Las fotografías ya están en Drive: aquí solo ocupaban sitio. Se quedan
       // el pie y la marca. Con fotos de ~300 KB, dos informes llenaban el
       // teléfono aunque ya estuvieran enviados.
@@ -1027,6 +1039,7 @@ function explicar(err){
   if (/sector/i.test(err)) return 'El informe no tiene convenio, y sin convenio no sabe a qué sector va.';
   if (/faltan/i.test(err)) return 'Al informe le faltan datos de cabecera: ' + err;
   if (/90 segundos/.test(err)) return 'No hubo respuesta. Con señal, vuelva a pulsar Enviar.';
+  if (/Failed to fetch|NetworkError|Load failed/i.test(err)) return 'No hay señal, o el relevo no responde. Con señal, vuelva a pulsar Enviar.';
   return 'El relevo no pudo archivarlo. El informe sigue guardado aquí: reinténtelo, y si vuelve a fallar avise a la oficina.';
 }
 
@@ -1067,6 +1080,13 @@ async function enviar(){
   alert((bien ? '✓ ' + bien + ' informe(s) enviado(s) a Drive.\\n\\n' : '') +
         (fallos.length ? '✗ ' + fallos.length + ' sin enviar — siguen guardados aquí:\\n\\n' + fallos.join('\\n\\n') : ''));
 }
+
+// ── No perder lo escrito ──────────────────────────────────────────────────
+// Cerrar la pestaña con cambios sin guardar pregunta antes. Y al irse a otra
+// aplicación —una llamada, la cámara del sistema— se guarda en el acto: en un
+// teléfono, «después» puede ser que el navegador descargue la pestaña.
+addEventListener('beforeunload', e => { if (sucio){ e.preventDefault(); e.returnValue = ''; } });
+document.addEventListener('visibilitychange', () => { if (document.hidden && sucio) guardar(false); });
 
 // ── Sin señal: la copia local y el aviso de versión nueva ─────────────────
 if ('serviceWorker' in navigator) {
