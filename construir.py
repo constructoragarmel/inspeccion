@@ -7036,6 +7036,26 @@ s = sustituir(s,
  "if ('serviceWorker' in navigator) {",
  "135\u00b7 guardar al irse a otra aplicaci\u00f3n")
 
+# ── 136. El modo detallado redondeaba hacia arriba lo que el 30 truncó ─────
+# El cambio 30 puso Math.floor donde el porcentaje se escribía a mano —el modo
+# por hitos, hoy retirado—. El detallado, que es el que se usa en obra, calcula
+# el suyo por otro camino y ahí seguía Math.round: 999 de 1.000 daba 100 % en
+# la fila, en la pastilla del hito y en el total. El 100 % es el umbral que
+# habilita el cobro (ADR-0004): no se redondea hacia arriba en ningún sitio.
+# Encontrado en el segundo QC (N4), midiendo, no leyendo.
+s = sustituir(s,
+ "    const pct=Math.min(100,Math.round((ej/pr)*100));",
+ "    const pct=Math.min(100,Math.floor((ej/pr)*100));   // 99,9 % no es 100 % (cambio 30)",
+ "136a\u00b7 la fila trunca")
+s = sustituir(s,
+ "    if(pr>0){sumPct+=Math.min(100,Math.round((ej/pr)*100));cnt++;}",
+ "    if(pr>0){sumPct+=Math.min(100,Math.floor((ej/pr)*100));cnt++;}",
+ "136b\u00b7 la suma del hito trunca cada fila")
+s = sustituir(s,
+ "  const pct=cnt>0?Math.round(sumPct/cnt):null;",
+ "  const pct=cnt>0?Math.floor(sumPct/cnt):null;   // igual que el total (cambio 34)",
+ "136c\u00b7 el promedio del hito trunca")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

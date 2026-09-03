@@ -1298,10 +1298,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v52';
+    el.textContent = '● en línea · v53';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v52 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v53 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2582,7 +2582,7 @@ function recalcRow(inp){
   }
   const pctEl=document.getElementById('pct_'+rid);
   if(pr>0){
-    const pct=Math.min(100,Math.round((ej/pr)*100));
+    const pct=Math.min(100,Math.floor((ej/pr)*100));   // 99,9 % no es 100 % (cambio 30)
     const cls=pCls(pct);
     pctEl.innerHTML=`<div class="pv ${cls.n}">${pct}%</div><div class="bar-bg"><div class="bar-fill ${cls.b}" style="width:${pct}%"></div></div>`;
   } else {
@@ -2604,9 +2604,9 @@ function recalcP(pid){
     if(document.querySelector(`.ev-btn.NA.on[data-rid="${rid}"]`)) return;
     const pr=Math.max(0, parseFloat(inp.value)||0);
     const ej=Math.max(0, parseFloat(document.getElementById('ej_'+rid)?.value)||0);
-    if(pr>0){sumPct+=Math.min(100,Math.round((ej/pr)*100));cnt++;}
+    if(pr>0){sumPct+=Math.min(100,Math.floor((ej/pr)*100));cnt++;}
   });
-  const pct=cnt>0?Math.round(sumPct/cnt):null;
+  const pct=cnt>0?Math.floor(sumPct/cnt):null;   // igual que el total (cambio 34)
   const txt=pct!==null?pct+'%':'—';
   const cls=pct!==null?pCls(pct):null;
 
