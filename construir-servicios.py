@@ -129,6 +129,33 @@ textarea{min-height:64px;resize:vertical}
       background:#fee2e2;color:#991b1b;font-size:12px;font-weight:600}
 .aviso{background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:10px;
       font-size:13px;margin-bottom:10px}
+.acciones button small{display:block;font-size:11px;font-weight:600;opacity:.8;line-height:1}
+.acciones button{font-size:13px;padding:0 4px}
+.titulo-srv{display:flex;justify-content:space-between;align-items:center;gap:8px}
+/* La pastilla vive en la cabecera del servicio, como en inspección. */
+/* 44 px, sin la excepción de inspección: allá la pastilla vive en una cabecera
+   que pliega el hito y a 44 se tocaba sin querer; aquí la cabecera no hace nada. */
+.no-insp{min-height:44px;padding:0 10px;border-radius:7px;font-size:11px;font-weight:800;
+      background:#fff;color:var(--azul);border:1px solid rgba(255,255,255,.9);white-space:nowrap}
+.no-insp.on{background:#3e2723;color:#fff}
+.srv.no-inspeccionado .cuerpo{display:none}
+.srv .nota-ni{display:none;background:#fff8e1;border:1.5px solid #ffb300;border-radius:8px;
+      padding:10px 12px;font-size:13px;font-weight:600;color:#4e342e;margin-bottom:10px}
+.srv.no-inspeccionado .nota-ni{display:block}
+#modal-informes{position:fixed;inset:0;z-index:50;background:rgba(17,24,39,.6);
+      display:flex;align-items:flex-end}
+#modal-informes .caja{background:#fff;width:100%;max-height:85vh;overflow:auto;
+      border-radius:14px 14px 0 0;padding:14px}
+#modal-informes h2{font-size:16px;margin:0 0 10px}
+.ficha{border:1px solid var(--borde);border-radius:8px;padding:10px;margin-bottom:8px}
+.ficha .n{font-weight:700;font-size:14px}.ficha .s{font-size:12px;color:#64748b}
+.ficha .b{display:flex;gap:6px;margin-top:8px}
+.ficha .b button{flex:1;min-height:44px;border:1px solid var(--borde);border-radius:6px;
+      background:#f8fafc;font-weight:600;font-size:13px}
+.ficha .b .env{background:var(--azul);color:#fff;border-color:var(--azul)}
+.ficha .b .del{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+.enDrive{display:flex;align-items:center;justify-content:center;height:80px;
+      background:#f1f5f9;border-radius:4px;font-size:12px;color:#64748b;text-align:center;padding:6px}
 """
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -192,8 +219,8 @@ HTML = """<!DOCTYPE html>
   </div>
 
   <div class="pestanas">
-    <button type="button" id="tab-a" class="on" onclick="verPanel('a')">A) General</button>
-    <button type="button" id="tab-b" onclick="verPanel('b')">B) Apartamentos</button>
+    <button type="button" id="tab-a" class="on" onclick="verPanel('a')">General</button>
+    <button type="button" id="tab-b" onclick="verPanel('b')">Apartamentos</button>
   </div>
 
   <div id="panel-a" class="panel on"></div>
@@ -208,10 +235,12 @@ HTML = """<!DOCTYPE html>
 </div>
 
 <div class="acciones">
-  <button type="button" class="b1" onclick="verInformes()">Mis informes (<span id="cnt">0</span>)</button>
-  <button type="button" class="b1" onclick="guardar(true)">Guardar</button>
-  <button type="button" class="b2" onclick="enviar()">Enviar</button>
+  <button type="button" class="b1" onclick="abrirInformes()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 Mis informes<br><small id="cnt">0</small></button>
+  <button type="button" class="b1" onclick="guardar(true)" title="Guarda en este teléfono. Se guarda solo a los 2 segundos y cada 30">💾 Guardar</button>
+  <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
+  <button type="button" class="b2" onclick="enviar()" title="Manda a Drive todos los pendientes. Hasta entonces viven solo aquí">📤 Enviar</button>
 </div>
+<div id="modal-informes" hidden></div>
 
 <script>
 const TORRES_DATA = @@TORRES@@;
@@ -374,21 +403,39 @@ function pintarGeneral(){
   cont.innerHTML = '';
   GENERAL.forEach(srv => {
     const bloque = document.createElement('div');
-    let html = '<div class="titulo-srv">' + srv.nombre + '</div>';
+    bloque.className = 'srv'; bloque.id = 'srv-' + srv.id;
+    let html = '<div class="titulo-srv"><span>' + srv.nombre + '</span>' +
+      '<button type="button" class="no-insp" onclick="toggleNoInsp(\\'' + srv.id + '\\')">NO INSPECCIONADO</button></div>' +
+      '<div class="nota-ni">Este servicio está marcado como NO INSPECCIONADO. Para llenarlo, toque otra vez el botón de la cabecera.</div>' +
+      '<div class="cuerpo">';
     if (!srv.items.length){
       html += '<div class="vacio">Este servicio todavía no tiene lista de ítems.<br>' +
               'Agréguelos abajo mientras Ingeniería la define.</div>';
     }
     html += '<div id="items-' + srv.id + '"></div>' +
             '<button type="button" class="btn-add" onclick="addItem(\\'' + srv.id + '\\')">＋ Agregar ítem</button>' +
-            '<div class="tarjeta"><label style="font-weight:600;font-size:13px;color:#475569">' +
-            'Fotografías — ' + srv.nombre + ' (máx. ' + MAX_FOTOS_SECCION + ')</label>' +
-            '<input type="file" accept="image/*" multiple onchange="tomarFotos(event,\\'' + srv.id + '\\')">' +
-            '<div class="fotos" id="fotos-' + srv.id + '"></div></div>';
+            bloqueFotos('fotos-' + srv.id, 'Fotografías') + '</div>';
     bloque.innerHTML = html;
     cont.appendChild(bloque);
     srv.items.forEach(nombre => addItem(srv.id, nombre, true));
   });
+}
+
+// El mismo bloque de fotografías sirve para un servicio y para un apartamento.
+function bloqueFotos(gridId, titulo){
+  return '<div class="tarjeta" style="margin:8px 0 0"><label style="font-weight:600;font-size:13px;color:#475569">' +
+    titulo + ' (máx. ' + MAX_FOTOS_SECCION + ')</label>' +
+    '<input type="file" accept="image/*" multiple onchange="tomarFotos(event,\\'' + gridId + '\\')">' +
+    '<div class="fotos" id="' + gridId + '"></div></div>';
+}
+
+// «No inspeccionado» es una afirmación del inspector, no una deducción: el
+// servicio se oculta, no cuenta, y se puede volver a abrir.
+function toggleNoInsp(sid){
+  const b = document.getElementById('srv-' + sid);
+  b.classList.toggle('no-inspeccionado');
+  b.querySelector('.no-insp').classList.toggle('on', b.classList.contains('no-inspeccionado'));
+  marcar();
 }
 
 // Un ítem: Sí / No / SIN MARCAR. Los tres estados importan — sin marcar NO es
@@ -439,17 +486,21 @@ function pintarApartamentos(){
     '<button type="button" class="btn-add" onclick="addApartamento()">＋ Agregar apartamento</button>';
 }
 
+let _nApto = 0;
 function addApartamento(datos){
   const v = document.getElementById('b-vacio'); if (v) v.style.display = 'none';
   const cont = document.getElementById('filas-apto');
   const d = document.createElement('div');
-  d.className = 'fila-apto';
+  d.className = 'fila-apto'; d.dataset.k = ++_nApto;
+  // El PISO va primero: se elige, y después se escribe el apartamento. Al
+  // revés confundía —se escribía el apto y aparecía otro selector—.
   let html = '<div class="cab">' +
-    '<input type="text" class="apto" placeholder="Apto / área" oninput="marcar()" style="flex:2">' +
     '<select class="piso" onchange="marcar()" style="flex:1"><option value="">Piso</option>' +
     '<option value="PB">Planta Baja</option>';
   for (let i = 1; i <= 20; i++) html += '<option value="P' + String(i).padStart(2,'0') + '">Piso ' + String(i).padStart(2,'0') + '</option>';
-  html += '</select><button type="button" class="quitar" onclick="quitarApto(this)">✕</button></div>';
+  html += '</select>' +
+    '<input type="text" class="apto" placeholder="Apto / área" oninput="marcar()" style="flex:1">' +
+    '<button type="button" class="quitar" onclick="quitarApto(this)">✕</button></div>';
 
   APARTAMENTOS.forEach(tabla => {
     html += '<div style="margin-top:8px"><div style="font-weight:600;font-size:13px;color:var(--azul)">' +
@@ -476,10 +527,25 @@ function addApartamento(datos){
     });
     html += '</div>';
   });
+  html += bloqueFotos('fotos-apto-' + _nApto, 'Fotografías del apartamento');
   d.innerHTML = html;
   cont.appendChild(d);
   if (datos) cargarApto(d, datos);
   marcar();
+}
+
+function cargarApto(fila, a){
+  fila.querySelector('.apto').value = a.apto || '';
+  fila.querySelector('.piso').value = a.piso || '';
+  Object.entries(a.campos || {}).forEach(([k, v]) => {
+    const el = fila.querySelector('[data-campo="' + k + '"]');
+    if (!el) return;
+    if (el.classList.contains('sino')){
+      const b = el.querySelector(v === 'SI' ? 'button:first-child' : v === 'NO' ? 'button:last-child' : 'x');
+      if (b) b.classList.add(v === 'SI' ? 'si-on' : 'no-on');
+    } else el.value = v;
+  });
+  pintarFotos(fila.querySelector('.fotos'), a.fotos || []);
 }
 
 function quitarApto(btn){
@@ -501,26 +567,32 @@ function verPanel(cual){
 // Se reducen ANTES de guardarlas, con los mismos valores medidos en el otro
 // formulario. Una foto de cámara en crudo no cabe en el almacenamiento del
 // navegador, y aquí hay doce secciones donde ponerlas.
-function tomarFotos(ev, sid){
-  const grid = document.getElementById('fotos-' + sid);
+function tomarFotos(ev, gridId){
+  const grid = document.getElementById(gridId);
   const files = [...ev.target.files];
   ev.target.value = '';
   files.forEach(f => {
     if (grid.children.length >= MAX_FOTOS_SECCION){
-      alert('Máximo ' + MAX_FOTOS_SECCION + ' fotografías por servicio.');
+      alert('Máximo ' + MAX_FOTOS_SECCION + ' fotografías por sección.');
       return;
     }
-    reducir(f, dataUrl => {
-      const c = document.createElement('div');
-      c.className = 'foto';
-      c.innerHTML = '<img src="' + dataUrl + '">' +
-        '<textarea placeholder="Descripción..." oninput="marcar()" style="min-height:44px;font-size:12px"></textarea>' +
-        '<button type="button" onclick="this.parentElement.remove();marcar()">Eliminar</button>';
-      grid.appendChild(c);
-      marcar();   // ⚠️ la foto marca el informe como modificado: en el otro
-                  // formulario no lo hacía y por eso se perdían fotografías en
-                  // teléfonos lentos, que tardaban más que el autoguardado
-    });
+    reducir(f, dataUrl => { pintarFotos(grid, [{ dato: dataUrl, pie: '' }], true); marcar(); });
+  });
+}
+
+// Una foto ya enviada no vuelve a ocupar sitio aquí: se muestra su marca y su
+// pie, y el archivo está en Drive.
+function pintarFotos(grid, fotos, anadir){
+  if (!anadir) grid.innerHTML = '';
+  fotos.forEach(f => {
+    const c = document.createElement('div');
+    c.className = 'foto';
+    c.innerHTML = (f.dato ? '<img src="' + f.dato + '">' : '<div class="enDrive">📷 ya en Drive</div>') +
+      '<textarea placeholder="Descripción..." oninput="marcar()" style="min-height:44px;font-size:12px"></textarea>' +
+      (f.dato ? '<button type="button" onclick="this.parentElement.remove();marcar()">Eliminar</button>' : '');
+    c.querySelector('textarea').value = f.pie || '';
+    if (!f.dato) c.dataset.enDrive = '1';
+    grid.appendChild(c);
   });
 }
 
@@ -560,6 +632,14 @@ function marcar(){
 }
 setInterval(() => { if (sucio) guardar(false); }, 30000);
 
+function leerFotos(grid){
+  return [...grid.querySelectorAll('.foto')].map(f => ({
+    dato: f.dataset.enDrive ? '' : f.querySelector('img').src,
+    enDrive: !!f.dataset.enDrive,
+    pie: (f.querySelector('textarea').value || '').trim()
+  }));
+}
+
 function datosDelFormulario(){
   const val = id => (document.getElementById(id) || {}).value || '';
   const general = GENERAL.map(srv => ({
@@ -571,11 +651,9 @@ function datosDelFormulario(){
       sn: valorSN(it),
       obs: (it.querySelector('textarea').value || '').trim()
     })),
-    fotos: [...document.querySelectorAll('#fotos-' + srv.id + ' .foto')].map(f => ({
-      dato: f.querySelector('img').src,
-      pie: (f.querySelector('textarea').value || '').trim()
-    }))
+    fotos: leerFotos(document.getElementById('fotos-' + srv.id))
   }));
+  const noInsp = GENERAL.filter(srv => document.getElementById('srv-' + srv.id).classList.contains('no-inspeccionado')).map(s => s.id);
   const aptos = [...document.querySelectorAll('#filas-apto .fila-apto')].map(fila => {
     const campos = {};
     fila.querySelectorAll('[data-campo]').forEach(el => {
@@ -584,7 +662,8 @@ function datosDelFormulario(){
         : (el.value || '').trim();
     });
     return { apto: fila.querySelector('.apto').value.trim(),
-             piso: fila.querySelector('.piso').value, campos };
+             piso: fila.querySelector('.piso').value, campos,
+             fotos: leerFotos(fila.querySelector('.fotos')) };
   });
   return {
     id: idActual || ('srv_' + Date.now()),
@@ -594,6 +673,7 @@ function datosDelFormulario(){
     residente: val('residente'), fecha: val('fecha'), estatus: val('estatus'),
     inspectores: inspectoresElegidos(),
     obs_general: val('obs_general'),
+    noInspeccionados: noInsp,
     general, apartamentos: aptos,
     guardado: new Date().toISOString()
   };
@@ -628,16 +708,114 @@ function actualizarContador(){
   const n = listaGuardada().filter(x => !x.enviado).length;
   document.getElementById('cnt').textContent = n;
 }
-function verInformes(){
+function abrirInformes(){
   const l = listaGuardada();
-  if (!l.length) return alert('No hay informes guardados en este teléfono.');
-  const enviados = l.filter(x => x.enviado).length;
-  let txt = 'Informes en este teléfono:\\n\\n' +
-        l.map(x => (x.enviado ? '✓ ' : '• ') + x.nro).join('\\n') +
-        '\\n\\nLos marcados con • existen SOLO aquí hasta que se envíen.';
-  if (enviados) txt += '\\n\\n¿Borrar los ' + enviados + ' que ya se enviaron? ' +
-        'Están a salvo en Drive y aquí solo ocupan sitio.';
-  if (enviados && confirm(txt)) borrarEnviados(); else alert(txt);
+  const m = document.getElementById('modal-informes');
+  const pend = l.filter(x => !x.enviado).length, env = l.length - pend;
+  let html = '<div class="caja"><h2>Informes en este teléfono</h2>';
+  if (!l.length) html += '<div class="vacio">No hay informes guardados aquí.</div>';
+  else {
+    html += '<p style="font-size:13px;color:#64748b;margin:0 0 10px">' + pend + ' sin enviar · ' + env + ' enviados. ' +
+            'Los que no se han enviado existen SOLO en este teléfono.</p>';
+    if (pend) html += '<button type="button" class="btn-add" onclick="cerrarInformes();enviar()">📤 Enviar todos los pendientes (' + pend + ')</button>';
+    if (env)  html += '<button type="button" class="btn-add" style="border-color:#991b1b;color:#991b1b;background:#fee2e2" onclick="borrarEnviados()">🧹 Borrar los ' + env + ' que ya se enviaron</button>';
+    [...l].reverse().forEach(x => {
+      html += '<div class="ficha"><div class="n">' + x.nro + '</div>' +
+        '<div class="s">📍 ' + (x.torre || '—') + ' · 📅 ' + (x.fecha || '—') + ' · ' + (x.apartamentos || []).length + ' apto(s)</div>' +
+        '<div class="s" style="font-weight:700;color:' + (x.enviado ? '#166534' : '#a15c07') + '">' +
+        (x.enviado ? '✅ Enviado ' + x.enviado : '⏳ Sin enviar') + '</div>' +
+        '<div class="b"><button type="button" onclick="cargarInforme(\\'' + x.id + '\\')">📂 Editar</button>' +
+        (x.enviado ? '' : '<button type="button" class="env" onclick="enviarSolo(\\'' + x.id + '\\')">📤 Enviar</button>') +
+        '<button type="button" class="del" onclick="borrarInforme(\\'' + x.id + '\\')">🗑️ Borrar</button></div></div>';
+    });
+  }
+  html += '<button type="button" class="btn-add" style="margin-top:6px" onclick="cerrarInformes()">Cerrar</button></div>';
+  m.innerHTML = html; m.hidden = false;
+}
+function cerrarInformes(){ document.getElementById('modal-informes').hidden = true; }
+
+async function enviarSolo(id){
+  cerrarInformes();
+  const d = listaGuardada().find(x => x.id === id);
+  if (!d) return;
+  let clave = ''; try { clave = localStorage.getItem('garmel_clave_envio') || ''; } catch(e){}
+  if (!clave){ alert('⚠️ Este teléfono todavía no está configurado para enviar.'); return; }
+  if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }
+  _tandaEnCurso = true;
+  try { cartel('📤 Enviando ' + d.nro + '…\\n\\nNo cierre esta pantalla ni vuelva a pulsar.');
+        const r = await enviarUno(d, clave);
+        alert(r.ok ? '✓ ' + d.nro + ' enviado a Drive.' : '✗ ' + d.nro + ': ' + explicar(r.error)); }
+  finally { cartel(''); _tandaEnCurso = false; }
+  actualizarContador();
+}
+
+function borrarInforme(id){
+  const d = listaGuardada().find(x => x.id === id);
+  if (!d) return;
+  if (!confirm((d.enviado ? 'Este informe ya está en Drive. ' : '⚠️ Este informe NO se ha enviado: existe solo aquí. ') +
+               '¿Borrarlo de este teléfono?')) return;
+  localStorage.setItem(CLAVE_LISTA, JSON.stringify(listaGuardada().filter(x => x.id !== id)));
+  if (idActual === id) idActual = null;
+  actualizarContador(); abrirInformes();
+}
+
+// Volver a poner en pantalla un informe guardado. El identificador se
+// recalcula con lo cargado, y el id se conserva: editar no duplica.
+function cargarInforme(id){
+  const d = listaGuardada().find(x => x.id === id);
+  if (!d) return;
+  cerrarInformes();
+  if (sucio && !confirm('Hay cambios sin guardar en pantalla. ¿Descartarlos y abrir ' + d.nro + '?')) return;
+  vaciarFormulario();
+  idActual = d.id;
+  const t = document.getElementById('torre'); t.value = d.torre || ''; alElegirTorre();
+  if (d.convenio){ document.getElementById('convenio').value = d.convenio; alElegirConvenio(); }
+  document.getElementById('empresa').value = d.empresa || '';
+  document.getElementById('residente').value = d.residente || '';
+  if (d.fecha) document.getElementById('fecha').value = d.fecha;
+  document.getElementById('estatus').value = d.estatus || '';
+  document.getElementById('obs_general').value = d.obs_general || '';
+  document.getElementById('inspectores').innerHTML = '';
+  (d.inspectores && d.inspectores.length ? d.inspectores : ['']).forEach(i => addInspector(i));
+  (d.general || []).forEach(g => {
+    const cont = document.getElementById('items-' + g.id); if (!cont) return;
+    const fijos = [...cont.querySelectorAll('.item[data-fijo="1"]')];
+    (g.items || []).forEach(it => {
+      let el;
+      if (it.agregado){ addItem(g.id, '', false); el = cont.lastElementChild; el.querySelector('.nombre-libre').value = it.nombre || ''; }
+      else el = fijos.find(f => f.querySelector('.nombre').textContent === it.nombre);
+      if (!el) return;
+      const g2 = el.querySelector('.sino');
+      if (it.sn === 'SI') g2.children[0].classList.add('si-on');
+      if (it.sn === 'NO') g2.children[1].classList.add('no-on');
+      el.querySelector('textarea').value = it.obs || '';
+    });
+    pintarFotos(document.getElementById('fotos-' + g.id), g.fotos || []);
+  });
+  (d.noInspeccionados || []).forEach(sid => { const b = document.getElementById('srv-' + sid);
+    if (b){ b.classList.add('no-inspeccionado'); b.querySelector('.no-insp').classList.add('on'); } });
+  (d.apartamentos || []).forEach(a => addApartamento(a));
+  actualizarNro(); sucio = false;
+  window.scrollTo(0, 0);
+}
+
+function vaciarFormulario(){
+  ['empresa','residente','obs_general'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('torre').value = ''; alElegirTorre();
+  document.getElementById('estatus').value = '';
+  document.getElementById('inspectores').innerHTML = ''; addInspector();
+  pintarGeneral(); pintarApartamentos();
+  const hoy = new Date();
+  document.getElementById('fecha').value = hoy.getFullYear() + '-' + String(hoy.getMonth()+1).padStart(2,'0') + '-' + String(hoy.getDate()).padStart(2,'0');
+  idActual = null; sucio = false; actualizarNro();
+}
+
+// «Nuevo» deja el formulario en blanco. Lo que había en pantalla se guarda
+// antes si tenía algo: los informes guardados no se tocan.
+function nuevoInforme(){
+  if (sucio && !confirm('¿Guardar lo que hay en pantalla y empezar un informe nuevo?')) return;
+  if (sucio) guardar(false);
+  vaciarFormulario();
 }
 
 // El remedio cuando el teléfono se llena: lo enviado está a salvo en Drive.
@@ -646,6 +824,7 @@ function borrarEnviados(){
   localStorage.setItem(CLAVE_LISTA, JSON.stringify(quedan));
   actualizarContador();
   alert('Listo. Quedan ' + quedan.length + ' informes sin enviar en este teléfono.');
+  abrirInformes();
 }
 
 // ⚠️ AVISAR ANTES DE QUE FALLE, no cuando ya falló. En el otro formulario el
@@ -686,12 +865,12 @@ function faltan(d){
 function sobreDe(d, clave){
   const fotos = [];
   const datos = JSON.parse(JSON.stringify(d));
-  datos.general.forEach(srv => {
-    srv.fotos = (srv.fotos || []).map((f, k) => {
-      if (f.dato) fotos.push({ nombre: srv.id + '-' + (k + 1), dato: f.dato });
-      return { pie: f.pie || '' };
-    });
+  const soltar = (lista, prefijo) => (lista || []).map((f, k) => {
+    if (f.dato) fotos.push({ nombre: prefijo + '-' + (k + 1), dato: f.dato });
+    return { pie: f.pie || '' };
   });
+  datos.general.forEach(srv => { srv.fotos = soltar(srv.fotos, srv.id); });
+  datos.apartamentos.forEach((a, i) => { a.fotos = soltar(a.fotos, 'apto-' + (i + 1) + '-' + limpiar(a.apto || '')); });
   // El registro del relevo lee `estatus` y `residentes` como LISTAS —les hace
   // .join()— porque así viajan desde inspección. Un texto suelto reventaría
   // dentro de anotarEnRegistro y el relevo contestaría ok:false a todos.
@@ -742,7 +921,15 @@ function marcarEnviado(id, nro){
   try {
     const l = listaGuardada();
     const x = l.find(y => y.id === id);
-    if (x){ x.enviado = new Date().toLocaleString(); }
+    if (x){
+      x.enviado = new Date().toLocaleString();
+      // Las fotografías ya están en Drive: aquí solo ocupaban sitio. Se quedan
+      // el pie y la marca. Con fotos de ~300 KB, dos informes llenaban el
+      // teléfono aunque ya estuvieran enviados.
+      const soltar = f => ({ pie: f.pie || '', enDrive: true });
+      (x.general || []).forEach(g => { g.fotos = (g.fotos || []).map(soltar); });
+      (x.apartamentos || []).forEach(a => { a.fotos = (a.fotos || []).map(soltar); });
+    }
     localStorage.setItem(CLAVE_LISTA, JSON.stringify(l));
     actualizarContador();
   } catch (e) {
@@ -864,13 +1051,27 @@ def js_de(bloque_js):
     return v[:-1] if v.endswith(';') else v
 
 
+# Servicios lo firman dos personas —Hernán Escobar y Oriana Plaza—, no los
+# catorce. Se filtran del padrón común por nombre, para que si les cambia el CIV
+# allá, cambie aquí. Si un nombre deja de casar, el generador lo dice.
+INSPECTORES_SERVICIOS = ["Hern\u00e1n Escobar", "Oriana Plaza"]
+
+def inspectores_de_servicios():
+    todos = json.loads(js_de(maestros.INSPECTORES_JS))
+    sel = [i for i in todos if any(i.startswith(n) for n in INSPECTORES_SERVICIOS)]
+    if len(sel) != len(INSPECTORES_SERVICIOS):
+        sys.exit("\u2717 No encontr\u00e9 en el padr\u00f3n a: %s" %
+                 [n for n in INSPECTORES_SERVICIOS if not any(i.startswith(n) for i in todos)])
+    return sel
+
+
 def construir():
     pagina = (HTML
         .replace('@@CSS@@', CSS)
         .replace('@@VERSION@@', VERSION)
         .replace('@@TORRES@@', js_de(maestros.TORRES_JS))
         .replace('@@SECTOR@@', js_de(maestros.SECTOR_POR_CONVENIO_JS))
-        .replace('@@INSPECTORES@@', js_de(maestros.INSPECTORES_JS))
+        .replace('@@INSPECTORES@@', json.dumps(inspectores_de_servicios(), ensure_ascii=False))
         .replace('@@GENERAL@@', json.dumps(contenido.GENERAL, ensure_ascii=False, indent=2))
         .replace('@@APARTAMENTOS@@', json.dumps(contenido.APARTAMENTOS, ensure_ascii=False, indent=2))
         .replace('@@UNIDAD@@', json.dumps(contenido.UNIDAD_CANTIDAD))
