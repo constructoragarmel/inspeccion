@@ -6999,6 +6999,28 @@ s = sustituir(s,
  """<button id="btn-cambiar-rol" onclick="abrirEleccionDeRol()" style="display:none;min-height:44px;""",
  "133b\u00b7 y el bot\u00f3n de cambiar rol se oculta")
 
+# ── 134. Un informe enviado suelta sus fotografías del teléfono ──────────────
+# Medido el 3-sep-2026: un teléfono con DOS informes enviados avisaba de estar
+# al 107 % de su espacio. Cada fotografía pesa ~300 KB, y los informes enviados
+# se quedaban enteros en localStorage aunque ya estuvieran a salvo en Drive.
+# «Borrar los que ya se enviaron» era el único remedio, y había que acordarse.
+#
+# Ahora, al marcar un informe como enviado, sus fotografías se vacían de la
+# copia local. Se queda todo lo demás —cantidades, evaluaciones, observaciones
+# por hito—, y al reabrirlo las ranuras de foto salen vacías, que es lo que ya
+# hacía el restaurador con un src vacío. El archivo está en Drive con el nombre
+# del informe.
+s = sustituir(s,
+ """      if(b && b.nro === nro && !b.enviado){ b.enviado = new Date().toLocaleString(); cambio = true; }""",
+ """      if(b && b.nro === nro && !b.enviado){
+        b.enviado = new Date().toLocaleString(); cambio = true;
+        // Las fotografías ya están en Drive: aquí solo ocupaban sitio.
+        if(b.fotos) Object.keys(b.fotos).forEach(function(pid){
+          b.fotos[pid] = (b.fotos[pid] || []).map(function(){ return ''; });
+        });
+      }""",
+ "134\u00b7 al marcar enviado se sueltan las fotograf\u00edas de la copia local")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

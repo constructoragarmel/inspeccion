@@ -2921,7 +2921,13 @@ function _marcarComoEnviado(nro){
     const lista = getSavedReports();
     let cambio = false;
     lista.forEach(function(b){
-      if(b && b.nro === nro && !b.enviado){ b.enviado = new Date().toLocaleString(); cambio = true; }
+      if(b && b.nro === nro && !b.enviado){
+        b.enviado = new Date().toLocaleString(); cambio = true;
+        // Las fotografías ya están en Drive: aquí solo ocupaban sitio.
+        if(b.fotos) Object.keys(b.fotos).forEach(function(pid){
+          b.fotos[pid] = (b.fotos[pid] || []).map(function(){ return ''; });
+        });
+      }
     });
     if(cambio) localStorage.setItem('garmel_reports_list', JSON.stringify(lista));
     actualizarContadores();
