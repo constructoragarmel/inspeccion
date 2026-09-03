@@ -62,7 +62,7 @@ CSS = """
 :root{--azul:#1a237e;--azul-cl:#e8eaf6;--borde:#cbd5e1;--texto:#1e293b;--fondo:#f1f5f9}
 *{box-sizing:border-box}
 body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--fondo);
-     color:var(--texto);margin:0;padding:0 0 92px;font-size:15px;line-height:1.45}
+     color:var(--texto);margin:0;padding:0 0 140px;font-size:15px;line-height:1.45}
 header{background:var(--azul);color:#fff;padding:12px 14px;position:sticky;top:0;z-index:30}
 header h1{margin:0;font-size:15px;font-weight:700;letter-spacing:.3px}
 header .nro{font-size:12px;opacity:.85;margin-top:3px;font-variant-numeric:tabular-nums}
@@ -105,6 +105,7 @@ textarea{min-height:64px;resize:vertical}
       background:#fff;font-weight:700;font-size:14px;color:#475569}
 .sino button.si-on{background:#166534;color:#fff;border-color:#166534}
 .sino button.no-on{background:#991b1b;color:#fff;border-color:#991b1b}
+.sino button.na-on{background:#475569;color:#fff;border-color:#475569}
 .vacio{padding:14px;text-align:center;color:#64748b;font-size:13px;
       border:1px dashed var(--borde);border-radius:8px;background:#f8fafc}
 .btn-add{min-height:44px;width:100%;border:1px dashed var(--azul);background:var(--azul-cl);
@@ -118,7 +119,10 @@ textarea{min-height:64px;resize:vertical}
 .quitar{min-width:44px;min-height:44px;border:none;border-radius:6px;background:#fee2e2;
       color:#991b1b;font-weight:700;font-size:16px}
 .acciones{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--borde);
-      display:flex;gap:8px;padding:8px;z-index:40}
+      padding:8px;z-index:40}
+.acciones .fila-principal,.acciones .fila-mas{display:flex;gap:8px}
+.acciones .fila-mas{margin-bottom:8px}
+.acciones .mas{flex:0 0 48px;font-size:20px}
 .acciones button{flex:1;min-height:48px;border:none;border-radius:8px;font-weight:700;font-size:14px}
 .b1{background:#e2e8f0;color:#334155}.b2{background:var(--azul);color:#fff}
 .pie{text-align:center;font-size:12px;color:#64748b;padding:6px}
@@ -131,7 +135,12 @@ textarea{min-height:64px;resize:vertical}
       font-size:13px;margin-bottom:10px}
 .acciones button small{display:block;font-size:11px;font-weight:600;opacity:.8;line-height:1}
 .acciones button{font-size:13px;padding:0 4px}
-.titulo-srv{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.titulo-srv{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 4px 4px 10px}
+.titulo-srv .abrir{flex:1;min-height:44px;text-align:left;background:none;border:none;color:#fff;
+      font:inherit;font-weight:700;font-size:14px;padding:0}
+.titulo-srv .flecha{display:inline-block;width:14px}
+.titulo-srv .cuenta{font-weight:600;opacity:.85;font-size:12px}
+.srv .obs-srv{margin-top:6px}
 /* La pastilla vive en la cabecera del servicio, como en inspección. */
 /* 44 px, sin la excepción de inspección: allá la pastilla vive en una cabecera
    que pliega el hito y a 44 se tocaba sin querer; aquí la cabecera no hace nada. */
@@ -235,10 +244,18 @@ HTML = """<!DOCTYPE html>
 </div>
 
 <div class="acciones">
-  <button type="button" class="b1" onclick="abrirInformes()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 Mis informes<br><small id="cnt">0</small></button>
-  <button type="button" class="b1" onclick="guardar(true)" title="Guarda en este teléfono. Se guarda solo a los 2 segundos y cada 30">💾 Guardar</button>
-  <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
-  <button type="button" class="b2" onclick="enviar()" title="Manda a Drive todos los pendientes. Hasta entonces viven solo aquí">📤 Enviar</button>
+  <!-- Lo que se usa de pie va a la vista; Guardar y Nuevo, detrás del «⋯»,
+       como en inspección: cinco botones no caben en 375 px sin achicarse. -->
+  <div class="fila-mas" id="fila-mas" hidden>
+    <button type="button" class="b1" onclick="guardar(true)" title="Guarda en este teléfono. Se guarda solo a los 2 segundos y cada 30">💾 Guardar</button>
+    <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
+  </div>
+  <div class="fila-principal">
+    <button type="button" class="b1" onclick="siguienteTorre()" title="Guarda este informe y prepara el de la siguiente torre, conservando inspector, fecha y estatus">➡️ Sig. torre</button>
+    <button type="button" class="b1" onclick="abrirInformes()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 Informes<br><small id="cnt">0</small></button>
+    <button type="button" class="b2" onclick="enviar()" title="Manda a Drive todos los pendientes. Hasta entonces viven solo aquí">📤 Enviar</button>
+    <button type="button" class="b1 mas" onclick="const f=document.getElementById('fila-mas');f.hidden=!f.hidden" title="Resto de las acciones">⋯</button>
+  </div>
 </div>
 <div id="modal-informes" hidden></div>
 
@@ -404,16 +421,22 @@ function pintarGeneral(){
   GENERAL.forEach(srv => {
     const bloque = document.createElement('div');
     bloque.className = 'srv'; bloque.id = 'srv-' + srv.id;
-    let html = '<div class="titulo-srv"><span>' + srv.nombre + '</span>' +
+    // Plegado de entrada, como los hitos en el teléfono: siete servicios con
+    // 26 ítems no caben en una pantalla, y plegados se ve de un vistazo qué
+    // falta. Se abre tocando el TÍTULO —no la cabecera entera— para que la
+    // pastilla de no inspeccionado no quede en el camino del dedo.
+    let html = '<div class="titulo-srv"><button type="button" class="abrir" onclick="plegar(\\'' + srv.id + '\\')">' +
+      '<span class="flecha">▸</span> ' + srv.nombre + ' <span class="cuenta" id="cuenta-' + srv.id + '"></span></button>' +
       '<button type="button" class="no-insp" onclick="toggleNoInsp(\\'' + srv.id + '\\')">NO INSPECCIONADO</button></div>' +
       '<div class="nota-ni">Este servicio está marcado como NO INSPECCIONADO. Para llenarlo, toque otra vez el botón de la cabecera.</div>' +
-      '<div class="cuerpo">';
+      '<div class="cuerpo" hidden>';
     if (!srv.items.length){
       html += '<div class="vacio">Este servicio todavía no tiene lista de ítems.<br>' +
               'Agréguelos abajo mientras Ingeniería la define.</div>';
     }
     html += '<div id="items-' + srv.id + '"></div>' +
             '<button type="button" class="btn-add" onclick="addItem(\\'' + srv.id + '\\')">＋ Agregar ítem</button>' +
+            '<textarea class="obs-srv" placeholder="Observación del servicio..." oninput="marcar()"></textarea>' +
             bloqueFotos('fotos-' + srv.id, 'Fotografías') + '</div>';
     bloque.innerHTML = html;
     cont.appendChild(bloque);
@@ -429,12 +452,32 @@ function bloqueFotos(gridId, titulo){
     '<div class="fotos" id="' + gridId + '"></div></div>';
 }
 
+function plegar(sid, abrir){
+  const b = document.getElementById('srv-' + sid);
+  const c = b.querySelector('.cuerpo');
+  c.hidden = (abrir === undefined) ? !c.hidden : !abrir;
+  b.querySelector('.flecha').textContent = c.hidden ? '▸' : '▾';
+}
+
+// «4/6»: cuántos ítems tienen respuesta —sí, no o no aplica— de los que hay.
+function actualizarCuentas(){
+  GENERAL.forEach(srv => {
+    const el = document.getElementById('cuenta-' + srv.id); if (!el) return;
+    const b = document.getElementById('srv-' + srv.id);
+    if (b.classList.contains('no-inspeccionado')){ el.textContent = '· no inspeccionado'; return; }
+    const items = [...document.querySelectorAll('#items-' + srv.id + ' .item')];
+    const hechos = items.filter(i => valorSN(i)).length;
+    el.textContent = items.length ? '· ' + hechos + '/' + items.length : '';
+  });
+}
+
 // «No inspeccionado» es una afirmación del inspector, no una deducción: el
 // servicio se oculta, no cuenta, y se puede volver a abrir.
 function toggleNoInsp(sid){
   const b = document.getElementById('srv-' + sid);
   b.classList.toggle('no-inspeccionado');
   b.querySelector('.no-insp').classList.toggle('on', b.classList.contains('no-inspeccionado'));
+  if (b.classList.contains('no-inspeccionado')) plegar(sid, false);
   marcar();
 }
 
@@ -447,9 +490,12 @@ function addItem(sid, nombre, fijo){
   d.innerHTML =
     (fijo ? '<div class="nombre">' + nombre + '</div>'
           : '<input type="text" class="nombre-libre" placeholder="Escriba el ítem..." oninput="marcar()">') +
+    // Tres respuestas y el vacío. «No aplica» es frecuente en servicios —gas
+    // en una torre sin red— y sin botón propio se confundía con «sin contestar».
     '<div class="sino">' +
       '<button type="button" onclick="marcarSN(this,\\'SI\\')">SÍ</button>' +
       '<button type="button" onclick="marcarSN(this,\\'NO\\')">NO</button>' +
+      '<button type="button" onclick="marcarSN(this,\\'NA\\')">N/A</button>' +
     '</div>' +
     '<textarea placeholder="Observaciones..." oninput="marcar()"></textarea>' +
     (fijo ? '' : '<button type="button" class="quitar" style="width:100%;margin-top:6px" onclick="this.closest(\\'.item\\').remove();marcar()">Quitar</button>');
@@ -460,15 +506,16 @@ function addItem(sid, nombre, fijo){
 // conserva: volver a «sin contestar» tiene que ser posible.
 function marcarSN(btn, v){
   const grupo = btn.parentElement;
-  const ya = btn.classList.contains('si-on') || btn.classList.contains('no-on');
-  [...grupo.children].forEach(b => b.classList.remove('si-on','no-on'));
-  if (!ya) btn.classList.add(v === 'SI' ? 'si-on' : 'no-on');
+  const ya = ['si-on','no-on','na-on'].some(c => btn.classList.contains(c));
+  [...grupo.children].forEach(b => b.classList.remove('si-on','no-on','na-on'));
+  if (!ya) btn.classList.add(v === 'SI' ? 'si-on' : v === 'NO' ? 'no-on' : 'na-on');
   marcar();
 }
 function valorSN(item){
   const g = item.querySelector('.sino');
   if (g.querySelector('.si-on')) return 'SI';
   if (g.querySelector('.no-on')) return 'NO';
+  if (g.querySelector('.na-on')) return 'NA';
   return '';
 }
 """
@@ -513,7 +560,8 @@ function addApartamento(datos){
                 '<span style="flex:1;font-size:13px">' + etiqueta + '</span>' +
                 '<div class="sino" style="flex:1;margin:0" data-campo="' + id + '">' +
                 '<button type="button" onclick="marcarSN(this,\\'SI\\')">SÍ</button>' +
-                '<button type="button" onclick="marcarSN(this,\\'NO\\')">NO</button></div></div>';
+                '<button type="button" onclick="marcarSN(this,\\'NO\\')">NO</button>' +
+                '<button type="button" onclick="marcarSN(this,\\'NA\\')">N/A</button></div></div>';
       } else if (tipo === 'cant'){
         html += '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
                 '<span style="flex:1;font-size:13px">' + etiqueta + '</span>' +
@@ -541,8 +589,8 @@ function cargarApto(fila, a){
     const el = fila.querySelector('[data-campo="' + k + '"]');
     if (!el) return;
     if (el.classList.contains('sino')){
-      const b = el.querySelector(v === 'SI' ? 'button:first-child' : v === 'NO' ? 'button:last-child' : 'x');
-      if (b) b.classList.add(v === 'SI' ? 'si-on' : 'no-on');
+      const k = {SI: 0, NO: 1, NA: 2}[v];
+      if (k !== undefined) el.children[k].classList.add(['si-on','no-on','na-on'][k]);
     } else el.value = v;
   });
   pintarFotos(fila.querySelector('.fotos'), a.fotos || []);
@@ -627,6 +675,7 @@ let sucio = false, temporizador = null, idActual = null;
 
 function marcar(){
   sucio = true;
+  actualizarCuentas();
   clearTimeout(temporizador);
   temporizador = setTimeout(() => guardar(false), 2000);
 }
@@ -651,6 +700,7 @@ function datosDelFormulario(){
       sn: valorSN(it),
       obs: (it.querySelector('textarea').value || '').trim()
     })),
+    obs: (document.querySelector('#srv-' + srv.id + ' .obs-srv').value || '').trim(),
     fotos: leerFotos(document.getElementById('fotos-' + srv.id))
   }));
   const noInsp = GENERAL.filter(srv => document.getElementById('srv-' + srv.id).classList.contains('no-inspeccionado')).map(s => s.id);
@@ -658,7 +708,7 @@ function datosDelFormulario(){
     const campos = {};
     fila.querySelectorAll('[data-campo]').forEach(el => {
       campos[el.dataset.campo] = el.classList.contains('sino')
-        ? (el.querySelector('.si-on') ? 'SI' : el.querySelector('.no-on') ? 'NO' : '')
+        ? (el.querySelector('.si-on') ? 'SI' : el.querySelector('.no-on') ? 'NO' : el.querySelector('.na-on') ? 'NA' : '')
         : (el.value || '').trim();
     });
     return { apto: fila.querySelector('.apto').value.trim(),
@@ -788,14 +838,18 @@ function cargarInforme(id){
       const g2 = el.querySelector('.sino');
       if (it.sn === 'SI') g2.children[0].classList.add('si-on');
       if (it.sn === 'NO') g2.children[1].classList.add('no-on');
+      if (it.sn === 'NA') g2.children[2].classList.add('na-on');
       el.querySelector('textarea').value = it.obs || '';
     });
+    document.querySelector('#srv-' + g.id + ' .obs-srv').value = g.obs || '';
     pintarFotos(document.getElementById('fotos-' + g.id), g.fotos || []);
+    // Lo que tiene algo se abre; lo vacío sigue plegado.
+    if ((g.items || []).some(i => i.sn || i.obs) || g.obs || (g.fotos || []).length) plegar(g.id, true);
   });
   (d.noInspeccionados || []).forEach(sid => { const b = document.getElementById('srv-' + sid);
     if (b){ b.classList.add('no-inspeccionado'); b.querySelector('.no-insp').classList.add('on'); } });
   (d.apartamentos || []).forEach(a => addApartamento(a));
-  actualizarNro(); sucio = false;
+  actualizarNro(); actualizarCuentas(); sucio = false;
   window.scrollTo(0, 0);
 }
 
@@ -807,11 +861,31 @@ function vaciarFormulario(){
   pintarGeneral(); pintarApartamentos();
   const hoy = new Date();
   document.getElementById('fecha').value = hoy.getFullYear() + '-' + String(hoy.getMonth()+1).padStart(2,'0') + '-' + String(hoy.getDate()).padStart(2,'0');
-  idActual = null; sucio = false; actualizarNro();
+  idActual = null; sucio = false; actualizarNro(); actualizarCuentas();
 }
 
 // «Nuevo» deja el formulario en blanco. Lo que había en pantalla se guarda
 // antes si tenía algo: los informes guardados no se tocan.
+// El grano es la torre y un día son varias: se guarda esta y se prepara la
+// siguiente conservando lo que no cambia —inspector, fecha, estatus— y
+// vaciando lo que la torre decide y lo medido. Un informe a medias no sale:
+// si falta cabecera, se dice y no se cambia de torre.
+function siguienteTorre(){
+  const d = datosDelFormulario();
+  const f = faltan(d);
+  if (f.length){ alert('A este informe le falta ' + f.join(', ') + '. Complételo antes de pasar a otra torre.'); return; }
+  if (!guardar(false)) return;   // si no se pudo guardar, NO se limpia
+  const insp = inspectoresElegidos(), fecha = d.fecha, estatus = d.estatus;
+  vaciarFormulario();
+  document.getElementById('fecha').value = fecha;
+  document.getElementById('estatus').value = estatus;
+  document.getElementById('inspectores').innerHTML = '';
+  (insp.length ? insp : ['']).forEach(i => addInspector(i));
+  actualizarNro(); sucio = false;
+  window.scrollTo(0, 0);
+  document.getElementById('torre').focus();
+}
+
 function nuevoInforme(){
   if (sucio && !confirm('¿Guardar lo que hay en pantalla y empezar un informe nuevo?')) return;
   if (sucio) guardar(false);
@@ -1033,7 +1107,7 @@ if ('serviceWorker' in navigator) {
     document.querySelector('.envoltorio').prepend(a);
   }
   pintarGeneral(); pintarApartamentos(); addInspector();
-  actualizarNro(); actualizarContador();
+  actualizarNro(); actualizarContador(); actualizarCuentas();
   const con = () => document.getElementById('conexion').textContent =
     navigator.onLine ? 'en línea' : 'sin señal — el informe queda guardado aquí';
   addEventListener('online', con); addEventListener('offline', con); con();
