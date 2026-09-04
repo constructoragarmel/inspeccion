@@ -121,12 +121,8 @@ const FORMULARIOS = @@FORMULARIOS@@;
 // Si no se propagara, el enlace de prueba abriría el menú en modo prueba y el
 // formulario en modo real. Eso ya pasó una vez por otro camino, y acabó con tres
 // informes de prueba archivados como inspecciones de verdad.
-const PARAMS = new URLSearchParams(location.search);
-const ESPRUEBA = PARAMS.get('prueba') === '1';
-// La medición propuesta (Skarlet, sep-2026) viaja igual que el modo de prueba:
-// sin propagarla, el menú la perdería y el formulario abriría con la aprobada.
-const MEDICION = PARAMS.get('medicion') === 'propuesta' ? 'propuesta' : '';
-const QUERY = (ESPRUEBA || MEDICION) ? '?' + [ESPRUEBA ? 'prueba=1' : '', MEDICION ? 'medicion=' + MEDICION : ''].filter(Boolean).join('&') : '';
+const ESPRUEBA = new URLSearchParams(location.search).get('prueba') === '1';
+const QUERY = ESPRUEBA ? '?prueba=1' : '';
 
 function sinEnviar(clave){
   if (!clave) return null;
@@ -137,9 +133,8 @@ function sinEnviar(clave){
 }
 
 function pintar(){
-  if (ESPRUEBA || MEDICION) document.getElementById('prueba').innerHTML =
-    (ESPRUEBA ? '<div class="prueba">⚠️ MODO DE PRUEBA — los informes se marcan como PRUEBA-</div>' : '') +
-    (MEDICION ? '<div class="prueba">🧪 MEDICIÓN PROPUESTA — Sí/No por subpartida y % del hito a mano</div>' : '');
+  if (ESPRUEBA) document.getElementById('prueba').innerHTML =
+    '<div class="prueba">⚠️ MODO DE PRUEBA — los informes se marcan como PRUEBA-</div>';
 
   let hay = false;
   try { hay = !!localStorage.getItem('garmel_clave_envio'); } catch(e){}

@@ -1299,10 +1299,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v54';
+    el.textContent = '● en línea · v55';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v54 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v55 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -1397,13 +1397,24 @@ function setAmbito(a){
     }
   });
 
-  // Los hitos se muestran completos en los dos ámbitos. Se recorren igual
-  // para devolver a la vista lo que una versión anterior hubiera ocultado.
+  // Cada subpartida sabe de qué ámbito es; un hito sin ninguna del ámbito
+  // se oculta entero. Las visibles se renumeran.
+  const fuera = [];
   if (typeof PARTIDAS !== 'undefined') PARTIDAS.forEach(p=>{
+    const va = _hitoAplica(p.id);
     const bloque = document.getElementById('p_' + p.id);
-    if(bloque) bloque.style.display = '';
+    if(bloque) bloque.style.display = va ? '' : 'none';
     const fila = document.getElementById('res_' + p.id);
-    if(fila) fila.style.display = '';
+    if(fila) fila.style.display = va ? '' : 'none';
+    if(!va) fuera.push(p.nombre.replace(/^HITO \d+: /, ''));
+    let n = 0;
+    p.items.forEach((_, i) => {
+      const tr = document.getElementById('pr_' + p.id + '_' + i)?.closest('tr');
+      if(!tr) return;
+      const ok = _aplica(p.id, i);
+      tr.style.display = ok ? '' : 'none';
+      const num = tr.querySelector('td.n'); if(num && ok) num.textContent = String(++n);
+    });
   });
 
   const tt = document.getElementById('total-titulo');
@@ -1416,9 +1427,11 @@ function setAmbito(a){
   // evita que alguien le ponga cero.
   const aviso = document.getElementById('aviso-ambito');
   if(aviso && typeof PARTIDAS !== 'undefined'){
-    aviso.textContent = 'Se muestran los ' + PARTIDAS.length + ' hitos. El que no '
-      + 'aplique a este informe, márquelo como «hito no inspeccionado»: así no '
-      + 'cuenta para el promedio, que no es lo mismo que ponerle cero.';
+    const propios = PARTIDAS.filter(p => _hitoAplica(p.id)).length;
+    aviso.textContent = 'Se muestran ' + propios + ' de ' + PARTIDAS.length + ' hitos, con las subpartidas '
+      + (esTorre ? 'de la torre' : 'del apartamento')
+      + (fuera.length ? '. Quedan fuera: ' + fuera.join(', ') + '.' : '.')
+      + ' El que no aplique, márquelo como «hito no inspeccionado»: no cuenta para el promedio, que no es lo mismo que ponerle cero.';
   }
 
   // La nota describía el reparto de hitos, que ya no existe. Ahora describe
@@ -1513,10 +1526,19 @@ function setupFormTypeUI() {
 // El dato definitivo vive en el maestro MAE_Hitos_Subpartidas.
 const UD_ESTADO = 'estado';
 // La medición propuesta por Skarlet Gómez (1/2-sep-2026), solo con ?medicion=propuesta.
-const MEDICION = (new URLSearchParams(location.search).get('medicion') === 'propuesta') ? 'propuesta' : 'actual';
+// Desde el 3-sep-2026 es LA medición del formulario (ADR-0028), no una prueba:
+// Stephanie González decidió que lo aprobado se ajusta sobre el mismo formulario,
+// sin enlaces aparte. La constante se queda por si hubiera que volver atrás.
+const MEDICION = 'propuesta';
 const HITOS_SI_NO = ['hito_cerramientos', 'hito_servicios', 'hito_ascensor', 'hito_pruebas'];
 const HITOS_PCT_MANUAL = ['hito_estructura', 'hito_cerramientos', 'hito_servicios', 'hito_acabados',
                           'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];
+const AMBITO_SUB = {"hito_estructura": ["T", "T", "T"], "hito_cerramientos": ["T", "AMBOS", "T"], "hito_servicios": ["AMBOS", "AMBOS", "T", "AMBOS", "T", "AMBOS", "T", "T", "T"], "hito_acabados": ["AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS"], "hito_puertas": ["A", "A", "A"], "hito_ventanas": ["A", "A"], "hito_acc_sanitarios": ["A", "A", "A", "A", "A", "A", "A"], "hito_acc_electricos": ["A", "A", "A", "A", "A"], "hito_ascensor": ["T", "T", "T", "T"], "hito_exteriores": ["T", "T", "T", "T", "T"], "hito_pruebas": ["AMBOS", "AMBOS", "AMBOS", "T"]};
+function _aplica(pid, i){
+  const a = (AMBITO_SUB[pid] || [])[i] || 'AMBOS';
+  return (typeof ambito !== 'undefined' && ambito === 'torre') ? a !== 'A' : a !== 'T';
+}
+function _hitoAplica(pid){ return (AMBITO_SUB[pid] || ['AMBOS']).some((_, i) => _aplica(pid, i)); }
 function _esSiNo(pid, i){
   return MEDICION === 'propuesta' && (HITOS_SI_NO.indexOf(pid) >= 0 || _esEstado(pid, i));
 }
@@ -2720,7 +2742,7 @@ function _pintarNoInspeccionado(pid){
 // la justificó sigue en pie: lo que se ve tiene que ser lo que se manda. Al
 // mostrarse los once, los once entran.
 function _hitosDelAmbito(){
-  return PARTIDAS;
+  return PARTIDAS.filter(p => _hitoAplica(p.id));
 }
 
 function recalcTotal(){
@@ -2932,7 +2954,9 @@ function getFormData(){
       d.partidas[p.id]=p.items.map((_,i)=>{
         const rid=`${p.id}_${i}`;
         const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
-        return {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:'',ud:_udValor(p.id,i)};
+        const _o = {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:'',ud:_udValor(p.id,i)};
+        if(!_aplica(p.id,i)) _o.fueraDeAmbito = true;   // el PDF y Smartsheet la saltan
+        return _o;
       });
       d.partidas[p.id+'_extra']=(extraRows[p.id]||[]).map((row,i)=>{
         const idx=p.items.length+i; const rid=`${p.id}_extra_${idx}`;
@@ -3799,12 +3823,6 @@ document.addEventListener('visibilitychange', function(){
   if (document.hidden && typeof saveDraft === 'function' && typeof _tieneContenido === 'function' &&
       _tieneContenido(getFormData())) { try { saveDraft(); } catch(e){} }
 });
-if (MEDICION === 'propuesta') {
-  const _b = document.createElement('div');
-  _b.textContent = '\ud83e\uddea MEDICI\u00d3N PROPUESTA \u2014 S\u00ed/No por subpartida y % del hito a mano (prueba)';
-  _b.style.cssText = 'background:#fff8e1;border-bottom:2px solid #f59e0b;padding:8px 12px;font-weight:800;font-size:12px;color:#4e342e;text-align:center';
-  document.body.prepend(_b);
-}
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });

@@ -7074,7 +7074,10 @@ s = sustituir(s,
  "const UD_ESTADO = 'estado';",
  "const UD_ESTADO = 'estado';\n"
  "// La medición propuesta por Skarlet Gómez (1/2-sep-2026), solo con ?medicion=propuesta.\n"
- "const MEDICION = (new URLSearchParams(location.search).get('medicion') === 'propuesta') ? 'propuesta' : 'actual';\n"
+ "// Desde el 3-sep-2026 es LA medici\u00f3n del formulario (ADR-0028), no una prueba:\n"
+ "// Stephanie Gonz\u00e1lez decidi\u00f3 que lo aprobado se ajusta sobre el mismo formulario,\n"
+ "// sin enlaces aparte. La constante se queda por si hubiera que volver atr\u00e1s.\n"
+ "const MEDICION = 'propuesta';\n"
  "const HITOS_SI_NO = ['hito_cerramientos', 'hito_servicios', 'hito_ascensor', 'hito_pruebas'];\n"
  "const HITOS_PCT_MANUAL = ['hito_estructura', 'hito_cerramientos', 'hito_servicios', 'hito_acabados',\n"
  "                          'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];\n"
@@ -7142,22 +7145,92 @@ s = s[:_lin] + (
  "  }); }\n") + s[_lin:]
 cambios.append("137h\u00b7 el % manual vuelve al abrir el borrador")
 
-s = sustituir(s,
- "if ('serviceWorker' in navigator) {",
- "if (MEDICION === 'propuesta') {\n"
- "  const _b = document.createElement('div');\n"
- "  _b.textContent = '\\ud83e\\uddea MEDICI\\u00d3N PROPUESTA \\u2014 S\\u00ed/No por subpartida y % del hito a mano (prueba)';\n"
- "  _b.style.cssText = 'background:#fff8e1;border-bottom:2px solid #f59e0b;padding:8px 12px;font-weight:800;font-size:12px;color:#4e342e;text-align:center';\n"
- "  document.body.prepend(_b);\n"
- "}\n"
- "if ('serviceWorker' in navigator) {",
- "137i\u00b7 el aviso de que es la medici\u00f3n de prueba")
+# (137i, el aviso de «medición de prueba», se retiró el 3-sep: ya no es una prueba)
 
 s = sustituir(s,
  ".ud{display:inline-block;",
  ".hito-man{width:96px;min-height:44px;margin-left:8px;border:1.5px solid #f59e0b;border-radius:7px;background:#fff8e1;font-weight:800;text-align:center}\n"
  ".ud{display:inline-block;",
  "137j\u00b7 el campo del % manual, a 44 px")
+
+# ── 138. El ámbito se decide por subpartida, no por hito ────────────────────
+# Lo que dejó la llamada del 2-sep-2026 (C-35, PA-103): un hito de torre puede
+# llevar dentro una partida de apartamento —la válvula de gas—, y declararlo por
+# hito la pierde. La tabla vive en comun/ambito.py con lo que dijo Skarlet Gómez;
+# las seis que no cuadran van en AMBOS hasta que la Ing. Beatriz Sevilla decida;
+# «pruebas de ascensores» se queda en torre: el hito 9 es de torre y es el mismo
+# ascensor (lo afirmó Stephanie en la llamada y nadie lo objetó).
+# Decidido por Stephanie González el 3-sep-2026 (ADR-0028): sobre el formulario
+# de siempre, sin enlaces aparte.
+#
+# Un informe de apartamento oculta las filas de torre, y un hito que se queda sin
+# filas se oculta entero; al revés en un informe de torre. Lo oculto no se pide,
+# no se cuenta y viaja marcado como fuera de ámbito, para que el PDF y Smartsheet
+# lo salten. Las filas visibles se renumeran para que no parezca que falta algo.
+AMBITO_SUB_JS = 'const AMBITO_SUB = {"hito_estructura": ["T", "T", "T"], "hito_cerramientos": ["T", "AMBOS", "T"], "hito_servicios": ["AMBOS", "AMBOS", "T", "AMBOS", "T", "AMBOS", "T", "T", "T"], "hito_acabados": ["AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS"], "hito_puertas": ["A", "A", "A"], "hito_ventanas": ["A", "A"], "hito_acc_sanitarios": ["A", "A", "A", "A", "A", "A", "A"], "hito_acc_electricos": ["A", "A", "A", "A", "A"], "hito_ascensor": ["T", "T", "T", "T"], "hito_exteriores": ["T", "T", "T", "T", "T"], "hito_pruebas": ["AMBOS", "AMBOS", "AMBOS", "T"]};'
+s = sustituir(s,
+ "function _esSiNo(pid, i){",
+ AMBITO_SUB_JS + "\n"
+ "function _aplica(pid, i){\n"
+ "  const a = (AMBITO_SUB[pid] || [])[i] || 'AMBOS';\n"
+ "  return (typeof ambito !== 'undefined' && ambito === 'torre') ? a !== 'A' : a !== 'T';\n"
+ "}\n"
+ "function _hitoAplica(pid){ return (AMBITO_SUB[pid] || ['AMBOS']).some((_, i) => _aplica(pid, i)); }\n"
+ "function _esSiNo(pid, i){",
+ "138a\u00b7 la tabla de \u00e1mbito por subpartida y sus dos preguntas")
+
+s = sustituir(s,
+ "function _hitosDelAmbito(){\n  return PARTIDAS;\n}",
+ "function _hitosDelAmbito(){\n  return PARTIDAS.filter(p => _hitoAplica(p.id));\n}",
+ "138b\u00b7 los hitos del informe son los que tienen alguna subpartida del \u00e1mbito")
+
+s = sustituir(s,
+ "  // Los hitos se muestran completos en los dos \u00e1mbitos. Se recorren igual\n"
+ "  // para devolver a la vista lo que una versi\u00f3n anterior hubiera ocultado.\n"
+ "  if (typeof PARTIDAS !== 'undefined') PARTIDAS.forEach(p=>{\n"
+ "    const bloque = document.getElementById('p_' + p.id);\n"
+ "    if(bloque) bloque.style.display = '';\n"
+ "    const fila = document.getElementById('res_' + p.id);\n"
+ "    if(fila) fila.style.display = '';\n"
+ "  });",
+ "  // Cada subpartida sabe de qu\u00e9 \u00e1mbito es; un hito sin ninguna del \u00e1mbito\n"
+ "  // se oculta entero. Las visibles se renumeran.\n"
+ "  const fuera = [];\n"
+ "  if (typeof PARTIDAS !== 'undefined') PARTIDAS.forEach(p=>{\n"
+ "    const va = _hitoAplica(p.id);\n"
+ "    const bloque = document.getElementById('p_' + p.id);\n"
+ "    if(bloque) bloque.style.display = va ? '' : 'none';\n"
+ "    const fila = document.getElementById('res_' + p.id);\n"
+ "    if(fila) fila.style.display = va ? '' : 'none';\n"
+ "    if(!va) fuera.push(p.nombre.replace(/^HITO \\d+: /, ''));\n"
+ "    let n = 0;\n"
+ "    p.items.forEach((_, i) => {\n"
+ "      const tr = document.getElementById('pr_' + p.id + '_' + i)?.closest('tr');\n"
+ "      if(!tr) return;\n"
+ "      const ok = _aplica(p.id, i);\n"
+ "      tr.style.display = ok ? '' : 'none';\n"
+ "      const num = tr.querySelector('td.n'); if(num && ok) num.textContent = String(++n);\n"
+ "    });\n"
+ "  });",
+ "138c\u00b7 ocultar por subpartida y por hito, y renumerar")
+
+s = sustituir(s,
+ "    aviso.textContent = 'Se muestran los ' + PARTIDAS.length + ' hitos. El que no '\n"
+ "      + 'aplique a este informe, m\u00e1rquelo como \u00abhito no inspeccionado\u00bb: as\u00ed no '\n"
+ "      + 'cuenta para el promedio, que no es lo mismo que ponerle cero.';",
+ "    const propios = PARTIDAS.filter(p => _hitoAplica(p.id)).length;\n"
+ "    aviso.textContent = 'Se muestran ' + propios + ' de ' + PARTIDAS.length + ' hitos, con las subpartidas '\n"
+ "      + (esTorre ? 'de la torre' : 'del apartamento')\n"
+ "      + (fuera.length ? '. Quedan fuera: ' + fuera.join(', ') + '.' : '.')\n"
+ "      + ' El que no aplique, m\u00e1rquelo como \u00abhito no inspeccionado\u00bb: no cuenta para el promedio, que no es lo mismo que ponerle cero.';",
+ "138d\u00b7 el aviso dice cu\u00e1ntos se muestran y cu\u00e1les quedan fuera")
+
+s = sustituir(s,
+ "        return {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:'',ud:_udValor(p.id,i)};",
+ "        const _o = {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:'',ud:_udValor(p.id,i)};\n"
+ "        if(!_aplica(p.id,i)) _o.fueraDeAmbito = true;   // el PDF y Smartsheet la saltan\n"
+ "        return _o;",
+ "138e\u00b7 lo que no es del \u00e1mbito viaja marcado")
 
 open(SALIDA, "w", encoding="utf-8").write(s)
 

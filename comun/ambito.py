@@ -36,7 +36,7 @@ los cazó. Si un nombre no coincide carácter por carácter con el del instrumen
 esta tabla no vale para nada.
 """
 
-APLICAR = False   # ← lo enciende la ratificación de PA-103
+APLICAR = True    # encendido el 3-sep-2026 (ADR-0028): las seis con duda van en AMBOS hasta PA-103
 
 # Origen: la lista escrita que entregó Skarlet Gómez el 1-sep-2026, corregida
 # por la llamada del 2-sep, que movió el hito 2 a torre y confirmó el 3.
@@ -122,7 +122,7 @@ AMBITO = {
     ('Hermeticidad', 'AMBOS', None),
     ('Carga eléctrica', 'AMBOS', None),
     ('Pruebas de cargas, velocidad y certificación de seguridad de ascensores', 'T',
-     'El hito 9 —el del ascensor— es solo de torre, y es el mismo ascensor. Lo afirmó Stephanie en la llamada y Skarlet no lo objetó, pero no hay un sí explícito.'),
+     'El hito 9 —el del ascensor— es solo de torre, y es el mismo ascensor. Lo afirmó Stephanie en la llamada y Skarlet no lo objetó, pero no hay un sí explícito. Se deja en torre (ADR-0028, 3-sep-2026); no está entre las seis de PA-103.'),
 ],
 }
 
