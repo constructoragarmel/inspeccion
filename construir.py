@@ -7383,6 +7383,70 @@ s = sustituir(s,
  ".est-btn.sn{min-width:44px;min-height:44px;font-size:13px}",
  "139n· el campo del % de la fila y los botones Sí/No, a 44 px")
 
+# ── 140. Sin columna de faltante, y el hito 4 solo en porcentaje ───────────
+# Stephanie González, 4-sep-2026: «ya no es necesario que diga el faltante
+# porque eso no se registra ahí, solo el avance en porcentaje. Y lo del hito 4
+# de acabados ya habíamos dicho que no se medía con m², solo porcentajes».
+# La celda de faltante sigue existiendo en el DOM (recalcRow le escribe) pero
+# no se ve; el hito 4 pierde las cantidades y queda: % escrito · B/R/M/N-A.
+s = sustituir(s,
+ "const HITOS_SI_NO = ['hito_cerramientos', 'hito_servicios', 'hito_ascensor', 'hito_pruebas'];",
+ "const HITOS_SI_NO = ['hito_cerramientos', 'hito_servicios', 'hito_ascensor', 'hito_pruebas'];\n"
+ "// Hitos que no se miden en cantidad ni en Sí/No: solo el % escrito por fila (Stephanie, 4-sep-2026).\n"
+ "const HITOS_SOLO_PCT = ['hito_acabados'];\n"
+ "function _soloPct(pid, i){ return MEDICION === 'propuesta' && HITOS_SOLO_PCT.indexOf(pid) >= 0 && !_esEstado(pid, i); }",
+ "140a· qué hitos van solo en porcentaje")
+
+s = sustituir(s,
+ r"""          <td class="desc">${item}${_esSiNo(p.id,i) && !_esEstado(p.id,i) ? '' : _ud(p.id,i)}</td>""",
+ r"""          <td class="desc">${(_esSiNo(p.id,i) && !_esEstado(p.id,i)) || _soloPct(p.id,i) ? '' : _ud(p.id,i)}</td>""",
+ "140b· sin unidad en una fila que va solo en porcentaje")
+
+s = sustituir(s,
+ r"""          </div><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"><input type="hidden" id="sn_${rid}"></td>` : `""",
+ r"""          </div><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"><input type="hidden" id="sn_${rid}"></td>` : _soloPct(p.id,i) ? `
+          <td class="col-proyectada est-vacia"><input type="hidden" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}"></td>
+          <td class="col-ejecutada est-cell"><input type="number" class="num pct-man" id="pm_${rid}" data-rid="${rid}" data-p="${p.id}" min="0" max="100" inputmode="decimal" placeholder="%" title="Porcentaje de avance de esta subpartida, escrito por el inspector" oninput="recalcRow(this)"><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"></td>` : `""",
+ "140c· la fila de solo porcentaje: el % escrito y la evaluación")
+
+s = sustituir(s,
+ "      const soloEstado = p.items.every((_, k) => _esEstado(p.id, k));",
+ "      const soloEstado = p.items.every((_, k) => _esEstado(p.id, k) || _esSiNo(p.id, k));\n"
+ "      const soloPct = p.items.every((_, k) => _soloPct(p.id, k));",
+ "140d· un hito entero de Sí/No o de solo porcentaje tampoco rotula cantidades")
+
+s = sustituir(s,
+ "                <th class=\"col-proyectada\">${soloEstado ? '' : 'Cant.<br>Proyectada'}</th>\n"
+ "                <th>${soloEstado ? 'Estado' : 'Cant.<br>Ejecutada'}</th>\n"
+ "                <th>Evaluación<br>B / R / M</th>\n"
+ "                <th>Cant.<br>Faltante</th>",
+ "                <th class=\"col-proyectada\">${soloEstado || soloPct ? '' : 'Cant.<br>Proyectada'}</th>\n"
+ "                <th>${soloEstado ? 'Sí / No · %' : soloPct ? '%<br>escrito' : 'Cant.<br>Ejecutada'}</th>\n"
+ "                <th>Evaluación<br>B / R / M</th>",
+ "140e· sin columna de faltante, y el rótulo dice lo que hay")
+
+s = sustituir(s,
+ ".falt-cell{font-weight:700;font-size:12px}",
+ ".falt-cell{display:none!important}   /* el faltante no se registra aquí (4-sep-2026) */",
+ "140f· la celda de faltante no se ve")
+
+s = sustituir(s,
+ "ev:ev?ev.textContent:'',ud:_udValor(p.id,i),\n",
+ "ev:ev?ev.textContent:'',ud:_soloPct(p.id,i)?'':_udValor(p.id,i),\n",
+ "140g· una fila de solo porcentaje viaja sin unidad")
+
+s = sustituir(s,
+ "ev:ev?ev.textContent:'',ud:_soloPct(p.id,i)?'':_udValor(p.id,i),\n",
+ "ev:ev?ev.textContent:'',ud:(_soloPct(p.id,i)||_esSiNo(p.id,i))?'':_udValor(p.id,i),\n",
+ "140h· una fila de Sí/No tampoco lleva unidad: el PDF imprimía «m²» o «estado» junto al Sí")
+
+# El bloque de móvil (.tbl-wrap) vuelve a mostrar la celda con display:flex!important;
+# esta regla va después y gana.
+s = sustituir(s,
+ "</style>",
+ ".tbl-wrap td.falt-cell, td.falt-cell{display:none!important}   /* el faltante no se registra aquí (4-sep-2026) */\n</style>",
+ "140i· tampoco en móvil")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

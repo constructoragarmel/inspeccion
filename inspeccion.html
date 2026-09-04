@@ -239,7 +239,7 @@ td.desc input{width:100%;border:1px solid #e0e0e0;border-radius:5px;padding:4px 
 td.desc input:focus{outline:none;border-color:var(--yellow)}
 .num{width:68px;border:1.5px solid #e0e0e0;border-radius:6px;padding:5px;font-size:12px;text-align:center;transition:border-color .2s}
 .num:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 2px rgba(21,101,192,.1)}
-.falt-cell{font-weight:700;font-size:12px}
+.falt-cell{display:none!important}   /* el faltante no se registra aquí (4-sep-2026) */
 .pct-cell{min-width:78px}
 .pv{font-weight:800;font-size:13px;margin-bottom:2px}
 .bar-bg{height:5px;background:#eee;border-radius:3px;overflow:hidden}
@@ -802,6 +802,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 
   @page{margin:11mm 11mm;size:portrait}
 }
+.tbl-wrap td.falt-cell, td.falt-cell{display:none!important}   /* el faltante no se registra aquí (4-sep-2026) */
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a237e">
@@ -1300,10 +1301,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v57';
+    el.textContent = '● en línea · v58';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v57 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v58 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -1532,6 +1533,9 @@ const UD_ESTADO = 'estado';
 // sin enlaces aparte. La constante se queda por si hubiera que volver atrás.
 const MEDICION = 'propuesta';
 const HITOS_SI_NO = ['hito_cerramientos', 'hito_servicios', 'hito_ascensor', 'hito_pruebas'];
+// Hitos que no se miden en cantidad ni en Sí/No: solo el % escrito por fila (Stephanie, 4-sep-2026).
+const HITOS_SOLO_PCT = ['hito_acabados'];
+function _soloPct(pid, i){ return MEDICION === 'propuesta' && HITOS_SOLO_PCT.indexOf(pid) >= 0 && !_esEstado(pid, i); }
 const HITOS_PCT_MANUAL = ['hito_estructura', 'hito_cerramientos', 'hito_servicios', 'hito_acabados',
                           'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];
 const AMBITO_SUB = {"hito_estructura": ["T", "T", "T"], "hito_cerramientos": ["T", "AMBOS", "T"], "hito_servicios": ["AMBOS", "AMBOS", "T", "AMBOS", "T", "AMBOS", "T", "T", "T"], "hito_acabados": ["AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS"], "hito_puertas": ["A", "A", "A"], "hito_ventanas": ["A", "A"], "hito_acc_sanitarios": ["A", "A", "A", "A", "A", "A", "A"], "hito_acc_electricos": ["A", "A", "A", "A", "A"], "hito_ascensor": ["T", "T", "T", "T"], "hito_exteriores": ["T", "T", "T", "T", "T", "T"], "hito_pruebas": ["AMBOS", "AMBOS", "AMBOS", "T"]};
@@ -2379,7 +2383,8 @@ function initAppContent() {
   } else {
     PARTIDAS.forEach(p => {
       // Un hito entero de estados no tiene columna de cantidad que rotular.
-      const soloEstado = p.items.every((_, k) => _esEstado(p.id, k));
+      const soloEstado = p.items.every((_, k) => _esEstado(p.id, k) || _esSiNo(p.id, k));
+      const soloPct = p.items.every((_, k) => _soloPct(p.id, k));
       const rows = p.items.map((item,i)=>{
         const rid=`${p.id}_${i}`;
         // Las que no se miden no piden cantidad: piden en qué punto van. Los
@@ -2387,7 +2392,7 @@ function initAppContent() {
         const est = _esEstado(p.id, i) || _esSiNo(p.id, i);
         return `<tr>
           <td class="n">${i+1}</td>
-          <td class="desc">${item}${_esSiNo(p.id,i) && !_esEstado(p.id,i) ? '' : _ud(p.id,i)}</td>
+          <td class="desc">${(_esSiNo(p.id,i) && !_esEstado(p.id,i)) || _soloPct(p.id,i) ? '' : _ud(p.id,i)}</td>
           ${est ? `
           <td class="col-proyectada est-vacia"><input type="hidden" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" data-est="1"></td>
           <td class="col-ejecutada est-cell"><div class="est">${_esSiNo(p.id,i) ? _estadosDe(p.id,i).map(e => `
@@ -2397,7 +2402,9 @@ function initAppContent() {
                    placeholder="%" title="Porcentaje de avance de esta subpartida, escrito por el inspector" oninput="recalcRow(this)">` : _estadosDe(p.id,i).map(e => `
             <button type="button" class="est-btn e${e.v}" data-rid="${rid}" data-v="${e.v}"
                     title="${e.n} — ${e.v}%" onclick="setEstado(this,${e.v})"><b class="est-n">${e.n}</b><i class="est-p">${e.v}%</i></button>`).join('')}
-          </div><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"><input type="hidden" id="sn_${rid}"></td>` : `
+          </div><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"><input type="hidden" id="sn_${rid}"></td>` : _soloPct(p.id,i) ? `
+          <td class="col-proyectada est-vacia"><input type="hidden" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}"></td>
+          <td class="col-ejecutada est-cell"><input type="number" class="num pct-man" id="pm_${rid}" data-rid="${rid}" data-p="${p.id}" min="0" max="100" inputmode="decimal" placeholder="%" title="Porcentaje de avance de esta subpartida, escrito por el inspector" oninput="recalcRow(this)"><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"></td>` : `
           <td class="col-proyectada"><input type="number" class="num" min="0" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>
           <td class="col-ejecutada"><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0">${HITOS_PCT_MANUAL.indexOf(p.id) >= 0 ? `<input type="number" class="num pct-man" id="pm_${rid}" data-rid="${rid}" data-p="${p.id}" min="0" max="100" inputmode="decimal" placeholder="%" title="Porcentaje de avance de esta subpartida, escrito por el inspector; si se deja vacío se calcula con las cantidades" oninput="recalcRow(this)">` : ''}</td>`}
           <td class="col-eval"><div class="ev">
@@ -2432,10 +2439,9 @@ function initAppContent() {
               <tr>
                 <th style="width:34px">N°</th>
                 <th style="text-align:left;padding-left:13px">Subpartida / Descripción</th>
-                <th class="col-proyectada">${soloEstado ? '' : 'Cant.<br>Proyectada'}</th>
-                <th>${soloEstado ? 'Estado' : 'Cant.<br>Ejecutada'}</th>
+                <th class="col-proyectada">${soloEstado || soloPct ? '' : 'Cant.<br>Proyectada'}</th>
+                <th>${soloEstado ? 'Sí / No · %' : soloPct ? '%<br>escrito' : 'Cant.<br>Ejecutada'}</th>
                 <th>Evaluación<br>B / R / M</th>
-                <th>Cant.<br>Faltante</th>
                 <th>%<br>Avance</th>
               </tr>
             </thead>
@@ -2968,7 +2974,7 @@ function getFormData(){
       d.partidas[p.id]=p.items.map((_,i)=>{
         const rid=`${p.id}_${i}`;
         const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
-        const _o = {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:'',ud:_udValor(p.id,i),
+        const _o = {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:'',ud:(_soloPct(p.id,i)||_esSiNo(p.id,i))?'':_udValor(p.id,i),
                     sn:document.getElementById('sn_'+rid)?.value||'',pct:document.getElementById('pm_'+rid)?.value||''};
         if(!_aplica(p.id,i)) _o.fueraDeAmbito = true;   // el PDF y Smartsheet la saltan
         return _o;
