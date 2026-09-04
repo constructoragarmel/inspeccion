@@ -7233,6 +7233,156 @@ s = sustituir(s,
  "        return _o;",
  "138e\u00b7 lo que no es del \u00e1mbito viaja marcado")
 
+# ── 139. El porcentaje va por subpartida, no por hito ───────────────────────
+# Stephanie González, 4-sep-2026: «El porcentaje se llena por cada subpartida.
+# El Sí y No no llevan porcentaje, luego se pone el porcentaje a mano y luego la
+# valoración cualitativa de cada uno». Así que una fila de Sí/No queda:
+# Sí / No · % escrito por el inspector · B/R/M/N-A. El % del hito vuelve a ser
+# el promedio de sus filas, y el campo «% a mano» del pie del hito se retira.
+# En los hitos que se miden en cantidad sin proyectada (1, 4, 10) el % escrito
+# por fila manda sobre el calculado; en piezas (5 a 8) se sigue calculando.
+# Por debajo la fila lleva dos datos nuevos: `sn` («Sí»/«No»/'') y `pct`.
+s = sustituir(s,
+ r"""          <td class="col-ejecutada est-cell"><div class="est">${_estadosDe(p.id,i).map(e => `
+            <button type="button" class="est-btn e${e.v}" data-rid="${rid}" data-v="${e.v}"
+                    title="${e.n} — ${e.v}%" onclick="setEstado(this,${e.v})"><b class="est-n">${e.n}</b><i class="est-p">${e.v}%</i></button>`).join('')}
+          </div><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"></td>` : `""",
+ r"""          <td class="col-ejecutada est-cell"><div class="est">${_esSiNo(p.id,i) ? _estadosDe(p.id,i).map(e => `
+            <button type="button" class="est-btn sn e${e.v}" data-rid="${rid}" data-v="${e.v}" data-sn="${e.n}"
+                    title="${e.n}" onclick="setSiNo(this)"><b class="est-n">${e.n}</b></button>`).join('') + `
+            <input type="number" class="num pct-man" id="pm_${rid}" data-rid="${rid}" data-p="${p.id}" min="0" max="100" inputmode="decimal"
+                   placeholder="%" title="Porcentaje de avance de esta subpartida, escrito por el inspector" oninput="recalcRow(this)">` : _estadosDe(p.id,i).map(e => `
+            <button type="button" class="est-btn e${e.v}" data-rid="${rid}" data-v="${e.v}"
+                    title="${e.n} — ${e.v}%" onclick="setEstado(this,${e.v})"><b class="est-n">${e.n}</b><i class="est-p">${e.v}%</i></button>`).join('')}
+          </div><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"><input type="hidden" id="sn_${rid}"></td>` : `""",
+ "139a· la fila Sí/No: dos botones sin porcentaje, y el % de la subpartida a mano")
+
+s = sustituir(s,
+ r"""          <td class="col-ejecutada"><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>`}""",
+ r"""          <td class="col-ejecutada"><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0">${HITOS_PCT_MANUAL.indexOf(p.id) >= 0 ? `<input type="number" class="num pct-man" id="pm_${rid}" data-rid="${rid}" data-p="${p.id}" min="0" max="100" inputmode="decimal" placeholder="%" title="Porcentaje de avance de esta subpartida, escrito por el inspector; si se deja vacío se calcula con las cantidades" oninput="recalcRow(this)">` : ''}</td>`}""",
+ "139b· en los hitos de cantidad sin proyectada, el % de la fila también se escribe")
+
+s = sustituir(s,
+ "            <div class=\"p-foot-lbl\">% Avance Hito</div>\n"
+ "            ${MEDICION === 'propuesta' && HITOS_PCT_MANUAL.indexOf(p.id) >= 0 ? `\n"
+ "            <input type=\"number\" class=\"num hito-man\" id=\"hitoman_${p.id}\" data-p=\"${p.id}\" min=\"0\" max=\"100\" inputmode=\"decimal\"\n"
+ "                   placeholder=\"% a mano\" title=\"Porcentaje del hito escrito por el inspector (medición propuesta)\" oninput=\"recalcP('${p.id}')\">` : ''}",
+ "            <div class=\"p-foot-lbl\">% Avance Hito</div>",
+ "139c· se retira el % a mano del pie del hito", -1)
+
+s = sustituir(s,
+ "function setEstado(btn, valor){",
+ "// Sí / No no lleva porcentaje: solo dice si está o no está. Se guarda aparte (`sn`).\n"
+ "function setSiNo(btn){\n"
+ "  const rid = btn.dataset.rid;\n"
+ "  const sn = document.getElementById('sn_' + rid);\n"
+ "  if(!sn) return;\n"
+ "  sn.value = (sn.value === btn.dataset.sn) ? '' : btn.dataset.sn;\n"
+ "  recalcRow(document.getElementById('pr_' + rid));\n"
+ "  if(typeof _marcarCambio === 'function') _marcarCambio();\n"
+ "}\n"
+ "// El % escrito por el inspector en la fila: entero, entre 0 y 100, o null si no lo escribió.\n"
+ "function _pctManual(rid){\n"
+ "  const m = document.getElementById('pm_' + rid);\n"
+ "  if(!m || String(m.value).trim() === '') return null;\n"
+ "  const v = parseFloat(String(m.value).replace(',', '.'));\n"
+ "  return isNaN(v) ? null : Math.min(100, Math.max(0, Math.floor(v)));\n"
+ "}\n"
+ "function setEstado(btn, valor){",
+ "139d· setSiNo y _pctManual")
+
+s = sustituir(s,
+ "    const v = document.getElementById('ej_'+rid)?.value;\n"
+ "    document.querySelectorAll(`.est-btn[data-rid=\"${rid}\"]`).forEach(b=>{\n"
+ "      b.classList.toggle('on', v !== '' && v !== undefined && String(Number(v)) === b.dataset.v);\n"
+ "    });",
+ "    const v = document.getElementById('ej_'+rid)?.value;\n"
+ "    const snEl = document.getElementById('sn_'+rid);\n"
+ "    document.querySelectorAll(`.est-btn[data-rid=\"${rid}\"]`).forEach(b=>{\n"
+ "      b.classList.toggle('on', b.dataset.sn ? (!!snEl && snEl.value === b.dataset.sn)\n"
+ "                                            : (v !== '' && v !== undefined && String(Number(v)) === b.dataset.v));\n"
+ "    });",
+ "139e· los botones Sí/No se pintan por `sn`")
+
+s = sustituir(s,
+ "  const pctEl=document.getElementById('pct_'+rid);\n"
+ "  if(pr>0){\n"
+ "    const pct=Math.min(100,Math.floor((ej/pr)*100));   // 99,9 % no es 100 % (cambio 30)",
+ "  const pctEl=document.getElementById('pct_'+rid);\n"
+ "  const pm=_pctManual(rid);   // el % escrito por el inspector manda sobre el calculado\n"
+ "  if(pm!==null || pr>0){\n"
+ "    const pct=pm!==null ? pm : Math.min(100,Math.floor((ej/pr)*100));   // 99,9 % no es 100 % (cambio 30)",
+ "139f· el % de la fila: el escrito, y si no, el calculado")
+
+s = sustituir(s,
+ "    if(pr>0){sumPct+=Math.min(100,Math.floor((ej/pr)*100));cnt++;}\n"
+ "  });\n"
+ "  let pct=cnt>0?Math.floor(sumPct/cnt):null;   // igual que el total (cambio 34)\n"
+ "  // Medición propuesta: si el inspector escribió el % del hito, manda ese.\n"
+ "  if(MEDICION === 'propuesta'){\n"
+ "    const m = document.getElementById('hitoman_' + pid);\n"
+ "    if(m && String(m.value).trim() !== ''){\n"
+ "      const v = parseFloat(String(m.value).replace(',', '.'));\n"
+ "      if(!isNaN(v)) pct = Math.min(100, Math.max(0, Math.floor(v)));\n"
+ "    }\n"
+ "  }",
+ "    const pm=_pctManual(rid);\n"
+ "    if(pm!==null){sumPct+=pm;cnt++;}\n"
+ "    else if(pr>0){sumPct+=Math.min(100,Math.floor((ej/pr)*100));cnt++;}\n"
+ "  });\n"
+ "  let pct=cnt>0?Math.floor(sumPct/cnt):null;   // igual que el total (cambio 34)",
+ "139g· el % del hito vuelve a ser el promedio de sus filas")
+
+s = sustituir(s,
+ "    d.medicion = MEDICION; d.hitoPct = {};\n"
+ "    _hitosDelAmbito().forEach(p=>{\n"
+ "      const _hm = document.getElementById('hitoman_' + p.id);\n"
+ "      if(_hm) d.hitoPct[p.id] = _hm.value || '';\n",
+ "    d.medicion = MEDICION;\n"
+ "    _hitosDelAmbito().forEach(p=>{\n",
+ "139h· el borrador ya no lleva % por hito")
+
+s = sustituir(s,
+ "        const _o = {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:'',ud:_udValor(p.id,i)};",
+ "        const _o = {pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:'',ud:_udValor(p.id,i),\n"
+ "                    sn:document.getElementById('sn_'+rid)?.value||'',pct:document.getElementById('pm_'+rid)?.value||''};",
+ "139i· la fila guarda Sí/No y su %")
+
+s = sustituir(s,
+ "            if(ejInp && item.ej !== undefined) ejInp.value = item.ej;",
+ "            if(ejInp && item.ej !== undefined) ejInp.value = item.ej;\n"
+ "            const snInp = document.getElementById('sn_'+rid); if(snInp && item.sn !== undefined) snInp.value = item.sn;\n"
+ "            const pmInp = document.getElementById('pm_'+rid); if(pmInp && item.pct !== undefined) pmInp.value = item.pct;",
+ "139j· el borrador restaura Sí/No y el %")
+
+s = sustituir(s,
+ "  if(d.hitoPct){ Object.keys(d.hitoPct).forEach(function(pid){\n"
+ "    const m = document.getElementById('hitoman_' + pid);\n"
+ "    if(m){ m.value = d.hitoPct[pid] || ''; recalcP(pid); }\n"
+ "  }); }\n",
+ "",
+ "139k· ya no hay % por hito que restaurar")
+
+s = sustituir(s,
+ "  if (document.querySelector(`.est-btn.on[data-rid^=\"${pid}_\"]`)) return true;",
+ "  if (document.querySelector(`.est-btn.on[data-rid^=\"${pid}_\"]`)) return true;\n"
+ "  const conPct = Array.prototype.slice\n"
+ "    .call(document.querySelectorAll(`input[id^=\"pm_\"][data-p=\"${pid}\"]`))\n"
+ "    .some(function(e){ return String(e.value || '').trim() !== ''; });\n"
+ "  if (conPct) return true;",
+ "139l· un % escrito cuenta como «algo» en el hito")
+
+s = sustituir(s,
+ "    if(Array.isArray(v)) return v.some(function(f){ return f && (f.pr || f.ej || f.ev); });",
+ "    if(Array.isArray(v)) return v.some(function(f){ return f && (f.pr || f.ej || f.ev || f.sn || f.pct); });",
+ "139m· Sí/No o un % hacen que el borrador tenga contenido")
+
+s = sustituir(s,
+ ".hito-man{width:96px;min-height:44px;margin-left:8px;border:1.5px solid #f59e0b;border-radius:7px;background:#fff8e1;font-weight:800;text-align:center}",
+ ".pct-man{width:64px;min-height:44px;margin-left:6px;border:1.5px solid #f59e0b;border-radius:7px;background:#fff8e1;font-weight:800;text-align:center;font-size:16px}\n"
+ ".est-btn.sn{min-width:44px;min-height:44px;font-size:13px}",
+ "139n· el campo del % de la fila y los botones Sí/No, a 44 px")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
