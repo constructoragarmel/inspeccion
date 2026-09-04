@@ -231,6 +231,7 @@ td.desc{text-align:left;padding-left:13px;font-size:12px;font-weight:500;min-wid
 .est-btn.e50.on{background:#3949ab}
 .est-btn.e75.on{background:#283593}
 .est-btn.e100.on{background:#1a237e}
+.hito-man{width:96px;min-height:44px;margin-left:8px;border:1.5px solid #f59e0b;border-radius:7px;background:#fff8e1;font-weight:800;text-align:center}
 .ud{display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid #dfe3ea;border-radius:9px;background:#f4f6fa;color:#5f6b7a;font-size:10.5px;font-weight:700;white-space:nowrap;vertical-align:middle}
 .ud-sel{margin-left:6px;min-height:44px;padding:2px 6px;border:1.5px solid #c9cdd6;border-radius:7px;background:#fff8e1;color:#37474f;font-size:11.5px;font-weight:700;vertical-align:middle}
 td.desc input{width:100%;border:1px solid #e0e0e0;border-radius:5px;padding:4px 7px;font-size:12px;background:#fff8e1}
@@ -1298,10 +1299,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v53';
+    el.textContent = '● en línea · v54';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v53 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v54 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -1511,6 +1512,18 @@ function setupFormTypeUI() {
 //   UD_ESTADO     no se mide por cantidad: se elige en qué punto va
 // El dato definitivo vive en el maestro MAE_Hitos_Subpartidas.
 const UD_ESTADO = 'estado';
+// La medición propuesta por Skarlet Gómez (1/2-sep-2026), solo con ?medicion=propuesta.
+const MEDICION = (new URLSearchParams(location.search).get('medicion') === 'propuesta') ? 'propuesta' : 'actual';
+const HITOS_SI_NO = ['hito_cerramientos', 'hito_servicios', 'hito_ascensor', 'hito_pruebas'];
+const HITOS_PCT_MANUAL = ['hito_estructura', 'hito_cerramientos', 'hito_servicios', 'hito_acabados',
+                          'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];
+function _esSiNo(pid, i){
+  return MEDICION === 'propuesta' && (HITOS_SI_NO.indexOf(pid) >= 0 || _esEstado(pid, i));
+}
+// Sí / No son los dos extremos de los cinco estados: mismo dato, menos botones.
+function _estadosDe(pid, i){
+  return _esSiNo(pid, i) ? [{ v: 0, n: 'No' }, { v: 100, n: 'S\u00ed' }] : ESTADOS;
+}
 const UNIDADES = {
   'hito_estructura':      ["m²", ["ml", "kg"], "m³"],
   'hito_cerramientos':    ["m²", "m²", "m²"],
@@ -2333,6 +2346,9 @@ function initAppContent() {
           </div>
           <div class="p-foot">
             <div class="p-foot-lbl">% Avance Hito</div>
+            ${MEDICION === 'propuesta' && HITOS_PCT_MANUAL.indexOf(p.id) >= 0 ? `
+            <input type="number" class="num hito-man" id="hitoman_${p.id}" data-p="${p.id}" min="0" max="100" inputmode="decimal"
+                   placeholder="% a mano" title="Porcentaje del hito escrito por el inspector (medición propuesta)" oninput="recalcP('${p.id}')">` : ''}
             <div class="p-foot-bar"><div class="bar-bg"><div class="bar-fill" id="fbar_${p.id}" style="width:0%;background:${colorHito(p)}"></div></div></div>
             <div class="p-foot-pct g" id="fpct_${p.id}">—</div>
           </div>
@@ -2348,13 +2364,13 @@ function initAppContent() {
         const rid=`${p.id}_${i}`;
         // Las que no se miden no piden cantidad: piden en qué punto van. Los
         // dos campos de cantidad siguen ahí, ocultos, para no cambiar el dato.
-        const est = _esEstado(p.id, i);
+        const est = _esEstado(p.id, i) || _esSiNo(p.id, i);
         return `<tr>
           <td class="n">${i+1}</td>
-          <td class="desc">${item}${_ud(p.id,i)}</td>
+          <td class="desc">${item}${_esSiNo(p.id,i) && !_esEstado(p.id,i) ? '' : _ud(p.id,i)}</td>
           ${est ? `
           <td class="col-proyectada est-vacia"><input type="hidden" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" data-est="1"></td>
-          <td class="col-ejecutada est-cell"><div class="est">${ESTADOS.map(e => `
+          <td class="col-ejecutada est-cell"><div class="est">${_estadosDe(p.id,i).map(e => `
             <button type="button" class="est-btn e${e.v}" data-rid="${rid}" data-v="${e.v}"
                     title="${e.n} — ${e.v}%" onclick="setEstado(this,${e.v})"><b class="est-n">${e.n}</b><i class="est-p">${e.v}%</i></button>`).join('')}
           </div><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"></td>` : `
@@ -2420,6 +2436,9 @@ function initAppContent() {
           </div>
           <div class="p-foot">
             <div class="p-foot-lbl">% Avance Hito</div>
+            ${MEDICION === 'propuesta' && HITOS_PCT_MANUAL.indexOf(p.id) >= 0 ? `
+            <input type="number" class="num hito-man" id="hitoman_${p.id}" data-p="${p.id}" min="0" max="100" inputmode="decimal"
+                   placeholder="% a mano" title="Porcentaje del hito escrito por el inspector (medición propuesta)" oninput="recalcP('${p.id}')">` : ''}
             <div class="p-foot-bar"><div class="bar-bg"><div class="bar-fill" id="fbar_${p.id}" style="width:0%;background:${colorHito(p)}"></div></div></div>
             <div class="p-foot-pct g" id="fpct_${p.id}">—</div>
           </div>
@@ -2606,7 +2625,15 @@ function recalcP(pid){
     const ej=Math.max(0, parseFloat(document.getElementById('ej_'+rid)?.value)||0);
     if(pr>0){sumPct+=Math.min(100,Math.floor((ej/pr)*100));cnt++;}
   });
-  const pct=cnt>0?Math.floor(sumPct/cnt):null;   // igual que el total (cambio 34)
+  let pct=cnt>0?Math.floor(sumPct/cnt):null;   // igual que el total (cambio 34)
+  // Medición propuesta: si el inspector escribió el % del hito, manda ese.
+  if(MEDICION === 'propuesta'){
+    const m = document.getElementById('hitoman_' + pid);
+    if(m && String(m.value).trim() !== ''){
+      const v = parseFloat(String(m.value).replace(',', '.'));
+      if(!isNaN(v)) pct = Math.min(100, Math.max(0, Math.floor(v)));
+    }
+  }
   const txt=pct!==null?pct+'%':'—';
   const cls=pct!==null?pCls(pct):null;
 
@@ -2898,7 +2925,10 @@ function getFormData(){
       };
     });
   } else {
+    d.medicion = MEDICION; d.hitoPct = {};
     _hitosDelAmbito().forEach(p=>{
+      const _hm = document.getElementById('hitoman_' + p.id);
+      if(_hm) d.hitoPct[p.id] = _hm.value || '';
       d.partidas[p.id]=p.items.map((_,i)=>{
         const rid=`${p.id}_${i}`;
         const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
@@ -3274,6 +3304,10 @@ function loadDraftData(index) {
     showToast('⚠️ El informe se abrió INCOMPLETO: no se pudo restaurar ' +
               _falloAlAbrir.length + ' hito(s). NO lo envíe así — avise a la oficina.', 'err');
   } else {
+  if(d.hitoPct){ Object.keys(d.hitoPct).forEach(function(pid){
+    const m = document.getElementById('hitoman_' + pid);
+    if(m){ m.value = d.hitoPct[pid] || ''; recalcP(pid); }
+  }); }
     showToast('📂 Borrador cargado correctamente para edición', 'ok');
   }
 }
@@ -3765,6 +3799,12 @@ document.addEventListener('visibilitychange', function(){
   if (document.hidden && typeof saveDraft === 'function' && typeof _tieneContenido === 'function' &&
       _tieneContenido(getFormData())) { try { saveDraft(); } catch(e){} }
 });
+if (MEDICION === 'propuesta') {
+  const _b = document.createElement('div');
+  _b.textContent = '\ud83e\uddea MEDICI\u00d3N PROPUESTA \u2014 S\u00ed/No por subpartida y % del hito a mano (prueba)';
+  _b.style.cssText = 'background:#fff8e1;border-bottom:2px solid #f59e0b;padding:8px 12px;font-weight:800;font-size:12px;color:#4e342e;text-align:center';
+  document.body.prepend(_b);
+}
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });

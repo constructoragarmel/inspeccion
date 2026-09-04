@@ -7056,6 +7056,109 @@ s = sustituir(s,
  "  const pct=cnt>0?Math.floor(sumPct/cnt):null;   // igual que el total (cambio 34)",
  "136c\u00b7 el promedio del hito trunca")
 
+# ── 137. La medición que propone Skarlet, detrás de un enlace de prueba ─────
+# Propuesta del 1-sep-2026, precisada en la llamada del 2-sep y con las dos
+# decisiones de Francisco José García Guinand encima:
+#   · hitos 3, 9 y 11: Sí / No por subpartida + % del hito escrito a mano
+#   · hito 2: Sí / No por subpartida + % manual (los m² se apagan)
+#   · hitos 1, 4 y 10: se sigue anotando la cantidad ejecutada; la proyectada se
+#     apaga; el % del hito se escribe a mano
+#   · 5, 6, 7 y 8 sin cambios; B/R/M/N-A en todos
+# NO SUSTITUYE lo aprobado (ADR-0023 y 0026): vive detrás de
+# `?medicion=propuesta`, para que lo prueben y digan si es esto. El enlace de
+# siempre sigue igual. Por debajo el dato conserva su forma —Sí = 100, No = 0,
+# como los estados— así que el relevo y Smartsheet no se enteran; el % manual
+# viaja aparte en `hitoPct` y lo lee el PDF (documento y pantalla dicen lo
+# mismo, lección 6).
+s = sustituir(s,
+ "const UD_ESTADO = 'estado';",
+ "const UD_ESTADO = 'estado';\n"
+ "// La medición propuesta por Skarlet Gómez (1/2-sep-2026), solo con ?medicion=propuesta.\n"
+ "const MEDICION = (new URLSearchParams(location.search).get('medicion') === 'propuesta') ? 'propuesta' : 'actual';\n"
+ "const HITOS_SI_NO = ['hito_cerramientos', 'hito_servicios', 'hito_ascensor', 'hito_pruebas'];\n"
+ "const HITOS_PCT_MANUAL = ['hito_estructura', 'hito_cerramientos', 'hito_servicios', 'hito_acabados',\n"
+ "                          'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];\n"
+ "function _esSiNo(pid, i){\n"
+ "  return MEDICION === 'propuesta' && (HITOS_SI_NO.indexOf(pid) >= 0 || _esEstado(pid, i));\n"
+ "}\n"
+ "// Sí / No son los dos extremos de los cinco estados: mismo dato, menos botones.\n"
+ "function _estadosDe(pid, i){\n"
+ "  return _esSiNo(pid, i) ? [{ v: 0, n: 'No' }, { v: 100, n: 'S\\u00ed' }] : ESTADOS;\n"
+ "}",
+ "137a\u00b7 MEDICION, y qu\u00e9 hitos van a S\u00ed/No y a % manual")
+
+s = sustituir(s,
+ "        const est = _esEstado(p.id, i);",
+ "        const est = _esEstado(p.id, i) || _esSiNo(p.id, i);",
+ "137b\u00b7 las filas S\u00ed/No usan el mismo molde que las de estado")
+
+s = sustituir(s,
+ "          <td class=\"desc\">${item}${_ud(p.id,i)}</td>\n          ${est ? `",
+ "          <td class=\"desc\">${item}${_esSiNo(p.id,i) && !_esEstado(p.id,i) ? '' : _ud(p.id,i)}</td>\n          ${est ? `",
+ "137c\u00b7 sin unidad en una fila que pasa a S\u00ed/No")
+
+s = sustituir(s,
+ "          <td class=\"col-ejecutada est-cell\"><div class=\"est\">${ESTADOS.map(e => `",
+ "          <td class=\"col-ejecutada est-cell\"><div class=\"est\">${_estadosDe(p.id,i).map(e => `",
+ "137d\u00b7 dos botones donde toca")
+
+s = sustituir(s,
+ "            <div class=\"p-foot-lbl\">% Avance Hito</div>",
+ "            <div class=\"p-foot-lbl\">% Avance Hito</div>\n"
+ "            ${MEDICION === 'propuesta' && HITOS_PCT_MANUAL.indexOf(p.id) >= 0 ? `\n"
+ "            <input type=\"number\" class=\"num hito-man\" id=\"hitoman_${p.id}\" data-p=\"${p.id}\" min=\"0\" max=\"100\" inputmode=\"decimal\"\n"
+ "                   placeholder=\"% a mano\" title=\"Porcentaje del hito escrito por el inspector (medici\u00f3n propuesta)\" oninput=\"recalcP('${p.id}')\">` : ''}",
+ "137e\u00b7 el % del hito escrito a mano, en el pie del hito", -1)   # las dos plantillas
+
+s = sustituir(s,
+ "  const pct=cnt>0?Math.floor(sumPct/cnt):null;   // igual que el total (cambio 34)",
+ "  let pct=cnt>0?Math.floor(sumPct/cnt):null;   // igual que el total (cambio 34)\n"
+ "  // Medici\u00f3n propuesta: si el inspector escribi\u00f3 el % del hito, manda ese.\n"
+ "  if(MEDICION === 'propuesta'){\n"
+ "    const m = document.getElementById('hitoman_' + pid);\n"
+ "    if(m && String(m.value).trim() !== ''){\n"
+ "      const v = parseFloat(String(m.value).replace(',', '.'));\n"
+ "      if(!isNaN(v)) pct = Math.min(100, Math.max(0, Math.floor(v)));\n"
+ "    }\n"
+ "  }",
+ "137f\u00b7 el % manual manda sobre el calculado")
+
+s = sustituir(s,
+ "    _hitosDelAmbito().forEach(p=>{\n      d.partidas[p.id]=p.items.map((_,i)=>{",
+ "    d.medicion = MEDICION; d.hitoPct = {};\n"
+ "    _hitosDelAmbito().forEach(p=>{\n"
+ "      const _hm = document.getElementById('hitoman_' + p.id);\n"
+ "      if(_hm) d.hitoPct[p.id] = _hm.value || '';\n"
+ "      d.partidas[p.id]=p.items.map((_,i)=>{",
+ "137g\u00b7 el borrador guarda la medici\u00f3n y el % manual por hito")
+
+# reponer el % manual al abrir, justo antes de anunciar que se cargó
+_i = s.index("Borrador cargado correctamente")
+_lin = s.rfind("\n", 0, s.rfind("showToast(", 0, _i)) + 1
+s = s[:_lin] + (
+ "  if(d.hitoPct){ Object.keys(d.hitoPct).forEach(function(pid){\n"
+ "    const m = document.getElementById('hitoman_' + pid);\n"
+ "    if(m){ m.value = d.hitoPct[pid] || ''; recalcP(pid); }\n"
+ "  }); }\n") + s[_lin:]
+cambios.append("137h\u00b7 el % manual vuelve al abrir el borrador")
+
+s = sustituir(s,
+ "if ('serviceWorker' in navigator) {",
+ "if (MEDICION === 'propuesta') {\n"
+ "  const _b = document.createElement('div');\n"
+ "  _b.textContent = '\\ud83e\\uddea MEDICI\\u00d3N PROPUESTA \\u2014 S\\u00ed/No por subpartida y % del hito a mano (prueba)';\n"
+ "  _b.style.cssText = 'background:#fff8e1;border-bottom:2px solid #f59e0b;padding:8px 12px;font-weight:800;font-size:12px;color:#4e342e;text-align:center';\n"
+ "  document.body.prepend(_b);\n"
+ "}\n"
+ "if ('serviceWorker' in navigator) {",
+ "137i\u00b7 el aviso de que es la medici\u00f3n de prueba")
+
+s = sustituir(s,
+ ".ud{display:inline-block;",
+ ".hito-man{width:96px;min-height:44px;margin-left:8px;border:1.5px solid #f59e0b;border-radius:7px;background:#fff8e1;font-weight:800;text-align:center}\n"
+ ".ud{display:inline-block;",
+ "137j\u00b7 el campo del % manual, a 44 px")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
