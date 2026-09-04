@@ -120,7 +120,7 @@ PARTIDAS_ONCE = """const PARTIDAS = [
     "nombre": "HITO 10: ACABADOS EXTERIORES Y ÁREAS COMUNES", 
     "icon": "", 
     "color": "#1e3a8a", 
-    "items": ["Revestimiento y pintura de fachada exterior", "Adecuación de accesos y pasillos", "Instalación de iluminación en común", "Instalación de barandas", "Instalación de pasamanos escaleras"]
+    "items": ["Revestimiento y pintura de fachada exterior", "Adecuación de accesos y pasillos", "Instalación de iluminación en común", "Instalación de barandas", "Instalación de pasamanos escaleras", "Frisos de áreas comunes"]
   }, 
   {
     "id": "hito_pruebas", 
@@ -4932,7 +4932,7 @@ UNIDADES = {
     "hito_acc_sanitarios": ["pza"] * 7,
     "hito_acc_electricos": ["pza"] * 5,
     "hito_ascensor":       [UD_ESTADO] * 4,
-    "hito_exteriores":     ["m²"] + [UD_ESTADO] * 4,
+    "hito_exteriores":     ["m²"] + [UD_ESTADO] * 4 + ["m²"],   # «Frisos de áreas comunes», 4-sep-2026
     "hito_pruebas":        [UD_ESTADO] * 4,
 }
 
@@ -7157,7 +7157,8 @@ s = sustituir(s,
 # Lo que dejó la llamada del 2-sep-2026 (C-35, PA-103): un hito de torre puede
 # llevar dentro una partida de apartamento —la válvula de gas—, y declararlo por
 # hito la pierde. La tabla vive en comun/ambito.py con lo que dijo Skarlet Gómez;
-# las seis que no cuadran van en AMBOS hasta que la Ing. Beatriz Sevilla decida;
+# las seis que no cuadraban las cerró Stephanie González el 4-sep-2026: todas en
+# AMBOS, y los frisos de áreas comunes con fila propia en el hito 10 (PA-103);
 # «pruebas de ascensores» se queda en torre: el hito 9 es de torre y es el mismo
 # ascensor (lo afirmó Stephanie en la llamada y nadie lo objetó).
 # Decidido por Stephanie González el 3-sep-2026 (ADR-0028): sobre el formulario
@@ -7167,7 +7168,7 @@ s = sustituir(s,
 # filas se oculta entero; al revés en un informe de torre. Lo oculto no se pide,
 # no se cuenta y viaja marcado como fuera de ámbito, para que el PDF y Smartsheet
 # lo salten. Las filas visibles se renumeran para que no parezca que falta algo.
-AMBITO_SUB_JS = 'const AMBITO_SUB = {"hito_estructura": ["T", "T", "T"], "hito_cerramientos": ["T", "AMBOS", "T"], "hito_servicios": ["AMBOS", "AMBOS", "T", "AMBOS", "T", "AMBOS", "T", "T", "T"], "hito_acabados": ["AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS"], "hito_puertas": ["A", "A", "A"], "hito_ventanas": ["A", "A"], "hito_acc_sanitarios": ["A", "A", "A", "A", "A", "A", "A"], "hito_acc_electricos": ["A", "A", "A", "A", "A"], "hito_ascensor": ["T", "T", "T", "T"], "hito_exteriores": ["T", "T", "T", "T", "T"], "hito_pruebas": ["AMBOS", "AMBOS", "AMBOS", "T"]};'
+AMBITO_SUB_JS = 'const AMBITO_SUB = {"hito_estructura": ["T", "T", "T"], "hito_cerramientos": ["T", "AMBOS", "T"], "hito_servicios": ["AMBOS", "AMBOS", "T", "AMBOS", "T", "AMBOS", "T", "T", "T"], "hito_acabados": ["AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS"], "hito_puertas": ["A", "A", "A"], "hito_ventanas": ["A", "A"], "hito_acc_sanitarios": ["A", "A", "A", "A", "A", "A", "A"], "hito_acc_electricos": ["A", "A", "A", "A", "A"], "hito_ascensor": ["T", "T", "T", "T"], "hito_exteriores": ["T", "T", "T", "T", "T", "T"], "hito_pruebas": ["AMBOS", "AMBOS", "AMBOS", "T"]};'
 s = sustituir(s,
  "function _esSiNo(pid, i){",
  AMBITO_SUB_JS + "\n"

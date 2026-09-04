@@ -36,7 +36,7 @@ los cazó. Si un nombre no coincide carácter por carácter con el del instrumen
 esta tabla no vale para nada.
 """
 
-APLICAR = True    # encendido el 3-sep-2026 (ADR-0028): las seis con duda van en AMBOS hasta PA-103
+APLICAR = True    # encendido el 3-sep-2026 (ADR-0028); PA-103 cerrada el 4-sep por Stephanie González
 
 # Origen: la lista escrita que entregó Skarlet Gómez el 1-sep-2026, corregida
 # por la llamada del 2-sep, que movió el hito 2 a torre y confirmó el 3.
@@ -48,21 +48,16 @@ AMBITO = {
 ],
 "HITO 2: CERRAMIENTOS Y ALBAÑILERÍA": [
     ('Construcción de paredes exteriores', 'T', None),
-    ('Tabiquería interior', 'T',
-     'La tabiquería interior se levanta DENTRO del apartamento. Con el hito 2 en torre no hay dónde reportarla en un informe de apartamento.'),
+    ('Tabiquería interior', 'AMBOS', None),  # AMBOS: lo decidió Stephanie González el 4-sep-2026 (cerró PA-103)
     ('Impermeabilización de azotea', 'T', None),
 ],
 "HITO 3: INSTALACIÓN DE SERVICIOS": [
-    ('Sanitarias y pluviales — Aguas blancas', 'T',
-     'Las aguas blancas llegan hasta dentro del apartamento.'),
-    ('Sanitarias y pluviales — Desagüe', 'T',
-     'El desagüe del apartamento se inspecciona en el apartamento.'),
+    ('Sanitarias y pluviales — Aguas blancas', 'AMBOS', None),  # AMBOS: lo decidió Stephanie González el 4-sep-2026 (cerró PA-103)
+    ('Sanitarias y pluviales — Desagüe', 'AMBOS', None),  # AMBOS: lo decidió Stephanie González el 4-sep-2026 (cerró PA-103)
     ('Sanitarias y pluviales — Bajante de aguas de lluvias', 'T', None),
-    ('Eléctricas y datos — Cableados', 'T',
-     'El cableado del apartamento se inspecciona en el apartamento.'),
+    ('Eléctricas y datos — Cableados', 'AMBOS', None),  # AMBOS: lo decidió Stephanie González el 4-sep-2026 (cerró PA-103)
     ('Eléctricas y datos — Tableros principales', 'T', None),
-    ('Eléctricas y datos — Canalizaciones', 'T',
-     'Las canalizaciones van también por dentro del apartamento.'),
+    ('Eléctricas y datos — Canalizaciones', 'AMBOS', None),  # AMBOS: lo decidió Stephanie González el 4-sep-2026 (cerró PA-103)
     ('Eléctricas y datos — Equipamiento de cuarto de módulos', 'T', None),
     ('Gas — Montante', 'T', None),
     ('Gas — Manifold', 'T', None),
@@ -70,8 +65,7 @@ AMBITO = {
      'Pedida por apartamento DENTRO de un hito de torre: es el caso que demuestra que el ámbito es de la subpartida. Y existe ya en el formulario de servicios, así que construirla en los dos la mediría dos veces (PA-104).'),
 ],
 "HITO 4: ACABADOS": [
-    ('Frisos', 'AMBOS',
-     'En un informe de torre, los frisos de un pasillo caben aquí y en el hito 10. Skarlet dijo que las áreas comunes van a la torre. ¿Se separa creando «Frisos» dentro del hito 10?'),
+    ('Frisos', 'AMBOS', None),  # en el 4 para los dos ámbitos; lo común va en «Frisos de áreas comunes», hito 10 (Stephanie, 4-sep-2026)
     ('Encamisados', 'AMBOS', None),
     ('Cerámica en paredes', 'AMBOS', None),
     ('Cerámica en pisos', 'AMBOS', None),
@@ -116,6 +110,7 @@ AMBITO = {
     ('Instalación de iluminación en común', 'T', None),
     ('Instalación de barandas', 'T', None),
     ('Instalación de pasamanos escaleras', 'T', None),
+    ('Frisos de áreas comunes', 'T', None),   # creada el 4-sep-2026 por decisión de Stephanie González: los frisos de pasillos y áreas comunes no se mezclan con los del hito 4
 ],
 "HITO 11: PRUEBAS": [
     ('Presión de agua', 'AMBOS', None),

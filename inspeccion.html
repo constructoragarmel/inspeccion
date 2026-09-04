@@ -1299,10 +1299,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v55';
+    el.textContent = '● en línea · v56';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v55 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v56 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -1533,7 +1533,7 @@ const MEDICION = 'propuesta';
 const HITOS_SI_NO = ['hito_cerramientos', 'hito_servicios', 'hito_ascensor', 'hito_pruebas'];
 const HITOS_PCT_MANUAL = ['hito_estructura', 'hito_cerramientos', 'hito_servicios', 'hito_acabados',
                           'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];
-const AMBITO_SUB = {"hito_estructura": ["T", "T", "T"], "hito_cerramientos": ["T", "AMBOS", "T"], "hito_servicios": ["AMBOS", "AMBOS", "T", "AMBOS", "T", "AMBOS", "T", "T", "T"], "hito_acabados": ["AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS"], "hito_puertas": ["A", "A", "A"], "hito_ventanas": ["A", "A"], "hito_acc_sanitarios": ["A", "A", "A", "A", "A", "A", "A"], "hito_acc_electricos": ["A", "A", "A", "A", "A"], "hito_ascensor": ["T", "T", "T", "T"], "hito_exteriores": ["T", "T", "T", "T", "T"], "hito_pruebas": ["AMBOS", "AMBOS", "AMBOS", "T"]};
+const AMBITO_SUB = {"hito_estructura": ["T", "T", "T"], "hito_cerramientos": ["T", "AMBOS", "T"], "hito_servicios": ["AMBOS", "AMBOS", "T", "AMBOS", "T", "AMBOS", "T", "T", "T"], "hito_acabados": ["AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS"], "hito_puertas": ["A", "A", "A"], "hito_ventanas": ["A", "A"], "hito_acc_sanitarios": ["A", "A", "A", "A", "A", "A", "A"], "hito_acc_electricos": ["A", "A", "A", "A", "A"], "hito_ascensor": ["T", "T", "T", "T"], "hito_exteriores": ["T", "T", "T", "T", "T", "T"], "hito_pruebas": ["AMBOS", "AMBOS", "AMBOS", "T"]};
 function _aplica(pid, i){
   const a = (AMBITO_SUB[pid] || [])[i] || 'AMBOS';
   return (typeof ambito !== 'undefined' && ambito === 'torre') ? a !== 'A' : a !== 'T';
@@ -1556,7 +1556,7 @@ const UNIDADES = {
   'hito_acc_sanitarios':  ["pza", "pza", "pza", "pza", "pza", "pza", "pza"],
   'hito_acc_electricos':  ["pza", "pza", "pza", "pza", "pza"],
   'hito_ascensor':        ["estado", "estado", "estado", "estado"],
-  'hito_exteriores':      ["m²", "estado", "estado", "estado", "estado"],
+  'hito_exteriores':      ["m²", "estado", "estado", "estado", "estado", "m²"],
   'hito_pruebas':         ["estado", "estado", "estado", "estado"]
 };
 
@@ -1739,7 +1739,7 @@ const PARTIDAS = [
     "nombre": "HITO 10: ACABADOS EXTERIORES Y ÁREAS COMUNES", 
     "icon": "", 
     "color": "#1e3a8a", 
-    "items": ["Revestimiento y pintura de fachada exterior", "Adecuación de accesos y pasillos", "Instalación de iluminación en común", "Instalación de barandas", "Instalación de pasamanos escaleras"]
+    "items": ["Revestimiento y pintura de fachada exterior", "Adecuación de accesos y pasillos", "Instalación de iluminación en común", "Instalación de barandas", "Instalación de pasamanos escaleras", "Frisos de áreas comunes"]
   }, 
   {
     "id": "hito_pruebas", 
