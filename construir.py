@@ -7399,8 +7399,8 @@ s = sustituir(s,
 
 s = sustituir(s,
  r"""          <td class="desc">${item}${_esSiNo(p.id,i) && !_esEstado(p.id,i) ? '' : _ud(p.id,i)}</td>""",
- r"""          <td class="desc">${(_esSiNo(p.id,i) && !_esEstado(p.id,i)) || _soloPct(p.id,i) ? '' : _ud(p.id,i)}</td>""",
- "140b· sin unidad en una fila que va solo en porcentaje")
+ r"""          <td class="desc">${item}${(_esSiNo(p.id,i) && !_esEstado(p.id,i)) || _soloPct(p.id,i) ? '' : _ud(p.id,i)}</td>""",
+ "140b· sin unidad en una fila que va solo en porcentaje (v58 perdió aquí el nombre de la subpartida; corregido en v59)")
 
 s = sustituir(s,
  r"""          </div><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"><input type="hidden" id="sn_${rid}"></td>` : `""",

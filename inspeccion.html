@@ -1301,10 +1301,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v58';
+    el.textContent = '● en línea · v59';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v58 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v59 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2392,7 +2392,7 @@ function initAppContent() {
         const est = _esEstado(p.id, i) || _esSiNo(p.id, i);
         return `<tr>
           <td class="n">${i+1}</td>
-          <td class="desc">${(_esSiNo(p.id,i) && !_esEstado(p.id,i)) || _soloPct(p.id,i) ? '' : _ud(p.id,i)}</td>
+          <td class="desc">${item}${(_esSiNo(p.id,i) && !_esEstado(p.id,i)) || _soloPct(p.id,i) ? '' : _ud(p.id,i)}</td>
           ${est ? `
           <td class="col-proyectada est-vacia"><input type="hidden" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" data-est="1"></td>
           <td class="col-ejecutada est-cell"><div class="est">${_esSiNo(p.id,i) ? _estadosDe(p.id,i).map(e => `
