@@ -3,7 +3,7 @@
 // Al subir una versión nueva hay que subir el número de VERSION: eso es lo que
 // hace que los teléfonos se traigan la copia nueva la próxima vez que tengan
 // internet. Si no se sube, siguen abriendo la vieja.
-const VERSION = 'garmel-inspeccion-v59';
+const VERSION = 'garmel-inspeccion-v60';
 const ARCHIVOS = [
   // './' NO va en la lista: toda navegación se guarda bajo './index.html'
   // —ver claveDeCache— y tenerla suelta dejaba DOS copias de 210 KB del mismo
@@ -19,7 +19,11 @@ const ARCHIVOS = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(VERSION)
-      .then(c => c.addAll(ARCHIVOS))
+      // `cache: 'no-cache'` obliga a preguntarle al servidor, no a la caché HTTP
+      // del navegador (Pages la deja valer 10 minutos). Sin esto, la versión
+      // nueva podía guardarse con el ARCHIVO VIEJO dentro: pasó el 4-sep-2026
+      // con v59, que se instaló con el inspeccion.html de v58.
+      .then(c => c.addAll(ARCHIVOS.map(u => new Request(u, { cache: 'no-cache' }))))
       .then(() => self.skipWaiting())
   );
 });
@@ -67,6 +71,15 @@ function claveDeCache(request) {
   return request;
 }
 
+// Lo propio se pide siempre revalidando contra el servidor, nunca desde la
+// caché HTTP del navegador: es lo que garantiza que lo que se guarda es lo
+// último publicado. Lo ajeno se deja como viene.
+function _fresca(request) {
+  const u = new URL(request.url);
+  if (u.origin !== self.location.origin) return request;
+  return new Request(u.href, { cache: 'no-cache', credentials: 'same-origin' });
+}
+
 // Primero la copia local — así abre instantáneo y sin señal. En paralelo, si
 // hay internet, se trae la versión nueva y la deja lista para la próxima vez.
 self.addEventListener('fetch', e => {
@@ -74,7 +87,7 @@ self.addEventListener('fetch', e => {
   const clave = claveDeCache(e.request);
   e.respondWith(
     caches.match(clave, { ignoreSearch: true }).then(guardada => {
-      const red = fetch(e.request).then(r => {
+      const red = fetch(_fresca(e.request)).then(r => {
         if (r && r.status === 200 && r.type === 'basic') {
           const copia = r.clone();
           caches.open(VERSION).then(c => c.put(clave, copia));
