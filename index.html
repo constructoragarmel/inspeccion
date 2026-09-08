@@ -26,7 +26,9 @@ a.tarjeta:active{background:#eef2ff}
      background:#fef3c7;border:1px solid #f59e0b;border-radius:999px;padding:4px 12px}
 .pend.cero{background:#ecfdf5;border-color:#059669;color:#065f46;font-weight:600}
 .clave-fila{display:flex;gap:8px;margin-top:10px}
-.clave-fila input{flex:1;min-height:44px;font-size:16px;padding:0 12px;border:1.5px solid var(--borde);border-radius:8px;background:#fff}
+.clave-caja{flex:1;display:flex;align-items:stretch;border:1.5px solid var(--borde);border-radius:8px;background:#fff;overflow:hidden}
+.clave-caja input{flex:1;min-width:0;min-height:44px;font-size:16px;padding:0 12px;border:none;background:transparent}
+.clave-caja .ojo{width:44px;min-height:44px;border:none;border-left:1px solid var(--borde);background:#f4f6fa;font-size:18px;padding:0}
 .clave-fila button{min-height:44px;padding:0 16px;font-size:15px;font-weight:700;border:none;border-radius:8px;background:#1a237e;color:#fff}
 .clave-fila button:disabled{opacity:.6}
 .clave-msg{margin-top:8px;font-size:14px;min-height:1em}
@@ -52,7 +54,7 @@ a.tarjeta:focus-visible,div.tarjeta:focus-visible{outline:3px solid #1565c0;outl
   <div id="prueba"></div>
   <div class="estado" id="estado">Comprobando este teléfono…</div>
   <div id="lista"></div>
-  <div class="pie">● <span id="conexion">en línea</span> · v61</div>
+  <div class="pie">● <span id="conexion">en línea</span> · v62</div>
 </main>
 
 <script>
@@ -117,6 +119,15 @@ const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQ
 
 // Guarda la clave y, si hay señal, la comprueba contra el relevo: una clave mal
 // escrita se descubre aquí y no en el primer envío dentro de la torre.
+// Ver lo que se escribió: la clave lleva puntos y signos, y a ciegas se escribe mal.
+function verClave(){
+  const inp = document.getElementById('clave-menu');
+  const oculta = inp.type === 'password';
+  inp.type = oculta ? 'text' : 'password';
+  document.getElementById('btn-ojo').textContent = oculta ? '🙈' : '👁';
+  inp.focus();
+}
+
 async function configurarClave(){
   const inp = document.getElementById('clave-menu');
   const msg = document.getElementById('clave-msg');
@@ -162,8 +173,9 @@ function pintar(){
     : '⚠️ Este teléfono <b>todavía no está configurado</b>: se llenan informes igual, ' +
       'pero no se pueden enviar. Escriba la clave que le dieron en la oficina:' +
       '<div class="clave-fila">' +
-      '<input type="password" id="clave-menu" placeholder="Clave de envío" autocomplete="off" ' +
+      '<div class="clave-caja"><input type="password" id="clave-menu" placeholder="Clave de envío" autocomplete="off" ' +
       'autocapitalize="off" spellcheck="false" inputmode="text">' +
+      '<button type="button" class="ojo" id="btn-ojo" onclick="verClave()" title="Ver la clave" aria-label="Ver la clave">👁</button></div>' +
       '<button type="button" id="btn-clave" onclick="configurarClave()">Guardar</button></div>' +
       '<div id="clave-msg" class="clave-msg"></div>';
 
