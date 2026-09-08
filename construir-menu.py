@@ -76,6 +76,13 @@ a.tarjeta:active{background:#eef2ff}
 .pend{display:inline-block;margin-top:10px;font-size:13px;font-weight:700;
      background:#fef3c7;border:1px solid #f59e0b;border-radius:999px;padding:4px 12px}
 .pend.cero{background:#ecfdf5;border-color:#059669;color:#065f46;font-weight:600}
+.clave-fila{display:flex;gap:8px;margin-top:10px}
+.clave-fila input{flex:1;min-height:44px;font-size:16px;padding:0 12px;border:1.5px solid var(--borde);border-radius:8px;background:#fff}
+.clave-fila button{min-height:44px;padding:0 16px;font-size:15px;font-weight:700;border:none;border-radius:8px;background:#1a237e;color:#fff}
+.clave-fila button:disabled{opacity:.6}
+.clave-msg{margin-top:8px;font-size:14px;min-height:1em}
+.clave-msg.bien{color:#2e7d32;font-weight:700}
+.clave-msg.mal{color:#c62828;font-weight:700}
 .estado{background:#fff;border:1px solid var(--borde);border-radius:10px;padding:12px;
      font-size:13px;margin-bottom:12px}
 .prueba{background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px;
@@ -132,16 +139,59 @@ function sinEnviar(clave){
   } catch(e){ return 0; }   // una lista ilegible no puede tumbar el menú
 }
 
+const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQiGp3CCZmIWTnsWBD0KEw5quMkexDcBieUESBkmTspqAsvjoXQ/exec';
+
+// Guarda la clave y, si hay señal, la comprueba contra el relevo: una clave mal
+// escrita se descubre aquí y no en el primer envío dentro de la torre.
+async function configurarClave(){
+  const inp = document.getElementById('clave-menu');
+  const msg = document.getElementById('clave-msg');
+  const btn = document.getElementById('btn-clave');
+  const clave = (inp.value || '').trim();
+  if (!clave){ msg.textContent = 'Escriba la clave.'; msg.className = 'clave-msg mal'; inp.focus(); return; }
+  try { localStorage.setItem('garmel_clave_envio', clave); } catch(e){}
+  if (!navigator.onLine){
+    msg.textContent = 'Clave guardada. Se comprobará en el primer envío con señal.'; msg.className = 'clave-msg bien';
+    setTimeout(pintar, 1500); return;
+  }
+  btn.disabled = true; msg.textContent = 'Comprobando…'; msg.className = 'clave-msg';
+  const corte = new AbortController(); const reloj = setTimeout(() => corte.abort(), 20000);
+  try {
+    const r = await fetch(RELEVO_URL, { method: 'POST', signal: corte.signal,
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ clave: clave, prueba: true }) });
+    const res = await r.json();
+    if (res.error === 'Clave incorrecta'){
+      try { localStorage.removeItem('garmel_clave_envio'); } catch(e){}
+      msg.textContent = '❌ Esa clave no es la correcta. Revise mayúsculas, puntos y signos, o pídala de nuevo en la oficina.';
+      msg.className = 'clave-msg mal'; btn.disabled = false; return;
+    }
+    msg.textContent = '✅ Este teléfono quedó configurado.'; msg.className = 'clave-msg bien';
+    setTimeout(pintar, 1200);
+  } catch(e) {
+    msg.textContent = 'Clave guardada. No se pudo comprobar ahora; se verá en el primer envío.'; msg.className = 'clave-msg bien';
+    setTimeout(pintar, 1500);
+  } finally { clearTimeout(reloj); }
+}
+
 function pintar(){
   if (ESPRUEBA) document.getElementById('prueba').innerHTML =
     '<div class="prueba">⚠️ MODO DE PRUEBA — los informes se marcan como PRUEBA-</div>';
 
   let hay = false;
   try { hay = !!localStorage.getItem('garmel_clave_envio'); } catch(e){}
+  // Si no está configurado, la clave se escribe AQUÍ, en lo primero que se ve.
+  // Antes había que llegar al panel de envío de un formulario. Lo pidió Stephanie
+  // el 8-sep-2026 al ver su iPhone: la app de la pantalla de inicio arranca sin la
+  // clave que Safari sí tenía, y el enlace cortado por WhatsApp deja igual.
   document.getElementById('estado').innerHTML = hay
     ? '✓ Este teléfono está configurado para enviar.'
-    : '⚠️ Este teléfono <b>todavía no está configurado</b>. Abra el enlace de ' +
-      'configuración que le enviaron; se llenan informes igual, pero no se pueden enviar.';
+    : '⚠️ Este teléfono <b>todavía no está configurado</b>: se llenan informes igual, ' +
+      'pero no se pueden enviar. Escriba la clave que le dieron en la oficina:' +
+      '<div class="clave-fila">' +
+      '<input type="password" id="clave-menu" placeholder="Clave de envío" autocomplete="off" ' +
+      'autocapitalize="off" spellcheck="false" inputmode="text">' +
+      '<button type="button" id="btn-clave" onclick="configurarClave()">Guardar</button></div>' +
+      '<div id="clave-msg" class="clave-msg"></div>';
 
   const cont = document.getElementById('lista');
   cont.innerHTML = '';
