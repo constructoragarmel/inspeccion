@@ -37,7 +37,7 @@ SALIDA = os.path.join(RAIZ, "servicios.html")
 MAX_FOTO_PX  = 1280
 CALIDAD_FOTO = 0.72
 TOPE_ALMACEN = 5 * 1024 * 1024
-RELEVO_URL   = "https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQiGp3CCZmIWTnsWBD0KEw5quMkexDcBieUESBkmTspqAsvjoXQ/exec"
+RELEVO_URL   = "https://script.google.com/macros/s/AKfycbwWgYbgMkNcxwN2gAH89N4EVUe6LO_RXR2IzBBc6mFfgJJNjixd6omK_ElAOSiFH-EqYg/exec"
 
 # ⚠️ Tope de fotos POR SECCIÓN, no por informe (decidido el 2-sep-2026): una foto
 # de la caseta de gas no sustituye a una del transformador. Baja de 4 a 3 porque

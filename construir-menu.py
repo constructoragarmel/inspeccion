@@ -141,7 +141,7 @@ function sinEnviar(clave){
   } catch(e){ return 0; }   // una lista ilegible no puede tumbar el menú
 }
 
-const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQiGp3CCZmIWTnsWBD0KEw5quMkexDcBieUESBkmTspqAsvjoXQ/exec';
+const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbwWgYbgMkNcxwN2gAH89N4EVUe6LO_RXR2IzBBc6mFfgJJNjixd6omK_ElAOSiFH-EqYg/exec';
 
 // Guarda la clave y, si hay señal, la comprueba contra el relevo: una clave mal
 // escrita se descubre aquí y no en el primer envío dentro de la torre.

@@ -581,7 +581,7 @@ s = sustituir(s,
 ini = s.index("async function sendToMonday() {")
 fin = s.index("// Inicialización general al cargar")
 s = sustituir(s, s[ini:fin],
- """const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbylEnXp9Fsg0YWEQS4YQiGp3CCZmIWTnsWBD0KEw5quMkexDcBieUESBkmTspqAsvjoXQ/exec';
+ """const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbwWgYbgMkNcxwN2gAH89N4EVUe6LO_RXR2IzBBc6mFfgJJNjixd6omK_ElAOSiFH-EqYg/exec';
 
 // Devuelve una copia del informe sin las imágenes incrustadas. Se envían
 // aparte, como archivos, y duplicarlas dentro del JSON no aporta nada.
