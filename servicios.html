@@ -117,6 +117,40 @@ textarea{min-height:64px;resize:vertical}
 .ficha .b .del{background:#fee2e2;color:#991b1b;border-color:#fecaca}
 .enDrive{display:flex;align-items:center;justify-content:center;height:80px;
       background:#f1f5f9;border-radius:4px;font-size:12px;color:#64748b;text-align:center;padding:6px}
+
+/* ── Lo que viene de la visita anterior ──────────────────────────────────
+   Una respuesta heredada se ve DISTINTA de una dada hoy: el color se apaga y
+   lleva su etiqueta. Al tocarla, vuelve al color pleno y la etiqueta se va.
+   Sin esto, un SÍ de hace dos semanas y un SÍ de hoy serían idénticos en
+   pantalla, y el informe diría «verificado» de cosas que nadie miró. */
+.item.heredado .sino button.si-on{background:#bbf7d0;color:#14532d;border-color:#86efac}
+.item.heredado .sino button.no-on{background:#fecaca;color:#7f1d1d;border-color:#fca5a5}
+.item.heredado .sino button.na-on{background:#e2e8f0;color:#334155;border-color:#cbd5e1}
+.item.heredado{border-left:4px solid #f59e0b}
+.fila-apto.heredado{border-left:4px solid #f59e0b}
+.etq-her{display:inline-block;font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;
+      border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+.item.heredado .etq-her,.fila-apto.heredado .etq-her{display:inline-block}
+.item .etq-her,.fila-apto .etq-her{display:none}
+.item .cab-item{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.item .cab-item .nombre{margin:0;flex:1;min-width:0}
+/* El nombre libre ocupa su línea entera: con las etiquetas al lado se
+   recortaba a «Gabinete de mangu». Las etiquetas van debajo. */
+.item .cab-item .nombre-libre{flex:1 1 100%;min-width:0}
+/* Un ítem agregado en campo o recordado por el teléfono: se distingue por la
+   marca, no por el color, para no competir con lo heredado. */
+.item .etq-agr{font-size:11px;font-weight:600;color:#475569;white-space:nowrap}
+.item .quitar-item{min-height:44px;width:100%;margin-top:6px;border:1px solid #fecaca;
+      background:#fff;color:#991b1b;border-radius:6px;font-weight:600;font-size:13px}
+/* La propuesta de arrancar desde la visita anterior: dos botones de 44 px,
+   uno al lado del otro, y el texto arriba. */
+.historial{background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:12px;margin:12px 0}
+.historial .t{font-weight:700;font-size:14px;margin-bottom:4px}
+.historial .s{font-size:13px;color:#475569;margin-bottom:10px}
+.historial .b{display:flex;gap:8px}
+.historial .b button{flex:1;min-height:44px;border-radius:8px;font-weight:700;font-size:14px;border:none}
+.historial .b .si{background:var(--azul);color:#fff}
+.historial .b .no{background:#e2e8f0;color:#334155}
 </style>
 </head>
 <body>
@@ -159,6 +193,7 @@ textarea{min-height:64px;resize:vertical}
       </div>
     </div>
     <div id="aviso-torre"></div>
+    <div id="aviso-historial"></div>
     <div class="campo" style="margin-top:12px">
       <label>Inspector(es)</label>
       <div id="inspectores"></div>
@@ -179,7 +214,7 @@ textarea{min-height:64px;resize:vertical}
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún servicio..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v63</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v64</div>
 </div>
 
 <div class="acciones">
@@ -271,7 +306,8 @@ const GENERAL = [
     "nombre": "2. SERVICIOS DE CANTV",
     "items": [
       "Ubicación de Tanquilla de Conexión",
-      "Conexiones Exteriores",
+      "Construcción de Canalizaciones Exteriores",
+      "Colocación de Fibra desde Tanquilla a Módulo",
       "Conexión con Módulo Principal",
       "Cableado en Pasillos",
       "Colocación de Cajas de Paso",
@@ -307,7 +343,12 @@ const GENERAL = [
   {
     "id": "srv_aguas_servidas",
     "nombre": "5. AGUAS SERVIDAS",
-    "items": []
+    "items": [
+      "Ubicación de Boca de Visita",
+      "Construcción de Tanquilla de Descarga",
+      "Conexión a Tanquilla de Descarga",
+      "Colocación de Bajantes de Descarga"
+    ]
   },
   {
     "id": "srv_incendio",
@@ -320,6 +361,7 @@ const GENERAL = [
     "items": []
   }
 ];
+const RENOMBRADOS = {"srv_cantv": {"Conexiones Exteriores": "Construcción de Canalizaciones Exteriores"}};
 const APARTAMENTOS = [
   {
     "id": "apto_electrico",
@@ -468,6 +510,7 @@ function alElegirTorre(){
       filas.length + ' convenios distintos. Elija cuál corresponde: el formulario no lo adivina.</div>';
   }
   actualizarNro(); marcar();
+  ofrecerHistorial();
 }
 
 function alElegirConvenio(){
@@ -583,13 +626,118 @@ function pintarGeneral(){
               'Agréguelos abajo mientras Ingeniería la define.</div>';
     }
     html += '<div id="items-' + srv.id + '"></div>' +
-            '<button type="button" class="btn-add" onclick="addItem(\'' + srv.id + '\')">＋ Agregar ítem</button>' +
+            '<button type="button" class="btn-add" onclick="agregarItemNuevo(\'' + srv.id + '\')">＋ Agregar ítem</button>' +
             '<textarea class="obs-srv" placeholder="Observación del servicio..." oninput="marcar()"></textarea>' +
             bloqueFotos('fotos-' + srv.id, 'Fotografías') + '</div>';
     bloque.innerHTML = html;
     cont.appendChild(bloque);
     srv.items.forEach(nombre => addItem(srv.id, nombre, true));
+    // Y detrás de los fijos, los que este teléfono ya aprendió: lo que Hernán
+    // agregó una vez no se vuelve a escribir en cada torre.
+    const rec = itemsRecordados(srv.id);
+    rec.forEach(nombre => addItem(srv.id, nombre, false, true));
+    const nota = bloque.querySelector('.vacio');
+    if (nota && rec.length) nota.hidden = true;
   });
+}
+
+// «Agregar ítem» desde el botón: el nombre se escribe en el acto. El teclado
+// se abre solo, que es lo que se espera al tocar «agregar».
+function agregarItemNuevo(sid){
+  addItem(sid, '', false);
+  const cont = document.getElementById('items-' + sid);
+  const inp = cont.lastElementChild.querySelector('.nombre-libre');
+  if (inp) inp.focus();
+  marcar();
+}
+
+// ── Los ítems que el teléfono recuerda ────────────────────────────────────
+// Lo que se agrega en campo con nombre queda en este teléfono y aparece en los
+// informes siguientes, hasta que Ingeniería lo pase a la lista fija o alguien
+// lo quite «para los próximos». Vive por servicio.
+const CLAVE_ITEMS = 'garmel_srv_items';
+function normalizar(v){
+  return (v == null ? '' : String(v)).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+         .trim().toLowerCase().replace(/\s+/g,' ');
+}
+function memoriaItems(){
+  try { return JSON.parse(localStorage.getItem(CLAVE_ITEMS) || '{}'); } catch(e){ return {}; }
+}
+function guardarMemoriaItems(m){
+  try { localStorage.setItem(CLAVE_ITEMS, JSON.stringify(m)); } catch(e){}
+}
+// Recordados, menos los que ya son fijos: si Ingeniería adopta un ítem que un
+// teléfono venía recordando, no sale dos veces.
+function itemsRecordados(sid){
+  const srv = GENERAL.find(s => s.id === sid);
+  const fijos = (srv ? srv.items : []).map(normalizar);
+  return (memoriaItems()[sid] || []).filter(n => n && !fijos.includes(normalizar(n)));
+}
+function recordarItem(sid, nombre, original){
+  if (!nombre) return;
+  const m = memoriaItems();
+  const lista = m[sid] || [];
+  const i = original ? lista.findIndex(n => normalizar(n) === normalizar(original)) : -1;
+  const ya = lista.findIndex(n => normalizar(n) === normalizar(nombre));
+  if (i >= 0 && ya < 0) lista[i] = nombre;          // se corrigió el nombre
+  else if (ya < 0) lista.push(nombre);              // es nuevo
+  m[sid] = lista;
+  guardarMemoriaItems(m);
+}
+function olvidarItem(sid, nombre){
+  const m = memoriaItems();
+  m[sid] = (m[sid] || []).filter(n => normalizar(n) !== normalizar(nombre));
+  guardarMemoriaItems(m);
+}
+
+// Un ítem fijo, uno agregado hoy, o uno que el teléfono recuerda de otro día.
+// Los tres se contestan igual; cambia cómo se llama y si se puede quitar.
+function addItem(sid, nombre, fijo, recordado){
+  const cont = document.getElementById('items-' + sid);
+  const d = document.createElement('div');
+  d.className = 'item'; d.dataset.fijo = fijo ? '1' : '0';
+  if (recordado) d.dataset.memoria = nombre;
+  d.innerHTML =
+    '<div class="cab-item">' +
+    (fijo ? '<div class="nombre">' + nombre + '</div>'
+          : '<input type="text" class="nombre-libre" placeholder="Escriba el ítem..." value="' +
+            String(nombre || '').replace(/"/g, '&quot;') + '" oninput="marcar()">' +
+            '<span class="etq-agr">' + (recordado ? 'recordado' : 'agregado') + '</span>') +
+    '<span class="etq-her">visita anterior</span></div>' +
+    // Tres respuestas y el vacío. «No aplica» es frecuente en servicios —gas
+    // en una torre sin red— y sin botón propio se confundía con «sin contestar».
+    '<div class="sino">' +
+      '<button type="button" onclick="marcarSN(this,\'SI\')">SÍ</button>' +
+      '<button type="button" onclick="marcarSN(this,\'NO\')">NO</button>' +
+      '<button type="button" onclick="marcarSN(this,\'NA\')">N/A</button>' +
+    '</div>' +
+    '<textarea placeholder="Observaciones..." oninput="marcar()"></textarea>' +
+    (fijo ? '' : '<button type="button" class="quitar-item" onclick="quitarItem(this)">Quitar</button>');
+  cont.appendChild(d);
+  return d;
+}
+
+// Quitar un agregado: de este informe siempre. Si el teléfono lo recordaba, se
+// pregunta si también se olvida para los próximos, porque un nombre mal escrito
+// no debería perseguir a nadie torre tras torre.
+function quitarItem(btn){
+  const it = btn.closest('.item');
+  const sid = it.parentElement.id.replace('items-', '');
+  const nombre = (it.querySelector('.nombre-libre').value || '').trim();
+  if (it.dataset.memoria){
+    const tambien = confirm('«' + (nombre || it.dataset.memoria) + '» se quita de este informe.\n\n' +
+      'ACEPTAR: quitarlo también de los próximos informes en este teléfono.\n' +
+      'CANCELAR: solo de este informe; mañana vuelve a aparecer.');
+    if (tambien) olvidarItem(sid, it.dataset.memoria);
+  }
+  it.remove(); marcar();
+}
+
+// Al tocar un ítem heredado de la visita anterior, deja de serlo: la respuesta
+// pasa a ser de hoy, con quien la dio.
+function tocado(el){
+  const it = el.closest('.item, .fila-apto');
+  if (it && it.classList.contains('heredado')){ it.classList.remove('heredado'); delete it.dataset.heredado; }
 }
 
 // El mismo bloque de fotografías sirve para un servicio y para un apartamento.
@@ -615,7 +763,10 @@ function actualizarCuentas(){
     if (b.classList.contains('no-inspeccionado')){ el.textContent = '· no inspeccionado'; return; }
     const items = [...document.querySelectorAll('#items-' + srv.id + ' .item')];
     const hechos = items.filter(i => valorSN(i)).length;
-    el.textContent = items.length ? '· ' + hechos + '/' + items.length : '';
+    // «4/6 · 3 sin revisar»: de las cuatro contestadas, tres vienen de la
+    // visita anterior y nadie las ha tocado hoy. Cuando se tocan, baja.
+    const her = items.filter(i => i.classList.contains('heredado') && valorSN(i)).length;
+    el.textContent = items.length ? '· ' + hechos + '/' + items.length + (her ? ' · ' + her + ' sin revisar' : '') : '';
   });
 }
 
@@ -631,33 +782,27 @@ function toggleNoInsp(sid){
 
 // Un ítem: Sí / No / SIN MARCAR. Los tres estados importan — sin marcar NO es
 // «No», igual que en el formulario de inspección sin marcar no es «No iniciado».
-function addItem(sid, nombre, fijo){
-  const cont = document.getElementById('items-' + sid);
-  const d = document.createElement('div');
-  d.className = 'item'; d.dataset.fijo = fijo ? '1' : '0';
-  d.innerHTML =
-    (fijo ? '<div class="nombre">' + nombre + '</div>'
-          : '<input type="text" class="nombre-libre" placeholder="Escriba el ítem..." oninput="marcar()">') +
-    // Tres respuestas y el vacío. «No aplica» es frecuente en servicios —gas
-    // en una torre sin red— y sin botón propio se confundía con «sin contestar».
-    '<div class="sino">' +
-      '<button type="button" onclick="marcarSN(this,\'SI\')">SÍ</button>' +
-      '<button type="button" onclick="marcarSN(this,\'NO\')">NO</button>' +
-      '<button type="button" onclick="marcarSN(this,\'NA\')">N/A</button>' +
-    '</div>' +
-    '<textarea placeholder="Observaciones..." oninput="marcar()"></textarea>' +
-    (fijo ? '' : '<button type="button" class="quitar" style="width:100%;margin-top:6px" onclick="this.closest(\'.item\').remove();marcar()">Quitar</button>');
-  cont.appendChild(d);
-}
-
 // Se puede DESELECCIONAR, que es lo único de la forma del borrador que se
 // conserva: volver a «sin contestar» tiene que ser posible.
 function marcarSN(btn, v){
   const grupo = btn.parentElement;
   const ya = ['si-on','no-on','na-on'].some(c => btn.classList.contains(c));
+  // En un ítem heredado, tocar el valor que ya tenía lo CONFIRMA para hoy; no
+  // lo borra. Es el gesto más frecuente de la visita —«sigue igual»— y no
+  // puede ser el que deje la fila en blanco.
+  const fila = btn.closest('.item, .fila-apto');
+  const confirmar = ya && fila && fila.classList.contains('heredado');
   [...grupo.children].forEach(b => b.classList.remove('si-on','no-on','na-on'));
-  if (!ya) btn.classList.add(v === 'SI' ? 'si-on' : v === 'NO' ? 'no-on' : 'na-on');
+  if (!ya || confirmar) btn.classList.add(v === 'SI' ? 'si-on' : v === 'NO' ? 'no-on' : 'na-on');
+  tocado(btn);
   marcar();
+}
+function ponerSN(item, v){
+  const g = item.querySelector('.sino');
+  [...g.children].forEach(b => b.classList.remove('si-on','no-on','na-on'));
+  if (v === 'SI') g.children[0].classList.add('si-on');
+  if (v === 'NO') g.children[1].classList.add('no-on');
+  if (v === 'NA') g.children[2].classList.add('na-on');
 }
 function valorSN(item){
   const g = item.querySelector('.sino');
@@ -687,7 +832,7 @@ function addApartamento(datos){
   d.className = 'fila-apto'; d.dataset.k = ++_nApto;
   // El PISO va primero: se elige, y después se escribe el apartamento. Al
   // revés confundía —se escribía el apto y aparecía otro selector—.
-  let html = '<div class="cab">' +
+  let html = '<span class="etq-her" style="margin:0 0 6px">visita anterior · sin revisar hoy</span><div class="cab">' +
     '<select class="piso" onchange="marcar()" style="flex:1"><option value="">Piso</option>' +
     '<option value="PB">Planta Baja</option>';
   for (let i = 1; i <= 20; i++) html += '<option value="P' + String(i).padStart(2,'0') + '">Piso ' + String(i).padStart(2,'0') + '</option>';
@@ -847,8 +992,15 @@ function datosDelFormulario(){
                                       : (it.querySelector('.nombre-libre').value || '').trim(),
       agregado: it.dataset.fijo !== '1',
       sn: valorSN(it),
-      obs: (it.querySelector('textarea').value || '').trim()
-    })),
+      obs: (it.querySelector('textarea').value || '').trim(),
+      // De qué informe viene la respuesta, si nadie la tocó hoy. Vacío = de hoy.
+      heredado: it.dataset.heredado || ''
+    }))
+    // Un agregado sin respuesta no viaja: ni el que se tocó de más —salía en el
+    // PDF como «+ (agregado en campo) —», T-03 del 14-sep— ni el que solo tiene
+    // nombre, porque el nombre ya lo guarda la memoria del teléfono y en el PDF
+    // los fijos sin contestar tampoco salen.
+    .filter(i => !i.agregado || i.sn || i.obs),
     obs: (document.querySelector('#srv-' + srv.id + ' .obs-srv').value || '').trim(),
     fotos: leerFotos(document.getElementById('fotos-' + srv.id))
   }));
@@ -862,6 +1014,7 @@ function datosDelFormulario(){
     });
     return { apto: fila.querySelector('.apto').value.trim(),
              piso: fila.querySelector('.piso').value, campos,
+             heredado: fila.dataset.heredado || '',
              fotos: leerFotos(fila.querySelector('.fotos')) };
   });
   return {
@@ -897,6 +1050,11 @@ function guardar(avisar){
     if (i >= 0) lista[i] = d; else lista.push(d);
     localStorage.setItem(CLAVE_LISTA, JSON.stringify(lista));
     sucio = false;
+    // Lo que se guardó bien, se aprende: los ítems con nombre pasan a la
+    // memoria del teléfono y el informe pasa a ser el último estado de su torre.
+    aprenderItems();
+    anotarEstadoTorre(d);
+    try { localStorage.setItem(CLAVE_ACTUAL, d.id); } catch(e){}
     actualizarContador();
     vigilarEspacio();
     if (avisar) alert('Informe guardado en este teléfono.');
@@ -912,6 +1070,152 @@ function guardar(avisar){
 
 function listaGuardada(){
   try { return JSON.parse(localStorage.getItem(CLAVE_LISTA) || '[]'); } catch(e){ return []; }
+}
+
+// Los agregados con nombre que hay en pantalla pasan a la memoria. Si uno
+// recordado se corrigió, se corrige también en la memoria.
+function aprenderItems(){
+  document.querySelectorAll('.item[data-fijo="0"]').forEach(it => {
+    const sid = it.parentElement.id.replace('items-', '');
+    const nombre = (it.querySelector('.nombre-libre').value || '').trim();
+    if (!nombre) return;
+    recordarItem(sid, nombre, it.dataset.memoria || '');
+    it.dataset.memoria = nombre;
+  });
+}
+
+// ── El último estado de cada torre ────────────────────────────────────────
+// Servicios vuelve a la misma torre semana tras semana, y lo que ya estaba
+// instalado no se vuelve a marcar: se arranca desde lo último que se registró
+// y se toca solo lo que cambió. Aquí vive ese «último» por torre, sin
+// fotografías, y sobrevive a «Borrar los que ya se enviaron». Hoy lo alimentan
+// los informes de este teléfono; el día que el relevo pueda contestarlo, se
+// alimenta también desde Drive y Hernán y Oriana verán lo mismo.
+const CLAVE_TORRES = 'garmel_srv_torres';
+const CLAVE_ACTUAL = 'garmel_srv_actual';
+function estadosDeTorres(){
+  try { return JSON.parse(localStorage.getItem(CLAVE_TORRES) || '{}'); } catch(e){ return {}; }
+}
+function anotarEstadoTorre(d){
+  if (!d.torre || !d.fecha) return;
+  const todos = estadosDeTorres();
+  const previo = todos[d.torre];
+  // Manda la fecha de inspección, y a igual fecha el guardado más reciente.
+  // Un informe de hoy no puede quedar tapado por uno viejo que se reabra.
+  if (previo && previo.id !== d.id &&
+      (previo.fecha > d.fecha || (previo.fecha === d.fecha && previo.guardado > d.guardado))) return;
+  todos[d.torre] = {
+    id: d.id, nro: d.nro, fecha: d.fecha, guardado: d.guardado,
+    convenio: d.convenio, estatus: d.estatus,
+    noInspeccionados: d.noInspeccionados || [],
+    general: (d.general || []).map(g => ({
+      id: g.id, obs: g.obs,
+      items: (g.items || []).filter(i => i.nombre).map(i => ({
+        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs,
+        // si ya venía heredado, se conserva de dónde: la cadena no se rompe
+        heredado: i.heredado || ''
+      }))
+    })),
+    apartamentos: (d.apartamentos || []).map(a => ({
+      apto: a.apto, piso: a.piso, campos: a.campos, heredado: a.heredado || ''
+    }))
+  };
+  try { localStorage.setItem(CLAVE_TORRES, JSON.stringify(todos)); } catch(e){}
+}
+
+// Un ítem con nombre viejo se reconoce por su nombre nuevo.
+function nombreVigente(sid, nombre){
+  return (RENOMBRADOS[sid] || {})[nombre] || nombre;
+}
+
+// Nada contestado, ningún apartamento: es un informe recién abierto, y solo
+// entonces tiene sentido proponer arrancar desde la visita anterior.
+function formularioEnBlanco(){
+  if (document.querySelectorAll('#filas-apto .fila-apto').length) return false;
+  return ![...document.querySelectorAll('.item')].some(it =>
+    valorSN(it) || (it.querySelector('textarea').value || '').trim());
+}
+
+let _cargando = false;
+function ofrecerHistorial(){
+  const caja = document.getElementById('aviso-historial');
+  caja.innerHTML = '';
+  if (_cargando) return;
+  const t = document.getElementById('torre').value;
+  const e = t ? estadosDeTorres()[t] : null;
+  if (!e || e.id === idActual || !formularioEnBlanco()) return;
+  const n = (e.general || []).reduce((s, g) => s + g.items.filter(i => i.sn).length, 0);
+  const aptos = (e.apartamentos || []).length;
+  caja.innerHTML = '<div class="historial">' +
+    '<div class="t">📋 ' + t + ' ya tiene un informe anterior</div>' +
+    '<div class="s">' + e.nro + ' · ' + fechaLarga(e.fecha) + ' · ' + n + ' ítem(s) contestado(s)' +
+    (aptos ? ' · ' + aptos + ' apto(s)' : '') +
+    '.<br>¿Arrancar desde lo que se registró ese día y marcar solo lo que cambió?</div>' +
+    '<div class="b"><button type="button" class="si" onclick="traerHistorial()">Sí, traer lo anterior</button>' +
+    '<button type="button" class="no" onclick="document.getElementById(\'aviso-historial\').innerHTML=\'\'">No, empezar en blanco</button></div></div>';
+  // En una torre de dos convenios la propuesta caía debajo del aviso, fuera
+  // de la pantalla: se decide antes de llenar, así que se trae a la vista.
+  caja.firstElementChild.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+function fechaLarga(f){
+  if (!f) return '—';
+  const [a, m, d] = f.split('-');
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return parseInt(d, 10) + '-' + (meses[parseInt(m, 10) - 1] || m) + '-' + a;
+}
+
+// Trae respuestas, observaciones y apartamentos del último informe de la
+// torre. NO trae fotografías —son de aquel día— ni la observación general.
+// Todo lo traído queda marcado «visita anterior» hasta que alguien lo toque.
+function traerHistorial(){
+  const t = document.getElementById('torre').value;
+  const e = estadosDeTorres()[t];
+  document.getElementById('aviso-historial').innerHTML = '';
+  if (!e) return;
+  // En las cuatro torres con dos convenios, el que se registró la vez
+  // anterior vale hoy: se elige solo y arrastra empresa y residente.
+  const conv = document.getElementById('convenio');
+  if (e.convenio && !conv.value && [...conv.options].some(o => o.value === e.convenio)){
+    conv.value = e.convenio; alElegirConvenio();
+  }
+  if (e.estatus && !document.getElementById('estatus').value) document.getElementById('estatus').value = e.estatus;
+  (e.general || []).forEach(g => {
+    const cont = document.getElementById('items-' + g.id); if (!cont) return;
+    (g.items || []).forEach(it => {
+      const el = buscarOCrearItem(g.id, it);
+      if (!el) return;
+      ponerSN(el, it.sn);
+      el.querySelector('textarea').value = it.obs || '';
+      if (it.sn || it.obs){ el.classList.add('heredado'); el.dataset.heredado = it.heredado || e.nro; }
+    });
+    const obs = document.querySelector('#srv-' + g.id + ' .obs-srv');
+    if (obs && g.obs) obs.value = g.obs;
+    if ((g.items || []).some(i => i.sn || i.obs) || g.obs) plegar(g.id, true);
+  });
+  (e.noInspeccionados || []).forEach(sid => { const b = document.getElementById('srv-' + sid);
+    if (b && !b.classList.contains('no-inspeccionado')) toggleNoInsp(sid); });
+  (e.apartamentos || []).forEach(a => {
+    addApartamento({ apto: a.apto, piso: a.piso, campos: a.campos, fotos: [] });
+    const fila = document.querySelector('#filas-apto .fila-apto:last-child');
+    fila.classList.add('heredado'); fila.dataset.heredado = a.heredado || e.nro;
+  });
+  actualizarCuentas(); marcar();
+}
+
+// El ítem de un informe guardado, en la pantalla de hoy: por su nombre vigente
+// entre los fijos; si no, entre los agregados que ya hay; si no, se crea. Así
+// un agregado que Ingeniería pasó a fijo cae en el fijo y no sale dos veces.
+function buscarOCrearItem(sid, it){
+  const cont = document.getElementById('items-' + sid); if (!cont) return null;
+  const nombre = nombreVigente(sid, it.nombre || '');
+  const n = normalizar(nombre);
+  const fijo = [...cont.querySelectorAll('.item[data-fijo="1"]')].find(f => normalizar(f.querySelector('.nombre').textContent) === n);
+  if (fijo) return fijo;
+  if (!nombre && !it.sn && !it.obs) return null;
+  const libre = [...cont.querySelectorAll('.item[data-fijo="0"]')].find(f =>
+    n && normalizar(f.querySelector('.nombre-libre').value) === n && !valorSN(f) && !f.querySelector('textarea').value);
+  if (libre) return libre;
+  return addItem(sid, nombre, false, !!(memoriaItems()[sid] || []).find(x => normalizar(x) === n));
 }
 function actualizarContador(){
   const n = listaGuardada().filter(x => !x.enviado).length;
@@ -976,39 +1280,44 @@ function cargarInforme(id){
   if (!d) return;
   cerrarInformes();
   if (sucio && !confirm('Hay cambios sin guardar en pantalla. ¿Descartarlos y abrir ' + d.nro + '?')) return;
-  vaciarFormulario();
-  idActual = d.id;
-  const t = document.getElementById('torre'); t.value = d.torre || ''; alElegirTorre();
-  if (d.convenio){ document.getElementById('convenio').value = d.convenio; alElegirConvenio(); }
-  document.getElementById('empresa').value = d.empresa || '';
-  document.getElementById('residente').value = d.residente || '';
-  if (d.fecha) document.getElementById('fecha').value = d.fecha;
-  document.getElementById('estatus').value = d.estatus || '';
-  document.getElementById('obs_general').value = d.obs_general || '';
-  document.getElementById('inspectores').innerHTML = '';
-  (d.inspectores && d.inspectores.length ? d.inspectores : ['']).forEach(i => addInspector(i));
-  (d.general || []).forEach(g => {
-    const cont = document.getElementById('items-' + g.id); if (!cont) return;
-    const fijos = [...cont.querySelectorAll('.item[data-fijo="1"]')];
-    (g.items || []).forEach(it => {
-      let el;
-      if (it.agregado){ addItem(g.id, '', false); el = cont.lastElementChild; el.querySelector('.nombre-libre').value = it.nombre || ''; }
-      else el = fijos.find(f => f.querySelector('.nombre').textContent === it.nombre);
-      if (!el) return;
-      const g2 = el.querySelector('.sino');
-      if (it.sn === 'SI') g2.children[0].classList.add('si-on');
-      if (it.sn === 'NO') g2.children[1].classList.add('no-on');
-      if (it.sn === 'NA') g2.children[2].classList.add('na-on');
-      el.querySelector('textarea').value = it.obs || '';
+  _cargando = true;
+  try {
+    vaciarFormulario();
+    idActual = d.id;
+    const t = document.getElementById('torre'); t.value = d.torre || ''; alElegirTorre();
+    if (d.convenio){ document.getElementById('convenio').value = d.convenio; alElegirConvenio(); }
+    document.getElementById('empresa').value = d.empresa || '';
+    document.getElementById('residente').value = d.residente || '';
+    if (d.fecha) document.getElementById('fecha').value = d.fecha;
+    document.getElementById('estatus').value = d.estatus || '';
+    document.getElementById('obs_general').value = d.obs_general || '';
+    document.getElementById('inspectores').innerHTML = '';
+    (d.inspectores && d.inspectores.length ? d.inspectores : ['']).forEach(i => addInspector(i));
+    (d.general || []).forEach(g => {
+      const cont = document.getElementById('items-' + g.id); if (!cont) return;
+      (g.items || []).forEach(it => {
+        // Por nombre vigente: un fijo renombrado sigue encontrándose, y un
+        // agregado que después pasó a fijo cae en el fijo.
+        const el = buscarOCrearItem(g.id, it);
+        if (!el) return;
+        ponerSN(el, it.sn);
+        el.querySelector('textarea').value = it.obs || '';
+        if (it.heredado){ el.classList.add('heredado'); el.dataset.heredado = it.heredado; }
+      });
+      document.querySelector('#srv-' + g.id + ' .obs-srv').value = g.obs || '';
+      pintarFotos(document.getElementById('fotos-' + g.id), g.fotos || []);
+      // Lo que tiene algo se abre; lo vacío sigue plegado.
+      if ((g.items || []).some(i => i.sn || i.obs || (i.agregado && i.nombre)) || g.obs || (g.fotos || []).length) plegar(g.id, true);
     });
-    document.querySelector('#srv-' + g.id + ' .obs-srv').value = g.obs || '';
-    pintarFotos(document.getElementById('fotos-' + g.id), g.fotos || []);
-    // Lo que tiene algo se abre; lo vacío sigue plegado.
-    if ((g.items || []).some(i => i.sn || i.obs) || g.obs || (g.fotos || []).length) plegar(g.id, true);
-  });
-  (d.noInspeccionados || []).forEach(sid => { const b = document.getElementById('srv-' + sid);
-    if (b){ b.classList.add('no-inspeccionado'); b.querySelector('.no-insp').classList.add('on'); } });
-  (d.apartamentos || []).forEach(a => addApartamento(a));
+    (d.noInspeccionados || []).forEach(sid => { const b = document.getElementById('srv-' + sid);
+      if (b){ b.classList.add('no-inspeccionado'); b.querySelector('.no-insp').classList.add('on'); } });
+    (d.apartamentos || []).forEach(a => {
+      addApartamento(a);
+      if (a.heredado){ const fila = document.querySelector('#filas-apto .fila-apto:last-child');
+        fila.classList.add('heredado'); fila.dataset.heredado = a.heredado; }
+    });
+    try { localStorage.setItem(CLAVE_ACTUAL, d.id); } catch(e){}
+  } finally { _cargando = false; }
   actualizarNro(); actualizarCuentas(); sucio = false;
   window.scrollTo(0, 0);
 }
@@ -1022,6 +1331,21 @@ function vaciarFormulario(){
   const hoy = new Date();
   document.getElementById('fecha').value = hoy.getFullYear() + '-' + String(hoy.getMonth()+1).padStart(2,'0') + '-' + String(hoy.getDate()).padStart(2,'0');
   idActual = null; sucio = false; actualizarNro(); actualizarCuentas();
+  try { localStorage.removeItem(CLAVE_ACTUAL); } catch(e){}
+}
+
+// Al abrir, el informe que estaba en pantalla vuelve a estar en pantalla —si
+// no se envió—. Antes se abría siempre en blanco: un teléfono que descarga la
+// pestaña mientras se atiende una llamada devolvía un formulario vacío, y lo
+// escrito solo estaba detrás de «Informes», donde nadie lo buscaba.
+function reabrirActual(){
+  let id = null;
+  try { id = localStorage.getItem(CLAVE_ACTUAL); } catch(e){}
+  if (!id) return false;
+  const d = listaGuardada().find(x => x.id === id);
+  if (!d || d.enviado) return false;
+  cargarInforme(id);
+  return true;
 }
 
 // «Nuevo» deja el formulario en blanco. Lo que había en pantalla se guarda
@@ -1277,9 +1601,16 @@ if ('serviceWorker' in navigator) {
   }
   pintarGeneral(); pintarApartamentos(); addInspector();
   actualizarNro(); actualizarContador(); actualizarCuentas();
+  // TODO campo que se toque marca el informe para guardar, sin depender de que
+  // cada control lleve su propio disparador. Residente, empresa y observación
+  // general no lo llevaban, y lo escrito ahí se perdía al cerrar la app o al
+  // abrir otro informe (Skarlet, 14-sep). Inspección lo hace así desde el 27-ago.
+  document.addEventListener('input',  e => { tocado(e.target); marcar(); }, true);
+  document.addEventListener('change', e => { tocado(e.target); marcar(); }, true);
   const con = () => document.getElementById('conexion').textContent =
     navigator.onLine ? 'en línea' : 'sin señal — el informe queda guardado aquí';
   addEventListener('online', con); addEventListener('offline', con); con();
+  reabrirActual();
 })();
 
 </script>
