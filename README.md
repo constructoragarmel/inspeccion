@@ -311,6 +311,14 @@ Lo que lo distingue del de inspección, y por qué (los tres salieron de la prim
   pasó con los cuatro de aguas servidas.
 - **El informe que estaba en pantalla vuelve a estar en pantalla** al abrir, si no se ha enviado.
   Antes se abría en blanco y lo escrito solo se encontraba detrás de «Informes».
+- **Las fotografías viven en IndexedDB; el informe, en localStorage.** Medido el 14-sep: localStorage
+  corta en 4,8 MB, y un informe lleno —36 fotos de ~214 KB— son 7,7 MB en base64. No cabía, y el fallo
+  de guardado dejaba «Enviar» mandando la versión anterior sin las fotos nuevas. IndexedDB da cientos de
+  MB en un teléfono. Las imágenes se reescriben solo cuando cambian, no en cada guardado automático del
+  texto; al enviarse se sueltan de las dos partes. Un informe anterior a la v65 con las fotos dentro del
+  texto se sigue leyendo.
+- **En las 20 torres cuyo maestro no trae residente**, el que se escribió la vez anterior vuelve con el
+  historial; donde el maestro lo trae, manda el maestro.
 
 ## Lo que todavía no hace
 

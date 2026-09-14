@@ -334,8 +334,14 @@ function torresUnicas(){
 }
 function entradasDe(t){ return TORRES_DATA.filter(x => x.t === t); }
 
+let _torreAnterior = '';
 function alElegirTorre(){
   const t = document.getElementById('torre').value;
+  // Se trajo el historial de una torre y resultó ser otra: si nadie ha tocado
+  // nada de hoy, lo heredado se suelta con la torre. Si ya hay algo de hoy,
+  // se queda: eso sí es trabajo del inspector.
+  if (t !== _torreAnterior && !_cargando && soloHeredado()) soltarHeredado();
+  _torreAnterior = t;
   const conv = document.getElementById('convenio');
   const aviso = document.getElementById('aviso-torre');
   conv.innerHTML = '<option value="">—</option>';
@@ -588,6 +594,8 @@ function quitarItem(btn){
 // Al tocar un ítem heredado de la visita anterior, deja de serlo: la respuesta
 // pasa a ser de hoy, con quien la dio.
 function tocado(el){
+  if (!el || !el.closest) return;
+  if (el.classList && el.classList.contains('obs-srv')) delete el.dataset.heredado;
   const it = el.closest('.item, .fila-apto');
   if (it && it.classList.contains('heredado')){ it.classList.remove('heredado'); delete it.dataset.heredado; }
 }
@@ -738,7 +746,7 @@ function cargarApto(fila, a){
       if (k !== undefined) el.children[k].classList.add(['si-on','no-on','na-on'][k]);
     } else el.value = v;
   });
-  pintarFotos(fila.querySelector('.fotos'), a.fotos || []);
+  pintarFotos(fila.querySelector('.fotos'), (a.fotos || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '\u2026' }));
 }
 
 function quitarApto(btn){
@@ -773,10 +781,50 @@ function tomarFotos(ev, gridId){
           (sitio > 0 ? 'Se toman las ' + sitio + ' primeras.' : 'No cabe ninguna más aquí.'));
     files = files.slice(0, Math.max(sitio, 0));
   }
-  files.forEach(f => {
-    reducir(f, dataUrl => { pintarFotos(grid, [{ dato: dataUrl, pie: '' }], true); marcar(); });
-  });
+  // Si el informe recién abierto aún está trayendo sus fotos de IndexedDB, se
+  // espera: pintar encima de un grid a medio cargar las mezclaría.
+  _fotosCargando.then(() => files.forEach(f => {
+    reducir(f, dataUrl => { pintarFotos(grid, [{ dato: dataUrl, pie: '' }], true); _fotosSucias = true; marcar(); });
+  }));
 }
+
+// ── Dónde viven las fotografías ───────────────────────────────────────────
+// En IndexedDB, no en localStorage. Medido el 14-sep-2026: localStorage corta
+// en 4,8 MB —en Chromium y en los teléfonos—, y un informe de servicios lleno
+// son 36 fotos × ~214 KB ≈ 7,7 MB en base64: NO CABÍA, y el fallo de guardado
+// dejaba «Enviar» mandando la versión anterior sin las fotos nuevas. IndexedDB
+// da cientos de MB. El informe (texto) sigue en localStorage; aquí solo van
+// las imágenes, por informe, alineadas con sus pies: grupos[clave][k].
+const FotosDB = (() => {
+  let db = null;
+  function abrir(){
+    if (db) return Promise.resolve(db);
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('garmel_servicios', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('fotos');
+      r.onsuccess = () => { db = r.result; res(db); };
+      r.onerror = () => rej(r.error);
+    });
+  }
+  function op(modo, fn){
+    return abrir().then(d => new Promise((res, rej) => {
+      const tx = d.transaction('fotos', modo);
+      const req = fn(tx.objectStore('fotos'));
+      tx.oncomplete = () => res(req && req.result);
+      tx.onerror = () => rej(tx.error);
+      tx.onabort = () => rej(tx.error);
+    }));
+  }
+  return {
+    guardar: (id, grupos) => op('readwrite', s => s.put(grupos, id)),
+    leer:    id => op('readonly', s => s.get(id)).then(g => g || {}),
+    borrar:  id => op('readwrite', s => s.delete(id)),
+    borrarVarios: ids => op('readwrite', s => { ids.forEach(id => s.delete(id)); })
+  };
+})();
+// Se anotan las fotos como «sucias» cuando cambian; solo entonces se
+// reescriben en IndexedDB, y no en cada guardado automático del texto.
+let _fotosSucias = false, _escrituraFotos = Promise.resolve(), _fotosCargando = Promise.resolve();
 
 // Una foto ya enviada no vuelve a ocupar sitio aquí: se muestra su marca y su
 // pie, y el archivo está en Drive.
@@ -785,9 +833,11 @@ function pintarFotos(grid, fotos, anadir){
   fotos.forEach(f => {
     const c = document.createElement('div');
     c.className = 'foto';
-    c.innerHTML = (f.dato ? '<img src="' + f.dato + '">' : '<div class="enDrive">📷 ya en Drive</div>') +
+    const cargando = f.dato === '\u2026';
+    c.innerHTML = (cargando ? '<div class="enDrive">⏳ cargando…</div>' :
+                   f.dato ? '<img src="' + f.dato + '">' : '<div class="enDrive">📷 ya en Drive</div>') +
       '<textarea placeholder="Descripción..." oninput="marcar()" style="min-height:44px;font-size:12px"></textarea>' +
-      (f.dato ? '<button type="button" onclick="this.parentElement.remove();marcar()">Eliminar</button>' : '');
+      (f.dato && !cargando ? '<button type="button" onclick="this.parentElement.remove();_fotosSucias=true;marcar()">Eliminar</button>' : '');
     c.querySelector('textarea').value = f.pie || '';
     if (!f.dato) c.dataset.enDrive = '1';
     grid.appendChild(c);
@@ -831,12 +881,16 @@ function marcar(){
 }
 setInterval(() => { if (sucio) guardar(false); }, 30000);
 
+// Lo que del grid va al informe (pie y marca) y lo que va a IndexedDB (la
+// imagen), alineados por posición.
 function leerFotos(grid){
   return [...grid.querySelectorAll('.foto')].map(f => ({
-    dato: f.dataset.enDrive ? '' : f.querySelector('img').src,
     enDrive: !!f.dataset.enDrive,
     pie: (f.querySelector('textarea').value || '').trim()
   }));
+}
+function leerDatosFotos(grid){
+  return [...grid.querySelectorAll('.foto')].map(f => f.dataset.enDrive ? '' : (f.querySelector('img') || {}).src || '');
 }
 
 function datosDelFormulario(){
@@ -873,9 +927,13 @@ function datosDelFormulario(){
              heredado: fila.dataset.heredado || '',
              fotos: leerFotos(fila.querySelector('.fotos')) };
   });
+  const grupos = {};
+  GENERAL.forEach(srv => { grupos[srv.id] = leerDatosFotos(document.getElementById('fotos-' + srv.id)); });
+  [...document.querySelectorAll('#filas-apto .fila-apto')].forEach((fila, i) => { grupos['apto:' + i] = leerDatosFotos(fila.querySelector('.fotos')); });
   return {
     id: idActual || ('srv_' + Date.now()),
     tipo: 'servicios',
+    fotosDB: grupos,   // se separa antes de guardar: no va a localStorage
     nro: numeroInforme(),
     torre: val('torre'), convenio: val('convenio'), empresa: val('empresa'),
     residente: val('residente'), fecha: val('fecha'), estatus: val('estatus'),
@@ -890,6 +948,7 @@ function datosDelFormulario(){
 function guardar(avisar){
   const d = datosDelFormulario();
   idActual = d.id;
+  const grupos = d.fotosDB; delete d.fotosDB;
   try {
     const lista = JSON.parse(localStorage.getItem(CLAVE_LISTA) || '[]');
     const i = lista.findIndex(x => x.id === d.id);
@@ -906,6 +965,15 @@ function guardar(avisar){
     if (i >= 0) lista[i] = d; else lista.push(d);
     localStorage.setItem(CLAVE_LISTA, JSON.stringify(lista));
     sucio = false;
+    if (_fotosSucias){
+      _fotosSucias = false;
+      _escrituraFotos = FotosDB.guardar(d.id, grupos).catch(e => {
+        _fotosSucias = true;
+        console.error('Fotos sin guardar', e);
+        alert('⚠️ El texto del informe se guardó, pero LAS FOTOGRAFÍAS NO: el teléfono no tiene espacio. ' +
+              'Envíe los informes pendientes y borre los enviados; las fotos siguen en pantalla hasta entonces.');
+      });
+    }
     // Lo que se guardó bien, se aprende: los ítems con nombre pasan a la
     // memoria del teléfono y el informe pasa a ser el último estado de su torre.
     aprenderItems();
@@ -962,7 +1030,7 @@ function anotarEstadoTorre(d){
       (previo.fecha > d.fecha || (previo.fecha === d.fecha && previo.guardado > d.guardado))) return;
   todos[d.torre] = {
     id: d.id, nro: d.nro, fecha: d.fecha, guardado: d.guardado,
-    convenio: d.convenio, estatus: d.estatus,
+    convenio: d.convenio, estatus: d.estatus, residente: d.residente, empresa: d.empresa,
     noInspeccionados: d.noInspeccionados || [],
     general: (d.general || []).map(g => ({
       id: g.id, obs: g.obs,
@@ -990,6 +1058,32 @@ function formularioEnBlanco(){
   if (document.querySelectorAll('#filas-apto .fila-apto').length) return false;
   return ![...document.querySelectorAll('.item')].some(it =>
     valorSN(it) || (it.querySelector('textarea').value || '').trim());
+}
+
+// Hay contenido y todo viene de la visita anterior, sin nada de hoy.
+function soloHeredado(){
+  const items = [...document.querySelectorAll('.item')].filter(it => valorSN(it) || (it.querySelector('textarea').value || '').trim());
+  const aptos = [...document.querySelectorAll('#filas-apto .fila-apto')];
+  const obs = [...document.querySelectorAll('.obs-srv')].filter(o => (o.value || '').trim());
+  if (!items.length && !aptos.length && !obs.length) return false;
+  return items.every(it => it.classList.contains('heredado')) &&
+         aptos.every(f => f.classList.contains('heredado')) &&
+         obs.every(o => o.dataset.heredado);
+}
+function soltarHeredado(){
+  document.querySelectorAll('.item.heredado').forEach(it => {
+    ponerSN(it, ''); it.querySelector('textarea').value = '';
+    it.classList.remove('heredado'); delete it.dataset.heredado;
+  });
+  document.querySelectorAll('#filas-apto .fila-apto.heredado').forEach(f => f.remove());
+  if (!document.querySelectorAll('#filas-apto .fila-apto').length){
+    const v = document.getElementById('b-vacio'); if (v) v.style.display = '';
+  }
+  document.querySelectorAll('.obs-srv').forEach(o => { if (o.dataset.heredado){ o.value = ''; delete o.dataset.heredado; } });
+  GENERAL.forEach(srv => { const b = document.getElementById('srv-' + srv.id);
+    if (b && b.dataset.heredadoNI){ delete b.dataset.heredadoNI;
+      if (b.classList.contains('no-inspeccionado')) toggleNoInsp(srv.id); } });
+  actualizarCuentas();
 }
 
 let _cargando = false;
@@ -1035,6 +1129,11 @@ function traerHistorial(){
     conv.value = e.convenio; alElegirConvenio();
   }
   if (e.estatus && !document.getElementById('estatus').value) document.getElementById('estatus').value = e.estatus;
+  // Veinte torres no traen residente en el maestro y el inspector lo escribe a
+  // mano (T-03: «Harry Arteaga»). Lo escrito la vez anterior vale hoy si el
+  // maestro no dice otra cosa. Igual la empresa.
+  ['residente', 'empresa'].forEach(id => { const el = document.getElementById(id);
+    if (e[id] && !el.value) el.value = e[id]; });
   (e.general || []).forEach(g => {
     const cont = document.getElementById('items-' + g.id); if (!cont) return;
     (g.items || []).forEach(it => {
@@ -1045,11 +1144,11 @@ function traerHistorial(){
       if (it.sn || it.obs){ el.classList.add('heredado'); el.dataset.heredado = it.heredado || e.nro; }
     });
     const obs = document.querySelector('#srv-' + g.id + ' .obs-srv');
-    if (obs && g.obs) obs.value = g.obs;
+    if (obs && g.obs){ obs.value = g.obs; obs.dataset.heredado = e.nro; }
     if ((g.items || []).some(i => i.sn || i.obs) || g.obs) plegar(g.id, true);
   });
   (e.noInspeccionados || []).forEach(sid => { const b = document.getElementById('srv-' + sid);
-    if (b && !b.classList.contains('no-inspeccionado')) toggleNoInsp(sid); });
+    if (b && !b.classList.contains('no-inspeccionado')){ toggleNoInsp(sid); b.dataset.heredadoNI = '1'; } });
   (e.apartamentos || []).forEach(a => {
     addApartamento({ apto: a.apto, piso: a.piso, campos: a.campos, fotos: [] });
     const fila = document.querySelector('#filas-apto .fila-apto:last-child');
@@ -1125,6 +1224,7 @@ function borrarInforme(id){
   if (!confirm((d.enviado ? 'Este informe ya está en Drive. ' : '⚠️ Este informe NO se ha enviado: existe solo aquí. ') +
                '¿Borrarlo de este teléfono?')) return;
   localStorage.setItem(CLAVE_LISTA, JSON.stringify(listaGuardada().filter(x => x.id !== id)));
+  FotosDB.borrar(id).catch(() => {});
   if (idActual === id) idActual = null;
   actualizarContador(); abrirInformes();
 }
@@ -1161,7 +1261,7 @@ function cargarInforme(id){
         if (it.heredado){ el.classList.add('heredado'); el.dataset.heredado = it.heredado; }
       });
       document.querySelector('#srv-' + g.id + ' .obs-srv').value = g.obs || '';
-      pintarFotos(document.getElementById('fotos-' + g.id), g.fotos || []);
+      pintarFotos(document.getElementById('fotos-' + g.id), (g.fotos || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '\u2026' }));
       // Lo que tiene algo se abre; lo vacío sigue plegado.
       if ((g.items || []).some(i => i.sn || i.obs || (i.agregado && i.nombre)) || g.obs || (g.fotos || []).length) plegar(g.id, true);
     });
@@ -1173,6 +1273,21 @@ function cargarInforme(id){
         fila.classList.add('heredado'); fila.dataset.heredado = a.heredado; }
     });
     try { localStorage.setItem(CLAVE_ACTUAL, d.id); } catch(e){}
+    // Las imágenes llegan de IndexedDB un instante después; mientras, cada
+    // foto se pinta con su pie y un «…». Un informe anterior a la v64 puede
+    // traer `dato` dentro: se respeta.
+    _fotosCargando = FotosDB.leer(d.id).catch(() => ({})).then(grupos => {
+      if (idActual !== d.id) return;
+      (d.general || []).forEach(g => {
+        const datos = grupos[g.id] || [];
+        pintarFotos(document.getElementById('fotos-' + g.id), (g.fotos || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : datos[k] || '') })));
+      });
+      [...document.querySelectorAll('#filas-apto .fila-apto')].forEach((fila, i) => {
+        const a = (d.apartamentos || [])[i]; if (!a) return;
+        const datos = grupos['apto:' + i] || [];
+        pintarFotos(fila.querySelector('.fotos'), (a.fotos || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : datos[k] || '') })));
+      });
+    });
   } finally { _cargando = false; }
   actualizarNro(); actualizarCuentas(); sucio = false;
   window.scrollTo(0, 0);
@@ -1234,8 +1349,10 @@ function nuevoInforme(){
 
 // El remedio cuando el teléfono se llena: lo enviado está a salvo en Drive.
 function borrarEnviados(){
-  const quedan = listaGuardada().filter(x => !x.enviado);
+  const todos = listaGuardada();
+  const quedan = todos.filter(x => !x.enviado);
   localStorage.setItem(CLAVE_LISTA, JSON.stringify(quedan));
+  FotosDB.borrarVarios(todos.filter(x => x.enviado).map(x => x.id)).catch(() => {});
   actualizarContador();
   alert('Listo. Quedan ' + quedan.length + ' informes sin enviar en este teléfono.');
   abrirInformes();
@@ -1246,17 +1363,30 @@ function borrarEnviados(){
 // el guardado ya había reventado. Aquí se mira en cada guardado, y como este
 // informe puede llevar 36 fotografías, se llena antes.
 function vigilarEspacio(){
+  // Con las fotos en IndexedDB, lo que manda es la cuota real del navegador
+  // (`storage.estimate`), que en un teléfono son cientos de MB. localStorage,
+  // que solo lleva texto, se vigila igual contra su tope de 5 MB.
+  if (navigator.storage && navigator.storage.estimate){
+    navigator.storage.estimate().then(e => { if (e.quota) avisarEspacio(e.usage || 0, e.quota); }).catch(() => {});
+  }
   let bytes = 0;
   try { for (const k in localStorage) if (Object.hasOwn(localStorage, k))
           bytes += (localStorage[k] || '').length * 2; } catch(e){ return; }
-  const tope = @@TOPE@@;
-  if (bytes > tope * 0.8){
+  avisarEspacio(bytes, @@TOPE@@);
+}
+function avisarEspacio(bytes, tope){
+  // Se guarda a los 2 s de cada tecla: sin este freno el aviso saltaba en
+  // cada guardado, tecla tras tecla. Se avisa al pasar cada tramo del 10 %.
+  const tramo = Math.floor(bytes / tope * 10);
+  if (bytes > tope * 0.8 && tramo > _tramoAvisado){
+    _tramoAvisado = tramo;
     const pct = Math.round(bytes / tope * 100);
     alert('⚠️ Este teléfono va por el ' + pct + '% de su espacio.\\n\\n' +
           'Envíe los informes pendientes y use «Mis informes» para borrar los ' +
           'que ya se enviaron, antes de que deje de guardar.');
   }
 }
+let _tramoAvisado = 0;
 
 // ── Envío al relevo ───────────────────────────────────────────────────────
 // Mismo contrato que el formulario de inspección, con una etiqueta más:
@@ -1276,15 +1406,18 @@ function faltan(d){
 
 // Las fotografías viajan aparte, con nombre, para poder consultarlas fuera del
 // informe. En los datos queda solo su pie, que es texto.
-function sobreDe(d, clave){
+function sobreDe(d, clave, grupos){
   const fotos = [];
   const datos = JSON.parse(JSON.stringify(d));
-  const soltar = (lista, prefijo) => (lista || []).map((f, k) => {
-    if (f.dato) fotos.push({ nombre: prefijo + '-' + (k + 1), dato: f.dato });
+  grupos = grupos || {};
+  const soltar = (lista, prefijo, imgs) => (lista || []).map((f, k) => {
+    const dato = f.dato || (imgs || [])[k] || '';
+    if (dato) fotos.push({ nombre: prefijo + '-' + (k + 1), dato });
     return { pie: f.pie || '' };
   });
-  datos.general.forEach(srv => { srv.fotos = soltar(srv.fotos, srv.id); });
-  datos.apartamentos.forEach((a, i) => { a.fotos = soltar(a.fotos, 'apto-' + (i + 1) + '-' + limpiar(a.apto || '')); });
+  datos.general.forEach(srv => { srv.fotos = soltar(srv.fotos, srv.id, grupos[srv.id]); });
+  datos.apartamentos.forEach((a, i) => { a.fotos = soltar(a.fotos, 'apto-' + (i + 1) + '-' + limpiar(a.apto || ''), grupos['apto:' + i]); });
+  delete datos.fotosDB;
   // El registro del relevo lee `estatus` y `residentes` como LISTAS —les hace
   // .join()— porque así viajan desde inspección. Un texto suelto reventaría
   // dentro de anotarEnRegistro y el relevo contestaría ok:false a todos.
@@ -1317,10 +1450,14 @@ async function enviarUno(d, clave){
   const corte = new AbortController();
   const reloj = setTimeout(() => corte.abort(), 90000);
   try {
+    // Las fotos se leen de IndexedDB después de que termine cualquier
+    // escritura en curso: lo que viaja es lo último que se guardó.
+    await _escrituraFotos.catch(() => {});
+    const grupos = await FotosDB.leer(d.id).catch(() => ({}));
     const r = await fetch(RELEVO_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(sobreDe(d, clave)),
+      body: JSON.stringify(sobreDe(d, clave, grupos)),
       signal: corte.signal
     });
     const res = await r.json();
@@ -1344,6 +1481,9 @@ function marcarEnviado(id, nro){
       const soltar = f => ({ pie: f.pie || '', enDrive: true });
       (x.general || []).forEach(g => { g.fotos = (g.fotos || []).map(soltar); });
       (x.apartamentos || []).forEach(a => { a.fotos = (a.fotos || []).map(soltar); });
+      FotosDB.borrar(id).catch(() => {});
+      // Si es el que está en pantalla, sus fotos en el grid pasan a «ya en
+      // Drive» en el próximo guardado; hasta entonces se siguen viendo.
     }
     localStorage.setItem(CLAVE_LISTA, JSON.stringify(l));
     actualizarContador();
@@ -1466,6 +1606,10 @@ if ('serviceWorker' in navigator) {
   const con = () => document.getElementById('conexion').textContent =
     navigator.onLine ? 'en línea' : 'sin señal — el informe queda guardado aquí';
   addEventListener('online', con); addEventListener('offline', con); con();
+  // Los informes sin enviar viven en este teléfono y en ningún otro lado: se
+  // le pide al navegador que no borre este almacenamiento cuando ande corto
+  // de espacio. Inspección lo hace desde el 27-ago.
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   reabrirActual();
 })();
 """
