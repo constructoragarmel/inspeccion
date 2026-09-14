@@ -1207,6 +1207,7 @@ async function enviarSolo(id){
   cerrarInformes();
   const d = listaGuardada().find(x => x.id === id);
   if (!d) return;
+  if (!d.enviado && !confirmarSinRevisar([d])) return;
   let clave = ''; try { clave = localStorage.getItem('garmel_clave_envio') || ''; } catch(e){}
   if (!clave){ alert('⚠️ Este teléfono todavía no está configurado para enviar.'); return; }
   if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }
@@ -1495,6 +1496,23 @@ function marcarEnviado(id, nro){
   }
 }
 
+// Lo que vino de la visita anterior y nadie tocó hoy se dice ANTES de enviar.
+// Un informe que sale todo heredado sin que nadie lo sepa es un documento que
+// afirma cosas que hoy no se miraron.
+function cuentaSinRevisar(d){
+  let n = 0;
+  (d.general || []).forEach(g => (g.items || []).forEach(i => { if (i.heredado && i.sn) n++; }));
+  (d.apartamentos || []).forEach(a => { if (a.heredado) n++; });
+  return n;
+}
+function confirmarSinRevisar(lista){
+  const con = lista.map(d => ({ nro: d.nro, n: cuentaSinRevisar(d) })).filter(x => x.n);
+  if (!con.length) return true;
+  return confirm('⚠️ Hay respuestas de la visita anterior que nadie revisó hoy:\\n\\n' +
+    con.map(x => x.nro + ': ' + x.n).join('\\n') +
+    '\\n\\nSe envían tal cual, marcadas como heredadas.\\nACEPTAR: enviar igual. CANCELAR: volver a revisarlas.');
+}
+
 // Al inspector se le dice qué hacer, no qué falló por dentro. El detalle
 // técnico queda en la consola, que es donde sirve para diagnosticar.
 function explicar(err){
@@ -1527,6 +1545,7 @@ async function enviar(){
 
   const pendientes = listaGuardada().filter(x => !x.enviado && !faltan(x).length);
   if (!pendientes.length){ alert('No hay informes pendientes de enviar.'); return; }
+  if (!confirmarSinRevisar(pendientes)) return;
 
   _tandaEnCurso = true;
   let bien = 0; const fallos = [];
