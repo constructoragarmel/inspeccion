@@ -285,6 +285,33 @@ Dos cosas más que el papel hace distinto, por la misma razón —que es un docu
 | **Botón «Enviar»** | Enviaba a monday.com, que ADR-0014 no adoptó | Envía al relevo de Garmel, que archiva en Drive |
 | **Ámbito del informe** | Los hitos de torre y de apartamento en una sola lista | Selector de ámbito; el número lleva `TORRE` cuando corresponde |
 
+## El formulario de servicios
+
+Vive en `servicios.html` y se genera con `python3 construir-servicios.py`. **El contenido está aparte
+de la forma**: qué servicios hay y qué ítems tiene cada uno está en `servicios/contenido.py`, y
+añadir o renombrar un ítem es tocar ese archivo. Si un ítem fijo cambia de nombre, su nombre viejo
+va en `RENOMBRADOS`, o los informes ya guardados en los teléfonos pierden esa respuesta al reabrirse.
+
+Lo que lo distingue del de inspección, y por qué (los tres salieron de la primera jornada de uso, el
+14-sep-2026):
+
+- **Cada torre tiene memoria.** Servicios vuelve a la misma torre semana tras semana, y lo que ya
+  estaba instalado no se vuelve a marcar. Al elegir una torre de la que este teléfono ya tiene un
+  informe, el formulario ofrece **arrancar desde lo que se registró ese día**. Lo traído queda
+  marcado *visita anterior*, en color apagado, y la cabecera del servicio dice cuántas respuestas
+  siguen *sin revisar*. Tocar una respuesta heredada —incluso con el mismo valor— la convierte en
+  respuesta de hoy. En los datos, cada ítem lleva `heredado` con el número del informe de origen, o
+  vacío si es de hoy. **Vive en ese teléfono**: lo que registró Hernán no lo ve Oriana. El día que
+  el relevo pueda contestar «el último informe de esta torre», la misma memoria se alimenta desde
+  Drive.
+- **Los ítems agregados en campo se recuerdan.** Un ítem que se escribe con nombre queda en el
+  teléfono y aparece en los informes siguientes, como *recordado*. Al quitarlo se pregunta si es
+  solo de este informe o también de los próximos. Un agregado sin respuesta no viaja al relevo: en
+  el PDF los fijos sin contestar tampoco salen. El destino de esos ítems es `contenido.py`, como
+  pasó con los cuatro de aguas servidas.
+- **El informe que estaba en pantalla vuelve a estar en pantalla** al abrir, si no se ha enviado.
+  Antes se abría en blanco y lo escrito solo se encontraba detrás de «Informes».
+
 ## Lo que todavía no hace
 
 - **Llegar a Smartsheet.** El relevo deja cada informe en Drive y anota una fila en la hoja
