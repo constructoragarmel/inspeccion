@@ -10,10 +10,12 @@ Este archivo es SOLO EL CONTENIDO. No decide nada de la forma —eso está en
 Garmel/implementacion/propuestas/formulario-de-servicios.md—, y por eso sobrevive
 a cualquier cambio de cómo se construya el instrumento.
 
-⚠️ TRES SERVICIOS ESTÁN VACÍOS A PROPÓSITO. En el borrador venían con una fila en
-blanco para escribir a mano, sin ítems definidos. NO SE INVENTAN: los llena Hernán
-Escobar. Mientras tanto el formulario los ofrece como campo libre, que es
-exactamente lo que hace el borrador.
+⚠️ DOS SERVICIOS ESTÁN VACÍOS A PROPÓSITO —contra incendio y aguas pluviales—.
+En el borrador venían con una fila en blanco para escribir a mano, sin ítems
+definidos. NO SE INVENTAN: los llena Hernán Escobar. Mientras tanto el
+formulario los ofrece como campo libre, que es exactamente lo que hace el
+borrador. Aguas servidas dejó de estar vacío el 14-sep-2026: sus ítems los
+escribió Hernán en campo, desde ese mismo campo libre.
 """
 
 # ── A) General — por torre y urbanismo ─────────────────────────────────────
@@ -37,9 +39,13 @@ GENERAL = [
     {
         "id": "srv_cantv",
         "nombre": "2. SERVICIOS DE CANTV",
+        # 14-sep-2026, primera jornada de uso: Hernán anotó en T-12 «en las
+        # conexiones exteriores separar las canalizaciones y la instalación de
+        # la fibra». Skarlet lo pidió como cambio: la fila se parte en dos.
         "items": [
             "Ubicación de Tanquilla de Conexión",
-            "Conexiones Exteriores",
+            "Construcción de Canalizaciones Exteriores",
+            "Colocación de Fibra desde Tanquilla a Módulo",
             "Conexión con Módulo Principal",
             "Cableado en Pasillos",
             "Colocación de Cajas de Paso",
@@ -75,12 +81,36 @@ GENERAL = [
             "Construcción de Manifold",
         ],
     },
-    # Los tres que faltan. La lista vacía NO es un olvido: es el estado real del
+    {
+        "id": "srv_aguas_servidas",
+        "nombre": "5. AGUAS SERVIDAS",
+        # Los llenó Hernán Escobar EN CAMPO el 14-sep-2026 —primera jornada de
+        # uso— como ítems agregados del informe SRV-EZ-T03-260914-HE, y Skarlet
+        # los pidió como fijos ese mismo día. Se conserva su orden.
+        "items": [
+            "Ubicación de Boca de Visita",
+            "Construcción de Tanquilla de Descarga",
+            "Conexión a Tanquilla de Descarga",
+            "Colocación de Bajantes de Descarga",
+        ],
+    },
+    # Los dos que faltan. La lista vacía NO es un olvido: es el estado real del
     # levantamiento, y el formulario tiene que comportarse bien con ella.
-    {"id": "srv_aguas_servidas", "nombre": "5. AGUAS SERVIDAS", "items": []},
     {"id": "srv_incendio", "nombre": "6. SERVICIOS CONTRA INCENDIO", "items": []},
     {"id": "srv_pluviales", "nombre": "7. AGUAS PLUVIALES", "items": []},
 ]
+
+# ── Nombres que cambiaron ──────────────────────────────────────────────────
+#
+# Un informe guardado en un teléfono reconoce sus ítems fijos POR NOMBRE. Si un
+# nombre cambia y no queda su alias, el informe pierde esa respuesta al
+# reabrirse, sin avisar. Aquí vive la traducción; el formulario la aplica al
+# cargar un informe y al traer el estado anterior de una torre.
+RENOMBRADOS = {
+    "srv_cantv": {
+        "Conexiones Exteriores": "Construcción de Canalizaciones Exteriores",
+    },
+}
 
 # ── B) Apartamentos y áreas comunes ────────────────────────────────────────
 #
