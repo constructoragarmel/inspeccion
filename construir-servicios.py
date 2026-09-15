@@ -1024,6 +1024,12 @@ function estadosDeTorres(){
 }
 function anotarEstadoTorre(d){
   if (!d.torre || !d.fecha) return;
+  // Un borrador sin nada contestado no es el estado de la torre: con la fecha
+  // de hoy pisaba al informe real de ayer —el del teléfono y el que llegaba
+  // del relevo— y el historial ofrecía un vacío. Visto el 15-sep en T-12.
+  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs)) ||
+                     (d.apartamentos || []).length > 0;
+  if (!contestado) return;
   const todos = estadosDeTorres();
   const previo = todos[d.torre];
   // Manda la fecha de inspección, y a igual fecha el guardado más reciente.
