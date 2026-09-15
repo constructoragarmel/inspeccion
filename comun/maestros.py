@@ -90,35 +90,51 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 
 # ── El padrón de inspectores ───────────────────────────────────────────────
 #
-# Fuente: «Ciudad Tiuna - Cargos, Funciones y Responsabilidades» (Drive), las 14
-# filas marcadas «En Obra», al 2-sep-2026. De ahí salen la ortografía y el CIV.
+# Fuente: «Ciudad Tiuna - Cargos, Funciones y Responsabilidades» (Drive), al
+# 14-sep-2026: las 16 filas «En Obra» más las 9 «Por ingresar» del 14 y 15-sep.
+# De ahí salen la ortografía y el CIV. Los «En proceso» (Ángel Sánchez, Fugueti
+# Euri, Jonathan Millán, Michael Escobar) y «Por contactar» NO entran hasta que
+# la hoja los pase a «Por ingresar».
 #
 # Nombre CORTO —nombre y primer apellido—, que es lo que cabe en el teléfono, y
-# CIV CON PUNTO, que es la forma oficial. Van los 14 y no solo los Ingenieros
-# Inspectores: la lista ya mezclaba coordinadores y una administradora de
-# contratos, y Birmania Rada (SHA) va a firmar informes de seguridad industrial.
+# CIV CON PUNTO, que es la forma oficial. «CIV-NC» cuando la hoja dice N/A o no
+# lo trae todavía; «CIV en trámite» cuando lo dice así. Van todos y no solo los
+# Ingenieros Inspectores: la lista mezcla coordinadores, administradoras de
+# contratos y los dos de SHA —Birmania Rada y Víctor Mendoza—, que firman los
+# informes de seguridad industrial.
 #
 # ORDEN ALFABÉTICO POR NOMBRE, no por apellido: es lo que se muestra y es como
 # el inspector se busca a sí mismo en el desplegable.
 #
-# ⚠️ El CIV de Skarlet Gómez (317.442) no está en el Sheet: lo confirmó ella misma
-# el 2-sep-2026. Las iniciales de los 14 son distintas entre sí — el número del
-# informe las usa, y dos iguales el mismo día en el mismo apartamento chocarían.
+# Las iniciales de los 25 son distintas entre sí (Diego Orta DO, Diego Rosales
+# DR) — el número del informe las usa, y dos iguales el mismo día en el mismo
+# sitio chocarían. Al agregar a alguien, comprobarlo.
 INSPECTORES_JS = """const INSPECTORES_DB = [
-  "Alejandro Bastidas (CIV-NC)",
+  "Alejandro Bastidas (CIV-67.316)",
+  "Bella Mota (CIV-NC)",
   "Birmania Rada (CIV-NC)",
   "Charbel Abdul (CIV en trámite)",
   "Christian Fricke (CIV-184.558)",
+  "Cleidy Chacón (CIV-NC)",
+  "Diego Orta (CIV-301.823)",
+  "Diego Rosales (CIV-NC)",
   "Edenil Narváez (CIV-150.422)",
+  "Erik Espinoza (CIV-NC)",
   "Gabriel Barrios (CIV-NC)",
   "Génesis Cordobés (CIV-307.057)",
   "Girlenys Lacruz (CIV-288.041)",
-  "Hernán Escobar (CIV-NC)",
+  "Hernán Escobar (CIV-151.021)",
+  "Ignacio Madrid (CIV-256.842)",
+  "Katherine Correia (CIV-237.904)",
   "Leidy Villamizar (CIV-258.266)",
   "Lizeira Aragort (CIV-298.127)",
+  "Mariana Rojas (CIV-NC)",
   "Martha Azcarate (CIV-87.616)",
   "Oriana Plaza (CIV en trámite)",
-  "Skarlet Gómez (CIV-317.442)"
+  "Selehidy Rivero (CIV-292.273)",
+  "Skarlet Gómez (CIV-317.442)",
+  "Víctor Mendoza (CIV-NC)",
+  "Yenddy Sierra (CIV-307.772)"
 ];"""
 
 # ── Cómo se llaman de verdad las contratistas ──────────────────────────────

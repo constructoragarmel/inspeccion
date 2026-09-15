@@ -6955,11 +6955,12 @@ print("  … 16 aplicado")
 # formulario. Se conserva porque es el suyo, aunque el resto de lo que aportó
 # ese archivo sea referencial.
 #
-# Van los 14 «En Obra», no solo los Ingenieros Inspectores: la lista ya mezclaba
-# coordinadores y una administradora de contratos, y Birmania Rada (SHA) va a
-# firmar informes de seguridad industrial.
+# Van todos los «En Obra» y «Por ingresar», no solo los Ingenieros Inspectores:
+# la lista ya mezclaba coordinadores y administradoras de contratos, y los de
+# SHA firman informes de seguridad industrial. La lista vive en
+# comun/maestros.py y ahí se dice al día de qué fecha está el padrón.
 #
-# Comprobado que las 14 iniciales son distintas entre sí: el número del informe
+# Comprobado que las iniciales son distintas entre sí: el número del informe
 # las usa, y dos iguales el mismo día en el mismo apartamento colisionarían.
 s = sustituir(s,
 'const INSPECTORES_DB = [\n  "Edenil Narvaez (CIV-150422)",\n  "Skarlet Gómez (CIV-317442)",\n  "Christian Fricke (CIV-184558)",\n  "Genesis Córdobes (CIV-307057)",\n  "Charbel Abdul (CIV-NC)",\n  "Martha Azcarte (CIV-87616)",\n  "Leidy Villamizar (CIV-258266)",\n  "Gabriel Barrios (CIV-NC)"\n];',
