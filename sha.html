@@ -211,7 +211,7 @@ textarea{min-height:64px;resize:vertical}
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún recaudo ni hallazgo..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v68</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v69</div>
 </div>
 
 <div class="acciones">
@@ -1260,8 +1260,8 @@ async function enviarSolo(id){
   let clave = ''; try { clave = localStorage.getItem('garmel_clave_envio') || ''; } catch(e){}
   if (!clave){ alert('⚠️ Este teléfono todavía no está configurado para enviar.'); return; }
   if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }
-  if (!(await frenoSha())) return;
   _tandaEnCurso = true;
+  if (!(await frenoSha())){ _tandaEnCurso = false; return; }
   try { cartel('📤 Enviando ' + d.nro + '…\n\nNo cierre esta pantalla ni vuelva a pulsar.');
         const r = await enviarUno(d, clave);
         alert(r.ok ? '✓ ' + d.nro + ' enviado a Drive.' : '✗ ' + d.nro + ': ' + explicar(r.error)); }
@@ -1614,8 +1614,8 @@ async function enviar(){
   if (!pendientes.length){ alert('No hay informes pendientes de enviar.'); return; }
   if (!confirmarSinRevisar(pendientes)) return;
 
-  if (!(await frenoSha())) return;
   _tandaEnCurso = true;
+  if (!(await frenoSha())){ _tandaEnCurso = false; return; }
   let bien = 0; const fallos = [];
   try {
     for (const d of pendientes){
