@@ -244,10 +244,13 @@ async function frenoSha(){
 
 async function enviar(){
   if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }""", "16a· freno del relevo")
+# La bandera se levanta ANTES de preguntar al relevo: el freno espera una
+# respuesta de red, y dos toques seguidos en Enviar pasaban los dos por delante
+# de la bandera y mandaban todo dos veces (lo encontró el QC del 14-sep).
 J = sustituir(J, "  _tandaEnCurso = true;\n  let bien = 0; const fallos = [];",
-                 "  if (!(await frenoSha())) return;\n  _tandaEnCurso = true;\n  let bien = 0; const fallos = [];", "16b· freno en la tanda")
+                 "  _tandaEnCurso = true;\n  if (!(await frenoSha())){ _tandaEnCurso = false; return; }\n  let bien = 0; const fallos = [];", "16b· freno en la tanda")
 J = sustituir(J, "  if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }\n  _tandaEnCurso = true;\n  try { cartel('📤 Enviando ' + d.nro",
-                 "  if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }\n  if (!(await frenoSha())) return;\n  _tandaEnCurso = true;\n  try { cartel('📤 Enviando ' + d.nro", "16c· freno en el envío individual")
+                 "  if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }\n  _tandaEnCurso = true;\n  if (!(await frenoSha())){ _tandaEnCurso = false; return; }\n  try { cartel('📤 Enviando ' + d.nro", "16c· freno en el envío individual")
 
 # 17 · «Sig. torre» conserva inspector y fecha; el estatus general es de cada
 # inspección y no se arrastra.
