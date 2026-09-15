@@ -124,9 +124,30 @@ const FORMULARIOS = @@FORMULARIOS@@;
   const m = (location.hash || '').match(/[#&]clave=([^&]+)/);
   if (m && m[1]) {
     try { localStorage.setItem('garmel_clave_envio', decodeURIComponent(m[1])); } catch(e){}
+    // Se comprueba al cargar (más abajo): un enlace cortado por WhatsApp trae
+    // media clave, y antes el menú la daba por buena hasta el primer envío.
+    window.__claveDelEnlace = decodeURIComponent(m[1]).trim();
     history.replaceState(null, '', location.pathname + location.search);
   }
 })();
+
+// La clave que trajo el enlace se comprueba contra el relevo en cuanto hay
+// señal. Si no es la correcta, se descarta y el aviso pide escribirla.
+async function comprobarClaveDelEnlace(){
+  const clave = window.__claveDelEnlace; if (!clave || !navigator.onLine) return;
+  const corte = new AbortController(); const reloj = setTimeout(() => corte.abort(), 20000);
+  try {
+    const r = await fetch(RELEVO_URL, { method: 'POST', signal: corte.signal,
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ clave: clave, prueba: true }) });
+    const res = await r.json();
+    if (res.error === 'Clave incorrecta'){
+      try { localStorage.removeItem('garmel_clave_envio'); } catch(e){}
+      window.__avisoClave = 'El enlace lleg\u00f3 cortado o la clave no es la correcta. Escr\u00edbala aqu\u00ed tal como se la dieron en la oficina:';
+      pintar();
+    }
+  } catch(e) { /* sin respuesta: se comprobará en el primer envío */ }
+  finally { clearTimeout(reloj); }
+}
 
 // ── El modo de prueba viaja con el enlace ─────────────────────────────────
 // Si no se propagara, el enlace de prueba abriría el menú en modo prueba y el
@@ -199,7 +220,7 @@ function pintar(){
   document.getElementById('estado').innerHTML = hay
     ? '✓ Este teléfono está configurado para enviar.'
     : '⚠️ Este teléfono <b>todavía no está configurado</b>: se llenan informes igual, ' +
-      'pero no se pueden enviar. Escriba la clave que le dieron en la oficina:' +
+      'pero no se pueden enviar. ' + (window.__avisoClave || 'Escriba la clave que le dieron en la oficina:') +
       '<div class="clave-fila">' +
       '<div class="clave-caja"><input type="password" id="clave-menu" placeholder="Clave de envío" autocomplete="off" ' +
       'autocapitalize="off" spellcheck="false" inputmode="text">' +
@@ -234,6 +255,7 @@ const con = () => document.getElementById('conexion').textContent =
   navigator.onLine ? 'en línea' : 'sin señal — se puede llenar igual';
 addEventListener('online', con); addEventListener('offline', con);
 pintar(); con();
+comprobarClaveDelEnlace();
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
