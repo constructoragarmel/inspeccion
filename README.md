@@ -320,6 +320,24 @@ Lo que lo distingue del de inspección, y por qué (los tres salieron de la prim
 - **En las 20 torres cuyo maestro no trae residente**, el que se escribió la vez anterior vuelve con el
   historial; donde el maestro lo trae, manda el maestro.
 
+## El formulario de SHA (Seguridad, Higiene y Ambiente)
+
+Vive en `sha.html` y se genera con `python3 construir-sha.py`. **No es una copia del de servicios: es una
+derivación.** El generador importa el motor de `construir-servicios.py` y le aplica sustituciones con ancla;
+si el motor cambia y un ancla no aparece, falla en vez de producir un formulario a medias, y un arreglo en
+servicios entra en SHA solo. El contenido —nueve recaudos, estados del hallazgo, cierre— está en
+`sha/contenido.py`, tomado del borrador `SHA V3.html` del 14-sep-2026 y **provisional** hasta que SHA
+responda las preguntas de `Garmel/implementacion/propuestas/formulario-sha.md`.
+
+Lo propio de SHA: **recaudos** de la contratista como ítems Sí/No/N-A; **hallazgos de campo** como filas con
+área, descripción, estatus (Pendiente / En proceso / Corregido) y fotos; **cierre** con estatus general y
+comentarios; **historial por empresa** para los recaudos, además del de torre. Firman Birmania Rada y
+Víctor Mendoza. Identificador `SHA-EZ-T45-260914-BR`.
+
+**Está apagado en el menú y no envía** hasta que el relevo declare en su `doGet` que recibe `tipos: [...,
+'sha']` (r11). Con un relevo anterior, guarda en el teléfono y lo dice. Sin ese freno, un informe de SHA
+entraría por la rama de inspección del relevo.
+
 ## Lo que todavía no hace
 
 - **Llegar a Smartsheet.** El relevo deja cada informe en Drive y anota una fila en la hoja

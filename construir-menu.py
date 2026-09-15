@@ -4,7 +4,7 @@
 
 POR QUÉ EXISTE. Hasta el 2-sep-2026 había un solo instrumento y `index.html` ERA
 ese instrumento: el enlace que tienen los inspectores abría directamente el
-formulario. Con tres —inspección, servicios y seguridad industrial— hace falta
+formulario. Con tres —inspección, servicios y SHA— hace falta
 una entrada que reparta.
 
 ⚠️ ESTO NO ES LA PORTADA QUE SE RETIRÓ. El cambio 42 de `construir.py` quitó una
@@ -43,9 +43,12 @@ FORMULARIOS = [
      "titulo": "Servicios públicos",
      "sub": "Por torre · electricidad, CANTV, agua, gas",
      "lista": "garmel_srv_list", "activo": True},
-    {"id": "sha", "archivo": "",
-     "titulo": "Seguridad industrial",
-     "sub": "En preparación — falta definir qué se registra",
+    # Construido el 14-sep-2026 (sha.html) y APAGADO hasta que el relevo r11
+    # esté implementado: el formulario existe, pero sin relevo que lo reciba
+    # no se reparte. Para encenderlo: activo True.
+    {"id": "sha", "archivo": "sha.html",
+     "titulo": "SHA · Seguridad, Higiene y Ambiente",
+     "sub": "En preparación — recaudos, hallazgos de campo y cierre",
      "lista": "", "activo": False},
 ]
 
