@@ -43,13 +43,12 @@ FORMULARIOS = [
      "titulo": "Servicios públicos",
      "sub": "Por torre · electricidad, CANTV, agua, gas",
      "lista": "garmel_srv_list", "activo": True},
-    # Construido el 14-sep-2026 (sha.html) y APAGADO hasta que el relevo r11
-    # esté implementado: el formulario existe, pero sin relevo que lo reciba
-    # no se reparte. Para encenderlo: activo True.
+    # Construido el 14-sep-2026 (sha.html); apagado hasta que el relevo lo
+    # recibiera. Encendido el 15-sep-2026 por Stephanie González (v73).
     {"id": "sha", "archivo": "sha.html",
      "titulo": "SHA · Seguridad, Higiene y Ambiente",
-     "sub": "En preparación — recaudos, hallazgos de campo y cierre",
-     "lista": "", "activo": False},
+     "sub": "Por torre · recaudos, hallazgos de campo y cierre",
+     "lista": "garmel_sha_list", "activo": True},
 ]
 
 PAGINA = """<!DOCTYPE html>
