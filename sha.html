@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Inspección de Servicios — GARMEL</title>
+<title>Inspección SHA — GARMEL</title>
 <style>
 :root{--azul:#1a237e;--azul-cl:#e8eaf6;--borde:#cbd5e1;--texto:#1e293b;--fondo:#f1f5f9}
 *{box-sizing:border-box}
@@ -155,7 +155,7 @@ textarea{min-height:64px;resize:vertical}
 </head>
 <body>
 <header>
-  <h1>INSPECCIÓN DE SERVICIOS PÚBLICOS</h1>
+  <h1>INSPECCIÓN SHA · SEGURIDAD, HIGIENE Y AMBIENTE</h1>
   <div class="nro" id="nro">—</div>
 </header>
 
@@ -184,13 +184,6 @@ textarea{min-height:64px;resize:vertical}
         <label for="fecha">Fecha de inspección</label>
         <input type="date" id="fecha">
       </div>
-      <div class="campo">
-        <label for="estatus">Estatus de obra</label>
-        <select id="estatus">
-          <option value="">—</option><option>Iniciada</option>
-          <option>En progreso</option><option>Culminada</option><option>Paralizada</option>
-        </select>
-      </div>
     </div>
     <div id="aviso-torre"></div>
     <div id="aviso-historial"></div>
@@ -202,16 +195,20 @@ textarea{min-height:64px;resize:vertical}
   </div>
 
   <div class="pestanas">
-    <button type="button" id="tab-a" class="on" onclick="verPanel('a')">General</button>
-    <button type="button" id="tab-b" onclick="verPanel('b')">Apartamentos</button>
+    <button type="button" id="tab-a" class="on" onclick="verPanel('a')">Recaudos</button>
+    <button type="button" id="tab-b" onclick="verPanel('b')">Hallazgos de campo</button>
   </div>
 
   <div id="panel-a" class="panel on"></div>
   <div id="panel-b" class="panel"></div>
 
-  <div class="tarjeta">
-    <label style="font-weight:600;font-size:13px;color:#475569">Observación general</label>
-    <textarea id="obs_general" placeholder="Lo que no cabe en ningún servicio..."></textarea>
+  <div class="tarjeta" id="cierre">
+    <div class="campo">
+      <label for="estatus">Estatus general de la inspección</label>
+      <select id="estatus"><option value="">— Seleccione —</option><option>Aprobado</option><option>Aprobado con observaciones</option><option>Rechazado</option></select>
+    </div>
+    <label style="font-weight:600;font-size:13px;color:#475569;margin-top:12px;display:block">Comentarios y recomendaciones del inspector</label>
+    <textarea id="obs_general" placeholder="Lo que no cabe en ningún recaudo ni hallazgo..."></textarea>
   </div>
 
   <div class="pie" id="pie">● <span id="conexion">en línea</span> · v68</div>
@@ -225,7 +222,7 @@ textarea{min-height:64px;resize:vertical}
     <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
   </div>
   <div class="fila-principal">
-    <button type="button" class="b1" onclick="siguienteTorre()" title="Guarda este informe y prepara el de la siguiente torre, conservando inspector, fecha y estatus">➡️ Sig. torre</button>
+    <button type="button" class="b1" onclick="siguienteTorre()" title="Guarda este informe y prepara el de la siguiente torre, conservando inspector y fecha">➡️ Sig. torre</button>
     <button type="button" class="b1" onclick="abrirInformes()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 Informes<br><small id="cnt">0</small></button>
     <button type="button" class="b2" onclick="enviar()" title="Manda a Drive todos los pendientes. Hasta entonces viven solo aquí">📤 Enviar</button>
     <button type="button" class="b1 mas" onclick="const f=document.getElementById('fila-mas');f.hidden=!f.hidden" title="Resto de las acciones">⋯</button>
@@ -287,181 +284,37 @@ const SECTOR_POR_CONVENIO = {
   'Convenio Rusos':      'SR',   // Simón Rodríguez
   'Convenio Chinos':     'SB'    // Simón Bolívar
 };
-const INSPECTORES_DB = ["Hernán Escobar (CIV-151.021)", "Oriana Plaza (CIV en trámite)"];
+const INSPECTORES_DB = ["Birmania Rada (CIV-NC)", "Víctor Mendoza (CIV-NC)"];
 const GENERAL = [
   {
-    "id": "srv_electrico",
-    "nombre": "1. SERVICIOS ELÉCTRICOS",
+    "id": "sha_recaudos",
+    "nombre": "1. RECAUDOS Y ASPECTOS DE SEGURIDAD",
     "items": [
-      "Ubicación de Punto de Conexión",
-      "Conexiones Exteriores",
-      "Transformador Energizado",
-      "Conexión entre Transformador y Módulo",
-      "Instalación de Módulos para Medidores",
-      "Instalación de Medidores"
+      "Copia del Registro Mercantil y Acta Constitutiva",
+      "RIF, Cédula del Representante Legal y Solvencia Laboral",
+      "Lista de Equipos, Maquinarias y Certificaciones",
+      "Documentos del Profesional de Seguridad (INPSASEL)",
+      "Matriz de Identificación y Evaluación de Riesgos (en obra)",
+      "Plan de Emergencia y Centros de Atención Médica",
+      "Programa de Dotación de EPP por Cargo y Reposición",
+      "Expediente del Personal (IVSS y Capacitaciones)",
+      "Permisos de Trabajo de Alto Riesgo (Altura / Caliente)"
     ]
-  },
-  {
-    "id": "srv_cantv",
-    "nombre": "2. SERVICIOS DE CANTV",
-    "items": [
-      "Ubicación de Tanquilla de Conexión",
-      "Construcción de Canalizaciones Exteriores",
-      "Colocación de Fibra desde Tanquilla a Módulo",
-      "Conexión con Módulo Principal",
-      "Cableado en Pasillos",
-      "Colocación de Cajas de Paso",
-      "Colocación Cajas FAT"
-    ]
-  },
-  {
-    "id": "srv_agua",
-    "nombre": "3. AGUA POTABLE",
-    "items": [
-      "Conexiones Exteriores",
-      "Colocación de Llave de Paso",
-      "Colocación de Válvula Reguladora de Presión",
-      "Colocación de Tubería Montante",
-      "Construcción de Manifold",
-      "Prueba de Hermeticidad"
-    ]
-  },
-  {
-    "id": "srv_gas",
-    "nombre": "4. PDVSA / GAS DOMÉSTICO",
-    "items": [
-      "Conexión a Red Principal",
-      "Construcción de Caseta Regulación Principal",
-      "Instalación de Regulación Secundaria",
-      "Prueba a Tubería entre Ascendente y Caseta",
-      "Colocación de Tubería Ascendente",
-      "Colocación de Unión Universal entre Pisos",
-      "Colocación de Válvula",
-      "Construcción de Manifold"
-    ]
-  },
-  {
-    "id": "srv_aguas_servidas",
-    "nombre": "5. AGUAS SERVIDAS",
-    "items": [
-      "Ubicación de Boca de Visita",
-      "Construcción de Tanquilla de Descarga",
-      "Conexión a Tanquilla de Descarga",
-      "Colocación de Bajantes de Descarga"
-    ]
-  },
-  {
-    "id": "srv_incendio",
-    "nombre": "6. SERVICIOS CONTRA INCENDIO",
-    "items": []
-  },
-  {
-    "id": "srv_pluviales",
-    "nombre": "7. AGUAS PLUVIALES",
-    "items": []
   }
 ];
-const RENOMBRADOS = {"srv_cantv": {"Conexiones Exteriores": "Construcción de Canalizaciones Exteriores"}};
+const RENOMBRADOS = {};
 const APARTAMENTOS = [
   {
-    "id": "apto_electrico",
-    "nombre": "ELÉCTRICO",
+    "id": "hallazgo",
+    "nombre": "HALLAZGO",
     "columnas": [
       [
-        "Cableado",
-        "sino"
-      ],
-      [
-        "Tomacorrientes",
-        "cant"
-      ],
-      [
-        "Interruptores",
-        "cant"
-      ],
-      [
-        "Tablero",
-        "sino"
-      ],
-      [
-        "Energizado",
-        "sino"
-      ],
-      [
-        "Observaciones",
+        "Descripción del hallazgo o condición observada",
         "obs"
-      ]
-    ]
-  },
-  {
-    "id": "apto_cantv",
-    "nombre": "CANTV",
-    "columnas": [
-      [
-        "Puntos de conexión",
-        "cant"
       ],
       [
-        "Instalados",
-        "sino"
-      ],
-      [
-        "Observaciones",
-        "obs"
-      ]
-    ]
-  },
-  {
-    "id": "apto_agua",
-    "nombre": "AGUA POTABLE",
-    "columnas": [
-      [
-        "Puntos de servicio",
-        "cant"
-      ],
-      [
-        "Instalados",
-        "sino"
-      ],
-      [
-        "Observaciones",
-        "obs"
-      ]
-    ]
-  },
-  {
-    "id": "apto_gas",
-    "nombre": "GAS DOMÉSTICO (PDVSA)",
-    "columnas": [
-      [
-        "Puntos de suministro",
-        "cant"
-      ],
-      [
-        "Instalados",
-        "sino"
-      ],
-      [
-        "Observaciones",
-        "obs"
-      ]
-    ]
-  },
-  {
-    "id": "apto_aguas_servidas",
-    "nombre": "AGUAS SERVIDAS",
-    "columnas": [
-      [
-        "Puntos de descarga",
-        "cant"
-      ],
-      [
-        "Instalados",
-        "sino"
-      ],
-      [
-        "Observaciones",
-        "obs"
+        "Acción correctiva / estatus",
+        "lista"
       ]
     ]
   }
@@ -471,6 +324,7 @@ const MAX_FOTOS_SECCION = 3;
 const MAX_FOTO_PX = 1280;
 const CALIDAD_FOTO = 0.72;
 const RELEVO_URL = "https://script.google.com/macros/s/AKfycbwWgYbgMkNcxwN2gAH89N4EVUe6LO_RXR2IzBBc6mFfgJJNjixd6omK_ElAOSiFH-EqYg/exec";
+const ESTADOS_HALLAZGO = ["Pendiente", "En proceso", "Corregido"];
 
 // ── Cascada: la torre manda ───────────────────────────────────────────────
 // Cuatro torres (T-04, T-07, T-12, T-13) están en el maestro DOS VECES, con dos
@@ -534,6 +388,7 @@ function alElegirConvenio(){
                    'Se registró <b>' + c + '</b>.';
   }
   actualizarNro(); marcar();
+  if (!document.querySelector('#aviso-historial .historial')) ofrecerRecaudosDeEmpresa();
 }
 
 // ── El identificador ──────────────────────────────────────────────────────
@@ -557,7 +412,7 @@ function actualizarNro(){
   const sec = SECTOR_POR_CONVENIO[c] || 'XX';
   const fec = f ? f.slice(2).replace(/-/g,'') : '------';
   document.getElementById('nro').textContent =
-    (TEST_MODE ? 'PRUEBA-' : '') + 'SRV-' + sec + '-' + (limpiar(t) || '---') + '-' + fec + '-' + iniciales();
+    (TEST_MODE ? 'PRUEBA-' : '') + 'SHA-' + sec + '-' + (limpiar(t) || '---') + '-' + fec + '-' + iniciales();
 }
 function numeroInforme(){ return document.getElementById('nro').textContent; }
 
@@ -628,7 +483,7 @@ function pintarGeneral(){
       '<div class="nota-ni">Este servicio está marcado como NO INSPECCIONADO. Para llenarlo, toque otra vez el botón de la cabecera.</div>' +
       '<div class="cuerpo" hidden>';
     if (!srv.items.length){
-      html += '<div class="vacio">Este servicio todavía no tiene lista de ítems.<br>' +
+      html += '<div class="vacio">Este bloque todavía no tiene lista de recaudos.<br>' +
               'Agréguelos abajo mientras Ingeniería la define.</div>';
     }
     html += '<div id="items-' + srv.id + '"></div>' +
@@ -638,6 +493,7 @@ function pintarGeneral(){
     bloque.innerHTML = html;
     cont.appendChild(bloque);
     srv.items.forEach(nombre => addItem(srv.id, nombre, true));
+    plegar(srv.id, true);
     // Y detrás de los fijos, los que este teléfono ya aprendió: lo que Hernán
     // agregó una vez no se vuelve a escribir en cada torre.
     const rec = itemsRecordados(srv.id);
@@ -661,7 +517,7 @@ function agregarItemNuevo(sid){
 // Lo que se agrega en campo con nombre queda en este teléfono y aparece en los
 // informes siguientes, hasta que Ingeniería lo pase a la lista fija o alguien
 // lo quite «para los próximos». Vive por servicio.
-const CLAVE_ITEMS = 'garmel_srv_items';
+const CLAVE_ITEMS = 'garmel_sha_items';
 function normalizar(v){
   return (v == null ? '' : String(v)).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
          .trim().toLowerCase().replace(/\s+/g,' ');
@@ -827,9 +683,9 @@ function valorSN(item){
 // apartamento ya cuesta 120 toques en el otro formulario.
 function pintarApartamentos(){
   const cont = document.getElementById('panel-b');
-  cont.innerHTML = '<div class="vacio" id="b-vacio">Todavía no hay apartamentos. ' +
-    'Agregue los que haya visitado hoy.</div><div id="filas-apto"></div>' +
-    '<button type="button" class="btn-add" onclick="addApartamento()">＋ Agregar apartamento</button>';
+  cont.innerHTML = '<div class="vacio" id="b-vacio">Todavía no hay hallazgos de campo. ' +
+    'Agregue lo que encontró en la inspección física de la obra.</div><div id="filas-apto"></div>' +
+    '<button type="button" class="btn-add" onclick="addApartamento()">＋ Agregar hallazgo</button>';
 }
 
 let _nApto = 0;
@@ -841,11 +697,8 @@ function addApartamento(datos){
   // El PISO va primero: se elige, y después se escribe el apartamento. Al
   // revés confundía —se escribía el apto y aparecía otro selector—.
   let html = '<span class="etq-her" style="margin:0 0 6px">visita anterior · sin revisar hoy</span><div class="cab">' +
-    '<select class="piso" onchange="marcar()" style="flex:1"><option value="">Piso</option>' +
-    '<option value="PB">Planta Baja</option>';
-  for (let i = 1; i <= 20; i++) html += '<option value="P' + String(i).padStart(2,'0') + '">Piso ' + String(i).padStart(2,'0') + '</option>';
-  html += '</select>' +
-    '<input type="text" class="apto" placeholder="Apto / área" oninput="marcar()" style="flex:1">' +
+    '<input type="hidden" class="piso">' +
+    '<input type="text" class="apto" placeholder="Área / frente de trabajo (andamio, losa 5, fachada norte…)" oninput="marcar()" style="flex:1">' +
     '<button type="button" class="quitar" onclick="quitarApto(this)">✕</button></div>';
 
   APARTAMENTOS.forEach(tabla => {
@@ -861,6 +714,11 @@ function addApartamento(datos){
                 '<button type="button" onclick="marcarSN(this,\'SI\')">SÍ</button>' +
                 '<button type="button" onclick="marcarSN(this,\'NO\')">NO</button>' +
                 '<button type="button" onclick="marcarSN(this,\'NA\')">N/A</button></div></div>';
+      } else if (tipo === 'lista'){
+        html += '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
+                '<span style="flex:1;font-size:13px">' + etiqueta + '</span>' +
+                '<select data-campo="' + id + '" onchange="marcar()" style="flex:1"><option value="">—</option>' +
+                ESTADOS_HALLAZGO.map(o => '<option>' + o + '</option>').join('') + '</select></div>';
       } else if (tipo === 'cant'){
         html += '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
                 '<span style="flex:1;font-size:13px">' + etiqueta + '</span>' +
@@ -874,7 +732,7 @@ function addApartamento(datos){
     });
     html += '</div>';
   });
-  html += bloqueFotos('fotos-apto-' + _nApto, 'Fotografías del apartamento');
+  html += bloqueFotos('fotos-apto-' + _nApto, 'Fotografías del hallazgo');
   d.innerHTML = html;
   cont.appendChild(d);
   if (datos) cargarApto(d, datos);
@@ -946,7 +804,7 @@ const FotosDB = (() => {
   function abrir(){
     if (db) return Promise.resolve(db);
     return new Promise((res, rej) => {
-      const r = indexedDB.open('garmel_servicios', 1);
+      const r = indexedDB.open('garmel_sha', 1);
       r.onupgradeneeded = () => r.result.createObjectStore('fotos');
       r.onsuccess = () => { db = r.result; res(db); };
       r.onerror = () => rej(r.error);
@@ -1014,7 +872,7 @@ function reducir(file, listo){
 // A los 2 s de la última tecla y cada 30, igual que el otro. Y con la lección
 // que costó cara: GUARDAR PUEDE FALLAR, y cuando falla no se limpia nada, para
 // que el informe siga donde único existe — el teléfono.
-const CLAVE_LISTA = 'garmel_srv_list';
+const CLAVE_LISTA = 'garmel_sha_list';
 let sucio = false, temporizador = null, idActual = null;
 
 function marcar(){
@@ -1075,8 +933,8 @@ function datosDelFormulario(){
   GENERAL.forEach(srv => { grupos[srv.id] = leerDatosFotos(document.getElementById('fotos-' + srv.id)); });
   [...document.querySelectorAll('#filas-apto .fila-apto')].forEach((fila, i) => { grupos['apto:' + i] = leerDatosFotos(fila.querySelector('.fotos')); });
   return {
-    id: idActual || ('srv_' + Date.now()),
-    tipo: 'servicios',
+    id: idActual || ('sha_' + Date.now()),
+    tipo: 'sha',
     fotosDB: grupos,   // se separa antes de guardar: no va a localStorage
     nro: numeroInforme(),
     torre: val('torre'), convenio: val('convenio'), empresa: val('empresa'),
@@ -1159,8 +1017,8 @@ function aprenderItems(){
 // fotografías, y sobrevive a «Borrar los que ya se enviaron». Hoy lo alimentan
 // los informes de este teléfono; el día que el relevo pueda contestarlo, se
 // alimenta también desde Drive y Hernán y Oriana verán lo mismo.
-const CLAVE_TORRES = 'garmel_srv_torres';
-const CLAVE_ACTUAL = 'garmel_srv_actual';
+const CLAVE_TORRES = 'garmel_sha_torres';
+const CLAVE_ACTUAL = 'garmel_sha_actual';
 function estadosDeTorres(){
   try { return JSON.parse(localStorage.getItem(CLAVE_TORRES) || '{}'); } catch(e){ return {}; }
 }
@@ -1189,6 +1047,54 @@ function anotarEstadoTorre(d){
     }))
   };
   try { localStorage.setItem(CLAVE_TORRES, JSON.stringify(todos)); } catch(e){}
+  anotarRecaudosEmpresa(d, todos[d.torre]);
+}
+const CLAVE_EMPRESAS = 'garmel_sha_empresas';
+function estadosDeEmpresas(){
+  try { return JSON.parse(localStorage.getItem(CLAVE_EMPRESAS) || '{}'); } catch(e){ return {}; }
+}
+function anotarRecaudosEmpresa(d, estadoTorre){
+  if (!d.empresa || !estadoTorre) return;
+  const todos = estadosDeEmpresas();
+  const previo = todos[d.empresa];
+  if (previo && previo.id !== d.id &&
+      (previo.fecha > d.fecha || (previo.fecha === d.fecha && previo.guardado > d.guardado))) return;
+  todos[d.empresa] = { id: d.id, nro: d.nro, fecha: d.fecha, guardado: d.guardado, torre: d.torre,
+                       general: estadoTorre.general };
+  try { localStorage.setItem(CLAVE_EMPRESAS, JSON.stringify(todos)); } catch(e){}
+}
+function ofrecerRecaudosDeEmpresa(){
+  const caja = document.getElementById('aviso-historial');
+  const emp = document.getElementById('empresa').value;
+  const e = emp ? estadosDeEmpresas()[emp] : null;
+  if (!e || e.id === idActual || !formularioEnBlanco()) return;
+  const n = (e.general || []).reduce((s, g) => s + g.items.filter(i => i.sn).length, 0);
+  if (!n) return;
+  caja.innerHTML = '<div class="historial">' +
+    '<div class="t">📋 ' + emp + ' ya tiene recaudos verificados</div>' +
+    '<div class="s">' + e.nro + ' · ' + fechaLarga(e.fecha) + ' · en ' + e.torre + ' · ' + n + ' recaudo(s) contestado(s)' +
+    '.<br>Los recaudos son de la empresa, no de la torre: ¿traerlos y revisar solo lo que cambió?</div>' +
+    '<div class="b"><button type="button" class="si" onclick="traerRecaudosDeEmpresa()">Sí, traer los recaudos</button>' +
+    '<button type="button" class="no" onclick="document.getElementById(&quot;aviso-historial&quot;).innerHTML=&quot;&quot;">No, en blanco</button></div></div>';
+  caja.firstElementChild.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+function traerRecaudosDeEmpresa(){
+  const emp = document.getElementById('empresa').value;
+  const e = estadosDeEmpresas()[emp];
+  document.getElementById('aviso-historial').innerHTML = '';
+  if (!e) return;
+  (e.general || []).forEach(g => {
+    const cont = document.getElementById('items-' + g.id); if (!cont) return;
+    (g.items || []).forEach(it => {
+      const el = buscarOCrearItem(g.id, it);
+      if (!el) return;
+      ponerSN(el, it.sn);
+      el.querySelector('textarea').value = it.obs || '';
+      if (it.sn || it.obs){ el.classList.add('heredado'); el.dataset.heredado = it.heredado || e.nro; }
+    });
+    plegar(g.id, true);
+  });
+  actualizarCuentas(); marcar();
 }
 
 // Un ítem con nombre viejo se reconoce por su nombre nuevo.
@@ -1237,13 +1143,13 @@ function ofrecerHistorial(){
   if (_cargando) return;
   const t = document.getElementById('torre').value;
   const e = t ? estadosDeTorres()[t] : null;
-  if (!e || e.id === idActual || !formularioEnBlanco()) return;
+  if (!e || e.id === idActual || !formularioEnBlanco()){ if (!e) ofrecerRecaudosDeEmpresa(); return; }
   const n = (e.general || []).reduce((s, g) => s + g.items.filter(i => i.sn).length, 0);
   const aptos = (e.apartamentos || []).length;
   caja.innerHTML = '<div class="historial">' +
     '<div class="t">📋 ' + t + ' ya tiene un informe anterior</div>' +
     '<div class="s">' + e.nro + ' · ' + fechaLarga(e.fecha) + ' · ' + n + ' ítem(s) contestado(s)' +
-    (aptos ? ' · ' + aptos + ' apto(s)' : '') +
+    (aptos ? ' · ' + aptos + ' hallazgo(s)' : '') +
     '.<br>¿Arrancar desde lo que se registró ese día y marcar solo lo que cambió?</div>' +
     '<div class="b"><button type="button" class="si" onclick="traerHistorial()">Sí, traer lo anterior</button>' +
     '<button type="button" class="no" onclick="document.getElementById(\'aviso-historial\').innerHTML=\'\'">No, empezar en blanco</button></div></div>';
@@ -1272,7 +1178,6 @@ function traerHistorial(){
   if (e.convenio && !conv.value && [...conv.options].some(o => o.value === e.convenio)){
     conv.value = e.convenio; alElegirConvenio();
   }
-  if (e.estatus && !document.getElementById('estatus').value) document.getElementById('estatus').value = e.estatus;
   // Veinte torres no traen residente en el maestro y el inspector lo escribe a
   // mano (T-03: «Harry Arteaga»). Lo escrito la vez anterior vale hoy si el
   // maestro no dice otra cosa. Igual la empresa.
@@ -1333,7 +1238,7 @@ function abrirInformes(){
     if (env)  html += '<button type="button" class="btn-add" style="border-color:#991b1b;color:#991b1b;background:#fee2e2" onclick="borrarEnviados()">🧹 Borrar los ' + env + ' que ya se enviaron</button>';
     [...l].reverse().forEach(x => {
       html += '<div class="ficha"><div class="n">' + x.nro + '</div>' +
-        '<div class="s">📍 ' + (x.torre || '—') + ' · 📅 ' + (x.fecha || '—') + ' · ' + (x.apartamentos || []).length + ' apto(s)</div>' +
+        '<div class="s">📍 ' + (x.torre || '—') + ' · 📅 ' + (x.fecha || '—') + ' · ' + (x.apartamentos || []).length + ' hallazgo(s)</div>' +
         '<div class="s" style="font-weight:700;color:' + (x.enviado ? '#166534' : '#a15c07') + '">' +
         (x.enviado ? '✅ Enviado ' + x.enviado + (x.editadoTras ? ' · ✏️ editado después (' + x.editadoTras + ')' : '') : '⏳ Sin enviar') + '</div>' +
         '<div class="b"><button type="button" onclick="cargarInforme(\'' + x.id + '\')">📂 Editar</button>' +
@@ -1355,6 +1260,7 @@ async function enviarSolo(id){
   let clave = ''; try { clave = localStorage.getItem('garmel_clave_envio') || ''; } catch(e){}
   if (!clave){ alert('⚠️ Este teléfono todavía no está configurado para enviar.'); return; }
   if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }
+  if (!(await frenoSha())) return;
   _tandaEnCurso = true;
   try { cartel('📤 Enviando ' + d.nro + '…\n\nNo cierre esta pantalla ni vuelva a pulsar.');
         const r = await enviarUno(d, clave);
@@ -1478,7 +1384,6 @@ function siguienteTorre(){
   const insp = inspectoresElegidos(), fecha = d.fecha, estatus = d.estatus;
   vaciarFormulario();
   document.getElementById('fecha').value = fecha;
-  document.getElementById('estatus').value = estatus;
   document.getElementById('inspectores').innerHTML = '';
   (insp.length ? insp : ['']).forEach(i => addInspector(i));
   actualizarNro(); sucio = false;
@@ -1568,7 +1473,7 @@ function sobreDe(d, clave, grupos){
   // dentro de anotarEnRegistro y el relevo contestaría ok:false a todos.
   datos.estatus    = d.estatus   ? [d.estatus]   : [];
   datos.residentes = d.residente ? [d.residente] : [];
-  return { clave, numero: d.nro, tipo: 'servicios', ambito: 'torre',
+  return { clave, numero: d.nro, tipo: 'sha', ambito: 'torre',
            sector: SECTOR_POR_CONVENIO[d.convenio] || 'XX', torre: d.torre,
            datos, fotos };
 }
@@ -1668,6 +1573,24 @@ function explicar(err){
   return 'El relevo no pudo archivarlo. El informe sigue guardado aquí: reinténtelo, y si vuelve a fallar avise a la oficina.';
 }
 
+async function relevoAceptaSha(){
+  try {
+    const corte = new AbortController(); const reloj = setTimeout(() => corte.abort(), 15000);
+    const r = await fetch(RELEVO_URL, { signal: corte.signal }); clearTimeout(reloj);
+    const j = await r.json();
+    return { ok: (j.tipos || []).indexOf('sha') >= 0, version: j.version || '?' };
+  } catch (e) { return { ok: false, error: String(e) }; }
+}
+async function frenoSha(){
+  const a = await relevoAceptaSha();
+  if (a.ok) return true;
+  alert(a.error
+    ? 'No hay señal, o el relevo no responde. El informe sigue guardado aquí.'
+    : '⏸ El relevo (' + a.version + ') todavía no recibe informes de SHA.\n\n' +
+      'El informe queda guardado en este teléfono y se enviará cuando la oficina lo active. No hay que hacer nada más.');
+  return false;
+}
+
 async function enviar(){
   if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }
   let clave = '';
@@ -1691,6 +1614,7 @@ async function enviar(){
   if (!pendientes.length){ alert('No hay informes pendientes de enviar.'); return; }
   if (!confirmarSinRevisar(pendientes)) return;
 
+  if (!(await frenoSha())) return;
   _tandaEnCurso = true;
   let bien = 0; const fallos = [];
   try {

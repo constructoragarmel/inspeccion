@@ -3,7 +3,7 @@
 // Al subir una versión nueva hay que subir el número de VERSION: eso es lo que
 // hace que los teléfonos se traigan la copia nueva la próxima vez que tengan
 // internet. Si no se sube, siguen abriendo la vieja.
-const VERSION = 'garmel-inspeccion-v67';
+const VERSION = 'garmel-inspeccion-v68';
 const ARCHIVOS = [
   // './' NO va en la lista: toda navegación se guarda bajo './index.html'
   // —ver claveDeCache— y tenerla suelta dejaba DOS copias de 210 KB del mismo
@@ -11,6 +11,7 @@ const ARCHIVOS = [
   './index.html',        // el menú
   './inspeccion.html',   // el formulario de torre y apartamento
   './servicios.html',    // el de servicios públicos
+  './sha.html',          // el de SHA, Seguridad, Higiene y Ambiente (apagado en el menú hasta el relevo r11)
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
