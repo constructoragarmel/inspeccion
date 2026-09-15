@@ -47,13 +47,13 @@ TORRES_JS = """const TORRES = [
   {t:'T-14',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
   {t:'T-15',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
   {t:'T-16',  c:'Convenio Bielorusos',   e:"PROCODIMA, C.A.",               r:""},
-  {t:'T-17',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:"ING FELIX PINTO"},
-  {t:'T-18',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-19',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-45',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-46',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-47',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
-  {t:'T-48',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTORY, S.A.",        r:""},
+  {t:'T-17',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTROY, S.A.",        r:"ING FELIX PINTO"},
+  {t:'T-18',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
+  {t:'T-19',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
+  {t:'T-45',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
+  {t:'T-46',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
+  {t:'T-47',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
+  {t:'T-48',  c:'Convenio Bielorusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
   {t:'T-49',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
   {t:'T-50',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
   {t:'T-51',  c:'Convenio Bielorusos',   e:"DRIJECAE, C.A.",                r:"ARQ. MARIANO RIVAS"},
@@ -162,6 +162,10 @@ CORRECCIONES_EMPRESA = [
     ("ALNAVIC, C.A.",                "INVERSIONES ALNAVIC, C.A."),
     ("THAISSA MM INVERSIONES, C.A.", "THAISA MM INVERSIONES, C.A."),
     ("CONSTRUCTORA SB 86, C.A.",     "CONSTRUCTORA SB86, C.A."),
+    # «stroy», no «story»: es la transliteración del ruso, la que usó la empresa
+    # al registrar su RIF (J-29813862-9) y la del oficio MINHAV 000013. «story»
+    # venía del cuadro de sectores y no tiene respaldo (Stephanie, 15-sep-2026).
+    ("BELZARUBEZHSTORY, S.A.",       "BELZARUBEZHSTROY, S.A."),
 ]
 
 
