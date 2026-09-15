@@ -367,6 +367,7 @@ function alElegirTorre(){
   }
   actualizarNro(); marcar();
   ofrecerHistorial();
+  pedirHistorialAlRelevo();
 }
 
 function alElegirConvenio(){
@@ -384,6 +385,7 @@ function alElegirConvenio(){
                    'Se registró <b>' + c + '</b>.';
   }
   actualizarNro(); marcar();
+  pedirHistorialAlRelevo();
 }
 
 // ── El identificador ──────────────────────────────────────────────────────
@@ -1045,6 +1047,48 @@ function anotarEstadoTorre(d){
     }))
   };
   try { localStorage.setItem(CLAVE_TORRES, JSON.stringify(todos)); } catch(e){}
+}
+
+// ── El último informe de la torre, desde Drive ─────────────────────────────
+// Hernán y Oriana se alternan las torres (15-sep-2026): lo que uno registró
+// tiene que aparecerle al otro, y eso solo lo sabe el relevo. Con señal, al
+// elegir torre (y convenio, que fija el sector) se le pregunta; si contesta
+// un informe más nuevo que el de este teléfono, entra en la misma memoria por
+// torre y se ofrece igual. Sin señal, la memoria del teléfono manda. Nunca
+// bloquea: el formulario sigue usable mientras se espera.
+const TIPO_INFORME = 'servicios';
+let _pidiendo = null;
+async function pedirHistorialAlRelevo(){
+  const t = document.getElementById('torre').value;
+  const sec = SECTOR_POR_CONVENIO[document.getElementById('convenio').value];
+  if (!t || !sec || _cargando || !navigator.onLine) return;
+  let clave = ''; try { clave = localStorage.getItem('garmel_clave_envio') || ''; } catch(e){}
+  if (!clave) return;
+  const pedido = t + '|' + sec;
+  if (_pidiendo === pedido) return;
+  _pidiendo = pedido;
+  const corte = new AbortController(); const reloj = setTimeout(() => corte.abort(), 20000);
+  try {
+    const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave, accion: 'historial', tipo: TIPO_INFORME, sector: sec, torre: t }), signal: corte.signal });
+    const j = await r.json();
+    if (!j.ok || !j.informe) return;
+    // ¿Sigue siendo la misma torre en pantalla? Si el inspector ya cambió, no.
+    if (document.getElementById('torre').value !== t) return;
+    const d = j.informe;
+    // El JSON archivado lleva residentes y estatus como listas; la memoria
+    // espera texto. El nro de prueba no debería llegar, pero por si acaso.
+    d.torre = d.torre || t;
+    d.residente = d.residente || (d.residentes || [])[0] || '';
+    if (Array.isArray(d.estatus)) d.estatus = d.estatus[0] || '';
+    d.guardado = d.guardado || '';
+    if (!d.nro || /^PRUEBA-/.test(d.nro) !== TEST_MODE) return;
+    const antes = JSON.stringify(estadosDeTorres()[t] || null);
+    anotarEstadoTorre(d);
+    if (JSON.stringify(estadosDeTorres()[t] || null) !== antes && formularioEnBlanco()) ofrecerHistorial();
+  } catch (e) {
+    // sin señal o relevo lento: la memoria del teléfono ya se ofreció
+  } finally { clearTimeout(reloj); if (_pidiendo === pedido) _pidiendo = null; }
 }
 
 // Un ítem con nombre viejo se reconoce por su nombre nuevo.

@@ -111,6 +111,7 @@ J = sustituir(J, "id: idActual || ('srv_' + Date.now()),", "id: idActual || ('sh
 J = sustituir(J, "    tipo: 'servicios',\n", "    tipo: 'sha',\n", "10c· tipo en los datos")
 J = sustituir(J, "return { clave, numero: d.nro, tipo: 'servicios', ambito: 'torre',",
                  "return { clave, numero: d.nro, tipo: 'sha', ambito: 'torre',", "10d· tipo en el sobre")
+J = sustituir(J, "const TIPO_INFORME = 'servicios';", "const TIPO_INFORME = 'sha';", "10g· tipo en la consulta del historial")
 for k in ["items", "list", "torres", "actual"]:
     J = sustituir(J, "'garmel_srv_%s'" % k, "'garmel_sha_%s'" % k, "10e· clave garmel_sha_%s" % k)
 J = sustituir(J, "indexedDB.open('garmel_servicios', 1)", "indexedDB.open('garmel_sha', 1)", "10f· base de fotos propia")
@@ -213,8 +214,9 @@ J = sustituir(J, "  if (!e || e.id === idActual || !formularioEnBlanco()) return
   const n = (e.general || []).reduce((s, g) => s + g.items.filter(i => i.sn).length, 0);
   const aptos""", "15b· si la torre no tiene historial, se mira la empresa")
 # La empresa se conoce al elegir el convenio (torres con dos): también ahí.
-J = sustituir(J, "  actualizarNro(); marcar();\n}\n\n// ── El identificador",
+J = sustituir(J, "  actualizarNro(); marcar();\n  pedirHistorialAlRelevo();\n}\n\n// ── El identificador",
 """  actualizarNro(); marcar();
+  pedirHistorialAlRelevo();
   if (!document.querySelector('#aviso-historial .historial')) ofrecerRecaudosDeEmpresa();
 }
 
