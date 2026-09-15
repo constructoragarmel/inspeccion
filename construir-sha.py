@@ -262,6 +262,18 @@ J = sustituir(J, "  document.getElementById('estatus').value = estatus;\n  docum
 J = sustituir(J, "  if (e.estatus && !document.getElementById('estatus').value) document.getElementById('estatus').value = e.estatus;\n",
                  "", "17b· ni con el historial")
 
+# 18 · El cierre es obligatorio: un SHA sin estatus general no dice nada y no
+# se envía (ni en tanda ni uno solo desde la lista). Lo pidió Stephanie el
+# 15-sep tras el QC: servicios puede ir vacío, SHA no.
+J = sustituir(J, "  if (!d.inspectores.length) f.push('el inspector');\n  return f;",
+                 "  if (!d.inspectores.length) f.push('el inspector');\n"
+                 "  if (!d.estatus) f.push('el estatus general del cierre');\n  return f;", "18a· el cierre es obligatorio")
+J = sustituir(J, "  const d = listaGuardada().find(x => x.id === id);\n  if (!d) return;\n  if (!d.enviado && !confirmarSinRevisar([d])) return;",
+                 "  const d = listaGuardada().find(x => x.id === id);\n  if (!d) return;\n"
+                 "  const falta = faltan(d);\n"
+                 "  if (falta.length){ alert('A ' + d.nro + ' le falta ' + falta.join(', ') + '. \u00c1bralo, compl\u00e9telo y vuelva a enviar.'); return; }\n"
+                 "  if (!d.enviado && !confirmarSinRevisar([d])) return;", "18b· tampoco uno solo desde la lista")
+
 # ══════════════════════════════════════════════════════════════════════════
 # MONTAJE
 # ══════════════════════════════════════════════════════════════════════════

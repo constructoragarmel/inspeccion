@@ -1306,6 +1306,8 @@ async function enviarSolo(id){
   cerrarInformes();
   const d = listaGuardada().find(x => x.id === id);
   if (!d) return;
+  const falta = faltan(d);
+  if (falta.length){ alert('A ' + d.nro + ' le falta ' + falta.join(', ') + '. Ábralo, complételo y vuelva a enviar.'); return; }
   if (!d.enviado && !confirmarSinRevisar([d])) return;
   let clave = ''; try { clave = localStorage.getItem('garmel_clave_envio') || ''; } catch(e){}
   if (!clave){ alert('⚠️ Este teléfono todavía no está configurado para enviar.'); return; }
@@ -1501,6 +1503,7 @@ function faltan(d){
   if (!d.convenio) f.push('el convenio');
   if (!d.fecha)    f.push('la fecha');
   if (!d.inspectores.length) f.push('el inspector');
+  if (!d.estatus) f.push('el estatus general del cierre');
   return f;
 }
 
