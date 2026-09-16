@@ -91,8 +91,21 @@ H = sustituir(H, """  <div class="tarjeta">
       <label for="estatus">Estatus general de la inspección</label>
       <select id="estatus"><option value="">— Seleccione —</option>@@CIERRE@@</select>
     </div>
+    <div id="rechazo" hidden>
+      <div class="campo" style="margin-top:10px">
+        <label for="accion">Acción por el rechazo *</label>
+        <select id="accion" onchange="marcar()"><option value="">— Seleccione —</option>@@ACCIONES@@</select>
+      </div>
+      <div class="campo">
+        <label for="accion_det">A qué actividad o frente aplica</label>
+        <input type="text" id="accion_det" placeholder="Ej.: trabajos en altura, losa 5 · frente norte" oninput="marcar()">
+      </div>
+    </div>
     <label style="font-weight:600;font-size:13px;color:#475569;margin-top:12px;display:block">Comentarios y recomendaciones del inspector</label>
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún recaudo ni hallazgo..."></textarea>
+    <div class="tarjeta" style="margin:8px 0 0"><label style="font-weight:600;font-size:13px;color:#475569">Fotografías generales de la visita (máx. @@MAXFOTOS@@)</label>
+      <input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-general')">
+      <div class="fotos" id="fotos-general"></div></div>
   </div>""", "5· cierre")
 
 H = sustituir(H, "title=\"Guarda este informe y prepara el de la siguiente torre, conservando inspector, fecha y estatus\"",
@@ -267,12 +280,63 @@ J = sustituir(J, "  if (e.estatus && !document.getElementById('estatus').value) 
 # 15-sep tras el QC: servicios puede ir vacío, SHA no.
 J = sustituir(J, "  if (!d.inspectores.length) f.push('el inspector');\n  return f;",
                  "  if (!d.inspectores.length) f.push('el inspector');\n"
-                 "  if (!d.estatus) f.push('el estatus general del cierre');\n  return f;", "18a· el cierre es obligatorio")
+                 "  if (!d.estatus) f.push('el estatus general del cierre');\n"
+                 "  if (d.estatus === 'Rechazado' && !d.accion) f.push('la acci\u00f3n por el rechazo');\n  return f;", "18a· el cierre es obligatorio")
 J = sustituir(J, "  const d = listaGuardada().find(x => x.id === id);\n  if (!d) return;\n  if (!d.enviado && !confirmarSinRevisar([d])) return;",
                  "  const d = listaGuardada().find(x => x.id === id);\n  if (!d) return;\n"
                  "  const falta = faltan(d);\n"
                  "  if (falta.length){ alert('A ' + d.nro + ' le falta ' + falta.join(', ') + '. \u00c1bralo, compl\u00e9telo y vuelva a enviar.'); return; }\n"
                  "  if (!d.enviado && !confirmarSinRevisar([d])) return;", "18b· tampoco uno solo desde la lista")
+
+
+# 19 · Respuestas de Birmania (16-sep-2026), paquete chico.
+# 19a · Un hallazgo «Corregido» no vuelve: se hereda mientras esté Pendiente o
+# En proceso (respuesta 9). El corregido queda en el informe donde se corrigió.
+J = sustituir(J, "  (e.apartamentos || []).forEach(a => {\n    addApartamento({ apto: a.apto, piso: a.piso, campos: a.campos, fotos: [] });",
+                 "  (e.apartamentos || []).filter(a => !Object.keys(a.campos || {}).some(k => /estatus/i.test(k) && a.campos[k] === 'Corregido')).forEach(a => {\n    addApartamento({ apto: a.apto, piso: a.piso, campos: a.campos, fotos: [] });", "19a· lo corregido no vuelve")
+# 19b · La acción por el rechazo y las fotos generales viajan con el informe.
+J = sustituir(J, "    residente: val('residente'), fecha: val('fecha'), estatus: val('estatus'),",
+                 "    residente: val('residente'), fecha: val('fecha'), estatus: val('estatus'),\n"
+                 "    accion: val('accion'), accion_det: val('accion_det'),\n"
+                 "    fotosGenerales: leerFotos(document.getElementById('fotos-general')),", "19b· datos del cierre")
+J = sustituir(J, "  [...document.querySelectorAll('#filas-apto .fila-apto')].forEach((fila, i) => { grupos['apto:' + i] = leerDatosFotos(fila.querySelector('.fotos')); });\n  return {",
+                 "  [...document.querySelectorAll('#filas-apto .fila-apto')].forEach((fila, i) => { grupos['apto:' + i] = leerDatosFotos(fila.querySelector('.fotos')); });\n"
+                 "  grupos['general'] = leerDatosFotos(document.getElementById('fotos-general'));\n  return {", "19c· imágenes generales a IndexedDB")
+J = sustituir(J, "  datos.apartamentos.forEach((a, i) => { a.fotos = soltar(a.fotos, 'apto-' + (i + 1) + '-' + limpiar(a.apto || ''), grupos['apto:' + i]); });",
+                 "  datos.apartamentos.forEach((a, i) => { a.fotos = soltar(a.fotos, 'apto-' + (i + 1) + '-' + limpiar(a.apto || ''), grupos['apto:' + i]); });\n"
+                 "  datos.fotosGenerales = soltar(datos.fotosGenerales, 'general', grupos['general']);", "19d· fotos generales en el sobre")
+J = sustituir(J, "      (x.apartamentos || []).forEach(a => { a.fotos = (a.fotos || []).map(soltar); });",
+                 "      (x.apartamentos || []).forEach(a => { a.fotos = (a.fotos || []).map(soltar); });\n"
+                 "      x.fotosGenerales = (x.fotosGenerales || []).map(soltar);", "19e· al enviar, las generales también se sueltan")
+# 19f · Al abrir un informe: el rechazo y las fotos generales vuelven a pantalla.
+J = sustituir(J, "    document.getElementById('estatus').value = d.estatus || '';\n    document.getElementById('obs_general').value = d.obs_general || '';",
+                 "    document.getElementById('estatus').value = d.estatus || '';\n"
+                 "    document.getElementById('accion').value = d.accion || '';\n"
+                 "    document.getElementById('accion_det').value = d.accion_det || '';\n"
+                 "    verRechazo();\n"
+                 "    pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '\u2026' }));\n"
+                 "    document.getElementById('obs_general').value = d.obs_general || '';", "19f· abrir: cierre completo")
+J = sustituir(J, "        pintarFotos(fila.querySelector('.fotos'), (a.fotos || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : datos[k] || '') })));\n      });\n    });",
+                 "        pintarFotos(fila.querySelector('.fotos'), (a.fotos || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : datos[k] || '') })));\n      });\n"
+                 "      const dg = grupos['general'] || [];\n"
+                 "      pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : dg[k] || '') })));\n    });", "19g· abrir: imágenes generales")
+# 19h · Vaciar y el desplegable del rechazo.
+J = sustituir(J, "  ['empresa','residente','obs_general'].forEach(id => document.getElementById(id).value = '');",
+                 "  ['empresa','residente','obs_general','accion','accion_det'].forEach(id => document.getElementById(id).value = '');\n"
+                 "  document.getElementById('fotos-general').innerHTML = '';", "19h· vaciar el cierre")
+# El bloque del rechazo se esconde DESPUÉS de vaciar el estatus, no antes (lo
+# encontró la prueba del 16-sep: quedaba abierto en el informe nuevo).
+J = sustituir(J, "  document.getElementById('estatus').value = '';\n  document.getElementById('inspectores').innerHTML = ''; addInspector();",
+                 "  document.getElementById('estatus').value = ''; verRechazo();\n  document.getElementById('inspectores').innerHTML = ''; addInspector();", "19h2· y el rechazo se esconde")
+J = sustituir(J, "  document.getElementById('estatus').onchange = marcar;",
+                 "  document.getElementById('estatus').onchange = () => { verRechazo(); marcar(); };", "19i· el estatus abre el rechazo")
+J = sustituir(J, "async function relevoAceptaSha(){",
+                 "// El bloque de acci\u00f3n solo existe cuando el cierre es «Rechazado» (Birmania, 16-sep).\n"
+                 "function verRechazo(){\n"
+                 "  const r = document.getElementById('rechazo'); if (!r) return;\n"
+                 "  r.hidden = document.getElementById('estatus').value !== 'Rechazado';\n"
+                 "  if (r.hidden){ document.getElementById('accion').value = ''; document.getElementById('accion_det').value = ''; }\n"
+                 "}\n\nasync function relevoAceptaSha(){", "19j· verRechazo")
 
 # ══════════════════════════════════════════════════════════════════════════
 # MONTAJE
@@ -291,6 +355,7 @@ def construir():
         .replace('@@CSS@@', motor.CSS)
         .replace('@@VERSION@@', motor.VERSION)
         .replace('@@CIERRE@@', ''.join('<option>%s</option>' % c for c in contenido.CIERRE))
+        .replace('@@ACCIONES@@', ''.join('<option>%s</option>' % c for c in contenido.ACCIONES_RECHAZO))
         .replace('@@TORRES@@', motor.js_de(maestros.TORRES_JS))
         .replace('@@SECTOR@@', motor.js_de(maestros.SECTOR_POR_CONVENIO_JS))
         .replace('@@INSPECTORES@@', json.dumps(inspectores_de_sha(), ensure_ascii=False))

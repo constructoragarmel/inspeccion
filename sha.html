@@ -207,11 +207,24 @@ textarea{min-height:64px;resize:vertical}
       <label for="estatus">Estatus general de la inspección</label>
       <select id="estatus"><option value="">— Seleccione —</option><option>Aprobado</option><option>Aprobado con observaciones</option><option>Rechazado</option></select>
     </div>
+    <div id="rechazo" hidden>
+      <div class="campo" style="margin-top:10px">
+        <label for="accion">Acción por el rechazo *</label>
+        <select id="accion" onchange="marcar()"><option value="">— Seleccione —</option><option>Llamado de atención</option><option>Paralizar la actividad</option><option>Paralizar el frente</option></select>
+      </div>
+      <div class="campo">
+        <label for="accion_det">A qué actividad o frente aplica</label>
+        <input type="text" id="accion_det" placeholder="Ej.: trabajos en altura, losa 5 · frente norte" oninput="marcar()">
+      </div>
+    </div>
     <label style="font-weight:600;font-size:13px;color:#475569;margin-top:12px;display:block">Comentarios y recomendaciones del inspector</label>
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún recaudo ni hallazgo..."></textarea>
+    <div class="tarjeta" style="margin:8px 0 0"><label style="font-weight:600;font-size:13px;color:#475569">Fotografías generales de la visita (máx. 3)</label>
+      <input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-general')">
+      <div class="fotos" id="fotos-general"></div></div>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v74</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v76</div>
 </div>
 
 <div class="acciones">
@@ -295,14 +308,15 @@ const GENERAL = [
       "Lista de Equipos, Maquinarias y Certificaciones",
       "Documentos del Profesional de Seguridad (INPSASEL)",
       "Matriz de Identificación y Evaluación de Riesgos (en obra)",
-      "Plan de Emergencia y Centros de Atención Médica",
+      "Plan de Emergencia y Centros de Atención Médica (debe cubrir esta torre)",
       "Programa de Dotación de EPP por Cargo y Reposición",
       "Expediente del Personal (IVSS y Capacitaciones)",
-      "Permisos de Trabajo de Alto Riesgo (Altura / Caliente)"
+      "Permisos de Trabajo de Alto Riesgo (Altura / Caliente)",
+      "Notificación de Principios de Prevención por trabajador"
     ]
   }
 ];
-const RENOMBRADOS = {};
+const RENOMBRADOS = {"sha_recaudos": {"Plan de Emergencia y Centros de Atención Médica": "Plan de Emergencia y Centros de Atención Médica (debe cubrir esta torre)"}};
 const APARTAMENTOS = [
   {
     "id": "hallazgo",
@@ -934,6 +948,7 @@ function datosDelFormulario(){
   const grupos = {};
   GENERAL.forEach(srv => { grupos[srv.id] = leerDatosFotos(document.getElementById('fotos-' + srv.id)); });
   [...document.querySelectorAll('#filas-apto .fila-apto')].forEach((fila, i) => { grupos['apto:' + i] = leerDatosFotos(fila.querySelector('.fotos')); });
+  grupos['general'] = leerDatosFotos(document.getElementById('fotos-general'));
   return {
     id: idActual || ('sha_' + Date.now()),
     tipo: 'sha',
@@ -941,6 +956,8 @@ function datosDelFormulario(){
     nro: numeroInforme(),
     torre: val('torre'), convenio: val('convenio'), empresa: val('empresa'),
     residente: val('residente'), fecha: val('fecha'), estatus: val('estatus'),
+    accion: val('accion'), accion_det: val('accion_det'),
+    fotosGenerales: leerFotos(document.getElementById('fotos-general')),
     inspectores: inspectoresElegidos(),
     obs_general: val('obs_general'),
     noInspeccionados: noInsp,
@@ -1248,7 +1265,7 @@ function traerHistorial(){
   });
   (e.noInspeccionados || []).forEach(sid => { const b = document.getElementById('srv-' + sid);
     if (b && !b.classList.contains('no-inspeccionado')){ toggleNoInsp(sid); b.dataset.heredadoNI = '1'; } });
-  (e.apartamentos || []).forEach(a => {
+  (e.apartamentos || []).filter(a => !Object.keys(a.campos || {}).some(k => /estatus/i.test(k) && a.campos[k] === 'Corregido')).forEach(a => {
     addApartamento({ apto: a.apto, piso: a.piso, campos: a.campos, fotos: [] });
     const fila = document.querySelector('#filas-apto .fila-apto:last-child');
     fila.classList.add('heredado'); fila.dataset.heredado = a.heredado || e.nro;
@@ -1349,6 +1366,10 @@ function cargarInforme(id){
     document.getElementById('residente').value = d.residente || '';
     if (d.fecha) document.getElementById('fecha').value = d.fecha;
     document.getElementById('estatus').value = d.estatus || '';
+    document.getElementById('accion').value = d.accion || '';
+    document.getElementById('accion_det').value = d.accion_det || '';
+    verRechazo();
+    pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '…' }));
     document.getElementById('obs_general').value = d.obs_general || '';
     document.getElementById('inspectores').innerHTML = '';
     (d.inspectores && d.inspectores.length ? d.inspectores : ['']).forEach(i => addInspector(i));
@@ -1390,6 +1411,8 @@ function cargarInforme(id){
         const datos = grupos['apto:' + i] || [];
         pintarFotos(fila.querySelector('.fotos'), (a.fotos || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : datos[k] || '') })));
       });
+      const dg = grupos['general'] || [];
+      pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : dg[k] || '') })));
     });
   } finally { _cargando = false; }
   actualizarNro(); actualizarCuentas(); sucio = false;
@@ -1397,9 +1420,10 @@ function cargarInforme(id){
 }
 
 function vaciarFormulario(){
-  ['empresa','residente','obs_general'].forEach(id => document.getElementById(id).value = '');
+  ['empresa','residente','obs_general','accion','accion_det'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fotos-general').innerHTML = '';
   document.getElementById('torre').value = ''; alElegirTorre();
-  document.getElementById('estatus').value = '';
+  document.getElementById('estatus').value = ''; verRechazo();
   document.getElementById('inspectores').innerHTML = ''; addInspector();
   pintarGeneral(); pintarApartamentos();
   const hoy = new Date();
@@ -1504,6 +1528,7 @@ function faltan(d){
   if (!d.fecha)    f.push('la fecha');
   if (!d.inspectores.length) f.push('el inspector');
   if (!d.estatus) f.push('el estatus general del cierre');
+  if (d.estatus === 'Rechazado' && !d.accion) f.push('la acción por el rechazo');
   return f;
 }
 
@@ -1520,6 +1545,7 @@ function sobreDe(d, clave, grupos){
   });
   datos.general.forEach(srv => { srv.fotos = soltar(srv.fotos, srv.id, grupos[srv.id]); });
   datos.apartamentos.forEach((a, i) => { a.fotos = soltar(a.fotos, 'apto-' + (i + 1) + '-' + limpiar(a.apto || ''), grupos['apto:' + i]); });
+  datos.fotosGenerales = soltar(datos.fotosGenerales, 'general', grupos['general']);
   delete datos.fotosDB;
   // El registro del relevo lee `estatus` y `residentes` como LISTAS —les hace
   // .join()— porque así viajan desde inspección. Un texto suelto reventaría
@@ -1584,6 +1610,7 @@ function marcarEnviado(id, nro){
       const soltar = f => ({ pie: f.pie || '', enDrive: true });
       (x.general || []).forEach(g => { g.fotos = (g.fotos || []).map(soltar); });
       (x.apartamentos || []).forEach(a => { a.fotos = (a.fotos || []).map(soltar); });
+      x.fotosGenerales = (x.fotosGenerales || []).map(soltar);
       FotosDB.borrar(id).catch(() => {});
       // Si es el que está en pantalla, sus fotos en el grid pasan a «ya en
       // Drive» en el próximo guardado; hasta entonces se siguen viendo.
@@ -1624,6 +1651,13 @@ function explicar(err){
   if (/90 segundos/.test(err)) return 'No hubo respuesta. Con señal, vuelva a pulsar Enviar.';
   if (/Failed to fetch|NetworkError|Load failed/i.test(err)) return 'No hay señal, o el relevo no responde. Con señal, vuelva a pulsar Enviar.';
   return 'El relevo no pudo archivarlo. El informe sigue guardado aquí: reinténtelo, y si vuelve a fallar avise a la oficina.';
+}
+
+// El bloque de acción solo existe cuando el cierre es «Rechazado» (Birmania, 16-sep).
+function verRechazo(){
+  const r = document.getElementById('rechazo'); if (!r) return;
+  r.hidden = document.getElementById('estatus').value !== 'Rechazado';
+  if (r.hidden){ document.getElementById('accion').value = ''; document.getElementById('accion_det').value = ''; }
 }
 
 async function relevoAceptaSha(){
@@ -1728,7 +1762,7 @@ if ('serviceWorker' in navigator) {
       String(hoy.getMonth() + 1).padStart(2, '0') + '-' +
       String(hoy.getDate()).padStart(2, '0');
   document.getElementById('fecha').onchange = () => { actualizarNro(); marcar(); };
-  document.getElementById('estatus').onchange = marcar;
+  document.getElementById('estatus').onchange = () => { verRechazo(); marcar(); };
   document.getElementById('obs_general').oninput = marcar;
   if (TEST_MODE){
     const a = document.createElement('div'); a.className = 'aviso';

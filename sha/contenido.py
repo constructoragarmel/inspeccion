@@ -31,15 +31,32 @@ GENERAL = [
             "Lista de Equipos, Maquinarias y Certificaciones",
             "Documentos del Profesional de Seguridad (INPSASEL)",
             "Matriz de Identificación y Evaluación de Riesgos (en obra)",
-            "Plan de Emergencia y Centros de Atención Médica",
+            "Plan de Emergencia y Centros de Atención Médica (debe cubrir esta torre)",
             "Programa de Dotación de EPP por Cargo y Reposición",
             "Expediente del Personal (IVSS y Capacitaciones)",
             "Permisos de Trabajo de Alto Riesgo (Altura / Caliente)",
+            "Notificación de Principios de Prevención por trabajador",
         ],
     },
 ]
 
-RENOMBRADOS = {}
+# Birmania (16-sep-2026): el plan de emergencia es uno por empresa pero debe
+# cubrir cada torre; el nombre lo recuerda. El recaudo 10 sale de su respuesta
+# a la pregunta 2 (la ley lo llama principios de prevención).
+RENOMBRADOS = {
+    "sha_recaudos": {
+        "Plan de Emergencia y Centros de Atención Médica":
+            "Plan de Emergencia y Centros de Atención Médica (debe cubrir esta torre)",
+    },
+}
+
+# Un «Rechazado» sin acción no sirve (Birmania, respuesta 7): al elegirlo el
+# formulario exige una de estas y a qué actividad o frente aplica.
+ACCIONES_RECHAZO = [
+    "Llamado de atención",
+    "Paralizar la actividad",
+    "Paralizar el frente",
+]
 
 # ── B) Hallazgos de campo ──────────────────────────────────────────────────
 #
