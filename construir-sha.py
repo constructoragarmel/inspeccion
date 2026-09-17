@@ -230,7 +230,12 @@ J = sustituir(J, "  if (!e || e.id === idActual || !formularioEnBlanco()) return
 J = sustituir(J, "  actualizarNro(); marcar();\n  pedirHistorialAlRelevo();\n}\n\n// ── El identificador",
 """  actualizarNro(); marcar();
   pedirHistorialAlRelevo();
-  if (!document.querySelector('#aviso-historial .historial')) ofrecerRecaudosDeEmpresa();
+  // Un instante después, no ya: al aceptar «traer lo anterior», traerHistorial
+  // vacía la caja y re-elige el convenio ANTES de pintar lo heredado, y el
+  // formulario todavía está en blanco. Ofrecer aquí los recaudos de la empresa
+  // dejaba un segundo aviso que, tocado, volvía a marcar como heredado lo que
+  // el inspector ya había confirmado (QC del 17-sep).
+  setTimeout(() => { if (!document.querySelector('#aviso-historial .historial') && formularioEnBlanco()) ofrecerRecaudosDeEmpresa(); }, 0);
 }
 
 // ── El identificador""", "15c· al elegir convenio")

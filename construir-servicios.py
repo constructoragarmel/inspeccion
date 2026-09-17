@@ -1623,7 +1623,18 @@ async function enviar(){
   if (!f.length) guardar(false);
 
   const pendientes = listaGuardada().filter(x => !x.enviado && !faltan(x).length);
-  if (!pendientes.length){ alert('No hay informes pendientes de enviar.'); return; }
+  if (!pendientes.length){
+    // «Informes» cuenta como pendiente todo lo no enviado, también lo que está a
+    // medias; decir aquí «no hay pendientes» con ocho en la lista confundía
+    // (QC de SHA del 17-sep). Se dice cuáles y qué les falta.
+    const aMedias = listaGuardada().filter(x => !x.enviado && faltan(x).length);
+    alert(aMedias.length
+      ? 'No hay informes listos para enviar. Hay ' + aMedias.length + ' guardado(s) a medias:\\n\\n' +
+        aMedias.slice(0, 5).map(x => x.nro + ': falta ' + faltan(x).join(', ')).join('\\n') +
+        (aMedias.length > 5 ? '\\n\u2026' : '') + '\\n\\n\u00c1bralos desde Informes y compl\u00e9telos, o b\u00f3rrelos.'
+      : 'No hay informes pendientes de enviar.');
+    return;
+  }
   if (!confirmarSinRevisar(pendientes)) return;
 
   _tandaEnCurso = true;
