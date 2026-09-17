@@ -947,6 +947,15 @@ function datosDelFormulario(){
   };
 }
 
+// Nada contestado, nada agregado, ninguna foto, ningún comentario ni cierre:
+// la cabecera sola no es un informe.
+function informeVacio(d){
+  return !(d.general || []).some(g => (g.obs || '').trim() || (g.fotos || []).length ||
+                                      (g.items || []).some(i => i.sn || (i.obs || '').trim())) &&
+         !(d.apartamentos || []).length && !(d.fotosGenerales || []).length &&
+         !(d.noInspeccionados || []).length && !(d.obs_general || '').trim() && !d.estatus;
+}
+
 function guardar(avisar){
   const d = datosDelFormulario();
   idActual = d.id;
@@ -954,6 +963,15 @@ function guardar(avisar){
   try {
     const lista = JSON.parse(localStorage.getItem(CLAVE_LISTA) || '[]');
     const i = lista.findIndex(x => x.id === d.id);
+    // Un informe en blanco no se guarda: elegir una torre y tocar «Nuevo» dejaba
+    // una ficha a medias en Informes por cada intento (QC de SHA del 17-sep).
+    // Si ya estaba guardado con contenido y hoy se vació, se conserva: borrarlo
+    // es una decisión que se toma desde Informes.
+    if (i < 0 && informeVacio(d)){
+      sucio = false;
+      if (avisar) alert('Todav\u00eda no hay nada que guardar: el informe est\u00e1 en blanco. La cabecera se guarda junto con lo que conteste.');
+      return !avisar;
+    }
     // Un informe YA ENVIADO no vuelve a «sin enviar» por editarlo: conserva la
     // marca y queda anotado que se editó después. La tanda no lo manda sola;
     // reenviarlo es una decisión explícita desde Mis informes. Sin esto, la
