@@ -214,7 +214,7 @@ textarea{min-height:64px;resize:vertical}
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún servicio..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v74</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v76</div>
 </div>
 
 <div class="acciones">
@@ -1657,10 +1657,36 @@ async function enviarUno(d, clave){
     });
     const res = await r.json();
     if (res.ok){ marcarEnviado(d.id, d.nro); return { ok: true }; }
-    return { ok: false, error: res.error || 'Error desconocido' };
+    return await rescatar(d, clave, res.error || 'Error desconocido');
   } catch (e) {
-    return { ok: false, error: (e && e.name === 'AbortError') ? 'Sin respuesta en 90 segundos' : String(e) };
+    return await rescatar(d, clave, (e && e.name === 'AbortError') ? 'Sin respuesta en 90 segundos' : String(e));
   } finally { clearTimeout(reloj); }
+}
+
+// Antes de dar un envío por fallido se le pregunta al relevo si ese informe ya
+// quedó archivado. El 17-sep-2026 el relevo archivó SHA-EZ-T16 dos veces y el
+// teléfono, que no recibió la respuesta, lo seguía mostrando como no enviado.
+// Se confirma por número Y por hora de guardado: el mismo número de un envío
+// anterior no cuenta. Si no se puede confirmar, el fallo se informa como antes.
+async function rescatar(d, clave, error){
+  const fallo = { ok: false, error };
+  if (/clave|faltan|sector/i.test(error) || !navigator.onLine) return fallo;
+  const sec = SECTOR_POR_CONVENIO[d.convenio];
+  if (!sec || !d.torre || !d.guardado) return fallo;
+  const corte = new AbortController(); const reloj = setTimeout(() => corte.abort(), 20000);
+  try {
+    const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave, accion: 'historial', tipo: TIPO_INFORME, sector: sec, torre: d.torre }), signal: corte.signal });
+    const j = await r.json();
+    const e = j && j.informe;
+    if (j.ok && e && e.nro === d.nro && e.guardado === d.guardado){
+      console.warn(d.nro, 'sí quedó archivado aunque la respuesta no llegó:', error);
+      marcarEnviado(d.id, d.nro);
+      return { ok: true, rescatado: true };
+    }
+  } catch (e2) {
+  } finally { clearTimeout(reloj); }
+  return fallo;
 }
 
 function marcarEnviado(id, nro){
@@ -1715,7 +1741,10 @@ function explicar(err){
   if (/faltan/i.test(err)) return 'Al informe le faltan datos de cabecera: ' + err;
   if (/90 segundos/.test(err)) return 'No hubo respuesta. Con señal, vuelva a pulsar Enviar.';
   if (/Failed to fetch|NetworkError|Load failed/i.test(err)) return 'No hay señal, o el relevo no responde. Con señal, vuelva a pulsar Enviar.';
-  return 'El relevo no pudo archivarlo. El informe sigue guardado aquí: reinténtelo, y si vuelve a fallar avise a la oficina.';
+  // Con un detalle corto: sin él, el 17-sep no hubo forma de saber por qué la
+  // respuesta del relevo no llegó al teléfono.
+  return 'El relevo no pudo archivarlo. El informe sigue guardado aquí: reinténtelo, y si vuelve a fallar avise a la oficina.' +
+         '\n(detalle: ' + String(err).replace(/\s+/g, ' ').slice(0, 90) + ')';
 }
 
 async function enviar(){

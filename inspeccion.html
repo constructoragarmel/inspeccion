@@ -1301,10 +1301,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v74';
+    el.textContent = '● en línea · v76';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v74 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v76 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -3814,7 +3814,7 @@ async function enviarAlRelevo() {
       const conocido = /clave|faltan|sector/i.test(err);
       showToast(conocido
         ? '❌ ' + err
-        : '❌ El relevo no pudo archivarlo. El informe sigue guardado aquí: reinténtelo, y si vuelve a fallar avise a la oficina.', 'err');
+        : '❌ El relevo no pudo archivarlo. El informe sigue guardado aquí: reinténtelo, y si vuelve a fallar avise a la oficina. (detalle: ' + String(err).replace(/\s+/g, ' ').slice(0, 90) + ')', 'err');
     }
   } catch(e) {
     const seRindio = (e && e.name === 'AbortError');
@@ -3824,7 +3824,7 @@ async function enviarAlRelevo() {
       : '❌ Sin conexión o el relevo no responde: ' + e.message +
         '\nEl borrador sigue guardado en este teléfono. Intente de nuevo con señal.';
     showToast(seRindio ? '❌ Sin señal suficiente. El borrador no se perdió'
-                       : '❌ No se pudo enviar. El borrador no se perdió', 'err');
+                       : '❌ No se pudo enviar. El borrador no se perdió. (detalle: ' + String(e && e.message || e).slice(0, 90) + ')', 'err');
   } finally {
     clearTimeout(reloj);
     btn.disabled = false;

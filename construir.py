@@ -7448,6 +7448,19 @@ s = sustituir(s,
  ".tbl-wrap td.falt-cell, td.falt-cell{display:none!important}   /* el faltante no se registra aquí (4-sep-2026) */\n</style>",
  "140i· tampoco en móvil")
 
+# ── 141. El aviso de fallo lleva un detalle corto ──────────────────────────
+# El 17-sep-2026 un informe de SHA llegó dos veces al relevo y el teléfono dijo
+# «no pudo archivarlo» sin decir por qué. El registro de envío lo guarda, pero
+# nadie lo abre en obra: el detalle va también en el aviso, recortado.
+s = sustituir(s,
+ "        : '\u274c El relevo no pudo archivarlo. El informe sigue guardado aqu\u00ed: reint\u00e9ntelo, y si vuelve a fallar avise a la oficina.', 'err');\n",
+ "        : '\u274c El relevo no pudo archivarlo. El informe sigue guardado aqu\u00ed: reint\u00e9ntelo, y si vuelve a fallar avise a la oficina. (detalle: ' + String(err).replace(/\\s+/g, ' ').slice(0, 90) + ')', 'err');\n",
+ "141a\u00b7 el aviso del relevo lleva el detalle")
+s = sustituir(s,
+ "                       : '\u274c No se pudo enviar. El borrador no se perdi\u00f3', 'err');",
+ "                       : '\u274c No se pudo enviar. El borrador no se perdi\u00f3. (detalle: ' + String(e && e.message || e).slice(0, 90) + ')', 'err');",
+ "141b\u00b7 y el de sin conexi\u00f3n tambi\u00e9n")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
