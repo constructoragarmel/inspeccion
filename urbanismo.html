@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Inspección SHA — GARMEL</title>
+<title>Inspección de Urbanismo — GARMEL</title>
 <style>
 :root{--azul:#1a237e;--azul-cl:#e8eaf6;--borde:#cbd5e1;--texto:#1e293b;--fondo:#f1f5f9}
 *{box-sizing:border-box}
@@ -42,7 +42,7 @@ input,select,textarea{font:inherit;padding:10px;border:1px solid var(--borde);
 button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{
   outline:3px solid #1565c0;outline-offset:2px}
 textarea{min-height:64px;resize:vertical}
-.pestanas{display:flex;gap:8px;margin:12px 0}
+.pestanas{display:none}
 .pestanas button{flex:1;min-height:44px;border:none;border-radius:8px;font-weight:700;
       font-size:14px;background:#e2e8f0;color:#475569}
 .pestanas button.on{background:var(--azul);color:#fff}
@@ -128,16 +128,18 @@ textarea{min-height:64px;resize:vertical}
 .item.heredado .sino button.na-on{background:#e2e8f0;color:#334155;border-color:#cbd5e1}
 .item.heredado{border-left:4px solid #f59e0b}
 .fila-apto.heredado{border-left:4px solid #f59e0b}
-.fila-inc{border:1px solid var(--borde);border-radius:8px;padding:10px;margin-bottom:8px;background:#fff}
-.fila-inc .cab{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}
-.fila-inc.heredado{border-left:4px solid #f59e0b}
-.fila-inc.heredado .etq-her{display:inline-block}
-.fila-inc .etq-her{display:none}
-.fila-inc label.et{display:block;font-size:13px;font-weight:600;color:#475569;margin:8px 0 4px}
-.sem{display:flex;gap:8px;margin:4px 0 8px}
-.sem button{flex:1;min-height:44px;border:1px solid var(--borde);border-radius:6px;background:#fff;font-weight:700;font-size:14px}
-.sem button.sem-on{color:#fff;border-color:transparent}
-.fila-inc.heredado .sem button.sem-on{opacity:.55}
+.sino button.re-on{background:#b45309;color:#fff;border-color:#b45309}
+.item.heredado .sino button.re-on{background:#fde68a;color:#78350f;border-color:#fcd34d}
+.cant-fila{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.cant-fila input{flex:1;min-width:0}
+.cant-fila .ud{font-weight:700;color:#475569;min-width:44px;text-align:center}
+.cant-fila select.ud-sel{flex:0 0 96px}
+.cant-fila .et{font-size:12px;color:#475569;flex:0 0 78px}
+.proy{display:none}
+body.plan .proy{display:flex}
+body.plan .item{border-color:#1a237e}
+.avance{font-size:13px;font-weight:700;color:#1a237e;min-width:44px;text-align:right}
+.plan-aviso{background:#e8eaf6;border:1px solid #1a237e;color:#1a237e;border-radius:8px;padding:8px 12px;margin:0 12px 8px;font-size:13px;font-weight:700}
 .etq-her{display:inline-block;font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;
       border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap}
 .item.heredado .etq-her,.fila-apto.heredado .etq-her{display:inline-block}
@@ -165,7 +167,7 @@ textarea{min-height:64px;resize:vertical}
 </head>
 <body>
 <header>
-  <h1>INSPECCIÓN SHA · SEGURIDAD, HIGIENE Y AMBIENTE</h1>
+  <h1>INSPECCIÓN DE URBANISMO</h1>
   <div class="nro" id="nro">—</div>
 </header>
 
@@ -175,24 +177,42 @@ textarea{min-height:64px;resize:vertical}
       <!-- La TORRE va primera y determina lo demás. El inspector llega a una
            torre sabiendo la torre, no la empresa. -->
       <div class="campo">
-        <label for="torre">Torre</label>
-        <select id="torre"><option value="">— Seleccione torre —</option></select>
+        <label for="torre">Manzana / lote</label>
+        <select id="torre"><option value="">— Seleccione manzana o lote —</option></select>
+        <button type="button" class="btn-add" style="margin-top:6px" onclick="abrirNuevaManzana()">＋ Agregar manzana o lote</button>
+        <div id="nueva-manzana" hidden style="margin-top:8px;padding:10px;border:1px dashed var(--azul);border-radius:8px;background:var(--azul-cl)">
+          <label for="nm-sector">Sector</label>
+          <select id="nm-sector"><option value="Convenio Bielorrusos">Ezequiel Zamora</option><option value="Convenio Rusos">Simón Rodríguez</option><option value="Convenio Chinos">Simón Bolívar</option></select>
+          <label for="nm-nombre" style="margin-top:8px">Nombre (como en los planos)</label>
+          <input type="text" id="nm-nombre" placeholder="Ej.: M-7, M-2 L3, Manzana B">
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button type="button" class="btn-add" onclick="guardarNuevaManzana()">Guardar</button>
+            <button type="button" class="btn-add" onclick="document.getElementById('nueva-manzana').hidden=true">Cancelar</button>
+          </div>
+        </div>
       </div>
       <div class="campo">
-        <label for="convenio">Convenio</label>
+        <label for="convenio">Sector</label>
         <select id="convenio"><option value="">—</option></select>
       </div>
       <div class="campo">
         <label for="empresa">Empresa ejecutora</label>
-        <input type="text" id="empresa" placeholder="Se llena al elegir la torre">
+        <input type="text" id="empresa" placeholder="Se llena al elegir la manzana">
       </div>
       <div class="campo">
         <label for="residente">Ingeniero residente</label>
-        <input type="text" id="residente" placeholder="Se llena al elegir la torre">
+        <input type="text" id="residente" placeholder="Escríbalo la primera vez; se recuerda por manzana">
       </div>
       <div class="campo">
         <label for="fecha">Fecha de inspección</label>
         <input type="date" id="fecha">
+      </div>
+      <div class="campo">
+        <label for="estatus">Estatus de obra</label>
+        <select id="estatus">
+          <option value="">—</option><option>Iniciada</option>
+          <option>En progreso</option><option>Culminada</option><option>Paralizada</option>
+        </select>
       </div>
     </div>
     <div id="aviso-torre"></div>
@@ -205,35 +225,23 @@ textarea{min-height:64px;resize:vertical}
   </div>
 
   <div class="pestanas">
-    <button type="button" id="tab-a" class="on" onclick="verPanel('a')">Recaudos</button>
-    <button type="button" id="tab-b" onclick="verPanel('b')">Hallazgos de campo</button>
-    <button type="button" id="tab-c" onclick="verPanel('c')">Incidencias</button>
+    <button type="button" id="tab-a" class="on" onclick="verPanel('a')">General</button>
+    <button type="button" id="tab-b" onclick="verPanel('b')">Apartamentos</button>
   </div>
 
   <div id="panel-a" class="panel on"></div>
   <div id="panel-b" class="panel"></div>
-  <div id="panel-c" class="panel"></div>
 
-  <div class="tarjeta" id="cierre">
-    <div class="campo">
-      <label for="estatus">Estatus general de la inspección</label>
-      <select id="estatus"><option value="">— Seleccione —</option><option>Aprobado</option><option>Aprobado con observaciones</option><option>Rechazado</option></select>
+  <div class="tarjeta" id="agregar-seccion">
+    <label style="font-weight:600;font-size:13px;color:#475569">¿Falta una sección?</label>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <input type="text" id="ns-nombre" placeholder="Nombre de la sección (ej.: Gas, Telecomunicaciones)" style="flex:1">
+      <button type="button" class="btn-add" style="width:auto;padding:0 14px" onclick="agregarSeccion()">＋ Agregar</button>
     </div>
-    <div id="rechazo" hidden>
-      <div class="campo" style="margin-top:10px">
-        <label for="accion">Acción por el rechazo *</label>
-        <select id="accion" onchange="marcar()"><option value="">— Seleccione —</option><option>Llamado de atención</option><option>Paralizar la actividad</option><option>Paralizar el frente</option></select>
-      </div>
-      <div class="campo">
-        <label for="accion_det">A qué actividad o frente aplica</label>
-        <input type="text" id="accion_det" placeholder="Ej.: trabajos en altura, losa 5 · frente norte" oninput="marcar()">
-      </div>
-    </div>
-    <label style="font-weight:600;font-size:13px;color:#475569;margin-top:12px;display:block">Comentarios y recomendaciones del inspector</label>
-    <textarea id="obs_general" placeholder="Lo que no cabe en ningún recaudo ni hallazgo..."></textarea>
-    <div class="tarjeta" style="margin:8px 0 0"><label style="font-weight:600;font-size:13px;color:#475569">Fotografías generales de la visita (máx. 3)</label>
-      <input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-general')">
-      <div class="fotos" id="fotos-general"></div></div>
+  </div>
+  <div class="tarjeta">
+    <label style="font-weight:600;font-size:13px;color:#475569">Observación general</label>
+    <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
   <div class="pie" id="pie">● <span id="conexion">en línea</span> · v83</div>
@@ -247,7 +255,7 @@ textarea{min-height:64px;resize:vertical}
     <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
   </div>
   <div class="fila-principal">
-    <button type="button" class="b1" onclick="siguienteTorre()" title="Guarda este informe y prepara el de la siguiente torre, conservando inspector y fecha">➡️ Sig. torre</button>
+    <button type="button" class="b1" onclick="siguienteTorre()" title="Guarda este informe y prepara el de la siguiente manzana, conservando inspector, fecha y estatus">➡️ Sig. manzana</button>
     <button type="button" class="b1" onclick="abrirInformes()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 Informes<br><small id="cnt">0</small></button>
     <button type="button" class="b2" onclick="enviar()" title="Manda a Drive todos los pendientes. Hasta entonces viven solo aquí">📤 Enviar</button>
     <button type="button" class="b1 mas" onclick="const f=document.getElementById('fila-mas');f.hidden=!f.hidden" title="Resto de las acciones">⋯</button>
@@ -256,105 +264,115 @@ textarea{min-height:64px;resize:vertical}
 <div id="modal-informes" hidden></div>
 
 <script>
-const TORRES_DATA = [
-  {t:'T-01',  c:'Convenio Bielorrusos',   e:"CONSTRUCTORA RÍO LIMÓN, C.A.",               r:"ING. HARRY ARTEAGA"},
-  {t:'T-02',  c:'Convenio Bielorrusos',   e:"CONSTRUCTORA RÍO LIMÓN, C.A.",               r:"ING. MARIA T. MARCANO"},
-  {t:'T-03',  c:'Convenio Bielorrusos',   e:"CONSTRUCTORA RÍO LIMÓN, C.A.",               r:""},
-  {t:'T-04',  c:'Convenio Bielorrusos',   e:"CONSTRUCTORA RÍO LIMÓN, C.A.",               r:""},
-  {t:'T-05',  c:'Convenio Bielorrusos',   e:"INVERSIONES ALNAVIC, C.A.",                 r:"ING. ANTONIO CUICAS"},
-  {t:'T-06',  c:'Convenio Bielorrusos',   e:"INVERSIONES ALNAVIC, C.A.",                 r:"ING. JOSE V. GONZALES"},
-  {t:'T-07',  c:'Convenio Bielorrusos',   e:"INVERSIONES ALNAVIC, C.A.",                 r:""},
-  {t:'T-08',  c:'Convenio Bielorrusos',   e:"INVERSIONES ALNAVIC, C.A.",                 r:""},
-  {t:'T-09',  c:'Convenio Bielorrusos',   e:"THAISA MM INVERSIONES, C.A.",  r:"ING. MANUEL PAEZ"},
-  {t:'T-10',  c:'Convenio Bielorrusos',   e:"THAISA MM INVERSIONES, C.A.",  r:""},
-  {t:'T-11',  c:'Convenio Bielorrusos',   e:"THAISA MM INVERSIONES, C.A.",  r:""},
-  {t:'T-12',  c:'Convenio Bielorrusos',   e:"THAISA MM INVERSIONES, C.A.",  r:""},
-  {t:'T-13',  c:'Convenio Bielorrusos',   e:"PROCODIMA, C.A.",               r:"ING. LEONARDO TORRES"},
-  {t:'T-14',  c:'Convenio Bielorrusos',   e:"PROCODIMA, C.A.",               r:""},
-  {t:'T-15',  c:'Convenio Bielorrusos',   e:"PROCODIMA, C.A.",               r:""},
-  {t:'T-16',  c:'Convenio Bielorrusos',   e:"PROCODIMA, C.A.",               r:""},
-  {t:'T-17',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTROY, S.A.",        r:"ING. FELIX PINTO"},
-  {t:'T-18',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
-  {t:'T-19',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
-  {t:'T-45',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
-  {t:'T-46',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
-  {t:'T-47',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
-  {t:'T-48',  c:'Convenio Bielorrusos',   e:"BELZARUBEZHSTROY, S.A.",        r:""},
-  {t:'T-49',  c:'Convenio Bielorrusos',   e:"DRIJECAE 3003, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-50',  c:'Convenio Bielorrusos',   e:"DRIJECAE 3003, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-51',  c:'Convenio Bielorrusos',   e:"DRIJECAE 3003, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-52',  c:'Convenio Bielorrusos',   e:"DRIJECAE 3003, C.A.",                r:"ARQ. MARIANO RIVAS"},
-  {t:'T-53',  c:'Convenio Bielorrusos',   e:"CIVIKA PRO, C.A.",              r:"ING. ANDREA LEON"},
-  {t:'T-54',  c:'Convenio Bielorrusos',   e:"CIVIKA PRO, C.A.",              r:"ING. ASTRID LARES"},
-  {t:'T-55',  c:'Convenio Bielorrusos',   e:"CIVIKA PRO, C.A.",              r:""},
-  {t:'T-56',  c:'Convenio Bielorrusos',   e:"GRUPO TEPUY 314, C.A.",             r:"ING. JIMMY CASIOPO"},
-  {t:'T-57',  c:'Convenio Bielorrusos',   e:"GRUPO TEPUY 314, C.A.",             r:"ING. JIMMY CASIOPO"},
-  {t:'T-58',  c:'Convenio Bielorrusos',   e:"GRUPO TEPUY 314, C.A.",             r:"ING. JIMMY CASIOPO"},
-  {t:'T-04',  c:'Convenio Rusos',        e:"PROYECTOS Y CONSTRUCCIONES AROA 93, C.A.",                    r:""},
-  {t:'T-07',  c:'Convenio Rusos',        e:"TSURU 5158, C.A.",                   r:"MILTON RODRIGUEZ"},
-  {t:'T-12',  c:'Convenio Rusos',        e:"ZERPA'S INGENIERÍA, C.A.",    r:"ING. IVAN MEDINA"},
-  {t:'T-13',  c:'Convenio Rusos',        e:"MASTER REFORMAS RR, C.A.",      r:"ING. ERICK MARTINEZ"},
-  {t:'T-38',  c:'Convenio Rusos',        e:"CONSTRUCTORA 5010, C.A.",       r:"ING. JOSE MARTINEZ"},
-  {t:'T-39',  c:'Convenio Rusos',        e:"JVR INGENIERÍA C,A.",           r:"ING. JUAN COLMENARES · ARQ. EVER AVENDAÑO"},
-  {t:'D-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA VIALPA, S.A.",     r:"ING. ADRIAN OLIVARES"},
-  {t:'J-07',  c:'Convenio Chinos',       e:"ING & ARQ 1111, C.A.",          r:"ING. JOANNY TAPIA · ING. JHOANNY LOPEZ"},
-  {t:'J-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA SB86, C.A.",      r:"ING. JULIO LUQUEZ"},
-  {t:'J-09',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:"ING. GERARDO ARGARIN"},
-  {t:'J-10',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:""},
-  {t:'J-11',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:"ING. RADAMEZ RIVAS"},
-  {t:'J-12',  c:'Convenio Chinos',       e:"RACAR INGENIEROS, C.A.",        r:""},
-];
+const TORRES_DATA = [{"t": "M-1 L1", "c": "Convenio Bielorrusos", "e": "ADDISON", "r": ""}, {"t": "M-1 L2", "c": "Convenio Bielorrusos", "e": "ADDISON", "r": ""}, {"t": "M-1 L3", "c": "Convenio Bielorrusos", "e": "ADDISON", "r": ""}, {"t": "M-1 L4", "c": "Convenio Bielorrusos", "e": "ADDISON", "r": ""}, {"t": "M-2", "c": "Convenio Bielorrusos", "e": "ADDISON", "r": ""}, {"t": "M-3", "c": "Convenio Bielorrusos", "e": "ADDISON", "r": ""}, {"t": "M-4", "c": "Convenio Bielorrusos", "e": "ADDISON", "r": ""}, {"t": "M-5", "c": "Convenio Bielorrusos", "e": "ADDISON", "r": ""}, {"t": "M-6", "c": "Convenio Bielorrusos", "e": "ADDISON", "r": ""}];
 const SECTOR_POR_CONVENIO = {
   'Convenio Bielorrusos': 'EZ',   // Ezequiel Zamora
   'Convenio Rusos':      'SR',   // Simón Rodríguez
   'Convenio Chinos':     'SB'    // Simón Bolívar
 };
-const INSPECTORES_DB = ["Birmania Rada (CIV-NC)", "Víctor Mendoza (CIV-NC)"];
+const INSPECTORES_DB = ["Gabriel Barrios (CIV-NC)", "Mariana Rojas (CIV-NC)", "Alejandro Bastidas (CIV-67.316)", "Bella Mota (CIV-NC)", "Birmania Rada (CIV-NC)", "Charbel Abdul (CIV en trámite)", "Christian Fricke (CIV-184.558)", "Cleidy Chacón (CIV-NC)", "Diego Orta (CIV-301.823)", "Diego Rosales (CIV-NC)", "Edenil Narváez (CIV-150.422)", "Erik Espinoza (CIV-NC)", "Génesis Cordobés (CIV-307.057)", "Girlenys Lacruz (CIV-288.041)", "Hernán Escobar (CIV-151.021)", "Ignacio Madrid (CIV-256.842)", "Katherine Correia (CIV-237.904)", "Leidy Villamizar (CIV-258.266)", "Lizeira Aragort (CIV-298.127)", "Martha Azcarate (CIV-87.616)", "Oriana Plaza (CIV en trámite)", "Selehidy Rivero (CIV-292.273)", "Skarlet Gómez (CIV-317.442)", "Víctor Mendoza (CIV-NC)", "Yenddy Sierra (CIV-307.772)"];
 const GENERAL = [
   {
-    "id": "sha_recaudos",
-    "nombre": "1. RECAUDOS Y ASPECTOS DE SEGURIDAD",
+    "id": "urb_drenaje",
+    "nombre": "1. DRENAJE",
     "items": [
-      "Copia del Registro Mercantil y Acta Constitutiva",
-      "RIF, Cédula del Representante Legal y Solvencia Laboral",
-      "Lista de Equipos, Maquinarias y Certificaciones",
-      "Documentos del Profesional de Seguridad (INPSASEL)",
-      "Matriz de Identificación y Evaluación de Riesgos (en obra)",
-      "Plan de Emergencia y Centros de Atención Médica (debe cubrir esta torre)",
-      "Programa de Dotación de EPP por Cargo y Reposición",
-      "Expediente del Personal (IVSS y Capacitaciones)",
-      "Permisos de Trabajo de Alto Riesgo (Altura / Caliente)",
-      "Notificación de Principios de Prevención por trabajador"
+      "Topografía",
+      "Excavación",
+      "Canalización",
+      "Tanquilla"
     ]
-  }
-];
-const RENOMBRADOS = {"sha_recaudos": {"Plan de Emergencia y Centros de Atención Médica": "Plan de Emergencia y Centros de Atención Médica (debe cubrir esta torre)"}};
-const APARTAMENTOS = [
+  },
   {
-    "id": "hallazgo",
-    "nombre": "HALLAZGO",
-    "columnas": [
-      [
-        "Descripción del hallazgo o condición observada",
-        "obs"
-      ],
-      [
-        "Acción correctiva / estatus",
-        "lista"
-      ]
+    "id": "urb_estructura",
+    "nombre": "2. ESTRUCTURA",
+    "items": [
+      "Excavación / Movimiento de tierra",
+      "Acero de refuerzo",
+      "Concreto",
+      "Encofrado"
+    ]
+  },
+  {
+    "id": "urb_acueductos",
+    "nombre": "3. ACUEDUCTOS",
+    "items": [
+      "Topografía",
+      "Excavación",
+      "Canalizaciones",
+      "Captación"
+    ]
+  },
+  {
+    "id": "urb_electricidad",
+    "nombre": "4. ELECTRICIDAD",
+    "items": [
+      "Puntos cableados",
+      "Canalización",
+      "Tuberías",
+      "Tanquillas",
+      "Postes de luminaria"
+    ]
+  },
+  {
+    "id": "urb_aguas_servidas",
+    "nombre": "5. AGUAS SERVIDAS",
+    "items": [
+      "Topografía",
+      "Excavación",
+      "Canalización",
+      "Tanquillas",
+      "Colectores"
+    ]
+  },
+  {
+    "id": "urb_vialidad",
+    "nombre": "6. VIALIDAD",
+    "items": [
+      "Topografía",
+      "Escarificación",
+      "Suministro y colocación",
+      "Carpeta de rodamiento",
+      "Brocales",
+      "Aceras",
+      "Demarcación",
+      "Transporte y maquinaria"
+    ]
+  },
+  {
+    "id": "urb_camineria",
+    "nombre": "7. CAMINERÍA",
+    "items": [
+      "Topografía / Trazo",
+      "Excavación y conformación",
+      "Pavimento / Acabado"
+    ]
+  },
+  {
+    "id": "urb_paisajismo",
+    "nombre": "8. PAISAJISMO",
+    "items": [
+      "Topografía",
+      "Jardinería",
+      "Sistema de riego",
+      "Iluminación",
+      "Mobiliario urbano",
+      "Caminerías"
     ]
   }
 ];
-const UNIDAD = "pza";
-const MAX_FOTOS_SECCION = 3;
+const RENOMBRADOS = {};
+const APARTAMENTOS = [{"id": "apto", "nombre": "APARTAMENTO", "columnas": []}];
+const UNIDAD = "und";
+const MAX_FOTOS_SECCION = 6;
 const MAX_FOTO_PX = 1280;
 const CALIDAD_FOTO = 0.72;
 const RELEVO_URL = "https://script.google.com/macros/s/AKfycbwWgYbgMkNcxwN2gAH89N4EVUe6LO_RXR2IzBBc6mFfgJJNjixd6omK_ElAOSiFH-EqYg/exec";
-const ESTADOS_HALLAZGO = ["Pendiente", "En proceso", "Corregido"];
-const TIPOS_INCIDENCIA = ["Caída de altura", "Golpe o atrapamiento", "Corte o herida", "Contacto eléctrico", "Caída de objeto", "Tránsito interno"];
-const ESTADOS_INCIDENCIA = [["Abierta", "#dc2626"], ["En seguimiento", "#d97706"], ["Cerrada", "#16a34a"]];
-const CLAVE_TIPOS_INC = 'garmel_sha_tipos_inc';
-let _nInc = 0;
+const NOMBRE_SECTOR = {"Convenio Bielorrusos": "Ezequiel Zamora", "Convenio Rusos": "Simón Rodríguez", "Convenio Chinos": "Simón Bolívar"};
+const EMPRESA_POR_SECTOR = {"Convenio Bielorrusos": "ADDISON", "Convenio Rusos": "PROCODIMA, C.A.", "Convenio Chinos": ""};
+const CLAVE_MANZANAS = 'garmel_urb_manzanas';
+const CLAVE_SECCIONES = 'garmel_urb_secciones';
+const UNIDADES = ["m", "m²", "m³", "und", "kg", "glb", "ha", "ton"];
+const UNIDAD_DE = {"urb_drenaje": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquilla": "und"}, "urb_estructura": {"Excavación / Movimiento de tierra": "m³", "Acero de refuerzo": "kg", "Concreto": "m³", "Encofrado": "m²"}, "urb_acueductos": {"Topografía": "m", "Excavación": "m³", "Canalizaciones": "m", "Captación": "und"}, "urb_electricidad": {"Puntos cableados": "und", "Canalización": "m", "Tuberías": "m", "Tanquillas": "und", "Postes de luminaria": "und"}, "urb_aguas_servidas": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquillas": "und", "Colectores": "m"}, "urb_vialidad": {"Topografía": "m", "Escarificación": "m²", "Suministro y colocación": "m³", "Carpeta de rodamiento": "m²", "Brocales": "m", "Aceras": "m²", "Demarcación": "m", "Transporte y maquinaria": "glb"}, "urb_camineria": {"Topografía / Trazo": "m", "Excavación y conformación": "m³", "Pavimento / Acabado": "m²"}, "urb_paisajismo": {"Topografía": "m", "Jardinería": "m²", "Sistema de riego": "m", "Iluminación": "und", "Mobiliario urbano": "und", "Caminerías": "m²"}};
 
 // ── Cascada: la torre manda ───────────────────────────────────────────────
 // Cuatro torres (T-04, T-07, T-12, T-13) están en el maestro DOS VECES, con dos
@@ -386,7 +404,7 @@ function alElegirTorre(){
   const filas = entradasDe(t);
   filas.forEach(f => {
     const o = document.createElement('option');
-    o.value = f.c; o.textContent = f.c; conv.appendChild(o);
+    o.value = f.c; o.textContent = NOMBRE_SECTOR[f.c] || f.c; conv.appendChild(o);
   });
 
   if (filas.length === 1) {
@@ -420,12 +438,6 @@ function alElegirConvenio(){
   }
   actualizarNro(); marcar();
   pedirHistorialAlRelevo();
-  // Un instante después, no ya: al aceptar «traer lo anterior», traerHistorial
-  // vacía la caja y re-elige el convenio ANTES de pintar lo heredado, y el
-  // formulario todavía está en blanco. Ofrecer aquí los recaudos de la empresa
-  // dejaba un segundo aviso que, tocado, volvía a marcar como heredado lo que
-  // el inspector ya había confirmado (QC del 17-sep).
-  setTimeout(() => { if (!document.querySelector('#aviso-historial .historial') && formularioEnBlanco()) ofrecerRecaudosDeEmpresa(); }, 0);
 }
 
 // ── El identificador ──────────────────────────────────────────────────────
@@ -449,7 +461,7 @@ function actualizarNro(){
   const sec = SECTOR_POR_CONVENIO[c] || 'XX';
   const fec = f ? f.slice(2).replace(/-/g,'') : '------';
   document.getElementById('nro').textContent =
-    (TEST_MODE ? 'PRUEBA-' : '') + 'SHA-' + sec + '-' + (limpiar(t) || '---') + '-' + fec + '-' + iniciales();
+    (TEST_MODE ? 'PRUEBA-' : '') + 'URB-' + sec + '-' + (limpiar(t) || '---') + '-' + fec + '-' + iniciales();
 }
 function numeroInforme(){ return document.getElementById('nro').textContent; }
 
@@ -520,7 +532,7 @@ function pintarGeneral(){
       '<div class="nota-ni">Este servicio está marcado como NO INSPECCIONADO. Para llenarlo, toque otra vez el botón de la cabecera.</div>' +
       '<div class="cuerpo" hidden>';
     if (!srv.items.length){
-      html += '<div class="vacio">Este bloque todavía no tiene lista de recaudos.<br>' +
+      html += '<div class="vacio">Este servicio todavía no tiene lista de ítems.<br>' +
               'Agréguelos abajo mientras Ingeniería la define.</div>';
     }
     html += '<div id="items-' + srv.id + '"></div>' +
@@ -530,7 +542,6 @@ function pintarGeneral(){
     bloque.innerHTML = html;
     cont.appendChild(bloque);
     srv.items.forEach(nombre => addItem(srv.id, nombre, true));
-    plegar(srv.id, true);
     // Y detrás de los fijos, los que este teléfono ya aprendió: lo que Hernán
     // agregó una vez no se vuelve a escribir en cada torre.
     const rec = itemsRecordados(srv.id);
@@ -554,7 +565,7 @@ function agregarItemNuevo(sid){
 // Lo que se agrega en campo con nombre queda en este teléfono y aparece en los
 // informes siguientes, hasta que Ingeniería lo pase a la lista fija o alguien
 // lo quite «para los próximos». Vive por servicio.
-const CLAVE_ITEMS = 'garmel_sha_items';
+const CLAVE_ITEMS = 'garmel_urb_items';
 function normalizar(v){
   return (v == null ? '' : String(v)).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
          .trim().toLowerCase().replace(/\s+/g,' ');
@@ -596,6 +607,7 @@ function addItem(sid, nombre, fijo, recordado){
   const d = document.createElement('div');
   d.className = 'item'; d.dataset.fijo = fijo ? '1' : '0';
   if (recordado) d.dataset.memoria = nombre;
+  const ud = unidadDe(sid, nombre, fijo);
   d.innerHTML =
     '<div class="cab-item">' +
     (fijo ? '<div class="nombre">' + nombre + '</div>'
@@ -605,9 +617,12 @@ function addItem(sid, nombre, fijo, recordado){
     '<span class="etq-her">visita anterior</span></div>' +
     // Tres respuestas y el vacío. «No aplica» es frecuente en servicios —gas
     // en una torre sin red— y sin botón propio se confundía con «sin contestar».
+    '<div class="cant-fila"><span class="et">Ejecutado</span><input type="number" inputmode="decimal" min="0" step="any" class="cant" placeholder="Cantidad a la fecha" oninput="marcar()">' + ud + '</div>' +
+    '<div class="cant-fila proy"><span class="et">Proyectado</span><input type="number" inputmode="decimal" min="0" step="any" class="pr" placeholder="Cantidad proyectada" oninput="marcar()"><span class="avance"></span></div>' +
     '<div class="sino">' +
-      '<button type="button" onclick="marcarSN(this,\'SI\')">SÍ</button>' +
-      '<button type="button" onclick="marcarSN(this,\'NO\')">NO</button>' +
+      '<button type="button" onclick="marcarSN(this,\'B\')">B</button>' +
+      '<button type="button" onclick="marcarSN(this,\'R\')">R</button>' +
+      '<button type="button" onclick="marcarSN(this,\'M\')">M</button>' +
       '<button type="button" onclick="marcarSN(this,\'NA\')">N/A</button>' +
     '</div>' +
     '<textarea placeholder="Observaciones..." oninput="marcar()"></textarea>' +
@@ -637,7 +652,7 @@ function quitarItem(btn){
 function tocado(el){
   if (!el || !el.closest) return;
   if (el.classList && el.classList.contains('obs-srv')) delete el.dataset.heredado;
-  const it = el.closest('.item, .fila-apto, .fila-inc');
+  const it = el.closest('.item, .fila-apto');
   if (it && it.classList.contains('heredado')){ it.classList.remove('heredado'); delete it.dataset.heredado; }
 }
 
@@ -658,15 +673,16 @@ function plegar(sid, abrir){
 
 // «4/6»: cuántos ítems tienen respuesta —sí, no o no aplica— de los que hay.
 function actualizarCuentas(){
+  actualizarAvances();
   GENERAL.forEach(srv => {
     const el = document.getElementById('cuenta-' + srv.id); if (!el) return;
     const b = document.getElementById('srv-' + srv.id);
     if (b.classList.contains('no-inspeccionado')){ el.textContent = '· no inspeccionado'; return; }
     const items = [...document.querySelectorAll('#items-' + srv.id + ' .item')];
-    const hechos = items.filter(i => valorSN(i)).length;
+    const hechos = items.filter(i => valorSN(i) || i.querySelector('.cant').value).length;
     // «4/6 · 3 sin revisar»: de las cuatro contestadas, tres vienen de la
     // visita anterior y nadie las ha tocado hoy. Cuando se tocan, baja.
-    const her = items.filter(i => i.classList.contains('heredado') && valorSN(i)).length;
+    const her = items.filter(i => i.classList.contains('heredado') && (valorSN(i) || i.querySelector('.cant').value)).length;
     el.textContent = items.length ? '· ' + hechos + '/' + items.length + (her ? ' · ' + her + ' sin revisar' : '') : '';
   });
 }
@@ -687,28 +703,30 @@ function toggleNoInsp(sid){
 // conserva: volver a «sin contestar» tiene que ser posible.
 function marcarSN(btn, v){
   const grupo = btn.parentElement;
-  const ya = ['si-on','no-on','na-on'].some(c => btn.classList.contains(c));
+  const ya = ['si-on','re-on','no-on','na-on'].some(c => btn.classList.contains(c));
   // En un ítem heredado, tocar el valor que ya tenía lo CONFIRMA para hoy; no
   // lo borra. Es el gesto más frecuente de la visita —«sigue igual»— y no
   // puede ser el que deje la fila en blanco.
-  const fila = btn.closest('.item, .fila-apto, .fila-inc');
+  const fila = btn.closest('.item, .fila-apto');
   const confirmar = ya && fila && fila.classList.contains('heredado');
-  [...grupo.children].forEach(b => b.classList.remove('si-on','no-on','na-on'));
-  if (!ya || confirmar) btn.classList.add(v === 'SI' ? 'si-on' : v === 'NO' ? 'no-on' : 'na-on');
+  [...grupo.children].forEach(b => b.classList.remove('si-on','re-on','no-on','na-on'));
+  if (!ya || confirmar) btn.classList.add({ B: 'si-on', R: 're-on', M: 'no-on', NA: 'na-on' }[v] || 'na-on');
   tocado(btn);
   marcar();
 }
 function ponerSN(item, v){
   const g = item.querySelector('.sino');
-  [...g.children].forEach(b => b.classList.remove('si-on','no-on','na-on'));
-  if (v === 'SI') g.children[0].classList.add('si-on');
-  if (v === 'NO') g.children[1].classList.add('no-on');
-  if (v === 'NA') g.children[2].classList.add('na-on');
+  [...g.children].forEach(b => b.classList.remove('si-on','re-on','no-on','na-on'));
+  if (v === 'B')  g.children[0].classList.add('si-on');
+  if (v === 'R')  g.children[1].classList.add('re-on');
+  if (v === 'M')  g.children[2].classList.add('no-on');
+  if (v === 'NA') g.children[3].classList.add('na-on');
 }
 function valorSN(item){
   const g = item.querySelector('.sino');
-  if (g.querySelector('.si-on')) return 'SI';
-  if (g.querySelector('.no-on')) return 'NO';
+  if (g.querySelector('.si-on')) return 'B';
+  if (g.querySelector('.re-on')) return 'R';
+  if (g.querySelector('.no-on')) return 'M';
   if (g.querySelector('.na-on')) return 'NA';
   return '';
 }
@@ -720,9 +738,9 @@ function valorSN(item){
 // apartamento ya cuesta 120 toques en el otro formulario.
 function pintarApartamentos(){
   const cont = document.getElementById('panel-b');
-  cont.innerHTML = '<div class="vacio" id="b-vacio">Todavía no hay hallazgos de campo. ' +
-    'Agregue lo que encontró en la inspección física de la obra.</div><div id="filas-apto"></div>' +
-    '<button type="button" class="btn-add" onclick="addApartamento()">＋ Agregar hallazgo</button>';
+  cont.innerHTML = '<div class="vacio" id="b-vacio">Todavía no hay apartamentos. ' +
+    'Agregue los que haya visitado hoy.</div><div id="filas-apto"></div>' +
+    '<button type="button" class="btn-add" onclick="addApartamento()">＋ Agregar apartamento</button>';
 }
 
 let _nApto = 0;
@@ -734,8 +752,11 @@ function addApartamento(datos){
   // El PISO va primero: se elige, y después se escribe el apartamento. Al
   // revés confundía —se escribía el apto y aparecía otro selector—.
   let html = '<span class="etq-her" style="margin:0 0 6px">visita anterior · sin revisar hoy</span><div class="cab">' +
-    '<input type="hidden" class="piso">' +
-    '<input type="text" class="apto" placeholder="Área / frente de trabajo (andamio, losa 5, fachada norte…)" oninput="marcar()" style="flex:1">' +
+    '<select class="piso" onchange="marcar()" style="flex:1"><option value="">Piso</option>' +
+    '<option value="PB">Planta Baja</option>';
+  for (let i = 1; i <= 20; i++) html += '<option value="P' + String(i).padStart(2,'0') + '">Piso ' + String(i).padStart(2,'0') + '</option>';
+  html += '</select>' +
+    '<input type="text" class="apto" placeholder="Apto / área" oninput="marcar()" style="flex:1">' +
     '<button type="button" class="quitar" onclick="quitarApto(this)">✕</button></div>';
 
   APARTAMENTOS.forEach(tabla => {
@@ -751,11 +772,6 @@ function addApartamento(datos){
                 '<button type="button" onclick="marcarSN(this,\'SI\')">SÍ</button>' +
                 '<button type="button" onclick="marcarSN(this,\'NO\')">NO</button>' +
                 '<button type="button" onclick="marcarSN(this,\'NA\')">N/A</button></div></div>';
-      } else if (tipo === 'lista'){
-        html += '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
-                '<span style="flex:1;font-size:13px">' + etiqueta + '</span>' +
-                '<select data-campo="' + id + '" onchange="marcar()" style="flex:1"><option value="">—</option>' +
-                ESTADOS_HALLAZGO.map(o => '<option>' + o + '</option>').join('') + '</select></div>';
       } else if (tipo === 'cant'){
         html += '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
                 '<span style="flex:1;font-size:13px">' + etiqueta + '</span>' +
@@ -769,7 +785,7 @@ function addApartamento(datos){
     });
     html += '</div>';
   });
-  html += bloqueFotos('fotos-apto-' + _nApto, 'Fotografías del hallazgo');
+  html += bloqueFotos('fotos-apto-' + _nApto, 'Fotografías del apartamento');
   d.innerHTML = html;
   cont.appendChild(d);
   if (datos) cargarApto(d, datos);
@@ -801,8 +817,6 @@ function quitarApto(btn){
 function verPanel(cual){
   document.getElementById('panel-a').classList.toggle('on', cual === 'a');
   document.getElementById('panel-b').classList.toggle('on', cual === 'b');
-  document.getElementById('panel-c').classList.toggle('on', cual === 'c');
-  document.getElementById('tab-c').classList.toggle('on', cual === 'c');
   document.getElementById('tab-a').classList.toggle('on', cual === 'a');
   document.getElementById('tab-b').classList.toggle('on', cual === 'b');
 }
@@ -843,7 +857,7 @@ const FotosDB = (() => {
   function abrir(){
     if (db) return Promise.resolve(db);
     return new Promise((res, rej) => {
-      const r = indexedDB.open('garmel_sha', 1);
+      const r = indexedDB.open('garmel_urbanismo', 1);
       r.onupgradeneeded = () => r.result.createObjectStore('fotos');
       r.onsuccess = () => { db = r.result; res(db); };
       r.onerror = () => rej(r.error);
@@ -911,7 +925,7 @@ function reducir(file, listo){
 // A los 2 s de la última tecla y cada 30, igual que el otro. Y con la lección
 // que costó cara: GUARDAR PUEDE FALLAR, y cuando falla no se limpia nada, para
 // que el informe siga donde único existe — el teléfono.
-const CLAVE_LISTA = 'garmel_sha_list';
+const CLAVE_LISTA = 'garmel_urb_list';
 let sucio = false, temporizador = null, idActual = null;
 
 function marcar(){
@@ -944,6 +958,9 @@ function datosDelFormulario(){
       agregado: it.dataset.fijo !== '1',
       sn: valorSN(it),
       obs: (it.querySelector('textarea').value || '').trim(),
+      cant: (it.querySelector('.cant').value || '').trim(),
+      pr: (it.querySelector('.pr').value || '').trim(),
+      ud: unidadLeida(it),
       // De qué informe viene la respuesta, si nadie la tocó hoy. Vacío = de hoy.
       heredado: it.dataset.heredado || ''
     }))
@@ -951,7 +968,7 @@ function datosDelFormulario(){
     // PDF como «+ (agregado en campo) —», T-03 del 14-sep— ni el que solo tiene
     // nombre, porque el nombre ya lo guarda la memoria del teléfono y en el PDF
     // los fijos sin contestar tampoco salen.
-    .filter(i => !i.agregado || i.sn || i.obs),
+    .filter(i => !i.agregado || i.sn || i.obs || i.cant),
     obs: (document.querySelector('#srv-' + srv.id + ' .obs-srv').value || '').trim(),
     fotos: leerFotos(document.getElementById('fotos-' + srv.id))
   }));
@@ -971,18 +988,13 @@ function datosDelFormulario(){
   const grupos = {};
   GENERAL.forEach(srv => { grupos[srv.id] = leerDatosFotos(document.getElementById('fotos-' + srv.id)); });
   [...document.querySelectorAll('#filas-apto .fila-apto')].forEach((fila, i) => { grupos['apto:' + i] = leerDatosFotos(fila.querySelector('.fotos')); });
-  grupos['general'] = leerDatosFotos(document.getElementById('fotos-general'));
-  [...document.querySelectorAll('#filas-inc .fila-inc')].forEach((f, i) => { grupos['inc:' + i] = leerDatosFotos(f.querySelector('.fotos')); });
   return {
-    id: idActual || ('sha_' + Date.now()),
-    tipo: 'sha',
+    id: idActual || ('urb_' + Date.now()),
+    tipo: 'urbanismo',
     fotosDB: grupos,   // se separa antes de guardar: no va a localStorage
     nro: numeroInforme(),
     torre: val('torre'), convenio: val('convenio'), empresa: val('empresa'),
     residente: val('residente'), fecha: val('fecha'), estatus: val('estatus'),
-    accion: val('accion'), accion_det: val('accion_det'),
-    fotosGenerales: leerFotos(document.getElementById('fotos-general')),
-    incidencias: leerIncidencias(),
     inspectores: inspectoresElegidos(),
     obs_general: val('obs_general'),
     noInspeccionados: noInsp,
@@ -995,8 +1007,8 @@ function datosDelFormulario(){
 // la cabecera sola no es un informe.
 function informeVacio(d){
   return !(d.general || []).some(g => (g.obs || '').trim() || (g.fotos || []).length ||
-                                      (g.items || []).some(i => i.sn || (i.obs || '').trim())) &&
-         !(d.apartamentos || []).length && !(d.fotosGenerales || []).length && !(d.incidencias || []).length &&
+                                      (g.items || []).some(i => i.sn || i.cant || (i.obs || '').trim())) &&
+         !(d.apartamentos || []).length && !(d.fotosGenerales || []).length &&
          !(d.noInspeccionados || []).length && !(d.obs_general || '').trim() && !d.estatus;
 }
 
@@ -1041,7 +1053,6 @@ function guardar(avisar){
     // Lo que se guardó bien, se aprende: los ítems con nombre pasan a la
     // memoria del teléfono y el informe pasa a ser el último estado de su torre.
     aprenderItems();
-    aprenderTiposIncidencia(d);
     anotarEstadoTorre(d);
     try { localStorage.setItem(CLAVE_ACTUAL, d.id); } catch(e){}
     actualizarContador();
@@ -1080,8 +1091,8 @@ function aprenderItems(){
 // fotografías, y sobrevive a «Borrar los que ya se enviaron». Hoy lo alimentan
 // los informes de este teléfono; el día que el relevo pueda contestarlo, se
 // alimenta también desde Drive y Hernán y Oriana verán lo mismo.
-const CLAVE_TORRES = 'garmel_sha_torres';
-const CLAVE_ACTUAL = 'garmel_sha_actual';
+const CLAVE_TORRES = 'garmel_urb_torres';
+const CLAVE_ACTUAL = 'garmel_urb_actual';
 function estadosDeTorres(){
   try { return JSON.parse(localStorage.getItem(CLAVE_TORRES) || '{}'); } catch(e){ return {}; }
 }
@@ -1090,8 +1101,8 @@ function anotarEstadoTorre(d){
   // Un borrador sin nada contestado no es el estado de la torre: con la fecha
   // de hoy pisaba al informe real de ayer —el del teléfono y el que llegaba
   // del relevo— y el historial ofrecía un vacío. Visto el 15-sep en T-12.
-  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs)) ||
-                     (d.apartamentos || []).length > 0 || (d.incidencias || []).length > 0;
+  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs || i.cant)) ||
+                     (d.apartamentos || []).length > 0;
   if (!contestado) return;
   const todos = estadosDeTorres();
   const previo = todos[d.torre];
@@ -1106,65 +1117,16 @@ function anotarEstadoTorre(d){
     general: (d.general || []).map(g => ({
       id: g.id, obs: g.obs,
       items: (g.items || []).filter(i => i.nombre).map(i => ({
-        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs,
+        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs, cant: i.cant, pr: i.pr, ud: i.ud,
         // si ya venía heredado, se conserva de dónde: la cadena no se rompe
         heredado: i.heredado || ''
       }))
     })),
     apartamentos: (d.apartamentos || []).map(a => ({
       apto: a.apto, piso: a.piso, campos: a.campos, heredado: a.heredado || ''
-    })),
-    incidencias: (d.incidencias || []).map(x => ({ fecha: x.fecha, tipo: x.tipo, notas: x.notas, acciones: x.acciones, estado: x.estado, heredado: x.heredado || '' }))
+    }))
   };
   try { localStorage.setItem(CLAVE_TORRES, JSON.stringify(todos)); } catch(e){}
-  anotarRecaudosEmpresa(d, todos[d.torre]);
-}
-const CLAVE_EMPRESAS = 'garmel_sha_empresas';
-function estadosDeEmpresas(){
-  try { return JSON.parse(localStorage.getItem(CLAVE_EMPRESAS) || '{}'); } catch(e){ return {}; }
-}
-function anotarRecaudosEmpresa(d, estadoTorre){
-  if (!d.empresa || !estadoTorre) return;
-  const todos = estadosDeEmpresas();
-  const previo = todos[d.empresa];
-  if (previo && previo.id !== d.id &&
-      (previo.fecha > d.fecha || (previo.fecha === d.fecha && previo.guardado > d.guardado))) return;
-  todos[d.empresa] = { id: d.id, nro: d.nro, fecha: d.fecha, guardado: d.guardado, torre: d.torre,
-                       general: estadoTorre.general };
-  try { localStorage.setItem(CLAVE_EMPRESAS, JSON.stringify(todos)); } catch(e){}
-}
-function ofrecerRecaudosDeEmpresa(){
-  const caja = document.getElementById('aviso-historial');
-  const emp = document.getElementById('empresa').value;
-  const e = emp ? estadosDeEmpresas()[emp] : null;
-  if (!e || e.id === idActual || !formularioEnBlanco()) return;
-  const n = (e.general || []).reduce((s, g) => s + g.items.filter(i => i.sn).length, 0);
-  if (!n) return;
-  caja.innerHTML = '<div class="historial">' +
-    '<div class="t">📋 ' + emp + ' ya tiene recaudos verificados</div>' +
-    '<div class="s">' + e.nro + ' · ' + fechaLarga(e.fecha) + ' · en ' + e.torre + ' · ' + n + ' recaudo(s) contestado(s)' +
-    '.<br>Los recaudos son de la empresa, no de la torre: ¿traerlos y revisar solo lo que cambió?</div>' +
-    '<div class="b"><button type="button" class="si" onclick="traerRecaudosDeEmpresa()">Sí, traer los recaudos</button>' +
-    '<button type="button" class="no" onclick="document.getElementById(&quot;aviso-historial&quot;).innerHTML=&quot;&quot;">No, en blanco</button></div></div>';
-  caja.firstElementChild.scrollIntoView({ block: 'center', behavior: 'smooth' });
-}
-function traerRecaudosDeEmpresa(){
-  const emp = document.getElementById('empresa').value;
-  const e = estadosDeEmpresas()[emp];
-  document.getElementById('aviso-historial').innerHTML = '';
-  if (!e) return;
-  (e.general || []).forEach(g => {
-    const cont = document.getElementById('items-' + g.id); if (!cont) return;
-    (g.items || []).forEach(it => {
-      const el = buscarOCrearItem(g.id, it);
-      if (!el) return;
-      ponerSN(el, it.sn);
-      el.querySelector('textarea').value = it.obs || '';
-      if (it.sn || it.obs){ el.classList.add('heredado'); el.dataset.heredado = it.heredado || e.nro; }
-    });
-    plegar(g.id, true);
-  });
-  actualizarCuentas(); marcar();
 }
 
 // ── El último informe de la torre, desde Drive ─────────────────────────────
@@ -1174,7 +1136,7 @@ function traerRecaudosDeEmpresa(){
 // un informe más nuevo que el de este teléfono, entra en la misma memoria por
 // torre y se ofrece igual. Sin señal, la memoria del teléfono manda. Nunca
 // bloquea: el formulario sigue usable mientras se espera.
-const TIPO_INFORME = 'sha';
+const TIPO_INFORME = 'urbanismo';
 let _pidiendo = null;
 async function pedirHistorialAlRelevo(){
   const t = document.getElementById('torre').value;
@@ -1217,15 +1179,15 @@ function nombreVigente(sid, nombre){
 // Nada contestado, ningún apartamento: es un informe recién abierto, y solo
 // entonces tiene sentido proponer arrancar desde la visita anterior.
 function formularioEnBlanco(){
-  if (document.querySelectorAll('#filas-apto .fila-apto, #filas-inc .fila-inc').length) return false;
+  if (document.querySelectorAll('#filas-apto .fila-apto').length) return false;
   return ![...document.querySelectorAll('.item')].some(it =>
-    valorSN(it) || (it.querySelector('textarea').value || '').trim());
+    valorSN(it) || it.querySelector('.cant').value || (it.querySelector('textarea').value || '').trim());
 }
 
 // Hay contenido y todo viene de la visita anterior, sin nada de hoy.
 function soloHeredado(){
-  const items = [...document.querySelectorAll('.item')].filter(it => valorSN(it) || (it.querySelector('textarea').value || '').trim());
-  const aptos = [...document.querySelectorAll('#filas-apto .fila-apto, #filas-inc .fila-inc')];
+  const items = [...document.querySelectorAll('.item')].filter(it => valorSN(it) || it.querySelector('.cant').value || (it.querySelector('textarea').value || '').trim());
+  const aptos = [...document.querySelectorAll('#filas-apto .fila-apto')];
   const obs = [...document.querySelectorAll('.obs-srv')].filter(o => (o.value || '').trim());
   if (!items.length && !aptos.length && !obs.length) return false;
   return items.every(it => it.classList.contains('heredado')) &&
@@ -1238,8 +1200,6 @@ function soltarHeredado(){
     it.classList.remove('heredado'); delete it.dataset.heredado;
   });
   document.querySelectorAll('#filas-apto .fila-apto.heredado').forEach(f => f.remove());
-  document.querySelectorAll('#filas-inc .fila-inc.heredado').forEach(f => f.remove());
-  if (!document.querySelectorAll('#filas-inc .fila-inc').length){ const v = document.getElementById('c-vacio'); if (v) v.style.display = ''; }
   if (!document.querySelectorAll('#filas-apto .fila-apto').length){
     const v = document.getElementById('b-vacio'); if (v) v.style.display = '';
   }
@@ -1257,13 +1217,13 @@ function ofrecerHistorial(){
   if (_cargando) return;
   const t = document.getElementById('torre').value;
   const e = t ? estadosDeTorres()[t] : null;
-  if (!e || e.id === idActual || !formularioEnBlanco()){ if (!e) ofrecerRecaudosDeEmpresa(); return; }
+  if (!e || e.id === idActual || !formularioEnBlanco()) return;
   const n = (e.general || []).reduce((s, g) => s + g.items.filter(i => i.sn).length, 0);
   const aptos = (e.apartamentos || []).length;
   caja.innerHTML = '<div class="historial">' +
     '<div class="t">📋 ' + t + ' ya tiene un informe anterior</div>' +
     '<div class="s">' + e.nro + ' · ' + fechaLarga(e.fecha) + ' · ' + n + ' ítem(s) contestado(s)' +
-    (aptos ? ' · ' + aptos + ' hallazgo(s)' : '') + (function(){ const k = (e.incidencias || []).filter(x => x.estado !== 'Cerrada').length; return k ? ' · ' + k + ' incidencia(s) sin cerrar' : ''; })() +
+    '' +
     '.<br>¿Arrancar desde lo que se registró ese día y marcar solo lo que cambió?</div>' +
     '<div class="b"><button type="button" class="si" onclick="traerHistorial()">Sí, traer lo anterior</button>' +
     '<button type="button" class="no" onclick="document.getElementById(\'aviso-historial\').innerHTML=\'\'">No, empezar en blanco</button></div></div>';
@@ -1292,11 +1252,13 @@ function traerHistorial(){
   if (e.convenio && !conv.value && [...conv.options].some(o => o.value === e.convenio)){
     conv.value = e.convenio; alElegirConvenio();
   }
+  if (e.estatus && !document.getElementById('estatus').value) document.getElementById('estatus').value = e.estatus;
   // Veinte torres no traen residente en el maestro y el inspector lo escribe a
   // mano (T-03: «Harry Arteaga»). Lo escrito la vez anterior vale hoy si el
   // maestro no dice otra cosa. Igual la empresa.
   ['residente', 'empresa'].forEach(id => { const el = document.getElementById(id);
     if (e[id] && !el.value) el.value = e[id]; });
+  asegurarSecciones(e.general);
   (e.general || []).forEach(g => {
     const cont = document.getElementById('items-' + g.id); if (!cont) return;
     (g.items || []).forEach(it => {
@@ -1304,7 +1266,8 @@ function traerHistorial(){
       if (!el) return;
       ponerSN(el, it.sn);
       el.querySelector('textarea').value = it.obs || '';
-      if (it.sn || it.obs){ el.classList.add('heredado'); el.dataset.heredado = it.heredado || e.nro; }
+      ponerCant(el, it);
+      if (it.sn || it.obs || it.cant){ el.classList.add('heredado'); el.dataset.heredado = it.heredado || e.nro; }
     });
     const obs = document.querySelector('#srv-' + g.id + ' .obs-srv');
     if (obs && g.obs){ obs.value = g.obs; obs.dataset.heredado = e.nro; }
@@ -1312,15 +1275,10 @@ function traerHistorial(){
   });
   (e.noInspeccionados || []).forEach(sid => { const b = document.getElementById('srv-' + sid);
     if (b && !b.classList.contains('no-inspeccionado')){ toggleNoInsp(sid); b.dataset.heredadoNI = '1'; } });
-  (e.apartamentos || []).filter(a => !Object.keys(a.campos || {}).some(k => /estatus/i.test(k) && a.campos[k] === 'Corregido')).forEach(a => {
+  (e.apartamentos || []).forEach(a => {
     addApartamento({ apto: a.apto, piso: a.piso, campos: a.campos, fotos: [] });
     const fila = document.querySelector('#filas-apto .fila-apto:last-child');
     fila.classList.add('heredado'); fila.dataset.heredado = a.heredado || e.nro;
-  });
-  (e.incidencias || []).filter(x => x.estado !== 'Cerrada').forEach(x => {
-    addIncidencia(Object.assign({}, x, { fotos: [] }));
-    const f = document.querySelector('#filas-inc .fila-inc:last-child');
-    f.classList.add('heredado'); f.dataset.heredado = x.heredado || e.nro;
   });
   actualizarCuentas(); marcar();
 }
@@ -1357,7 +1315,7 @@ function abrirInformes(){
     if (env)  html += '<button type="button" class="btn-add" style="border-color:#991b1b;color:#991b1b;background:#fee2e2" onclick="borrarEnviados()">🧹 Borrar los ' + env + ' que ya se enviaron</button>';
     [...l].reverse().forEach(x => {
       html += '<div class="ficha"><div class="n">' + x.nro + '</div>' +
-        '<div class="s">📍 ' + (x.torre || '—') + ' · 📅 ' + (x.fecha || '—') + ' · ' + (x.apartamentos || []).length + ' hallazgo(s)' + ((x.incidencias || []).length ? ' · ' + x.incidencias.length + ' incidencia(s)' : '') + '</div>' +
+        '<div class="s">📍 ' + (x.torre || '—') + ' · 📅 ' + (x.fecha || '—') + ' · ' + (x.general || []).reduce((s, g) => s + (g.items || []).filter(i => i.sn || i.cant).length, 0) + ' partida(s)</div>' +
         '<div class="s" style="font-weight:700;color:' + (x.enviado ? '#166534' : '#a15c07') + '">' +
         (x.enviado ? '✅ Enviado ' + x.enviado + (x.editadoTras ? ' · ✏️ editado después (' + x.editadoTras + ')' : '') : '⏳ Sin enviar') + '</div>' +
         '<div class="b"><button type="button" onclick="cargarInforme(\'' + x.id + '\')">📂 Editar</button>' +
@@ -1375,14 +1333,12 @@ async function enviarSolo(id){
   cerrarInformes();
   const d = listaGuardada().find(x => x.id === id);
   if (!d) return;
-  const falta = faltan(d);
-  if (falta.length){ alert('A ' + d.nro + ' le falta ' + falta.join(', ') + '. Ábralo, complételo y vuelva a enviar.'); return; }
   if (!d.enviado && !confirmarSinRevisar([d])) return;
   let clave = ''; try { clave = localStorage.getItem('garmel_clave_envio') || ''; } catch(e){}
   if (!clave){ alert('⚠️ Este teléfono todavía no está configurado para enviar.'); return; }
   if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }
   _tandaEnCurso = true;
-  if (!(await frenoSha())){ _tandaEnCurso = false; return; }
+  if (!(await frenoUrbanismo())){ _tandaEnCurso = false; return; }
   try { cartel('📤 Enviando ' + d.nro + '…\n\nNo cierre esta pantalla ni vuelva a pulsar.');
         const r = await enviarUno(d, clave);
         alert(r.ok ? '✓ ' + d.nro + ' enviado a Drive.' : '✗ ' + d.nro + ': ' + explicar(r.error)); }
@@ -1418,14 +1374,10 @@ function cargarInforme(id){
     document.getElementById('residente').value = d.residente || '';
     if (d.fecha) document.getElementById('fecha').value = d.fecha;
     document.getElementById('estatus').value = d.estatus || '';
-    document.getElementById('accion').value = d.accion || '';
-    document.getElementById('accion_det').value = d.accion_det || '';
-    verRechazo();
-    pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '…' }));
-    (d.incidencias || []).forEach(x => { addIncidencia(x); if (x.heredado){ const f = document.querySelector('#filas-inc .fila-inc:last-child'); f.classList.add('heredado'); f.dataset.heredado = x.heredado; } });
     document.getElementById('obs_general').value = d.obs_general || '';
     document.getElementById('inspectores').innerHTML = '';
     (d.inspectores && d.inspectores.length ? d.inspectores : ['']).forEach(i => addInspector(i));
+    asegurarSecciones(d.general);
     (d.general || []).forEach(g => {
       const cont = document.getElementById('items-' + g.id); if (!cont) return;
       (g.items || []).forEach(it => {
@@ -1435,6 +1387,7 @@ function cargarInforme(id){
         if (!el) return;
         ponerSN(el, it.sn);
         el.querySelector('textarea').value = it.obs || '';
+        ponerCant(el, it);
         if (it.heredado){ el.classList.add('heredado'); el.dataset.heredado = it.heredado; }
       });
       document.querySelector('#srv-' + g.id + ' .obs-srv').value = g.obs || '';
@@ -1464,10 +1417,6 @@ function cargarInforme(id){
         const datos = grupos['apto:' + i] || [];
         pintarFotos(fila.querySelector('.fotos'), (a.fotos || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : datos[k] || '') })));
       });
-      const dg = grupos['general'] || [];
-      pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : dg[k] || '') })));
-      [...document.querySelectorAll('#filas-inc .fila-inc')].forEach((f, i) => { const x = (d.incidencias || [])[i]; if (!x) return; const dx = grupos['inc:' + i] || [];
-        pintarFotos(f.querySelector('.fotos'), (x.fotos || []).map((ft, k) => ({ pie: ft.pie, dato: ft.dato || (ft.enDrive ? '' : dx[k] || '') }))); });
     });
   } finally {
     _cargando = false;
@@ -1482,12 +1431,11 @@ function cargarInforme(id){
 }
 
 function vaciarFormulario(){
-  ['empresa','residente','obs_general','accion','accion_det'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('fotos-general').innerHTML = '';
+  ['empresa','residente','obs_general'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('torre').value = ''; alElegirTorre();
-  document.getElementById('estatus').value = ''; verRechazo();
+  document.getElementById('estatus').value = '';
   document.getElementById('inspectores').innerHTML = ''; addInspector();
-  pintarGeneral(); pintarApartamentos(); pintarIncidencias();
+  pintarGeneral(); pintarApartamentos();
   const hoy = new Date();
   document.getElementById('fecha').value = hoy.getFullYear() + '-' + String(hoy.getMonth()+1).padStart(2,'0') + '-' + String(hoy.getDate()).padStart(2,'0');
   idActual = null; sucio = false; actualizarNro(); actualizarCuentas();
@@ -1522,6 +1470,7 @@ function siguienteTorre(){
   const insp = inspectoresElegidos(), fecha = d.fecha, estatus = d.estatus;
   vaciarFormulario();
   document.getElementById('fecha').value = fecha;
+  document.getElementById('estatus').value = estatus;
   document.getElementById('inspectores').innerHTML = '';
   (insp.length ? insp : ['']).forEach(i => addInspector(i));
   actualizarNro(); sucio = false;
@@ -1589,9 +1538,6 @@ function faltan(d){
   if (!d.convenio) f.push('el convenio');
   if (!d.fecha)    f.push('la fecha');
   if (!d.inspectores.length) f.push('el inspector');
-  if (!d.estatus) f.push('el estatus general del cierre');
-  if (d.estatus === 'Rechazado' && !d.accion) f.push('la acción por el rechazo');
-  (d.incidencias || []).forEach((x, i) => { if (!x.tipo) f.push('el tipo de accidente de la incidencia ' + (i + 1)); });
   return f;
 }
 
@@ -1608,15 +1554,13 @@ function sobreDe(d, clave, grupos){
   });
   datos.general.forEach(srv => { srv.fotos = soltar(srv.fotos, srv.id, grupos[srv.id]); });
   datos.apartamentos.forEach((a, i) => { a.fotos = soltar(a.fotos, 'apto-' + (i + 1) + '-' + limpiar(a.apto || ''), grupos['apto:' + i]); });
-  datos.fotosGenerales = soltar(datos.fotosGenerales, 'general', grupos['general']);
-  (datos.incidencias || []).forEach((x, i) => { x.fotos = soltar(x.fotos, 'inc-' + (i + 1), grupos['inc:' + i]); });
   delete datos.fotosDB;
   // El registro del relevo lee `estatus` y `residentes` como LISTAS —les hace
   // .join()— porque así viajan desde inspección. Un texto suelto reventaría
   // dentro de anotarEnRegistro y el relevo contestaría ok:false a todos.
   datos.estatus    = d.estatus   ? [d.estatus]   : [];
   datos.residentes = d.residente ? [d.residente] : [];
-  return { clave, numero: d.nro, tipo: 'sha', ambito: 'torre',
+  return { clave, numero: d.nro, tipo: 'urbanismo', ambito: 'torre',
            sector: SECTOR_POR_CONVENIO[d.convenio] || 'XX', torre: d.torre,
            datos, fotos };
 }
@@ -1700,8 +1644,6 @@ function marcarEnviado(id, nro){
       const soltar = f => ({ pie: f.pie || '', enDrive: true });
       (x.general || []).forEach(g => { g.fotos = (g.fotos || []).map(soltar); });
       (x.apartamentos || []).forEach(a => { a.fotos = (a.fotos || []).map(soltar); });
-      x.fotosGenerales = (x.fotosGenerales || []).map(soltar);
-      (x.incidencias || []).forEach(k => { k.fotos = (k.fotos || []).map(soltar); });
       FotosDB.borrar(id).catch(() => {});
       // Si es el que está en pantalla, sus fotos en el grid pasan a «ya en
       // Drive» en el próximo guardado; hasta entonces se siguen viendo.
@@ -1721,9 +1663,8 @@ function marcarEnviado(id, nro){
 // afirma cosas que hoy no se miraron.
 function cuentaSinRevisar(d){
   let n = 0;
-  (d.general || []).forEach(g => (g.items || []).forEach(i => { if (i.heredado && i.sn) n++; }));
+  (d.general || []).forEach(g => (g.items || []).forEach(i => { if (i.heredado && (i.sn || i.cant)) n++; }));
   (d.apartamentos || []).forEach(a => { if (a.heredado) n++; });
-  (d.incidencias || []).forEach(x => { if (x.heredado) n++; });
   return n;
 }
 function confirmarSinRevisar(lista){
@@ -1748,27 +1689,20 @@ function explicar(err){
          '\n(detalle: ' + String(err).replace(/\s+/g, ' ').slice(0, 90) + ')';
 }
 
-// El bloque de acción solo existe cuando el cierre es «Rechazado» (Birmania, 16-sep).
-function verRechazo(){
-  const r = document.getElementById('rechazo'); if (!r) return;
-  r.hidden = document.getElementById('estatus').value !== 'Rechazado';
-  if (r.hidden){ document.getElementById('accion').value = ''; document.getElementById('accion_det').value = ''; }
-}
-
-async function relevoAceptaSha(){
+async function relevoAceptaUrbanismo(){
   try {
     const corte = new AbortController(); const reloj = setTimeout(() => corte.abort(), 15000);
     const r = await fetch(RELEVO_URL, { signal: corte.signal }); clearTimeout(reloj);
     const j = await r.json();
-    return { ok: (j.tipos || []).indexOf('sha') >= 0, version: j.version || '?' };
+    return { ok: (j.tipos || []).indexOf('urbanismo') >= 0, version: j.version || '?' };
   } catch (e) { return { ok: false, error: String(e) }; }
 }
-async function frenoSha(){
-  const a = await relevoAceptaSha();
+async function frenoUrbanismo(){
+  const a = await relevoAceptaUrbanismo();
   if (a.ok) return true;
   alert(a.error
     ? 'No hay señal, o el relevo no responde. El informe sigue guardado aquí.'
-    : '⏸ El relevo (' + a.version + ') todavía no recibe informes de SHA.\n\n' +
+    : '⏸ El relevo (' + a.version + ') todavía no recibe informes de urbanismo.\n\n' +
       'El informe queda guardado en este teléfono y se enviará cuando la oficina lo active. No hay que hacer nada más.');
   return false;
 }
@@ -1808,7 +1742,7 @@ async function enviar(){
   if (!confirmarSinRevisar(pendientes)) return;
 
   _tandaEnCurso = true;
-  if (!(await frenoSha())){ _tandaEnCurso = false; return; }
+  if (!(await frenoUrbanismo())){ _tandaEnCurso = false; return; }
   let bien = 0; const fallos = [];
   try {
     for (const d of pendientes){
@@ -1854,8 +1788,9 @@ if ('serviceWorker' in navigator) {
 // ── Arranque ──────────────────────────────────────────────────────────────
 (function(){
   const sel = document.getElementById('torre');
+  manzanasRecordadas().forEach(m => { if (!TORRES_DATA.some(x => x.t === m.t)) TORRES_DATA.push(m); });
   torresUnicas().forEach(t => {
-    const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
+    const o = document.createElement('option'); o.value = t; const e0 = entradasDe(t)[0]; o.textContent = t + (e0 ? ' · ' + (NOMBRE_SECTOR[e0.c] || e0.c) : ''); sel.appendChild(o);
   });
   sel.onchange = alElegirTorre;
   document.getElementById('convenio').onchange = alElegirConvenio;
@@ -1868,14 +1803,16 @@ if ('serviceWorker' in navigator) {
       String(hoy.getMonth() + 1).padStart(2, '0') + '-' +
       String(hoy.getDate()).padStart(2, '0');
   document.getElementById('fecha').onchange = () => { actualizarNro(); marcar(); };
-  document.getElementById('estatus').onchange = () => { verRechazo(); marcar(); };
+  document.getElementById('estatus').onchange = marcar;
   document.getElementById('obs_general').oninput = marcar;
   if (TEST_MODE){
     const a = document.createElement('div'); a.className = 'aviso';
     a.style.margin = '12px'; a.textContent = '⚠️ MODO DE PRUEBA — este informe se archiva como PRUEBA-';
     document.querySelector('.envoltorio').prepend(a);
   }
-  pintarGeneral(); pintarApartamentos(); pintarIncidencias(); addInspector();
+  cargarSeccionesRecordadas();
+  pintarGeneral(); pintarApartamentos(); addInspector();
+  if (/[?&]rol=planificacion/.test(location.search)){ document.body.classList.add('plan'); const a = document.createElement('div'); a.className = 'plan-aviso'; a.textContent = '📊 Modo Planificación: aquí se escribe la cantidad proyectada de cada partida. El inspector no ve este campo.'; document.querySelector('.envoltorio').prepend(a); }
   actualizarNro(); actualizarContador(); actualizarCuentas();
   // TODO campo que se toque marca el informe para guardar, sin depender de que
   // cada control lleve su propio disparador. Residente, empresa y observación
@@ -1893,110 +1830,99 @@ if ('serviceWorker' in navigator) {
   reabrirActual();
 })();
 
-function tiposRecordados(){
-  let extra = []; try { extra = JSON.parse(localStorage.getItem(CLAVE_TIPOS_INC) || '[]'); } catch(e){}
-  return TIPOS_INCIDENCIA.concat(extra.filter(t => TIPOS_INCIDENCIA.indexOf(t) < 0));
+function manzanasRecordadas(){
+  try { return JSON.parse(localStorage.getItem(CLAVE_MANZANAS) || '[]'); } catch(e){ return []; }
 }
-function aprenderTiposIncidencia(d){
-  const nuevos = (d.incidencias || []).map(x => (x.tipo || '').trim()).filter(t => t && TIPOS_INCIDENCIA.indexOf(t) < 0);
-  if (!nuevos.length) return;
-  let extra = []; try { extra = JSON.parse(localStorage.getItem(CLAVE_TIPOS_INC) || '[]'); } catch(e){}
-  nuevos.forEach(t => { if (extra.indexOf(t) < 0) extra.push(t); });
-  try { localStorage.setItem(CLAVE_TIPOS_INC, JSON.stringify(extra)); } catch(e){}
+function abrirNuevaManzana(){
+  const caja = document.getElementById('nueva-manzana');
+  caja.hidden = false;
+  const c = document.getElementById('convenio').value;
+  if (c) document.getElementById('nm-sector').value = c;
+  document.getElementById('nm-nombre').focus();
 }
-function pintarIncidencias(){
-  const cont = document.getElementById('panel-c');
-  cont.innerHTML = '<div class="vacio" id="c-vacio">Todavía no hay incidencias. ' +
-    'Registre aquí los accidentes: qué pasó, con fotos, y qué se va a hacer.</div><div id="filas-inc"></div>' +
-    '<button type="button" class="btn-add" onclick="addIncidencia()">＋ Agregar incidencia</button>';
+// Una manzana nueva entra en el desplegable, con la empresa de su sector, y
+// queda en este teléfono para los próximos informes.
+function guardarNuevaManzana(){
+  const c = document.getElementById('nm-sector').value;
+  const nombre = (document.getElementById('nm-nombre').value || '').trim().toUpperCase().replace(/\s+/g, ' ');
+  if (!c || !nombre){ alert('Elija el sector y escriba el nombre de la manzana o lote.'); return; }
+  if (TORRES_DATA.some(x => x.t === nombre)){ alert('«' + nombre + '» ya está en la lista.'); return; }
+  const fila = { t: nombre, c: c, e: EMPRESA_POR_SECTOR[c] || '', r: '' };
+  TORRES_DATA.push(fila);
+  const rec = manzanasRecordadas(); rec.push(fila);
+  try { localStorage.setItem(CLAVE_MANZANAS, JSON.stringify(rec)); } catch(e){}
+  const sel = document.getElementById('torre');
+  const o = document.createElement('option'); o.value = nombre; o.textContent = nombre + ' · ' + (NOMBRE_SECTOR[c] || c); sel.appendChild(o);
+  sel.value = nombre; alElegirTorre();
+  document.getElementById('nm-nombre').value = '';
+  document.getElementById('nueva-manzana').hidden = true;
 }
-function addIncidencia(datos){
-  const v = document.getElementById('c-vacio'); if (v) v.style.display = 'none';
-  const cont = document.getElementById('filas-inc');
-  const d = document.createElement('div');
-  d.className = 'fila-inc'; d.dataset.k = ++_nInc;
-  const lista = tiposRecordados().map(t => '<option>' + t.replace(/</g, '&lt;') + '</option>').join('');
-  d.innerHTML = '<span class="etq-her" style="margin:0 0 6px">visita anterior · sin revisar hoy</span>' +
-    '<div class="cab"><div style="flex:1"><label class="et" style="margin-top:0">Fecha del accidente</label>' +
-    '<input type="date" class="inc-fecha"></div>' +
-    '<button type="button" class="quitar" onclick="quitarIncidencia(this)" style="margin-top:22px">✕</button></div>' +
-    '<label class="et">Tipo de accidente</label>' +
-    '<select class="inc-tipo-sel" onchange="cambioTipoInc(this)"><option value="">\u2014 Elija el tipo \u2014</option>' + lista +
-    '<option value="__otro">Otro: escribirlo\u2026</option></select>' +
-    '<input type="text" class="inc-tipo" placeholder="Escriba el tipo de accidente" hidden style="margin-top:6px">' +
-    '<label class="et">Notas de campo</label>' +
-    '<textarea class="inc-notas" placeholder="Qué pasó, dónde, quién, cómo estaba el sitio..."></textarea>' +
-    '<label class="et">Acciones a tomar</label>' +
-    '<textarea class="inc-acciones" placeholder="Qué se decidió hacer, quién y para cuándo..."></textarea>' +
-    '<label class="et">Estado de la incidencia</label>' +
-    '<div class="sem">' + ESTADOS_INCIDENCIA.map(e =>
-      '<button type="button" data-estado="' + e[0] + '" data-color="' + e[1] + '" onclick="marcarSem(this)">' + e[0] + '</button>').join('') + '</div>' +
-    bloqueFotos('fotos-inc-' + _nInc, 'Fotografías de la incidencia');
-  cont.appendChild(d);
-  if (datos){
-    d.querySelector('.inc-fecha').value = datos.fecha || '';
-    ponerTipoInc(d, datos.tipo || '');
-    d.querySelector('.inc-notas').value = datos.notas || '';
-    d.querySelector('.inc-acciones').value = datos.acciones || '';
-    ponerSem(d, datos.estado || '');
-    pintarFotos(d.querySelector('.fotos'), (datos.fotos || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '…' }));
-  } else {
-    d.querySelector('.inc-fecha').value = document.getElementById('fecha').value || '';
-    ponerSem(d, ESTADOS_INCIDENCIA[0][0]);
-    d.querySelector('.inc-tipo-sel').focus();
-  }
-  marcar();
+
+function unidadDe(sid, nombre, fijo){
+  const u = ((UNIDAD_DE[sid] || {})[nombre]) || '';
+  if (fijo && u) return '<span class="ud">' + u + '</span>';
+  return '<select class="ud-sel" onchange="marcar()"><option value="">unidad</option>' +
+    UNIDADES.map(x => '<option' + (x === u ? ' selected' : '') + '>' + x + '</option>').join('') + '</select>';
 }
-// El tipo: un desplegable con los de base y los que este teléfono ya escribió;
-// «Otro» abre el campo de texto. Un desplegable se entiende en cualquier
-// teléfono; una lista de sugerencias (datalist) no siempre aparece.
-function cambioTipoInc(sel){
-  const inp = sel.parentElement.querySelector('.inc-tipo');
-  if (sel.value === '__otro'){ inp.hidden = false; inp.value = ''; inp.focus(); }
-  else { inp.hidden = true; inp.value = sel.value; }
-  marcar();
+function unidadLeida(it){
+  const s = it.querySelector('.ud-sel'); if (s) return s.value || '';
+  const e = it.querySelector('.ud'); return e ? e.textContent.trim() : '';
 }
-function ponerTipoInc(fila, tipo){
-  const sel = fila.querySelector('.inc-tipo-sel'), inp = fila.querySelector('.inc-tipo');
-  const enLista = tipo && [...sel.options].some(o => o.value === tipo);
-  if (!tipo){ sel.value = ''; inp.hidden = true; inp.value = ''; }
-  else if (enLista){ sel.value = tipo; inp.hidden = true; inp.value = tipo; }
-  else { sel.value = '__otro'; inp.hidden = false; inp.value = tipo; }
+function ponerCant(el, it){
+  el.querySelector('.cant').value = it.cant || '';
+  el.querySelector('.pr').value = it.pr || '';
+  const s = el.querySelector('.ud-sel'); if (s && it.ud) s.value = it.ud;
+  actualizarAvance(el);
 }
-function quitarIncidencia(btn){
-  btn.closest('.fila-inc').remove();
-  if (!document.querySelectorAll('#filas-inc .fila-inc').length){
-    const v = document.getElementById('c-vacio'); if (v) v.style.display = '';
-  }
-  marcar();
+// % de avance = ejecutado / proyectado, solo cuando hay proyectado. Sin él no
+// se inventa ningún porcentaje.
+function actualizarAvance(it){
+  const c = parseFloat(it.querySelector('.cant').value), p = parseFloat(it.querySelector('.pr').value);
+  const a = it.querySelector('.avance');
+  a.textContent = (p > 0 && c >= 0) ? Math.round(c / p * 100) + '%' : '';
 }
-function ponerSem(fila, estado){
-  fila.querySelectorAll('.sem button').forEach(b => {
-    const on = b.dataset.estado === estado;
-    b.classList.toggle('sem-on', on);
-    b.style.background = on ? b.dataset.color : '';
+function actualizarAvances(){ document.querySelectorAll('.item').forEach(actualizarAvance); }
+
+function seccionesRecordadas(){
+  try { return JSON.parse(localStorage.getItem(CLAVE_SECCIONES) || '[]'); } catch(e){ return []; }
+}
+function recordarSeccion(s){
+  const rec = seccionesRecordadas();
+  if (!rec.some(x => x.id === s.id)) rec.push({ id: s.id, nombre: s.nombre, items: [] });
+  try { localStorage.setItem(CLAVE_SECCIONES, JSON.stringify(rec)); } catch(e){}
+}
+function cargarSeccionesRecordadas(){
+  seccionesRecordadas().forEach(s => { if (!GENERAL.some(g => g.id === s.id)) GENERAL.push({ id: s.id, nombre: s.nombre, items: [] }); });
+}
+function agregarSeccion(){
+  const nombre = (document.getElementById('ns-nombre').value || '').trim();
+  if (!nombre){ alert('Escriba el nombre de la sección.'); return; }
+  const id = 'urb_x_' + limpiar(nombre).toLowerCase();
+  if (GENERAL.some(g => g.id === id)){ alert('Esa sección ya existe.'); return; }
+  // Lo que hay en pantalla se guarda ANTES de sumar la sección (guardar lee
+  // GENERAL y la sección aún no está pintada), se vuelve a pintar todo y se
+  // reabre: pintar una sección sola exigiría partir el motor en dos.
+  const habia = !formularioEnBlanco();
+  if (habia) guardar(false);
+  const id0 = idActual;
+  const s = { id, nombre: (GENERAL.length + 1) + '. ' + nombre.toUpperCase(), items: [] };
+  GENERAL.push(s); recordarSeccion(s);
+  pintarGeneral();
+  if (habia && id0) cargarInforme(id0);
+  document.getElementById('ns-nombre').value = '';
+  plegar(id, true);
+  document.getElementById('srv-' + id).scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+// Un informe guardado o heredado puede traer secciones que este teléfono no
+// tiene: se crean antes de pintarlo.
+function asegurarSecciones(general){
+  let nuevas = false;
+  (general || []).forEach(g => {
+    if (!g || !g.id || GENERAL.some(s => s.id === g.id)) return;
+    const s = { id: g.id, nombre: g.nombre || g.id, items: [] };
+    GENERAL.push(s); recordarSeccion(s); nuevas = true;
   });
-}
-function valorSem(fila){
-  const b = fila.querySelector('.sem button.sem-on');
-  return b ? b.dataset.estado : '';
-}
-// Tocar el estado que ya tenía lo confirma para hoy (como en Sí/No).
-function marcarSem(btn){
-  const fila = btn.closest('.fila-inc');
-  ponerSem(fila, btn.dataset.estado);
-  tocado(btn); marcar();
-}
-function leerIncidencias(){
-  return [...document.querySelectorAll('#filas-inc .fila-inc')].map(f => ({
-    fecha: f.querySelector('.inc-fecha').value || '',
-    tipo: (f.querySelector('.inc-tipo').value || '').trim(),
-    notas: (f.querySelector('.inc-notas').value || '').trim(),
-    acciones: (f.querySelector('.inc-acciones').value || '').trim(),
-    estado: valorSem(f),
-    heredado: f.dataset.heredado || '',
-    fotos: leerFotos(f.querySelector('.fotos'))
-  }));
+  if (nuevas) pintarGeneral();
 }
 
 </script>

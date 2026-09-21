@@ -20,8 +20,9 @@ python3 construir-menu.py | head -1
 python3 construir.py > /dev/null && echo "✓ inspeccion.html construido"
 python3 construir-servicios.py | head -1
 python3 construir-sha.py | head -1
+python3 construir-urbanismo.py | head -1
 echo "sw.js: v$nueva"
-for f in index.html inspeccion.html servicios.html sha.html; do
+for f in index.html inspeccion.html servicios.html sha.html urbanismo.html; do
   v=$(grep -o "en línea[^v]*v[0-9]*\|en línea · v[0-9]*" "$f" | grep -o "v[0-9]*" | head -1)
   [ "$v" = "v$nueva" ] || { echo "✗ $f dice $v y no v$nueva"; exit 1; }
   echo "✓ $f dice $v"
