@@ -14,7 +14,8 @@
 [hidden]{display:none !important}
 body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--fondo);
      color:var(--texto);margin:0;padding:0 0 140px;font-size:15px;line-height:1.45}
-header{background:var(--azul);color:#fff;padding:12px 14px;position:sticky;top:0;z-index:30}
+header{background:var(--azul);color:#fff;padding:12px 96px 12px 14px;position:sticky;top:0;z-index:30}
+header .inicio{position:absolute;right:12px;top:10px;color:#fff;text-decoration:none;font-size:13px;font-weight:700;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:0 10px;min-height:38px;display:flex;align-items:center;gap:4px}
 header h1{margin:0;font-size:15px;font-weight:700;letter-spacing:.3px}
 header .nro{font-size:12px;opacity:.85;margin-top:3px;font-variant-numeric:tabular-nums}
 .envoltorio{max-width:900px;margin:0 auto;padding:12px}
@@ -169,6 +170,9 @@ body.plan .item{border-color:#1a237e}
 <header>
   <h1>INSPECCIÓN DE URBANISMO</h1>
   <div class="nro" id="nro">—</div>
+  <!-- Skarlet (21-sep): un botón para salir del formulario y volver a la página
+       principal. Guarda antes de irse: lo escrito en los últimos 2 s no se pierde. -->
+  <a class="inicio" href="./index.html" onclick="irAlMenu(event)" title="Guarda el informe y vuelve a la página principal">🏠 Inicio</a>
 </header>
 
 <div class="envoltorio">
@@ -176,6 +180,10 @@ body.plan .item{border-color:#1a237e}
     <div class="rejilla">
       <!-- La TORRE va primera y determina lo demás. El inspector llega a una
            torre sabiendo la torre, no la empresa. -->
+      <div class="campo">
+        <label for="convenio">Sector</label>
+        <select id="convenio"><option value="">— Seleccione sector —</option><option value="Convenio Bielorrusos">Ezequiel Zamora</option><option value="Convenio Rusos">Simón Rodríguez</option><option value="Convenio Chinos">Simón Bolívar</option></select>
+      </div>
       <div class="campo">
         <label for="torre">Manzana / lote</label>
         <select id="torre"><option value="">— Seleccione manzana o lote —</option></select>
@@ -190,10 +198,6 @@ body.plan .item{border-color:#1a237e}
             <button type="button" class="btn-add" onclick="document.getElementById('nueva-manzana').hidden=true">Cancelar</button>
           </div>
         </div>
-      </div>
-      <div class="campo">
-        <label for="convenio">Sector</label>
-        <select id="convenio"><option value="">—</option></select>
       </div>
       <div class="campo">
         <label for="empresa">Empresa ejecutora</label>
@@ -244,7 +248,7 @@ body.plan .item{border-color:#1a237e}
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v84</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v85</div>
 </div>
 
 <div class="acciones">
@@ -253,6 +257,7 @@ body.plan .item{border-color:#1a237e}
   <div class="fila-mas" id="fila-mas" hidden>
     <button type="button" class="b1" onclick="guardar(true)" title="Guarda en este teléfono. Se guarda solo a los 2 segundos y cada 30">💾 Guardar</button>
     <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
+    <button type="button" class="b1" onclick="alternarPlanificacion()" title="Muestra u oculta el campo de cantidad proyectada, que carga Planificación">📊 Proyectadas</button>
   </div>
   <div class="fila-principal">
     <button type="button" class="b1" onclick="siguienteTorre()" title="Guarda este informe y prepara el de la siguiente manzana, conservando inspector, fecha y estatus">➡️ Sig. manzana</button>
@@ -396,16 +401,11 @@ function alElegirTorre(){
   _torreAnterior = t;
   const conv = document.getElementById('convenio');
   const aviso = document.getElementById('aviso-torre');
-  conv.innerHTML = '<option value="">—</option>';
   aviso.innerHTML = '';
   if (!t) { document.getElementById('empresa').value = '';
             document.getElementById('residente').value = ''; return actualizarNro(); }
 
   const filas = entradasDe(t);
-  filas.forEach(f => {
-    const o = document.createElement('option');
-    o.value = f.c; o.textContent = NOMBRE_SECTOR[f.c] || f.c; conv.appendChild(o);
-  });
 
   if (filas.length === 1) {
     conv.value = filas[0].c;
@@ -425,6 +425,10 @@ function alElegirTorre(){
 function alElegirConvenio(){
   const t = document.getElementById('torre').value;
   const c = document.getElementById('convenio').value;
+  llenarManzanas(c);
+  // Sin sector, o con otro, la manzana elegida ya no corresponde: se suelta.
+  if (t && (!c || !entradasDe(t).some(x => x.c === c))){ document.getElementById('torre').value = ''; alElegirTorre(); }
+  if (c && !document.getElementById('torre').value) document.getElementById('empresa').value = EMPRESA_POR_SECTOR[c] || '';
   const f = TORRES_DATA.find(x => x.t === t && x.c === c);
   if (f) { document.getElementById('empresa').value = f.e || '';
            document.getElementById('residente').value = f.r || ''; }
@@ -464,6 +468,14 @@ function actualizarNro(){
     (TEST_MODE ? 'PRUEBA-' : '') + 'URB-' + sec + '-' + (limpiar(t) || '---') + '-' + fec + '-' + iniciales();
 }
 function numeroInforme(){ return document.getElementById('nro').textContent; }
+
+// «🏠 Inicio»: guarda (si hay algo que guardar) y vuelve al menú. El modo de
+// prueba viaja en el enlace, como cuando el menú abre el formulario.
+function irAlMenu(ev){
+  if (ev) ev.preventDefault();
+  try { guardar(false); } catch(e){}
+  location.href = './index.html' + (TEST_MODE ? '?prueba=1' : '');
+}
 
 // ── Modo de prueba ────────────────────────────────────────────────────────
 // Entra por el enlace —?prueba=1—, que el menú propaga. Marca los informes
@@ -1789,9 +1801,7 @@ if ('serviceWorker' in navigator) {
 (function(){
   const sel = document.getElementById('torre');
   manzanasRecordadas().forEach(m => { if (!TORRES_DATA.some(x => x.t === m.t)) TORRES_DATA.push(m); });
-  torresUnicas().forEach(t => {
-    const o = document.createElement('option'); o.value = t; const e0 = entradasDe(t)[0]; o.textContent = t + (e0 ? ' · ' + (NOMBRE_SECTOR[e0.c] || e0.c) : ''); sel.appendChild(o);
-  });
+  llenarManzanas('');
   sel.onchange = alElegirTorre;
   document.getElementById('convenio').onchange = alElegirConvenio;
   // `valueAsDate` y `toISOString()` dan la fecha UTC. Venezuela es UTC−4, así
@@ -1812,7 +1822,7 @@ if ('serviceWorker' in navigator) {
   }
   cargarSeccionesRecordadas();
   pintarGeneral(); pintarApartamentos(); addInspector();
-  if (/[?&]rol=planificacion/.test(location.search)){ document.body.classList.add('plan'); const a = document.createElement('div'); a.className = 'plan-aviso'; a.textContent = '📊 Modo Planificación: aquí se escribe la cantidad proyectada de cada partida. El inspector no ve este campo.'; document.querySelector('.envoltorio').prepend(a); }
+  if (/[?&]rol=planificacion/.test(location.search)) alternarPlanificacion(true);
   actualizarNro(); actualizarContador(); actualizarCuentas();
   // TODO campo que se toque marca el informe para guardar, sin depender de que
   // cada control lleve su propio disparador. Residente, empresa y observación
@@ -1830,6 +1840,27 @@ if ('serviceWorker' in navigator) {
   reabrirActual();
 })();
 
+// La lista de manzanas según el sector: con sector, solo las suyas; sin sector,
+// todas, cada una con el suyo al lado para que M-2 de un sector no se confunda
+// con M-2 de otro. Un sector sin manzanas cargadas lo dice en la propia lista.
+function llenarManzanas(c){
+  const sel = document.getElementById('torre');
+  const actual = sel.value;
+  const lista = torresUnicas().filter(t => !c || entradasDe(t).some(x => x.c === c));
+  sel.innerHTML = '';
+  const o0 = document.createElement('option'); o0.value = '';
+  o0.textContent = !c ? '\u2014 Seleccione manzana o lote \u2014'
+                 : lista.length ? '\u2014 Seleccione manzana o lote \u2014'
+                 : '\u2014 Sin manzanas cargadas: agr\u00e9guela abajo \u2014';
+  sel.appendChild(o0);
+  lista.forEach(t => {
+    const e0 = entradasDe(t)[0];
+    const o = document.createElement('option'); o.value = t;
+    o.textContent = c ? t : t + (e0 ? ' \u00b7 ' + (NOMBRE_SECTOR[e0.c] || e0.c) : '');
+    sel.appendChild(o);
+  });
+  if (actual && lista.includes(actual)) sel.value = actual;
+}
 function manzanasRecordadas(){
   try { return JSON.parse(localStorage.getItem(CLAVE_MANZANAS) || '[]'); } catch(e){ return []; }
 }
@@ -1851,9 +1882,9 @@ function guardarNuevaManzana(){
   TORRES_DATA.push(fila);
   const rec = manzanasRecordadas(); rec.push(fila);
   try { localStorage.setItem(CLAVE_MANZANAS, JSON.stringify(rec)); } catch(e){}
-  const sel = document.getElementById('torre');
-  const o = document.createElement('option'); o.value = nombre; o.textContent = nombre + ' · ' + (NOMBRE_SECTOR[c] || c); sel.appendChild(o);
-  sel.value = nombre; alElegirTorre();
+  document.getElementById('convenio').value = c;
+  llenarManzanas(c);
+  document.getElementById('torre').value = nombre; alElegirTorre();
   document.getElementById('nm-nombre').value = '';
   document.getElementById('nueva-manzana').hidden = true;
 }
@@ -1923,6 +1954,17 @@ function asegurarSecciones(general){
     GENERAL.push(s); recordarSeccion(s); nuevas = true;
   });
   if (nuevas) pintarGeneral();
+}
+
+// Planificación carga la cantidad proyectada por partida. Entra por el botón
+// «Proyectadas» (detrás del «⋯») o por ?rol=planificacion; se ve un aviso.
+function alternarPlanificacion(encender){
+  const b = document.body;
+  const on = encender === true ? true : !b.classList.contains('plan');
+  b.classList.toggle('plan', on);
+  let a = document.querySelector('.plan-aviso');
+  if (on && !a){ a = document.createElement('div'); a.className = 'plan-aviso'; a.textContent = '📊 Modo Planificación: aquí se escribe la cantidad proyectada de cada partida. El inspector no ve este campo. Toque «Proyectadas» otra vez para salir.'; document.querySelector('.envoltorio').prepend(a); }
+  if (!on && a) a.remove();
 }
 
 </script>

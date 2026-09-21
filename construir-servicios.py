@@ -68,7 +68,8 @@ CSS = """
 [hidden]{display:none !important}
 body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--fondo);
      color:var(--texto);margin:0;padding:0 0 140px;font-size:15px;line-height:1.45}
-header{background:var(--azul);color:#fff;padding:12px 14px;position:sticky;top:0;z-index:30}
+header{background:var(--azul);color:#fff;padding:12px 96px 12px 14px;position:sticky;top:0;z-index:30}
+header .inicio{position:absolute;right:12px;top:10px;color:#fff;text-decoration:none;font-size:13px;font-weight:700;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:0 10px;min-height:38px;display:flex;align-items:center;gap:4px}
 header h1{margin:0;font-size:15px;font-weight:700;letter-spacing:.3px}
 header .nro{font-size:12px;opacity:.85;margin-top:3px;font-variant-numeric:tabular-nums}
 .envoltorio{max-width:900px;margin:0 auto;padding:12px}
@@ -224,6 +225,9 @@ HTML = """<!DOCTYPE html>
 <header>
   <h1>INSPECCIÓN DE SERVICIOS PÚBLICOS</h1>
   <div class="nro" id="nro">—</div>
+  <!-- Skarlet (21-sep): un botón para salir del formulario y volver a la página
+       principal. Guarda antes de irse: lo escrito en los últimos 2 s no se pierde. -->
+  <a class="inicio" href="./index.html" onclick="irAlMenu(event)" title="Guarda el informe y vuelve a la página principal">🏠 Inicio</a>
 </header>
 
 <div class="envoltorio">
@@ -412,6 +416,14 @@ function actualizarNro(){
     (TEST_MODE ? 'PRUEBA-' : '') + 'SRV-' + sec + '-' + (limpiar(t) || '---') + '-' + fec + '-' + iniciales();
 }
 function numeroInforme(){ return document.getElementById('nro').textContent; }
+
+// «🏠 Inicio»: guarda (si hay algo que guardar) y vuelve al menú. El modo de
+// prueba viaja en el enlace, como cuando el menú abre el formulario.
+function irAlMenu(ev){
+  if (ev) ev.preventDefault();
+  try { guardar(false); } catch(e){}
+  location.href = './index.html' + (TEST_MODE ? '?prueba=1' : '');
+}
 
 // ── Modo de prueba ────────────────────────────────────────────────────────
 // Entra por el enlace —?prueba=1—, que el menú propaga. Marca los informes

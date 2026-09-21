@@ -803,6 +803,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
   @page{margin:11mm 11mm;size:portrait}
 }
 .tbl-wrap td.falt-cell, td.falt-cell{display:none!important}   /* el faltante no se registra aquí (4-sep-2026) */
+.hbtn-inicio{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3)}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a237e">
@@ -836,6 +837,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
       <button class="hbtn hbtn-pdf" onclick="imprimirInforme()" title="Genera el PDF del informe que está en pantalla">🖨️ <span>PDF</span></button>
       <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guarda el informe en este teléfono. Se guarda solo a los 2 segundos de la última tecla y cada 30 segundos">💾 <span>Guardar</span></button>
       <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" style="display:none" title="Activar modo de prueba — los informes quedan marcados como PRUEBA">🧪 <span>Prueba</span></button>
+      <button class="hbtn hbtn-inicio" onclick="irAlMenu()" title="Guarda el informe y vuelve a la página principal, la que elige formulario">🏠 <span>Inicio</span></button>
     </div>
     <!-- «Finalizar» retirado: hacía lo mismo que «Guardar y siguiente» pero sin guardar. -->
   </div>
@@ -1301,10 +1303,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v84';
+    el.textContent = '● en línea · v85';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v84 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v85 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -1958,6 +1960,10 @@ function toggleMasAcciones(){
   if(btn) btn.querySelector('span').textContent = abierto ? 'Menos' : 'Más';
 }
 
+function irAlMenu(){
+  try { if (typeof autoguardar === 'function') autoguardar(); } catch(e){}
+  location.href = './index.html' + (TEST_MODE ? '?prueba=1' : '');
+}
 function toggleTestMode() {
   if(!TEST_MODE && !confirm('¿Activar el MODO PRUEBA?\n\nLos informes quedarán marcados como PRUEBA y no cuentan como inspección real.')) return;
   TEST_MODE = !TEST_MODE;

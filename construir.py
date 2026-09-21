@@ -7461,6 +7461,28 @@ s = sustituir(s,
  "                       : '\u274c No se pudo enviar. El borrador no se perdi\u00f3. (detalle: ' + String(e && e.message || e).slice(0, 90) + ')', 'err');",
  "141b\u00b7 y el de sin conexi\u00f3n tambi\u00e9n")
 
+# ── 142. «🏠 Inicio»: salir del formulario a la página principal ──────────
+# Skarlet (21-sep-2026): no había forma de volver al menú sin escribir la
+# dirección. Va con los botones de «⋯ Más» (en pantalla ancha se ve directo).
+# Guarda antes de salir y conserva el modo de prueba en el enlace.
+s = sustituir(s,
+ '      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" style="display:none" title="Activar modo de prueba \u2014 los informes quedan marcados como PRUEBA">\U0001f9ea <span>Prueba</span></button>\n',
+ '      <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" style="display:none" title="Activar modo de prueba \u2014 los informes quedan marcados como PRUEBA">\U0001f9ea <span>Prueba</span></button>\n'
+ '      <button class="hbtn hbtn-inicio" onclick="irAlMenu()" title="Guarda el informe y vuelve a la p\u00e1gina principal, la que elige formulario">\U0001f3e0 <span>Inicio</span></button>\n',
+ "142a\u00b7 bot\u00f3n «Inicio» con las acciones de «M\u00e1s»")
+s = sustituir(s,
+ "</style>",
+ ".hbtn-inicio{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3)}\n</style>",
+ "142b\u00b7 su estilo, como el de «M\u00e1s»")
+s = sustituir(s,
+ "function toggleTestMode() {",
+ "function irAlMenu(){\n"
+ "  try { if (typeof autoguardar === 'function') autoguardar(); } catch(e){}\n"
+ "  location.href = './index.html' + (TEST_MODE ? '?prueba=1' : '');\n"
+ "}\n"
+ "function toggleTestMode() {",
+ "142c\u00b7 guarda y vuelve al men\u00fa, con el modo de prueba en el enlace")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

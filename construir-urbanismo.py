@@ -56,9 +56,22 @@ def sustituir(s, viejo, nuevo, etiqueta, n=1):
 H = motor.HTML
 H = sustituir(H, "<title>Inspección de Servicios — GARMEL</title>", "<title>Inspección de Urbanismo — GARMEL</title>", "1· título")
 H = sustituir(H, "<h1>INSPECCIÓN DE SERVICIOS PÚBLICOS</h1>", "<h1>INSPECCIÓN DE URBANISMO</h1>", "2· cabecera")
-H = sustituir(H, """        <label for="torre">Torre</label>
-        <select id="torre"><option value="">— Seleccione torre —</option></select>""",
-"""        <label for="torre">Manzana / lote</label>
+# Skarlet (21-sep): el sector va PRIMERO y condiciona la lista de manzanas. Sin
+# sector se ven todas, cada una con el suyo; con sector, solo las de ese sector.
+H = sustituir(H, """      <div class="campo">
+        <label for="torre">Torre</label>
+        <select id="torre"><option value="">— Seleccione torre —</option></select>
+      </div>
+      <div class="campo">
+        <label for="convenio">Convenio</label>
+        <select id="convenio"><option value="">—</option></select>
+      </div>""",
+"""      <div class="campo">
+        <label for="convenio">Sector</label>
+        <select id="convenio"><option value="">— Seleccione sector —</option>@@SECTORES@@</select>
+      </div>
+      <div class="campo">
+        <label for="torre">Manzana / lote</label>
         <select id="torre"><option value="">— Seleccione manzana o lote —</option></select>
         <button type="button" class="btn-add" style="margin-top:6px" onclick="abrirNuevaManzana()">＋ Agregar manzana o lote</button>
         <div id="nueva-manzana" hidden style="margin-top:8px;padding:10px;border:1px dashed var(--azul);border-radius:8px;background:var(--azul-cl)">
@@ -70,8 +83,8 @@ H = sustituir(H, """        <label for="torre">Torre</label>
             <button type="button" class="btn-add" onclick="guardarNuevaManzana()">Guardar</button>
             <button type="button" class="btn-add" onclick="document.getElementById('nueva-manzana').hidden=true">Cancelar</button>
           </div>
-        </div>""", "3· manzana en vez de torre")
-H = sustituir(H, """<label for="convenio">Convenio</label>""", """<label for="convenio">Sector</label>""", "4· sector en vez de convenio")
+        </div>
+      </div>""", "3· sector primero, manzana en vez de torre")
 H = sustituir(H, 'placeholder="Se llena al elegir la torre"', 'placeholder="Se llena al elegir la manzana"', "5· placeholders", n=2)
 H = sustituir(H, '<input type="text" id="residente" placeholder="Se llena al elegir la manzana">',
                  '<input type="text" id="residente" placeholder="Escríbalo la primera vez; se recuerda por manzana">', "5b· residente")
@@ -91,6 +104,11 @@ H = sustituir(H, """  <div class="tarjeta">
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>""", "6· agregar sección y observación general")
 H = sustituir(H, "➡️ Sig. torre", "➡️ Sig. manzana", "7· botón")
+# 7c · El botón interno de Planificación (respuesta 4 de Skarlet): detrás del
+# «⋯», enciende y apaga el campo «Proyectado» sin cambiar de enlace.
+H = sustituir(H, """    <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>""",
+"""    <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
+    <button type="button" class="b1" onclick="alternarPlanificacion()" title="Muestra u oculta el campo de cantidad proyectada, que carga Planificación">📊 Proyectadas</button>""", "7c· botón de Planificación")
 H = sustituir(H, 'title="Guarda este informe y prepara el de la siguiente torre, conservando inspector, fecha y estatus"',
                  'title="Guarda este informe y prepara el de la siguiente manzana, conservando inspector, fecha y estatus"', "7b· pie de botón")
 
@@ -129,11 +147,57 @@ J = sustituir(J, "indexedDB.open('garmel_servicios', 1)", "indexedDB.open('garme
 
 # 11 · La cabecera: el sector se muestra con su nombre, la empresa sale del
 # sector, las manzanas agregadas se recuerdan.
-J = sustituir(J, "    o.value = f.c; o.textContent = f.c; conv.appendChild(o);",
-                 "    o.value = f.c; o.textContent = NOMBRE_SECTOR[f.c] || f.c; conv.appendChild(o);", "11a· nombre del sector")
-J = sustituir(J, "  torresUnicas().forEach(t => {",
-                 "  manzanasRecordadas().forEach(m => { if (!TORRES_DATA.some(x => x.t === m.t)) TORRES_DATA.push(m); });\n  torresUnicas().forEach(t => {", "11b· manzanas recordadas en el desplegable")
+# 11a · El desplegable de sectores es fijo (viene del HTML): elegir una manzana
+# no lo rehace, solo marca el sector de esa manzana.
+J = sustituir(J, "  conv.innerHTML = '<option value=\"\">\u2014</option>';\n  aviso.innerHTML = '';",
+                 "  aviso.innerHTML = '';", "11a· el desplegable de sectores no se rehace")
+J = sustituir(J, """  const filas = entradasDe(t);
+  filas.forEach(f => {
+    const o = document.createElement('option');
+    o.value = f.c; o.textContent = f.c; conv.appendChild(o);
+  });
+""", "  const filas = entradasDe(t);\n", "11a'· la manzana fija su sector")
+# 11b · Elegir sector filtra las manzanas; si la elegida no es de ese sector, se
+# suelta. Sin manzana, la empresa ya se sabe por el sector.
+J = sustituir(J, """function alElegirConvenio(){
+  const t = document.getElementById('torre').value;
+  const c = document.getElementById('convenio').value;
+""", """function alElegirConvenio(){
+  const t = document.getElementById('torre').value;
+  const c = document.getElementById('convenio').value;
+  llenarManzanas(c);
+  // Sin sector, o con otro, la manzana elegida ya no corresponde: se suelta.
+  if (t && (!c || !entradasDe(t).some(x => x.c === c))){ document.getElementById('torre').value = ''; alElegirTorre(); }
+  if (c && !document.getElementById('torre').value) document.getElementById('empresa').value = EMPRESA_POR_SECTOR[c] || '';
+""", "11b· el sector filtra las manzanas")
+J = sustituir(J, """  torresUnicas().forEach(t => {
+    const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
+  });
+""", """  manzanasRecordadas().forEach(m => { if (!TORRES_DATA.some(x => x.t === m.t)) TORRES_DATA.push(m); });
+  llenarManzanas('');
+""", "11b'· arranque: manzanas recordadas y lista completa")
 J += r"""
+// La lista de manzanas según el sector: con sector, solo las suyas; sin sector,
+// todas, cada una con el suyo al lado para que M-2 de un sector no se confunda
+// con M-2 de otro. Un sector sin manzanas cargadas lo dice en la propia lista.
+function llenarManzanas(c){
+  const sel = document.getElementById('torre');
+  const actual = sel.value;
+  const lista = torresUnicas().filter(t => !c || entradasDe(t).some(x => x.c === c));
+  sel.innerHTML = '';
+  const o0 = document.createElement('option'); o0.value = '';
+  o0.textContent = !c ? '\u2014 Seleccione manzana o lote \u2014'
+                 : lista.length ? '\u2014 Seleccione manzana o lote \u2014'
+                 : '\u2014 Sin manzanas cargadas: agr\u00e9guela abajo \u2014';
+  sel.appendChild(o0);
+  lista.forEach(t => {
+    const e0 = entradasDe(t)[0];
+    const o = document.createElement('option'); o.value = t;
+    o.textContent = c ? t : t + (e0 ? ' \u00b7 ' + (NOMBRE_SECTOR[e0.c] || e0.c) : '');
+    sel.appendChild(o);
+  });
+  if (actual && lista.includes(actual)) sel.value = actual;
+}
 function manzanasRecordadas(){
   try { return JSON.parse(localStorage.getItem(CLAVE_MANZANAS) || '[]'); } catch(e){ return []; }
 }
@@ -155,17 +219,13 @@ function guardarNuevaManzana(){
   TORRES_DATA.push(fila);
   const rec = manzanasRecordadas(); rec.push(fila);
   try { localStorage.setItem(CLAVE_MANZANAS, JSON.stringify(rec)); } catch(e){}
-  const sel = document.getElementById('torre');
-  const o = document.createElement('option'); o.value = nombre; o.textContent = nombre + ' · ' + (NOMBRE_SECTOR[c] || c); sel.appendChild(o);
-  sel.value = nombre; alElegirTorre();
+  document.getElementById('convenio').value = c;
+  llenarManzanas(c);
+  document.getElementById('torre').value = nombre; alElegirTorre();
   document.getElementById('nm-nombre').value = '';
   document.getElementById('nueva-manzana').hidden = true;
 }
 """
-# El texto de cada opción de manzana lleva su sector, para que M-2 de un sector
-# no se confunda con M-2 de otro.
-J = sustituir(J, "  torresUnicas().forEach(t => {\n    const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);",
-                 "  torresUnicas().forEach(t => {\n    const o = document.createElement('option'); o.value = t; const e0 = entradasDe(t)[0]; o.textContent = t + (e0 ? ' · ' + (NOMBRE_SECTOR[e0.c] || e0.c) : ''); sel.appendChild(o);", "11c· manzana con su sector")
 
 # 12 · La fila de partida: cantidad ejecutada con unidad fija, proyectada (solo
 # planificación), calidad B / R / M / N-A y observación.
@@ -307,7 +367,19 @@ J = sustituir(J, "    (d.general || []).forEach(g => {\n      const cont = docum
 J = sustituir(J, "  (e.general || []).forEach(g => {\n    const cont = document.getElementById('items-' + g.id); if (!cont) return;",
                  "  asegurarSecciones(e.general);\n  (e.general || []).forEach(g => {\n    const cont = document.getElementById('items-' + g.id); if (!cont) return;", "15b· heredar con secciones nuevas")
 J = sustituir(J, "  pintarGeneral(); pintarApartamentos(); addInspector();",
-                 "  cargarSeccionesRecordadas();\n  pintarGeneral(); pintarApartamentos(); addInspector();\n  if (/[?&]rol=planificacion/.test(location.search)){ document.body.classList.add('plan'); const a = document.createElement('div'); a.className = 'plan-aviso'; a.textContent = '📊 Modo Planificación: aquí se escribe la cantidad proyectada de cada partida. El inspector no ve este campo.'; document.querySelector('.envoltorio').prepend(a); }", "15c· al arrancar")
+                 "  cargarSeccionesRecordadas();\n  pintarGeneral(); pintarApartamentos(); addInspector();\n  if (/[?&]rol=planificacion/.test(location.search)) alternarPlanificacion(true);", "15c· al arrancar")
+J += r"""
+// Planificación carga la cantidad proyectada por partida. Entra por el botón
+// «Proyectadas» (detrás del «⋯») o por ?rol=planificacion; se ve un aviso.
+function alternarPlanificacion(encender){
+  const b = document.body;
+  const on = encender === true ? true : !b.classList.contains('plan');
+  b.classList.toggle('plan', on);
+  let a = document.querySelector('.plan-aviso');
+  if (on && !a){ a = document.createElement('div'); a.className = 'plan-aviso'; a.textContent = '📊 Modo Planificación: aquí se escribe la cantidad proyectada de cada partida. El inspector no ve este campo. Toque «Proyectadas» otra vez para salir.'; document.querySelector('.envoltorio').prepend(a); }
+  if (!on && a) a.remove();
+}
+"""
 
 # 16 · Freno: sin relevo que acepte 'urbanismo', no se envía.
 J = sustituir(J, """async function enviar(){
