@@ -93,7 +93,6 @@ TIPOS_INCIDENCIA = [
     "Contacto eléctrico",
     "Caída de objeto",
     "Tránsito interno",
-    "Otro",
 ]
 # (nombre, color): rojo / ámbar / verde. Abierta y En seguimiento vuelven en la
 # visita siguiente; Cerrada no.

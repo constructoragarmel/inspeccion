@@ -183,6 +183,10 @@ J = sustituir(J, "      } else if (tipo === 'cant'){",
 # 14 · Textos de conteo: hallazgos, no apartamentos.
 J = sustituir(J, "(aptos ? ' · ' + aptos + ' apto(s)' : '')", "(aptos ? ' · ' + aptos + ' hallazgo(s)' : '')", "14a· historial")
 J = sustituir(J, "(x.apartamentos || []).length + ' apto(s)</div>'", "(x.apartamentos || []).length + ' hallazgo(s)</div>'", "14b· fichas")
+J = sustituir(J, "(x.apartamentos || []).length + ' hallazgo(s)</div>'",
+                 "(x.apartamentos || []).length + ' hallazgo(s)' + ((x.incidencias || []).length ? ' \u00b7 ' + x.incidencias.length + ' incidencia(s)' : '') + '</div>'", "14c· fichas con incidencias")
+J = sustituir(J, "(aptos ? ' · ' + aptos + ' hallazgo(s)' : '')",
+                 "(aptos ? ' · ' + aptos + ' hallazgo(s)' : '') + (function(){ const k = (e.incidencias || []).filter(x => x.estado !== 'Cerrada').length; return k ? ' \u00b7 ' + k + ' incidencia(s) sin cerrar' : ''; })()", "14d· historial con incidencias")
 
 # 15 · Historial por EMPRESA para los recaudos. La memoria por torre sigue
 # igual; además, al guardar, el bloque de recaudos queda anotado bajo la
@@ -393,14 +397,15 @@ function addIncidencia(datos){
   const cont = document.getElementById('filas-inc');
   const d = document.createElement('div');
   d.className = 'fila-inc'; d.dataset.k = ++_nInc;
-  const lista = tiposRecordados().map(t => '<option value="' + t.replace(/"/g, '&quot;') + '">').join('');
+  const lista = tiposRecordados().map(t => '<option>' + t.replace(/</g, '&lt;') + '</option>').join('');
   d.innerHTML = '<span class="etq-her" style="margin:0 0 6px">visita anterior · sin revisar hoy</span>' +
     '<div class="cab"><div style="flex:1"><label class="et" style="margin-top:0">Fecha del accidente</label>' +
     '<input type="date" class="inc-fecha"></div>' +
     '<button type="button" class="quitar" onclick="quitarIncidencia(this)" style="margin-top:22px">✕</button></div>' +
     '<label class="et">Tipo de accidente</label>' +
-    '<input type="text" class="inc-tipo" list="tipos-inc-' + _nInc + '" placeholder="Elija uno o escriba otro">' +
-    '<datalist id="tipos-inc-' + _nInc + '">' + lista + '</datalist>' +
+    '<select class="inc-tipo-sel" onchange="cambioTipoInc(this)"><option value="">\u2014 Elija el tipo \u2014</option>' + lista +
+    '<option value="__otro">Otro: escribirlo\u2026</option></select>' +
+    '<input type="text" class="inc-tipo" placeholder="Escriba el tipo de accidente" hidden style="margin-top:6px">' +
     '<label class="et">Notas de campo</label>' +
     '<textarea class="inc-notas" placeholder="Qué pasó, dónde, quién, cómo estaba el sitio..."></textarea>' +
     '<label class="et">Acciones a tomar</label>' +
@@ -412,7 +417,7 @@ function addIncidencia(datos){
   cont.appendChild(d);
   if (datos){
     d.querySelector('.inc-fecha').value = datos.fecha || '';
-    d.querySelector('.inc-tipo').value = datos.tipo || '';
+    ponerTipoInc(d, datos.tipo || '');
     d.querySelector('.inc-notas').value = datos.notas || '';
     d.querySelector('.inc-acciones').value = datos.acciones || '';
     ponerSem(d, datos.estado || '');
@@ -420,9 +425,25 @@ function addIncidencia(datos){
   } else {
     d.querySelector('.inc-fecha').value = document.getElementById('fecha').value || '';
     ponerSem(d, ESTADOS_INCIDENCIA[0][0]);
-    d.querySelector('.inc-tipo').focus();
+    d.querySelector('.inc-tipo-sel').focus();
   }
   marcar();
+}
+// El tipo: un desplegable con los de base y los que este teléfono ya escribió;
+// «Otro» abre el campo de texto. Un desplegable se entiende en cualquier
+// teléfono; una lista de sugerencias (datalist) no siempre aparece.
+function cambioTipoInc(sel){
+  const inp = sel.parentElement.querySelector('.inc-tipo');
+  if (sel.value === '__otro'){ inp.hidden = false; inp.value = ''; inp.focus(); }
+  else { inp.hidden = true; inp.value = sel.value; }
+  marcar();
+}
+function ponerTipoInc(fila, tipo){
+  const sel = fila.querySelector('.inc-tipo-sel'), inp = fila.querySelector('.inc-tipo');
+  const enLista = tipo && [...sel.options].some(o => o.value === tipo);
+  if (!tipo){ sel.value = ''; inp.hidden = true; inp.value = ''; }
+  else if (enLista){ sel.value = tipo; inp.hidden = true; inp.value = tipo; }
+  else { sel.value = '__otro'; inp.hidden = false; inp.value = tipo; }
 }
 function quitarIncidencia(btn){
   btn.closest('.fila-inc').remove();
@@ -495,7 +516,7 @@ J = sustituir(J, "    apartamentos: (d.apartamentos || []).map(a => ({\n      ap
 J = sustituir(J, "    aprenderItems();\n    anotarEstadoTorre(d);",
                  "    aprenderItems();\n    aprenderTiposIncidencia(d);\n    anotarEstadoTorre(d);", "20q· tipos recordados")
 J = sustituir(J, "  if (d.estatus === 'Rechazado' && !d.accion) f.push('la acci\u00f3n por el rechazo');",
-                 "  if (d.estatus === 'Rechazado' && !d.accion) f.push('la acci\u00f3n por el rechazo');\n  if ((d.incidencias || []).some(x => !x.tipo)) f.push('el tipo de accidente de una incidencia');", "20r· incidencia sin tipo")
+                 "  if (d.estatus === 'Rechazado' && !d.accion) f.push('la acci\u00f3n por el rechazo');\n  (d.incidencias || []).forEach((x, i) => { if (!x.tipo) f.push('el tipo de accidente de la incidencia ' + (i + 1)); });", "20r· incidencia sin tipo")
 
 # ══════════════════════════════════════════════════════════════════════════
 # MONTAJE

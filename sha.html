@@ -236,7 +236,7 @@ textarea{min-height:64px;resize:vertical}
       <div class="fotos" id="fotos-general"></div></div>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v81</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v82</div>
 </div>
 
 <div class="acciones">
@@ -351,7 +351,7 @@ const MAX_FOTO_PX = 1280;
 const CALIDAD_FOTO = 0.72;
 const RELEVO_URL = "https://script.google.com/macros/s/AKfycbwWgYbgMkNcxwN2gAH89N4EVUe6LO_RXR2IzBBc6mFfgJJNjixd6omK_ElAOSiFH-EqYg/exec";
 const ESTADOS_HALLAZGO = ["Pendiente", "En proceso", "Corregido"];
-const TIPOS_INCIDENCIA = ["Caída de altura", "Golpe o atrapamiento", "Corte o herida", "Contacto eléctrico", "Caída de objeto", "Tránsito interno", "Otro"];
+const TIPOS_INCIDENCIA = ["Caída de altura", "Golpe o atrapamiento", "Corte o herida", "Contacto eléctrico", "Caída de objeto", "Tránsito interno"];
 const ESTADOS_INCIDENCIA = [["Abierta", "#dc2626"], ["En seguimiento", "#d97706"], ["Cerrada", "#16a34a"]];
 const CLAVE_TIPOS_INC = 'garmel_sha_tipos_inc';
 let _nInc = 0;
@@ -1263,7 +1263,7 @@ function ofrecerHistorial(){
   caja.innerHTML = '<div class="historial">' +
     '<div class="t">📋 ' + t + ' ya tiene un informe anterior</div>' +
     '<div class="s">' + e.nro + ' · ' + fechaLarga(e.fecha) + ' · ' + n + ' ítem(s) contestado(s)' +
-    (aptos ? ' · ' + aptos + ' hallazgo(s)' : '') +
+    (aptos ? ' · ' + aptos + ' hallazgo(s)' : '') + (function(){ const k = (e.incidencias || []).filter(x => x.estado !== 'Cerrada').length; return k ? ' · ' + k + ' incidencia(s) sin cerrar' : ''; })() +
     '.<br>¿Arrancar desde lo que se registró ese día y marcar solo lo que cambió?</div>' +
     '<div class="b"><button type="button" class="si" onclick="traerHistorial()">Sí, traer lo anterior</button>' +
     '<button type="button" class="no" onclick="document.getElementById(\'aviso-historial\').innerHTML=\'\'">No, empezar en blanco</button></div></div>';
@@ -1357,7 +1357,7 @@ function abrirInformes(){
     if (env)  html += '<button type="button" class="btn-add" style="border-color:#991b1b;color:#991b1b;background:#fee2e2" onclick="borrarEnviados()">🧹 Borrar los ' + env + ' que ya se enviaron</button>';
     [...l].reverse().forEach(x => {
       html += '<div class="ficha"><div class="n">' + x.nro + '</div>' +
-        '<div class="s">📍 ' + (x.torre || '—') + ' · 📅 ' + (x.fecha || '—') + ' · ' + (x.apartamentos || []).length + ' hallazgo(s)</div>' +
+        '<div class="s">📍 ' + (x.torre || '—') + ' · 📅 ' + (x.fecha || '—') + ' · ' + (x.apartamentos || []).length + ' hallazgo(s)' + ((x.incidencias || []).length ? ' · ' + x.incidencias.length + ' incidencia(s)' : '') + '</div>' +
         '<div class="s" style="font-weight:700;color:' + (x.enviado ? '#166534' : '#a15c07') + '">' +
         (x.enviado ? '✅ Enviado ' + x.enviado + (x.editadoTras ? ' · ✏️ editado después (' + x.editadoTras + ')' : '') : '⏳ Sin enviar') + '</div>' +
         '<div class="b"><button type="button" onclick="cargarInforme(\'' + x.id + '\')">📂 Editar</button>' +
@@ -1591,7 +1591,7 @@ function faltan(d){
   if (!d.inspectores.length) f.push('el inspector');
   if (!d.estatus) f.push('el estatus general del cierre');
   if (d.estatus === 'Rechazado' && !d.accion) f.push('la acción por el rechazo');
-  if ((d.incidencias || []).some(x => !x.tipo)) f.push('el tipo de accidente de una incidencia');
+  (d.incidencias || []).forEach((x, i) => { if (!x.tipo) f.push('el tipo de accidente de la incidencia ' + (i + 1)); });
   return f;
 }
 
@@ -1915,14 +1915,15 @@ function addIncidencia(datos){
   const cont = document.getElementById('filas-inc');
   const d = document.createElement('div');
   d.className = 'fila-inc'; d.dataset.k = ++_nInc;
-  const lista = tiposRecordados().map(t => '<option value="' + t.replace(/"/g, '&quot;') + '">').join('');
+  const lista = tiposRecordados().map(t => '<option>' + t.replace(/</g, '&lt;') + '</option>').join('');
   d.innerHTML = '<span class="etq-her" style="margin:0 0 6px">visita anterior · sin revisar hoy</span>' +
     '<div class="cab"><div style="flex:1"><label class="et" style="margin-top:0">Fecha del accidente</label>' +
     '<input type="date" class="inc-fecha"></div>' +
     '<button type="button" class="quitar" onclick="quitarIncidencia(this)" style="margin-top:22px">✕</button></div>' +
     '<label class="et">Tipo de accidente</label>' +
-    '<input type="text" class="inc-tipo" list="tipos-inc-' + _nInc + '" placeholder="Elija uno o escriba otro">' +
-    '<datalist id="tipos-inc-' + _nInc + '">' + lista + '</datalist>' +
+    '<select class="inc-tipo-sel" onchange="cambioTipoInc(this)"><option value="">\u2014 Elija el tipo \u2014</option>' + lista +
+    '<option value="__otro">Otro: escribirlo\u2026</option></select>' +
+    '<input type="text" class="inc-tipo" placeholder="Escriba el tipo de accidente" hidden style="margin-top:6px">' +
     '<label class="et">Notas de campo</label>' +
     '<textarea class="inc-notas" placeholder="Qué pasó, dónde, quién, cómo estaba el sitio..."></textarea>' +
     '<label class="et">Acciones a tomar</label>' +
@@ -1934,7 +1935,7 @@ function addIncidencia(datos){
   cont.appendChild(d);
   if (datos){
     d.querySelector('.inc-fecha').value = datos.fecha || '';
-    d.querySelector('.inc-tipo').value = datos.tipo || '';
+    ponerTipoInc(d, datos.tipo || '');
     d.querySelector('.inc-notas').value = datos.notas || '';
     d.querySelector('.inc-acciones').value = datos.acciones || '';
     ponerSem(d, datos.estado || '');
@@ -1942,9 +1943,25 @@ function addIncidencia(datos){
   } else {
     d.querySelector('.inc-fecha').value = document.getElementById('fecha').value || '';
     ponerSem(d, ESTADOS_INCIDENCIA[0][0]);
-    d.querySelector('.inc-tipo').focus();
+    d.querySelector('.inc-tipo-sel').focus();
   }
   marcar();
+}
+// El tipo: un desplegable con los de base y los que este teléfono ya escribió;
+// «Otro» abre el campo de texto. Un desplegable se entiende en cualquier
+// teléfono; una lista de sugerencias (datalist) no siempre aparece.
+function cambioTipoInc(sel){
+  const inp = sel.parentElement.querySelector('.inc-tipo');
+  if (sel.value === '__otro'){ inp.hidden = false; inp.value = ''; inp.focus(); }
+  else { inp.hidden = true; inp.value = sel.value; }
+  marcar();
+}
+function ponerTipoInc(fila, tipo){
+  const sel = fila.querySelector('.inc-tipo-sel'), inp = fila.querySelector('.inc-tipo');
+  const enLista = tipo && [...sel.options].some(o => o.value === tipo);
+  if (!tipo){ sel.value = ''; inp.hidden = true; inp.value = ''; }
+  else if (enLista){ sel.value = tipo; inp.hidden = true; inp.value = tipo; }
+  else { sel.value = '__otro'; inp.hidden = false; inp.value = tipo; }
 }
 function quitarIncidencia(btn){
   btn.closest('.fila-inc').remove();
