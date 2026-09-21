@@ -127,6 +127,8 @@ C = sustituir(C, ".fila-apto.heredado{border-left:4px solid #f59e0b}",
 body.plan .proy{display:flex}
 body.plan .item{border-color:#1a237e}
 .avance{font-size:13px;font-weight:700;color:#1a237e;min-width:44px;text-align:right}
+body:not(.plan) .item.heredado.her-pr{border-left-color:transparent}
+body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
 .plan-aviso{background:#e8eaf6;border:1px solid #1a237e;color:#1a237e;border-radius:8px;padding:8px 12px;margin:0 12px 8px;font-size:13px;font-weight:700}""", "9· estilos de cantidad, calidad y planificación")
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -168,7 +170,7 @@ J = sustituir(J, """function alElegirConvenio(){
   llenarManzanas(c);
   // Sin sector, o con otro, la manzana elegida ya no corresponde: se suelta.
   if (t && (!c || !entradasDe(t).some(x => x.c === c))){ document.getElementById('torre').value = ''; alElegirTorre(); }
-  if (c && !document.getElementById('torre').value) document.getElementById('empresa').value = EMPRESA_POR_SECTOR[c] || '';
+  if (!document.getElementById('torre').value) document.getElementById('empresa').value = c ? (EMPRESA_POR_SECTOR[c] || '') : '';
 """, "11b· el sector filtra las manzanas")
 J = sustituir(J, """  torresUnicas().forEach(t => {
     const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
@@ -176,6 +178,10 @@ J = sustituir(J, """  torresUnicas().forEach(t => {
 """, """  manzanasRecordadas().forEach(m => { if (!TORRES_DATA.some(x => x.t === m.t)) TORRES_DATA.push(m); });
   llenarManzanas('');
 """, "11b'· arranque: manzanas recordadas y lista completa")
+# 11c · Sin manzana, la empresa es la del sector elegido (tras «Sig. manzana» el
+# sector se conserva y la empresa quedaba vacía hasta elegir manzana).
+J = sustituir(J, "  if (!t) { document.getElementById('empresa').value = '';",
+                 "  if (!t) { document.getElementById('empresa').value = EMPRESA_POR_SECTOR[conv.value] || '';", "11c· empresa del sector sin manzana")
 J += r"""
 // La lista de manzanas según el sector: con sector, solo las suyas; sin sector,
 // todas, cada una con el suyo al lado para que M-2 de un sector no se confunda
@@ -214,7 +220,10 @@ function guardarNuevaManzana(){
   const c = document.getElementById('nm-sector').value;
   const nombre = (document.getElementById('nm-nombre').value || '').trim().toUpperCase().replace(/\s+/g, ' ');
   if (!c || !nombre){ alert('Elija el sector y escriba el nombre de la manzana o lote.'); return; }
-  if (TORRES_DATA.some(x => x.t === nombre)){ alert('«' + nombre + '» ya está en la lista.'); return; }
+  // El nombre es único en todo el sitio, no por sector: la memoria de la visita
+  // anterior va por nombre, y dos «M-2» mezclarían sus historiales.
+  const ya = TORRES_DATA.find(x => x.t === nombre);
+  if (ya){ alert('«' + nombre + '» ya está en la lista, en ' + (NOMBRE_SECTOR[ya.c] || ya.c) + '.' + (ya.c !== c ? '\n\nEl nombre tiene que ser distinto en cada sector: escríbalo con el sector, por ejemplo «' + nombre + ' ' + (NOMBRE_SECTOR[c] || '').split(' ').map(w => w[0]).join('') + '».' : '')); return; }
   const fila = { t: nombre, c: c, e: EMPRESA_POR_SECTOR[c] || '', r: '' };
   TORRES_DATA.push(fila);
   const rec = manzanasRecordadas(); rec.push(fila);
@@ -236,8 +245,8 @@ J = sustituir(J, r"""    '<div class="sino">' +
       '<button type="button" onclick="marcarSN(this,\'NO\')">NO</button>' +
       '<button type="button" onclick="marcarSN(this,\'NA\')">N/A</button>' +
     '</div>' +""",
-r"""    '<div class="cant-fila"><span class="et">Ejecutado</span><input type="number" inputmode="decimal" min="0" step="any" class="cant" placeholder="Cantidad a la fecha" oninput="marcar()">' + ud + '</div>' +
-    '<div class="cant-fila proy"><span class="et">Proyectado</span><input type="number" inputmode="decimal" min="0" step="any" class="pr" placeholder="Cantidad proyectada" oninput="marcar()"><span class="avance"></span></div>' +
+r"""    '<div class="cant-fila"><span class="et">Ejecutado</span><input type="text" inputmode="decimal" class="cant" placeholder="Cantidad a la fecha" oninput="numero(this); marcar()">' + ud + '</div>' +
+    '<div class="cant-fila proy"><span class="et">Proyectado</span><input type="text" inputmode="decimal" class="pr" placeholder="Cantidad proyectada" oninput="numero(this); marcar()"><span class="avance"></span></div>' +
     '<div class="sino">' +
       '<button type="button" onclick="marcarSN(this,\'B\')">B</button>' +
       '<button type="button" onclick="marcarSN(this,\'R\')">R</button>' +
@@ -245,6 +254,15 @@ r"""    '<div class="cant-fila"><span class="et">Ejecutado</span><input type="nu
       '<button type="button" onclick="marcarSN(this,\'NA\')">N/A</button>' +
     '</div>' +""", "12b· cantidad, proyectada y calidad")
 J += r"""
+// La cantidad es texto con teclado decimal, no type=number: en un teléfono con
+// teclado es-VE el decimal es la coma, y un campo number la rechaza y queda
+// vacío (QC del 21-sep). Aquí la coma pasa a punto, y solo entran dígitos: sin
+// signo, así que no hay cantidades negativas.
+function numero(el){
+  let v = String(el.value || '').replace(/,/g, '.').replace(/[^0-9.]/g, '');
+  const p = v.split('.'); if (p.length > 2) v = p[0] + '.' + p.slice(1).join('');
+  if (v !== el.value) el.value = v;
+}
 function unidadDe(sid, nombre, fijo){
   const u = ((UNIDAD_DE[sid] || {})[nombre]) || '';
   if (fijo && u) return '<span class="ud">' + u + '</span>';
@@ -298,17 +316,17 @@ J = sustituir(J, "    .filter(i => !i.agregado || i.sn || i.obs),", "    .filter
 J = sustituir(J, "        ponerSN(el, it.sn);\n        el.querySelector('textarea').value = it.obs || '';",
                  "        ponerSN(el, it.sn);\n        el.querySelector('textarea').value = it.obs || '';\n        ponerCant(el, it);", "14c· restaurar", n=1)
 J = sustituir(J, "      ponerSN(el, it.sn);\n      el.querySelector('textarea').value = it.obs || '';\n      if (it.sn || it.obs){ el.classList.add('heredado');",
-                 "      ponerSN(el, it.sn);\n      el.querySelector('textarea').value = it.obs || '';\n      ponerCant(el, it);\n      if (it.sn || it.obs || it.cant){ el.classList.add('heredado');", "14d· heredar con cantidad")
+                 "      ponerSN(el, it.sn);\n      el.querySelector('textarea').value = it.obs || '';\n      ponerCant(el, it);\n      if (!(it.sn || it.obs || it.cant) && it.pr) el.classList.add('her-pr');\n      if (it.sn || it.obs || it.cant || it.pr){ el.classList.add('heredado');", "14d· heredar con cantidad")
 J = sustituir(J, "        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs,",
                  "        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs, cant: i.cant, pr: i.pr, ud: i.ud,", "14e· memoria de la manzana")
 J = sustituir(J, "  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs)) ||",
-                 "  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs || i.cant)) ||", "14f· contestado")
+                 "  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs || i.cant || i.pr)) ||", "14f· contestado")
 J = sustituir(J, "                                      (g.items || []).some(i => i.sn || (i.obs || '').trim())) &&",
-                 "                                      (g.items || []).some(i => i.sn || i.cant || (i.obs || '').trim())) &&", "14g· vacío")
+                 "                                      (g.items || []).some(i => i.sn || i.cant || i.pr || (i.obs || '').trim())) &&", "14g· vacío")
 J = sustituir(J, "  return ![...document.querySelectorAll('.item')].some(it =>\n    valorSN(it) || (it.querySelector('textarea').value || '').trim());",
-                 "  return ![...document.querySelectorAll('.item')].some(it =>\n    valorSN(it) || it.querySelector('.cant').value || (it.querySelector('textarea').value || '').trim());", "14h· en blanco")
+                 "  return ![...document.querySelectorAll('.item')].some(it =>\n    valorSN(it) || it.querySelector('.cant').value || it.querySelector('.pr').value || (it.querySelector('textarea').value || '').trim());", "14h· en blanco")
 J = sustituir(J, "  const items = [...document.querySelectorAll('.item')].filter(it => valorSN(it) || (it.querySelector('textarea').value || '').trim());",
-                 "  const items = [...document.querySelectorAll('.item')].filter(it => valorSN(it) || it.querySelector('.cant').value || (it.querySelector('textarea').value || '').trim());", "14i· solo heredado")
+                 "  const items = [...document.querySelectorAll('.item')].filter(it => valorSN(it) || it.querySelector('.cant').value || it.querySelector('.pr').value || (it.querySelector('textarea').value || '').trim());", "14i· solo heredado")
 J = sustituir(J, "    const hechos = items.filter(i => valorSN(i)).length;",
                  "    const hechos = items.filter(i => valorSN(i) || i.querySelector('.cant').value).length;", "14j· cuenta")
 J = sustituir(J, "    const her = items.filter(i => i.classList.contains('heredado') && valorSN(i)).length;",
@@ -316,6 +334,15 @@ J = sustituir(J, "    const her = items.filter(i => i.classList.contains('hereda
 J = sustituir(J, "  (d.general || []).forEach(g => (g.items || []).forEach(i => { if (i.heredado && i.sn) n++; }));",
                  "  (d.general || []).forEach(g => (g.items || []).forEach(i => { if (i.heredado && (i.sn || i.cant)) n++; }));", "14l· sin revisar al enviar")
 J = sustituir(J, "function actualizarCuentas(){\n", "function actualizarCuentas(){\n  actualizarAvances();\n", "14m· avances al marcar")
+
+# 14n · Al cambiar de manzana con solo lo heredado, el motor soltaba calidad y
+# observación pero dejaba la CANTIDAD, el proyectado y la unidad: la manzana
+# nueva arrancaba con los números de la anterior como si fueran de hoy (QC del
+# 21-sep). Se sueltan los cuatro.
+J = sustituir(J, "  document.querySelectorAll('.item.heredado').forEach(it => {\n    ponerSN(it, ''); it.querySelector('textarea').value = '';",
+                 "  document.querySelectorAll('.item.heredado').forEach(it => {\n    ponerSN(it, ''); it.querySelector('textarea').value = '';\n    it.querySelector('.cant').value = ''; it.querySelector('.pr').value = ''; const us = it.querySelector('.ud-sel'); if (us) us.value = ''; actualizarAvance(it); it.classList.remove('her-pr');", "14n· soltar cantidades heredadas")
+J = sustituir(J, "  if (it && it.classList.contains('heredado')){ it.classList.remove('heredado'); delete it.dataset.heredado; }",
+                 "  if (it && it.classList.contains('heredado')){ it.classList.remove('heredado', 'her-pr'); delete it.dataset.heredado; }", "14o· tocar quita la marca de proyectado heredado")
 
 # 15 · Secciones agregadas: entran en GENERAL, se recuerdan, y las que traiga un
 # informe guardado o la visita anterior se crean solas.
@@ -339,7 +366,10 @@ function agregarSeccion(){
   // Lo que hay en pantalla se guarda ANTES de sumar la sección (guardar lee
   // GENERAL y la sección aún no está pintada), se vuelve a pintar todo y se
   // reabre: pintar una sección sola exigiría partir el motor en dos.
-  const habia = !formularioEnBlanco();
+  // «En blanco» aquí es el informe entero —notas de sección, fotos, NO
+  // INSPECCIONADO—, no solo las partidas: con una nota y una foto y ninguna
+  // partida, repintar sin guardar las borraba (QC del 21-sep).
+  const habia = !informeVacio(datosDelFormulario());
   if (habia) guardar(false);
   const id0 = idActual;
   const s = { id, nombre: (GENERAL.length + 1) + '. ' + nombre.toUpperCase(), items: [] };
@@ -362,6 +392,12 @@ function asegurarSecciones(general){
   if (nuevas) pintarGeneral();
 }
 """
+# 15d · Una sección agregada sin nada dentro no viaja en el informe: si viajara,
+# cualquier teléfono que abriera ese informe —o lo heredara del relevo— la
+# crearía y la recordaría, y veinte secciones de prueba de un teléfono acabarían
+# en todos (QC del 21-sep). Las ocho fijas viajan siempre.
+J = sustituir(J, "    general, apartamentos: aptos,",
+                 "    general: general.filter(g => !/^urb_x_/.test(g.id) || g.items.length || g.obs || g.fotos.length || noInsp.indexOf(g.id) >= 0),\n    apartamentos: aptos,", "15d· secciones agregadas vacías no viajan")
 J = sustituir(J, "    (d.general || []).forEach(g => {\n      const cont = document.getElementById('items-' + g.id); if (!cont) return;",
                  "    asegurarSecciones(d.general);\n    (d.general || []).forEach(g => {\n      const cont = document.getElementById('items-' + g.id); if (!cont) return;", "15a· abrir con secciones nuevas")
 J = sustituir(J, "  (e.general || []).forEach(g => {\n    const cont = document.getElementById('items-' + g.id); if (!cont) return;",
@@ -409,9 +445,28 @@ J = sustituir(J, "  _tandaEnCurso = true;\n  let bien = 0; const fallos = [];",
 J = sustituir(J, "  if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }\n  _tandaEnCurso = true;\n  try { cartel('📤 Enviando ' + d.nro",
                  "  if (_tandaEnCurso){ alert('Ya hay un envío en curso. Espere a que termine.'); return; }\n  _tandaEnCurso = true;\n  if (!(await frenoUrbanismo())){ _tandaEnCurso = false; return; }\n  try { cartel('📤 Enviando ' + d.nro", "16c· freno en el envío individual")
 
+# 16d · Lo que falta se dice en el idioma de urbanismo, y una partida agregada
+# con cantidad pero sin nombre no sale: viajaba con el nombre vacío (QC del 21-sep).
+J = sustituir(J, "  if (!d.torre)    f.push('la torre');\n  if (!d.convenio) f.push('el convenio');",
+                 "  if (!d.torre)    f.push('la manzana o lote');\n  if (!d.convenio) f.push('el sector');\n  (d.general || []).forEach(g => (g.items || []).forEach(i => { if (i.agregado && !i.nombre && (i.sn || i.obs || i.cant || i.pr)) f.push('el nombre de la partida agregada en ' + g.nombre); }));", "16d· faltan: manzana, sector y partidas sin nombre")
+J = sustituir(J, "Complételo antes de pasar a otra torre.", "Complételo antes de pasar a otra manzana.", "16e· otra manzana")
+
 # 17 · Textos: apartamentos no existen aquí.
 J = sustituir(J, "(aptos ? ' · ' + aptos + ' apto(s)' : '')", "''", "17a· historial sin aptos")
 J = sustituir(J, "(x.apartamentos || []).length + ' apto(s)</div>'", "(x.general || []).reduce((s, g) => s + (g.items || []).filter(i => i.sn || i.cant).length, 0) + ' partida(s)</div>'", "17b· fichas")
+J = sustituir(J, "  const n = (e.general || []).reduce((s, g) => s + g.items.filter(i => i.sn).length, 0);",
+                 "  const n = (e.general || []).reduce((s, g) => s + g.items.filter(i => i.sn || i.cant).length, 0);", "17c· el banner cuenta cantidades")
+J = sustituir(J, "' ítem(s) contestado(s)'", "' partida(s) con dato'", "17d· partidas, no ítems")
+J = sustituir(J, "Este servicio todavía no tiene lista de ítems.<br>' +\n              'Agréguelos abajo mientras Ingeniería la define.",
+                 "Esta sección todavía no tiene partidas.<br>' +\n              'Agréguelas abajo; se recuerdan en este teléfono.", "17e· sección sin partidas")
+J = sustituir(J, "＋ Agregar ítem</button>", "＋ Agregar partida</button>", "17f· agregar partida")
+J = sustituir(J, 'placeholder="Observación del servicio..."', 'placeholder="Notas de la sección..."', "17g· notas de la sección")
+J = sustituir(J, 'placeholder="Escriba el ítem..."', 'placeholder="Escriba la partida..."', "17h· escriba la partida")
+# 17i · Al reabrir o heredar, una sección con solo cantidades también se abre.
+J = sustituir(J, "      if ((g.items || []).some(i => i.sn || i.obs || (i.agregado && i.nombre)) || g.obs || (g.fotos || []).length) plegar(g.id, true);",
+                 "      if ((g.items || []).some(i => i.sn || i.obs || i.cant || i.pr || (i.agregado && i.nombre)) || g.obs || (g.fotos || []).length) plegar(g.id, true);", "17i· reabrir desplegada con cantidades")
+J = sustituir(J, "    if ((g.items || []).some(i => i.sn || i.obs) || g.obs) plegar(g.id, true);",
+                 "    if ((g.items || []).some(i => i.sn || i.obs || i.cant) || g.obs) plegar(g.id, true);", "17j· heredar desplegada con cantidades")
 
 
 def manzanas_js():

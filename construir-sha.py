@@ -450,6 +450,10 @@ function quitarIncidencia(btn){
   if (!document.querySelectorAll('#filas-inc .fila-inc').length){
     const v = document.getElementById('c-vacio'); if (v) v.style.display = '';
   }
+  // Las fotos van en IndexedDB por posición (inc:0, inc:1…): al quitar una, las
+  // siguientes se corren y hay que reescribirlas. Sin esto, la incidencia que
+  // subía mostraba —y enviaba— las fotos de la que se quitó (QC del 21-sep).
+  _fotosSucias = true;
   marcar();
 }
 function ponerSem(fila, estado){

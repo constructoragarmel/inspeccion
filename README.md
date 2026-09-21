@@ -6,11 +6,11 @@ Formulario de campo para el levantamiento de avance de obra por partidas en
 **Dirección para los inspectores:** https://constructoragarmel.github.io/inspeccion/
 
 > Desde el 2-sep-2026 esa dirección abre un **menú** que reparte entre los formularios de campo:
-> **inspección de obra**, **servicios públicos** y —cuando exista— **seguridad industrial**. Antes abría
+> **inspección de obra**, **servicios públicos**, **SHA** (seguridad industrial) y, desde el 21-sep, **urbanismo**. Antes abría
 > directamente el de inspección, que ahora vive en `inspeccion.html`.
 >
 > El menú no es la portada que se retiró en su día: aquella pedía un toque para no decidir nada, y esta
-> decide cuál de los tres se va a llenar. Además **captura la clave de configuración**, **propaga el modo
+> decide cuál de los cuatro se va a llenar. Además **captura la clave de configuración**, **propaga el modo
 > de prueba** y dice **cuántos informes viven solo en ese teléfono**, por formulario.
 
 ---
@@ -337,6 +337,29 @@ Víctor Mendoza. Identificador `SHA-EZ-T45-260914-BR`.
 **Está apagado en el menú y no envía** hasta que el relevo declare en su `doGet` que recibe `tipos: [...,
 'sha']` (r11). Con un relevo anterior, guarda en el teléfono y lo dice. Sin ese freno, un informe de SHA
 entraría por la rama de inspección del relevo.
+
+## El formulario de urbanismo
+
+Vive en `urbanismo.html` y se genera con `python3 construir-urbanismo.py`, derivado del motor de servicios
+como SHA. El contenido —sectores, manzanas, ocho secciones con sus partidas y unidades— está en
+`urbanismo/contenido.py`, tomado del borrador de Skarlet Gómez del 21-sep-2026 y sus respuestas de ese día.
+**Provisional**: faltan las manzanas de Simón Rodríguez y Simón Bolívar.
+
+Lo propio de urbanismo: la unidad del informe es la **manzana o lote** de un sector, no la torre —**el sector
+va primero** y filtra las manzanas—; se agregan manzanas desde el teléfono y se recuerdan; cada partida lleva
+**cantidad ejecutada acumulada** con **unidad fija**, calidad B / R / M / N-A y observación; se agregan
+partidas y **secciones**, que también se recuerdan; el botón **📊 Proyectadas** (o `?rol=planificacion`)
+descubre la cantidad proyectada, que carga Planificación, y con ella el % de avance. Identificador
+`URB-EZ-M1L2-260921-GB`. Tipo `urbanismo` para el relevo (r19+), que archiva en `Zona › Urbanismo › manzana`.
+
+Tres cosas que salieron de los 10 QC del 21-sep (`qc/banco/`) y que conviene saber:
+
+- **La cantidad es un campo de texto con teclado decimal, no `type=number`**: en un teléfono con teclado es-VE
+  el decimal es la coma y un campo `number` la rechaza en silencio. La coma pasa a punto; solo entran dígitos.
+- **Un informe con solo proyectadas es un informe**: se guarda, viaja y vuelve en la visita siguiente sin
+  contar como «sin revisar». Antes se tomaba por vacío y «Sig. manzana» lo descartaba.
+- **Una sección agregada sin nada dentro no viaja**: si viajara, cada teléfono que abriera ese informe la
+  crearía y la recordaría, y las secciones de prueba de uno acabarían en todos.
 
 ## Lo que todavía no hace
 

@@ -25,3 +25,31 @@ costaron tiempo: el relevo falso tiene que contestar `accion: 'historial'` sin c
 que esperar la bandera `_tandaEnCurso`, no solo el cartel, porque el freno pregunta al relevo antes de mostrar
 nada; y con el service worker activo las rutas falsas de Playwright no interceptan, así que las baterías locales
 lo bloquean (`serviceWorkers: 'block'`).
+
+## El banco sin Node: `banco/`
+
+Escrito el 21-sep-2026 para los 10 QC de urbanismo, incidencias de SHA y el botón «Inicio», en un Mac sin
+Node ni Playwright. Corre en el navegador integrado de la app de Claude (o en cualquier Chrome) contra una
+copia de los cinco HTML con el relevo falso en Python:
+
+```bash
+python3 qc/banco/preparar.py /tmp/banco      # copia los HTML con el relevo falso y sin service worker
+python3 /tmp/banco/relevo-falso.py &         # relevo falso: acepta los cuatro tipos, historial por (tipo, torre)
+python3 /tmp/banco/estatico.py &             # sirve /tmp/banco en 127.0.0.1:8777
+```
+
+Y en la consola del navegador, a 375×812, sobre `http://127.0.0.1:8777/urbanismo.html?prueba=1`:
+
+```js
+eval(await (await fetch('/t/correr.js')).text()); await __correr('t1');
+```
+
+Tandas: `t1` cabecera y manzanas · `t2`/`t2b` partidas, unidades, secciones · `t3` Planificación · `t4` visita
+anterior y relevo · `t5` 48 fotos y envíos · `t6` incidencias de SHA (en `sha.html`) · `t7a…t7i` botón «Inicio»
+en los cuatro y el menú (cada letra en la página que dice) · `t8` volumen: 30 manzanas, 30 informes, cuota
+llena · `t9a`/`t9b` autoguardado, recargas, `?rol=planificacion`, datos corruptos · `t10` maqueta (en cada
+página y ancho) · `t11` regresión de los arreglos del 21-sep · `t12` quitar hallazgo con fotos (SHA).
+
+El relevo falso se gobierna por `POST /control` con `{tipos, caido, fallar: [nros], lento: segundos, borrar}`
+y anota cada envío en `envios.jsonl`. **El navegador tiene que estar a la vista**: oculto, Chrome estrangula
+los temporizadores y una foto tarda 11 s en vez de 0,1 s, y las tandas se cortan.

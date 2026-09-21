@@ -15,7 +15,7 @@
 body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--fondo);
      color:var(--texto);margin:0;padding:0 0 140px;font-size:15px;line-height:1.45}
 header{background:var(--azul);color:#fff;padding:12px 96px 12px 14px;position:sticky;top:0;z-index:30}
-header .inicio{position:absolute;right:12px;top:10px;color:#fff;text-decoration:none;font-size:13px;font-weight:700;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:0 10px;min-height:38px;display:flex;align-items:center;gap:4px}
+header .inicio{position:absolute;right:12px;top:9px;color:#fff;text-decoration:none;font-size:13px;font-weight:700;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:0 10px;min-height:44px;display:flex;align-items:center;gap:4px}
 header h1{margin:0;font-size:15px;font-weight:700;letter-spacing:.3px}
 header .nro{font-size:12px;opacity:.85;margin-top:3px;font-variant-numeric:tabular-nums}
 .envoltorio{max-width:900px;margin:0 auto;padding:12px}
@@ -218,7 +218,7 @@ textarea{min-height:64px;resize:vertical}
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún servicio..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v85</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v86</div>
 </div>
 
 <div class="acciones">
@@ -516,7 +516,7 @@ function alElegirTorre(){
   } else {
     document.getElementById('empresa').value = '';
     document.getElementById('residente').value = '';
-    aviso.innerHTML = '<div class="aviso">⚠️ <b>' + t + '</b> figura en el maestro con ' +
+    aviso.innerHTML = '<div class="aviso">⚠️ <b>' + escapar(t) + '</b> figura en el maestro con ' +
       filas.length + ' convenios distintos. Elija cuál corresponde: el formulario no lo adivina.</div>';
   }
   actualizarNro(); marcar();
@@ -909,11 +909,18 @@ function cargarApto(fila, a){
   pintarFotos(fila.querySelector('.fotos'), (a.fotos || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '…' }));
 }
 
+// Texto que va dentro de HTML: el nombre de una manzana lo escribe el inspector.
+function escapar(v){ return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
 function quitarApto(btn){
   btn.closest('.fila-apto').remove();
   if (!document.querySelectorAll('#filas-apto .fila-apto').length){
     const v = document.getElementById('b-vacio'); if (v) v.style.display = '';
   }
+  // Las imágenes van en IndexedDB por posición (apto:0, apto:1…): al quitar una
+  // fila las demás se corren y hay que reescribirlas, o la que sube se queda con
+  // las fotos de la que se fue. Lo encontró el QC de incidencias del 21-sep.
+  _fotosSucias = true;
   marcar();
 }
 
@@ -1321,7 +1328,7 @@ function ofrecerHistorial(){
   const n = (e.general || []).reduce((s, g) => s + g.items.filter(i => i.sn).length, 0);
   const aptos = (e.apartamentos || []).length;
   caja.innerHTML = '<div class="historial">' +
-    '<div class="t">📋 ' + t + ' ya tiene un informe anterior</div>' +
+    '<div class="t">📋 ' + escapar(t) + ' ya tiene un informe anterior</div>' +
     '<div class="s">' + e.nro + ' · ' + fechaLarga(e.fecha) + ' · ' + n + ' ítem(s) contestado(s)' +
     (aptos ? ' · ' + aptos + ' apto(s)' : '') +
     '.<br>¿Arrancar desde lo que se registró ese día y marcar solo lo que cambió?</div>' +

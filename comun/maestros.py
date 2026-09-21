@@ -106,12 +106,13 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # ORDEN ALFABÉTICO POR NOMBRE, no por apellido: es lo que se muestra y es como
 # el inspector se busca a sí mismo en el desplegable.
 #
-# Las iniciales de los 25 son distintas entre sí (Diego Orta DO, Diego Rosales
+# Bella Mota y Erik Espinoza salieron del padrón el 21-sep-2026 (Stephanie).
+#
+# Las iniciales de los 23 son distintas entre sí (Diego Orta DO, Diego Rosales
 # DR) — el número del informe las usa, y dos iguales el mismo día en el mismo
 # sitio chocarían. Al agregar a alguien, comprobarlo.
 INSPECTORES_JS = """const INSPECTORES_DB = [
   "Alejandro Bastidas (CIV-67.316)",
-  "Bella Mota (CIV-NC)",
   "Birmania Rada (CIV-NC)",
   "Charbel Abdul (CIV en trámite)",
   "Christian Fricke (CIV-184.558)",
@@ -119,7 +120,6 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Diego Orta (CIV-301.823)",
   "Diego Rosales (CIV-NC)",
   "Edenil Narváez (CIV-150.422)",
-  "Erik Espinoza (CIV-NC)",
   "Gabriel Barrios (CIV-NC)",
   "Génesis Cordobés (CIV-307.057)",
   "Girlenys Lacruz (CIV-288.041)",
