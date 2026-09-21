@@ -37,9 +37,11 @@ motor = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(motor)
 
 SALIDA = os.path.join(RAIZ, "urbanismo.html")
-# Quienes inspeccionan urbanismo (Skarlet, 21-sep): van primero; el resto del
-# padrón queda disponible después.
-INSPECTORES_URB = ["Gabriel Barrios", "Mariana Rojas"]
+# Quienes inspeccionan urbanismo (Skarlet y Stephanie, 21-sep): dos por sector.
+# Ezequiel Zamora: Gabriel Barrios y Mariana Rojas; Simón Rodríguez: Alejandro
+# Bastidas y otro por definir (Gabriel asiste); Simón Bolívar: por definir. Van
+# primero en el desplegable; el resto del padrón queda disponible después.
+INSPECTORES_URB = ["Gabriel Barrios", "Mariana Rojas", "Alejandro Bastidas"]
 
 cambios = []
 def sustituir(s, viejo, nuevo, etiqueta, n=1):

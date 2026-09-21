@@ -17,13 +17,13 @@ deja agregar manzanas, secciones y partidas desde el teléfono, y las recuerda.
 # ── Manzanas y lotes por sector ────────────────────────────────────────────
 #
 # El «torre» del motor es aquí la manzana o el lote. La empresa de urbanismo es
-# una por sector (Skarlet, 21-sep): ADDISON en Ezequiel Zamora, PROCODIMA en
-# Simón Rodríguez, por definir en Simón Bolívar. Residente: se escribe la
-# primera vez y el teléfono lo recuerda por manzana.
+# una por sector (Skarlet y Stephanie, 21-sep): ADDISON en Ezequiel Zamora,
+# PROCODIMA en Simón Rodríguez, RACAR en Simón Bolívar. Residente: se escribe
+# la primera vez y el teléfono lo recuerda por manzana.
 EMPRESA_POR_SECTOR = {
     "Convenio Bielorusos": "ADDISON",
     "Convenio Rusos":      "PROCODIMA, C.A.",
-    "Convenio Chinos":     "",
+    "Convenio Chinos":     "RACAR INGENIEROS, C.A.",
 }
 NOMBRE_SECTOR = {
     "Convenio Bielorusos": "Ezequiel Zamora",
