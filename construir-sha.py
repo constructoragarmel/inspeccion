@@ -79,7 +79,24 @@ H = sustituir(H, """      <div class="campo">
 H = sustituir(H, """<button type="button" id="tab-a" class="on" onclick="verPanel('a')">General</button>""",
                  """<button type="button" id="tab-a" class="on" onclick="verPanel('a')">Recaudos</button>""", "4a· pestaña A")
 H = sustituir(H, """<button type="button" id="tab-b" onclick="verPanel('b')">Apartamentos</button>""",
-                 """<button type="button" id="tab-b" onclick="verPanel('b')">Hallazgos de campo</button>""", "4b· pestaña B")
+                 """<button type="button" id="tab-b" onclick="verPanel('b')">Hallazgos de campo</button>
+    <button type="button" id="tab-c" onclick="verPanel('c')">Incidencias</button>""", "4b· pestaña B y C")
+H = sustituir(H, """  <div id="panel-b" class="panel"></div>""",
+                 """  <div id="panel-b" class="panel"></div>
+  <div id="panel-c" class="panel"></div>""", "4c· panel de incidencias")
+C = motor.CSS
+C = sustituir(C, ".fila-apto.heredado{border-left:4px solid #f59e0b}",
+""".fila-apto.heredado{border-left:4px solid #f59e0b}
+.fila-inc{border:1px solid var(--borde);border-radius:8px;padding:10px;margin-bottom:8px;background:#fff}
+.fila-inc .cab{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}
+.fila-inc.heredado{border-left:4px solid #f59e0b}
+.fila-inc.heredado .etq-her{display:inline-block}
+.fila-inc .etq-her{display:none}
+.fila-inc label.et{display:block;font-size:13px;font-weight:600;color:#475569;margin:8px 0 4px}
+.sem{display:flex;gap:8px;margin:4px 0 8px}
+.sem button{flex:1;min-height:44px;border:1px solid var(--borde);border-radius:6px;background:#fff;font-weight:700;font-size:14px}
+.sem button.sem-on{color:#fff;border-color:transparent}
+.fila-inc.heredado .sem button.sem-on{opacity:.55}""", "4d· estilos de incidencia y semáforo")
 
 # 5 · Cierre: estatus general + comentarios, en lugar de la observación general.
 H = sustituir(H, """  <div class="tarjeta">
@@ -343,6 +360,143 @@ J = sustituir(J, "async function relevoAceptaSha(){",
                  "  if (r.hidden){ document.getElementById('accion').value = ''; document.getElementById('accion_det').value = ''; }\n"
                  "}\n\nasync function relevoAceptaSha(){", "19j· verRechazo")
 
+
+# 20 · Incidencias (accidentes), pedidas por Skarlet el 21-sep-2026. Una
+# tercera pestaña con filas propias: fecha del accidente, tipo (lista abierta
+# que el teléfono recuerda), notas de campo con fotos, acciones a tomar y un
+# semáforo. La información base (convenio, empresa, residente, inspector) es la
+# de la cabecera. Abierta y En seguimiento vuelven en la visita siguiente como
+# heredadas; Cerrada no. Viajan en `datos.incidencias`, fotos como `inc-N-k`.
+# Las constantes van AL PRINCIPIO del código (abajo, en el @@JS@@): al reabrir un
+# informe guardado, cargarInforme llama a addIncidencia durante la carga, antes
+# de que una `const` declarada al final exista (lo encontró la prueba del 21-sep).
+J += r"""
+function tiposRecordados(){
+  let extra = []; try { extra = JSON.parse(localStorage.getItem(CLAVE_TIPOS_INC) || '[]'); } catch(e){}
+  return TIPOS_INCIDENCIA.concat(extra.filter(t => TIPOS_INCIDENCIA.indexOf(t) < 0));
+}
+function aprenderTiposIncidencia(d){
+  const nuevos = (d.incidencias || []).map(x => (x.tipo || '').trim()).filter(t => t && TIPOS_INCIDENCIA.indexOf(t) < 0);
+  if (!nuevos.length) return;
+  let extra = []; try { extra = JSON.parse(localStorage.getItem(CLAVE_TIPOS_INC) || '[]'); } catch(e){}
+  nuevos.forEach(t => { if (extra.indexOf(t) < 0) extra.push(t); });
+  try { localStorage.setItem(CLAVE_TIPOS_INC, JSON.stringify(extra)); } catch(e){}
+}
+function pintarIncidencias(){
+  const cont = document.getElementById('panel-c');
+  cont.innerHTML = '<div class="vacio" id="c-vacio">Todavía no hay incidencias. ' +
+    'Registre aquí los accidentes: qué pasó, con fotos, y qué se va a hacer.</div><div id="filas-inc"></div>' +
+    '<button type="button" class="btn-add" onclick="addIncidencia()">＋ Agregar incidencia</button>';
+}
+function addIncidencia(datos){
+  const v = document.getElementById('c-vacio'); if (v) v.style.display = 'none';
+  const cont = document.getElementById('filas-inc');
+  const d = document.createElement('div');
+  d.className = 'fila-inc'; d.dataset.k = ++_nInc;
+  const lista = tiposRecordados().map(t => '<option value="' + t.replace(/"/g, '&quot;') + '">').join('');
+  d.innerHTML = '<span class="etq-her" style="margin:0 0 6px">visita anterior · sin revisar hoy</span>' +
+    '<div class="cab"><div style="flex:1"><label class="et" style="margin-top:0">Fecha del accidente</label>' +
+    '<input type="date" class="inc-fecha"></div>' +
+    '<button type="button" class="quitar" onclick="quitarIncidencia(this)" style="margin-top:22px">✕</button></div>' +
+    '<label class="et">Tipo de accidente</label>' +
+    '<input type="text" class="inc-tipo" list="tipos-inc-' + _nInc + '" placeholder="Elija uno o escriba otro">' +
+    '<datalist id="tipos-inc-' + _nInc + '">' + lista + '</datalist>' +
+    '<label class="et">Notas de campo</label>' +
+    '<textarea class="inc-notas" placeholder="Qué pasó, dónde, quién, cómo estaba el sitio..."></textarea>' +
+    '<label class="et">Acciones a tomar</label>' +
+    '<textarea class="inc-acciones" placeholder="Qué se decidió hacer, quién y para cuándo..."></textarea>' +
+    '<label class="et">Estado de la incidencia</label>' +
+    '<div class="sem">' + ESTADOS_INCIDENCIA.map(e =>
+      '<button type="button" data-estado="' + e[0] + '" data-color="' + e[1] + '" onclick="marcarSem(this)">' + e[0] + '</button>').join('') + '</div>' +
+    bloqueFotos('fotos-inc-' + _nInc, 'Fotografías de la incidencia');
+  cont.appendChild(d);
+  if (datos){
+    d.querySelector('.inc-fecha').value = datos.fecha || '';
+    d.querySelector('.inc-tipo').value = datos.tipo || '';
+    d.querySelector('.inc-notas').value = datos.notas || '';
+    d.querySelector('.inc-acciones').value = datos.acciones || '';
+    ponerSem(d, datos.estado || '');
+    pintarFotos(d.querySelector('.fotos'), (datos.fotos || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '…' }));
+  } else {
+    d.querySelector('.inc-fecha').value = document.getElementById('fecha').value || '';
+    ponerSem(d, ESTADOS_INCIDENCIA[0][0]);
+    d.querySelector('.inc-tipo').focus();
+  }
+  marcar();
+}
+function quitarIncidencia(btn){
+  btn.closest('.fila-inc').remove();
+  if (!document.querySelectorAll('#filas-inc .fila-inc').length){
+    const v = document.getElementById('c-vacio'); if (v) v.style.display = '';
+  }
+  marcar();
+}
+function ponerSem(fila, estado){
+  fila.querySelectorAll('.sem button').forEach(b => {
+    const on = b.dataset.estado === estado;
+    b.classList.toggle('sem-on', on);
+    b.style.background = on ? b.dataset.color : '';
+  });
+}
+function valorSem(fila){
+  const b = fila.querySelector('.sem button.sem-on');
+  return b ? b.dataset.estado : '';
+}
+// Tocar el estado que ya tenía lo confirma para hoy (como en Sí/No).
+function marcarSem(btn){
+  const fila = btn.closest('.fila-inc');
+  ponerSem(fila, btn.dataset.estado);
+  tocado(btn); marcar();
+}
+function leerIncidencias(){
+  return [...document.querySelectorAll('#filas-inc .fila-inc')].map(f => ({
+    fecha: f.querySelector('.inc-fecha').value || '',
+    tipo: (f.querySelector('.inc-tipo').value || '').trim(),
+    notas: (f.querySelector('.inc-notas').value || '').trim(),
+    acciones: (f.querySelector('.inc-acciones').value || '').trim(),
+    estado: valorSem(f),
+    heredado: f.dataset.heredado || '',
+    fotos: leerFotos(f.querySelector('.fotos'))
+  }));
+}
+"""
+J = sustituir(J, "  document.getElementById('panel-b').classList.toggle('on', cual === 'b');",
+                 "  document.getElementById('panel-b').classList.toggle('on', cual === 'b');\n  document.getElementById('panel-c').classList.toggle('on', cual === 'c');\n  document.getElementById('tab-c').classList.toggle('on', cual === 'c');", "20a· pestaña C")
+J = sustituir(J, "  pintarGeneral(); pintarApartamentos();", "  pintarGeneral(); pintarApartamentos(); pintarIncidencias();", "20b· pintar el panel", n=2)
+J = sustituir(J, "'.item, .fila-apto'", "'.item, .fila-apto, .fila-inc'", "20c· tocar una incidencia heredada la confirma", n=2)
+J = sustituir(J, "    fotosGenerales: leerFotos(document.getElementById('fotos-general')),",
+                 "    fotosGenerales: leerFotos(document.getElementById('fotos-general')),\n    incidencias: leerIncidencias(),", "20d· datos")
+J = sustituir(J, "  grupos['general'] = leerDatosFotos(document.getElementById('fotos-general'));",
+                 "  grupos['general'] = leerDatosFotos(document.getElementById('fotos-general'));\n  [...document.querySelectorAll('#filas-inc .fila-inc')].forEach((f, i) => { grupos['inc:' + i] = leerDatosFotos(f.querySelector('.fotos')); });", "20e· imágenes de incidencias a IndexedDB")
+J = sustituir(J, "  datos.fotosGenerales = soltar(datos.fotosGenerales, 'general', grupos['general']);",
+                 "  datos.fotosGenerales = soltar(datos.fotosGenerales, 'general', grupos['general']);\n  (datos.incidencias || []).forEach((x, i) => { x.fotos = soltar(x.fotos, 'inc-' + (i + 1), grupos['inc:' + i]); });", "20f· fotos de incidencias en el sobre")
+J = sustituir(J, "      x.fotosGenerales = (x.fotosGenerales || []).map(soltar);",
+                 "      x.fotosGenerales = (x.fotosGenerales || []).map(soltar);\n      (x.incidencias || []).forEach(k => { k.fotos = (k.fotos || []).map(soltar); });", "20g· al enviar se sueltan")
+J = sustituir(J, "    pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '\u2026' }));\n",
+                 "    pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '\u2026' }));\n    (d.incidencias || []).forEach(x => { addIncidencia(x); if (x.heredado){ const f = document.querySelector('#filas-inc .fila-inc:last-child'); f.classList.add('heredado'); f.dataset.heredado = x.heredado; } });\n", "20h· abrir: incidencias")
+J = sustituir(J, "      pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : dg[k] || '') })));\n",
+                 "      pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : dg[k] || '') })));\n      [...document.querySelectorAll('#filas-inc .fila-inc')].forEach((f, i) => { const x = (d.incidencias || [])[i]; if (!x) return; const dx = grupos['inc:' + i] || [];\n        pintarFotos(f.querySelector('.fotos'), (x.fotos || []).map((ft, k) => ({ pie: ft.pie, dato: ft.dato || (ft.enDrive ? '' : dx[k] || '') }))); });\n", "20i· abrir: imágenes de incidencias")
+J = sustituir(J, "    fila.classList.add('heredado'); fila.dataset.heredado = a.heredado || e.nro;\n  });\n  actualizarCuentas(); marcar();\n}",
+                 "    fila.classList.add('heredado'); fila.dataset.heredado = a.heredado || e.nro;\n  });\n  (e.incidencias || []).filter(x => x.estado !== 'Cerrada').forEach(x => {\n    addIncidencia(Object.assign({}, x, { fotos: [] }));\n    const f = document.querySelector('#filas-inc .fila-inc:last-child');\n    f.classList.add('heredado'); f.dataset.heredado = x.heredado || e.nro;\n  });\n  actualizarCuentas(); marcar();\n}", "20j· vuelven las abiertas y en seguimiento")
+J = sustituir(J, "  document.querySelectorAll('#filas-apto .fila-apto.heredado').forEach(f => f.remove());",
+                 "  document.querySelectorAll('#filas-apto .fila-apto.heredado').forEach(f => f.remove());\n  document.querySelectorAll('#filas-inc .fila-inc.heredado').forEach(f => f.remove());\n  if (!document.querySelectorAll('#filas-inc .fila-inc').length){ const v = document.getElementById('c-vacio'); if (v) v.style.display = ''; }", "20k· lo heredado se suelta con la torre")
+J = sustituir(J, "  if (document.querySelectorAll('#filas-apto .fila-apto').length) return false;",
+                 "  if (document.querySelectorAll('#filas-apto .fila-apto, #filas-inc .fila-inc').length) return false;", "20l· en blanco")
+J = sustituir(J, "  const aptos = [...document.querySelectorAll('#filas-apto .fila-apto')];\n  const obs",
+                 "  const aptos = [...document.querySelectorAll('#filas-apto .fila-apto, #filas-inc .fila-inc')];\n  const obs", "20m· solo heredado")
+J = sustituir(J, "  (d.apartamentos || []).forEach(a => { if (a.heredado) n++; });\n  return n;",
+                 "  (d.apartamentos || []).forEach(a => { if (a.heredado) n++; });\n  (d.incidencias || []).forEach(x => { if (x.heredado) n++; });\n  return n;", "20n· sin revisar")
+J = sustituir(J, "         !(d.apartamentos || []).length && !(d.fotosGenerales || []).length &&",
+                 "         !(d.apartamentos || []).length && !(d.fotosGenerales || []).length && !(d.incidencias || []).length &&", "20o· vacío")
+J = sustituir(J, "                     (d.apartamentos || []).length > 0;\n  if (!contestado) return;",
+                 "                     (d.apartamentos || []).length > 0 || (d.incidencias || []).length > 0;\n  if (!contestado) return;", "20p· memoria de la torre")
+J = sustituir(J, "    apartamentos: (d.apartamentos || []).map(a => ({\n      apto: a.apto, piso: a.piso, campos: a.campos, heredado: a.heredado || ''\n    }))\n  };",
+                 "    apartamentos: (d.apartamentos || []).map(a => ({\n      apto: a.apto, piso: a.piso, campos: a.campos, heredado: a.heredado || ''\n    })),\n    incidencias: (d.incidencias || []).map(x => ({ fecha: x.fecha, tipo: x.tipo, notas: x.notas, acciones: x.acciones, estado: x.estado, heredado: x.heredado || '' }))\n  };", "20p2· y las incidencias en ella")
+J = sustituir(J, "    aprenderItems();\n    anotarEstadoTorre(d);",
+                 "    aprenderItems();\n    aprenderTiposIncidencia(d);\n    anotarEstadoTorre(d);", "20q· tipos recordados")
+J = sustituir(J, "  if (d.estatus === 'Rechazado' && !d.accion) f.push('la acci\u00f3n por el rechazo');",
+                 "  if (d.estatus === 'Rechazado' && !d.accion) f.push('la acci\u00f3n por el rechazo');\n  if ((d.incidencias || []).some(x => !x.tipo)) f.push('el tipo de accidente de una incidencia');", "20r· incidencia sin tipo")
+
 # ══════════════════════════════════════════════════════════════════════════
 # MONTAJE
 # ══════════════════════════════════════════════════════════════════════════
@@ -357,7 +511,7 @@ def inspectores_de_sha():
 
 def construir():
     pagina = (H
-        .replace('@@CSS@@', motor.CSS)
+        .replace('@@CSS@@', C)
         .replace('@@VERSION@@', motor.VERSION)
         .replace('@@CIERRE@@', ''.join('<option>%s</option>' % c for c in contenido.CIERRE))
         .replace('@@ACCIONES@@', ''.join('<option>%s</option>' % c for c in contenido.ACCIONES_RECHAZO))
@@ -372,8 +526,12 @@ def construir():
         .replace('@@MAXPX@@', str(motor.MAX_FOTO_PX))
         .replace('@@CALIDAD@@', str(motor.CALIDAD_FOTO))
         .replace('@@RELEVO@@', json.dumps(motor.RELEVO_URL))
-        .replace('@@JS@@', "const ESTADOS_HALLAZGO = %s;\n" % json.dumps(contenido.ESTADOS_HALLAZGO, ensure_ascii=False) + J)
-        .replace('@@TOPE@@', str(motor.TOPE_ALMACEN)))
+        .replace('@@JS@@', "const ESTADOS_HALLAZGO = %s;\n" % json.dumps(contenido.ESTADOS_HALLAZGO, ensure_ascii=False) +
+                           "const TIPOS_INCIDENCIA = @@INC_TIPOS@@;\nconst ESTADOS_INCIDENCIA = @@INC_ESTADOS@@;\n" +
+                           "const CLAVE_TIPOS_INC = 'garmel_sha_tipos_inc';\nlet _nInc = 0;\n" + J)
+        .replace('@@TOPE@@', str(motor.TOPE_ALMACEN))
+        .replace('@@INC_TIPOS@@', json.dumps(contenido.TIPOS_INCIDENCIA, ensure_ascii=False))
+        .replace('@@INC_ESTADOS@@', json.dumps(contenido.ESTADOS_INCIDENCIA, ensure_ascii=False)))
 
     if '@@' in pagina:
         import re as _re

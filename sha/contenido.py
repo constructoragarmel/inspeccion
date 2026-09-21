@@ -78,6 +78,31 @@ APARTAMENTOS = [
 
 UNIDAD_CANTIDAD = "pza"
 
+# ── B2) Incidencias (accidentes) ───────────────────────────────────────────
+#
+# Pedido por Skarlet el 21-sep-2026: cada incidencia lleva la información base
+# del informe (convenio, sector, empresa, residente, inspector: se hereda de la
+# cabecera y el PDF la imprime por incidencia), la fecha del accidente, el tipo
+# (lista abierta: el teléfono recuerda los que se escriben), notas de campo con
+# hasta 3 fotos, las acciones a tomar y un semáforo que se actualiza en el
+# informe siguiente. La lista de tipos es provisional hasta que Birmania la valide.
+TIPOS_INCIDENCIA = [
+    "Caída de altura",
+    "Golpe o atrapamiento",
+    "Corte o herida",
+    "Contacto eléctrico",
+    "Caída de objeto",
+    "Tránsito interno",
+    "Otro",
+]
+# (nombre, color): rojo / ámbar / verde. Abierta y En seguimiento vuelven en la
+# visita siguiente; Cerrada no.
+ESTADOS_INCIDENCIA = [
+    ("Abierta", "#dc2626"),
+    ("En seguimiento", "#d97706"),
+    ("Cerrada", "#16a34a"),
+]
+
 # ── C) Cierre ──────────────────────────────────────────────────────────────
 #
 # El estatus general de la inspección, tal como lo trae el borrador. QUÉ
