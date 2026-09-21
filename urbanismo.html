@@ -250,7 +250,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v86</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v87</div>
 </div>
 
 <div class="acciones">
@@ -983,7 +983,7 @@ function datosDelFormulario(){
       pr: (it.querySelector('.pr').value || '').trim(),
       ud: unidadLeida(it),
       // De qué informe viene la respuesta, si nadie la tocó hoy. Vacío = de hoy.
-      heredado: it.dataset.heredado || ''
+      heredado: it.classList.contains('her-pr') ? '' : (it.dataset.heredado || '')
     }))
     // Un agregado sin respuesta no viaja: ni el que se tocó de más —salía en el
     // PDF como «+ (agregado en campo) —», T-03 del 14-sep— ni el que solo tiene

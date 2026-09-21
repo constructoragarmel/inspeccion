@@ -312,6 +312,11 @@ J = sustituir(J, """  if (g.querySelector('.si-on')) return 'SI';
 # 14 · La cantidad viaja, se restaura, se hereda y cuenta como contenido.
 J = sustituir(J, "      obs: (it.querySelector('textarea').value || '').trim(),\n",
                  "      obs: (it.querySelector('textarea').value || '').trim(),\n      cant: (it.querySelector('.cant').value || '').trim(),\n      pr: (it.querySelector('.pr').value || '').trim(),\n      ud: unidadLeida(it),\n", "14a· datos")
+# 14a' · Una proyectada que vino de la visita anterior no es «sin revisar»: es la
+# meta, y sigue vigente. El ítem que solo trae proyectado no viaja con la marca
+# de heredado —el relevo la imprime en ámbar como «sin revisar» (r22)—.
+J = sustituir(J, "      heredado: it.dataset.heredado || ''\n    }))\n    // Un agregado sin respuesta no viaja",
+                 "      heredado: it.classList.contains('her-pr') ? '' : (it.dataset.heredado || '')\n    }))\n    // Un agregado sin respuesta no viaja", "14a'· proyectada heredada sin marca")
 J = sustituir(J, "    .filter(i => !i.agregado || i.sn || i.obs),", "    .filter(i => !i.agregado || i.sn || i.obs || i.cant),", "14b· agregado con cantidad viaja")
 J = sustituir(J, "        ponerSN(el, it.sn);\n        el.querySelector('textarea').value = it.obs || '';",
                  "        ponerSN(el, it.sn);\n        el.querySelector('textarea').value = it.obs || '';\n        ponerCant(el, it);", "14c· restaurar", n=1)
