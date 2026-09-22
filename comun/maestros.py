@@ -108,6 +108,11 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 #
 # Bella Mota y Erik Espinoza salieron del padrón el 21-sep-2026 (Stephanie).
 #
+# «Ignacio Madrid» pasó a «Manuel Madrid» el 22-sep-2026: él mismo dijo que se
+# llama Manuel Ignacio Madrid Naranjo, la hoja de cargos usaba el segundo
+# nombre y los cuadros de obra el primero. Sus iniciales pasan de IM a MM —no
+# chocan con nadie— y los informes que ya lleven IM no se tocan.
+#
 # Las iniciales de los 23 son distintas entre sí (Diego Orta DO, Diego Rosales
 # DR) — el número del informe las usa, y dos iguales el mismo día en el mismo
 # sitio chocarían. Al agregar a alguien, comprobarlo.
@@ -118,16 +123,16 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Christian Fricke (CIV-184.558)",
   "Cleidy Chacón (CIV-NC)",
   "Diego Orta (CIV-301.823)",
-  "Diego Rosales (CIV-NC)",
+  "Diego Rosales (CIV-296.226)",
   "Edenil Narváez (CIV-150.422)",
   "Gabriel Barrios (CIV-NC)",
   "Génesis Cordobés (CIV-307.057)",
   "Girlenys Lacruz (CIV-288.041)",
   "Hernán Escobar (CIV-151.021)",
-  "Ignacio Madrid (CIV-256.842)",
   "Katherine Correia (CIV-237.904)",
   "Leidy Villamizar (CIV-258.266)",
   "Lizeira Aragort (CIV-298.127)",
+  "Manuel Madrid (CIV-256.842)",
   "Mariana Rojas (CIV-NC)",
   "Martha Azcarate (CIV-87.616)",
   "Oriana Plaza (CIV en trámite)",
