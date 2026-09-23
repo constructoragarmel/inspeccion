@@ -1,0 +1,14 @@
+<!doctype html><meta charset="utf-8"><title>Prueba del PDF</title><body>
+<script>
+window.LOGO_GARMEL = 'data:image/png;base64,iVBORw0KGgo=';
+window.LOGO_MINHVI = 'data:image/png;base64,iVBORw0KGgo=';
+window.HITOS = [];
+window._nombreDeSector = function (s) { return ({EZ:'Ezequiel Zamora',SB:'Simón Bolívar',SR:'Simón Rodríguez'})[s] || s; };
+window.Utilities = { formatDate: function(){ return '23-09-2026'; } };
+window.__listo = (async () => {
+  const src = await (await fetch('PDF.gs')).text();
+  (0, eval)(src);
+  window.__casos = await (await fetch('casos.json')).json();
+  return 'ok';
+})();
+</script></body>
