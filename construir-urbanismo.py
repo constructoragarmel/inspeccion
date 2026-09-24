@@ -215,8 +215,10 @@ function llenarManzanas(c){
   });
   if (actual && lista.includes(actual)) sel.value = actual;
 }
+// Lo recordado se lee como lista o nada: una memoria que no es lista rompía
+// el arranque (QC de estrés del 24-sep).
 function manzanasRecordadas(){
-  try { return JSON.parse(localStorage.getItem(CLAVE_MANZANAS) || '[]'); } catch(e){ return []; }
+  try { const v = JSON.parse(localStorage.getItem(CLAVE_MANZANAS) || '[]'); return Array.isArray(v) ? v.filter(m => m && m.t && m.c) : []; } catch(e){ return []; }
 }
 function abrirNuevaManzana(){
   const caja = document.getElementById('nueva-manzana');
@@ -343,7 +345,10 @@ function quitarCamion(btn){
   if ((placa || f.querySelector('.m3').value) && !confirm('¿Quitar el camión' + (placa ? ' ' + placa : '') + '?')) return;
   tocado(btn); f.remove(); recalcCamiones(c); marcar();
 }
-const redondear = x => String(Math.round(x * 100) / 100);
+// Declarada con function y no con const: el arranque reabre el borrador —y
+// con él sus camiones— antes de que se ejecute esta parte del código, y una
+// const aquí rompía la reapertura (QC6 de estrés, 24-sep).
+function redondear(x){ return String(Math.round(x * 100) / 100); }
 function recalcCamiones(el){
   const c = el.closest('.camiones'); if (!c) return;
   const it = c.closest('.item'), cant = it.querySelector('.cant'), base = c.querySelector('.base');
@@ -446,7 +451,7 @@ J = sustituir(J, "  if (it && it.classList.contains('heredado')){ it.classList.r
 # informe guardado o la visita anterior se crean solas.
 J += r"""
 function seccionesRecordadas(){
-  try { return JSON.parse(localStorage.getItem(CLAVE_SECCIONES) || '[]'); } catch(e){ return []; }
+  try { const v = JSON.parse(localStorage.getItem(CLAVE_SECCIONES) || '[]'); return Array.isArray(v) ? v.filter(s => s && s.id) : []; } catch(e){ return []; }
 }
 // El número va por posición: una sección agregada que en su día fue la «9»
 // pasa a la 10 ahora que Obras Preliminares es la 1.

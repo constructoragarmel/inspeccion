@@ -96,7 +96,10 @@ CAMIONES = {"urb_preliminares": ["Bote de material"]}
 # Secciones que un teléfono agregó a mano y que ya son fijas: Gabriel creó
 # «Obras preliminares» y «Desmalezamiento» en el suyo antes de que existiera la
 # sección 1 (24-sep). Se olvidan al abrir, y lo que traigan pasa a la sección 1.
-RETIRADAS = r"^urb_x_.*(preliminar|malez)"
+# El patrón es el nombre ENTERO, con sus variantes de escritura: con «contiene
+# malez» se iban también «Control de malezas» u «Obras preliminares de
+# vialidad», que son secciones legítimas (QC de estrés del 24-sep).
+RETIRADAS = r"^urb_x_(obras)?preliminar(es)?$|^urb_x_de?s?malez(amiento|ado)s?$"
 
 # Calidad de cada partida, como en inspección de obra: B / R / M y N-A.
 CALIDADES = [("B", "Bueno"), ("R", "Regular"), ("M", "Malo"), ("NA", "No aplica")]

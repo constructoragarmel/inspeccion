@@ -261,7 +261,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v89</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v90</div>
 </div>
 
 <div class="acciones">
@@ -401,7 +401,7 @@ const CLAVE_SECCIONES = 'garmel_urb_secciones';
 const UNIDADES = ["m", "m²", "m³", "und", "kg", "glb", "ha", "ton"];
 const UNIDAD_DE = {"urb_preliminares": {"Desmalezamiento": "m²", "Movimiento de tierra": "m³", "Bote de material": "m³"}, "urb_drenaje": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquilla": "und"}, "urb_estructura": {"Excavación / Movimiento de tierra": "m³", "Acero de refuerzo": "kg", "Concreto": "m³", "Encofrado": "m²"}, "urb_acueductos": {"Topografía": "m", "Excavación": "m³", "Canalizaciones": "m", "Captación": "und"}, "urb_electricidad": {"Puntos cableados": "und", "Canalización": "m", "Tuberías": "m", "Tanquillas": "und", "Postes de luminaria": "und"}, "urb_aguas_servidas": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquillas": "und", "Colectores": "m"}, "urb_vialidad": {"Topografía": "m", "Escarificación": "m²", "Suministro y colocación": "m³", "Carpeta de rodamiento": "m²", "Brocales": "m", "Aceras": "m²", "Demarcación": "m", "Transporte y maquinaria": "glb"}, "urb_camineria": {"Topografía / Trazo": "m", "Excavación y conformación": "m³", "Pavimento / Acabado": "m²"}, "urb_paisajismo": {"Topografía": "m", "Jardinería": "m²", "Sistema de riego": "m", "Iluminación": "und", "Mobiliario urbano": "und", "Caminerías": "m²"}};
 const CAMIONES = {"urb_preliminares": ["Bote de material"]};
-const RETIRADA = new RegExp("^urb_x_.*(preliminar|malez)", 'i');
+const RETIRADA = new RegExp("^urb_x_(obras)?preliminar(es)?$|^urb_x_de?s?malez(amiento|ado)s?$", 'i');
 
 // ── Cascada: la torre manda ───────────────────────────────────────────────
 // Cuatro torres (T-04, T-07, T-12, T-13) están en el maestro DOS VECES, con dos
@@ -1898,8 +1898,10 @@ function llenarManzanas(c){
   });
   if (actual && lista.includes(actual)) sel.value = actual;
 }
+// Lo recordado se lee como lista o nada: una memoria que no es lista rompía
+// el arranque (QC de estrés del 24-sep).
 function manzanasRecordadas(){
-  try { return JSON.parse(localStorage.getItem(CLAVE_MANZANAS) || '[]'); } catch(e){ return []; }
+  try { const v = JSON.parse(localStorage.getItem(CLAVE_MANZANAS) || '[]'); return Array.isArray(v) ? v.filter(m => m && m.t && m.c) : []; } catch(e){ return []; }
 }
 function abrirNuevaManzana(){
   const caja = document.getElementById('nueva-manzana');
@@ -2006,7 +2008,10 @@ function quitarCamion(btn){
   if ((placa || f.querySelector('.m3').value) && !confirm('¿Quitar el camión' + (placa ? ' ' + placa : '') + '?')) return;
   tocado(btn); f.remove(); recalcCamiones(c); marcar();
 }
-const redondear = x => String(Math.round(x * 100) / 100);
+// Declarada con function y no con const: el arranque reabre el borrador —y
+// con él sus camiones— antes de que se ejecute esta parte del código, y una
+// const aquí rompía la reapertura (QC6 de estrés, 24-sep).
+function redondear(x){ return String(Math.round(x * 100) / 100); }
 function recalcCamiones(el){
   const c = el.closest('.camiones'); if (!c) return;
   const it = c.closest('.item'), cant = it.querySelector('.cant'), base = c.querySelector('.base');
@@ -2045,7 +2050,7 @@ function ponerCamiones(el, it){
 }
 
 function seccionesRecordadas(){
-  try { return JSON.parse(localStorage.getItem(CLAVE_SECCIONES) || '[]'); } catch(e){ return []; }
+  try { const v = JSON.parse(localStorage.getItem(CLAVE_SECCIONES) || '[]'); return Array.isArray(v) ? v.filter(s => s && s.id) : []; } catch(e){ return []; }
 }
 // El número va por posición: una sección agregada que en su día fue la «9»
 // pasa a la 10 ahora que Obras Preliminares es la 1.
