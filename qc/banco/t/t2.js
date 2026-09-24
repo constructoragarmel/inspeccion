@@ -3,19 +3,19 @@ const EZ = TORRES_DATA[0].c; const conv = $('#convenio'), torre = $('#torre');
 const items = sid => $$('#items-' + sid + ' .item');
 Q.elegir(conv, EZ); Q.elegir(torre, 'M-3'); Q.elegir($('#inspectores select'), INSPECTORES_DB[1]);
 
-// 1. las 39 fijas con unidad fija
+// 1. las 42 fijas con unidad fija (39 + las 3 de Obras Preliminares, 24-sep)
 const fijas = $$('.item[data-fijo="1"]');
 const conUd = fijas.filter(it => it.querySelector('.ud')).length, conSel = fijas.filter(it => it.querySelector('.ud-sel')).length;
-ok('39 partidas fijas, todas con unidad fija (span), ninguna con desplegable', fijas.length === 39 && conUd === 39 && conSel === 0, fijas.length + ' · ud ' + conUd + ' · sel ' + conSel);
+ok('42 partidas fijas, todas con unidad fija (span), ninguna con desplegable', fijas.length === 42 && conUd === 42 && conSel === 0, fijas.length + ' · ud ' + conUd + ' · sel ' + conSel);
 const malU = fijas.filter(it => { const sid = it.parentElement.id.replace('items-', ''); const n = it.querySelector('.nombre').textContent; return (UNIDAD_DE[sid] || {})[n] !== it.querySelector('.ud').textContent.trim(); });
 ok('Cada unidad coincide con contenido.py', malU.length === 0, malU.length);
-ok('8 secciones en orden', GENERAL.map(g => g.nombre.split('.')[0]).join() === '1,2,3,4,5,6,7,8' && GENERAL[5].items.length === 8, GENERAL.map(g => g.nombre).join(' | '));
+ok('9 secciones en orden, Obras Preliminares la 1', GENERAL.map(g => g.nombre.split('.')[0]).join() === '1,2,3,4,5,6,7,8,9' && GENERAL[0].id === 'urb_preliminares' && GENERAL[6].items.length === 8, GENERAL.map(g => g.nombre).join(' | '));
 const c0 = items('urb_drenaje')[0].querySelector('.cant');
 ok('Campo cantidad: number, decimal, min 0, step any, placeholder', c0.type === 'number' && c0.inputMode === 'decimal' && c0.min === '0' && c0.step === 'any' && /a la fecha/.test(c0.placeholder), c0.placeholder);
 ok('El proyectado existe en cada partida pero no se ve (inspector)', $$('.item .pr').length === fijas.length && getComputedStyle($('.item .proy')).display === 'none');
 
 // 2. valores raros en cantidad
-const pr = (v) => { Q.escribir(c0, v); return datosDelFormulario().general[0].items[0].cant; };
+const pr = (v) => { Q.escribir(c0, v); return datosDelFormulario().general.find(g => g.id === 'urb_drenaje').items[0].cant; };
 ok('12.5 se guarda como «12.5»', pr('12.5') === '12.5');
 ok('(RIESGO) «12,5» con coma: el campo number lo rechaza y queda vacío — en teléfonos con teclado es-VE la coma es el decimal', pr('12,5') === '', JSON.stringify(pr('12,5')));
 ok('(HALLAZGO) «-3» negativo se acepta y viaja', pr('-3') !== '-3', JSON.stringify(pr('-3')));
@@ -39,7 +39,7 @@ const nuevo = items('urb_drenaje').pop();
 ok('La agregada trae desplegable de unidad con las 8 + «unidad», sin elegir', nuevo.querySelector('.ud-sel') && nuevo.querySelector('.ud-sel').options.length === 9 && nuevo.querySelector('.ud-sel').value === '', nuevo.querySelector('.ud-sel') && nuevo.querySelector('.ud-sel').options.length);
 Q.escribir(nuevo.querySelector('.nombre-libre'), 'Sumidero'); Q.escribir(nuevo.querySelector('.cant'), '3'); Q.elegir(nuevo.querySelector('.ud-sel'), 'und');
 let d = datosDelFormulario();
-ok('Viaja: Sumidero, agregado, cant 3, ud und', d.general[0].items.some(i => i.nombre === 'Sumidero' && i.agregado && i.cant === '3' && i.ud === 'und'), JSON.stringify(d.general[0].items.filter(i => i.agregado)));
+ok('Viaja: Sumidero, agregado, cant 3, ud und', d.general.find(g => g.id === 'urb_drenaje').items.some(i => i.nombre === 'Sumidero' && i.agregado && i.cant === '3' && i.ud === 'und'), JSON.stringify(d.general.find(g => g.id === 'urb_drenaje').items.filter(i => i.agregado)));
 agregarItemNuevo('urb_drenaje'); const sinNombre = items('urb_drenaje').pop(); Q.escribir(sinNombre.querySelector('.cant'), '7');
 d = datosDelFormulario();
 ok('(HALLAZGO) una agregada SIN NOMBRE pero con cantidad viaja con nombre vacío', !d.general[0].items.some(i => i.agregado && i.nombre === ''), JSON.stringify(d.general[0].items.filter(i => i.agregado).map(i => i.nombre + ':' + i.cant)));
@@ -53,14 +53,14 @@ Q.dialogos = []; $('#ns-nombre').value = '   '; agregarSeccion();
 ok('Sección sin nombre: avisa', /nombre/.test(Q.dialogos[0] || ''), Q.dialogos[0]);
 $('#ns-nombre').value = 'Gas'; agregarSeccion(); await esperar(200);
 const gas = GENERAL.find(g => g.id === 'urb_x_gas');
-ok('«Gas» → id urb_x_gas, nombre «9. GAS», al final, recordada', gas && gas.nombre === '9. GAS' && GENERAL.indexOf(gas) === 8 && seccionesRecordadas().some(s => s.id === 'urb_x_gas'), JSON.stringify(gas) + ' · ' + localStorage.getItem('garmel_urb_secciones'));
+ok('«Gas» → id urb_x_gas, nombre «10. GAS», al final, recordada', gas && gas.nombre === '10. GAS' && GENERAL.indexOf(gas) === 9 && seccionesRecordadas().some(s => s.id === 'urb_x_gas'), JSON.stringify(gas) + ' · ' + localStorage.getItem('garmel_urb_secciones'));
 ok('La sección nueva queda abierta y con el aviso de «sin lista»', !$('#srv-urb_x_gas .cuerpo').hidden && $('#srv-urb_x_gas .vacio') && !$('#srv-urb_x_gas .vacio').hidden);
 ok('(TEXTO) el aviso de sección vacía dice «servicio» / «Ingeniería», no «sección»', !/servicio/.test($('#srv-urb_x_gas .vacio').textContent), $('#srv-urb_x_gas .vacio').textContent);
 ok('Lo que había en pantalla sobrevivió a agregar la sección: R en drenaje[1], Sumidero 3 und, manzana M-3', valorSN(items('urb_drenaje')[1]) === 'R' && items('urb_drenaje').some(it => it.querySelector('.nombre-libre') && it.querySelector('.nombre-libre').value === 'Sumidero' && it.querySelector('.cant').value === '3' && it.querySelector('.ud-sel').value === 'und') && torre.value === 'M-3' && listaGuardada().length === 1, listaGuardada().length);
 Q.dialogos = []; $('#ns-nombre').value = '  gas '; agregarSeccion();
 ok('«  gas » repetida: «ya existe»', /ya existe/.test(Q.dialogos[0] || ''), Q.dialogos[0]);
 $('#ns-nombre').value = 'Telecomunicaciones (fibra óptica)'; agregarSeccion(); await esperar(200);
-ok('Nombre con paréntesis y acento: id limpio, nombre «10. TELECOMUNICACIONES (FIBRA ÓPTICA)»', GENERAL.some(g => g.id === 'urb_x_telecomunicacionesfibraoptica' && g.nombre === '10. TELECOMUNICACIONES (FIBRA ÓPTICA)'), GENERAL[9] && GENERAL[9].id);
+ok('Nombre con paréntesis y acento: id limpio, nombre «11. TELECOMUNICACIONES (FIBRA ÓPTICA)»', GENERAL.some(g => g.id === 'urb_x_telecomunicacionesfibraoptica' && g.nombre === '11. TELECOMUNICACIONES (FIBRA ÓPTICA)'), GENERAL[10] && GENERAL[10].id);
 Q.dialogos = []; $('#ns-nombre').value = '!!!'; agregarSeccion(); await esperar(100); $('#ns-nombre').value = '???'; agregarSeccion();
 ok('(BORDE) «!!!» y «???» comparten id «urb_x_» y el segundo se rechaza como repetido', GENERAL.some(g => g.id === 'urb_x_') && /ya existe/.test(Q.dialogos[0] || ''), Q.dialogos[0]);
 // partida dentro de la sección nueva, con unidad

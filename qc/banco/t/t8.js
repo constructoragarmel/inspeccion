@@ -14,7 +14,7 @@ ok('30 manzanas agregadas y recordadas', manzanasRecordadas().length === 30 && T
 Q.elegir(conv, 'Convenio Rusos');
 ok('SR lista 15; SB lista 15; sin sector 39', [...torre.options].length === 16 && (Q.elegir(conv, 'Convenio Chinos'), [...torre.options].length === 16) && (Q.elegir(conv, ''), [...torre.options].length === 40));
 
-// 2. 30 informes con 39 cantidades + calidad + 2 fotos cada uno
+// 2. 30 informes con 42 cantidades + calidad + 2 fotos cada uno
 const f2 = [await Q.foto(1600, 1200, 51), await Q.foto(1600, 1200, 52)];
 t = Date.now(); let tMax = 0;
 for (let i = 1; i <= 30; i++){
@@ -25,7 +25,7 @@ for (let i = 1; i <= 30; i++){
   guardar(false); await _escrituraFotos; tMax = Math.max(tMax, Date.now() - t0);
 }
 const tTotal = Date.now() - t;
-ok('30 informes guardados con 39 partidas y 2 fotos', listaGuardada().length === 30 && listaGuardada().every(x => x.general.reduce((s, g) => s + g.items.length, 0) === 39 && x.general[5].fotos.length === 2), ms(tTotal) + ' total · peor informe ' + ms(tMax));
+ok('30 informes guardados con 42 partidas y 2 fotos', listaGuardada().length === 30 && listaGuardada().every(x => x.general.reduce((s, g) => s + g.items.length, 0) === 42 && x.general[6].fotos.length === 2), ms(tTotal) + ' total · peor informe ' + ms(tMax));
 const tam = (localStorage.getItem('garmel_urb_list') || '').length + (localStorage.getItem('garmel_urb_torres') || '').length;
 ok('localStorage con 30 informes: ' + kb(tam) + ' (lejos de 4,8 MB)', tam < 1500000, kb(tam));
 ok('estadosDeTorres tiene las 30 manzanas', Object.keys(estadosDeTorres()).length === 30);
@@ -54,7 +54,7 @@ ok('Sig. manzana con cuota llena NO limpia la pantalla', torre.value === 'M-2' &
 Storage.prototype.setItem = window.__real;
 const guardarReal = FotosDB.guardar; FotosDB.guardar = () => Promise.reject(new DOMException('QuotaExceededError', 'QuotaExceededError'));
 Q.dialogos = []; Q.ponerFotos($('#srv-urb_drenaje input[type=file]'), [f2[0]]); await hasta(() => $$('#fotos-urb_drenaje .foto img').length === 1, 5000); guardar(false); await _escrituraFotos.catch(() => {}); await esperar(100);
-ok('IndexedDB llena: el texto se guarda y avisa que LAS FOTOGRAFÍAS NO', Q.dialogos.some(d => /FOTOGRAFÍAS NO/.test(d)) && listaGuardada().some(x => x.torre === 'M-2' && x.general[0].items[0].cant === '77') && _fotosSucias, Q.dialogos.slice(-1)[0]);
+ok('IndexedDB llena: el texto se guarda y avisa que LAS FOTOGRAFÍAS NO', Q.dialogos.some(d => /FOTOGRAFÍAS NO/.test(d)) && listaGuardada().some(x => x.torre === 'M-2' && x.general[1].items[0].cant === '77') && _fotosSucias, Q.dialogos.slice(-1)[0]);
 FotosDB.guardar = guardarReal; guardar(false); await _escrituraFotos;
 ok('Al volver el espacio, la foto entra en el siguiente guardado', Object.keys(await FotosDB.leer(idActual)).length > 0 && !_fotosSucias);
 
@@ -62,8 +62,8 @@ ok('Al volver el espacio, la foto entra en el siguiente guardado', Object.keys(a
 for (let i = 1; i <= 20; i++){ $('#ns-nombre').value = 'Sección extra ' + i; agregarSeccion(); }
 const mem = memoriaItems(); GENERAL.forEach(g => { mem[g.id] = (mem[g.id] || []).concat(Array.from({ length: 4 }, (_, k) => 'Partida recordada ' + k + ' de ' + g.id)); }); guardarMemoriaItems(mem);
 t = Date.now(); nuevoInforme(); const tP = Date.now() - t;
-ok('28 secciones y ' + $$('.item').length + ' partidas: «Nuevo» pinta en ' + ms(tP), GENERAL.length === 28 && $$('.item').length >= 39 + 112 && tP < 1500, ms(tP));
+ok('29 secciones y ' + $$('.item').length + ' partidas: «Nuevo» pinta en ' + ms(tP), GENERAL.length === 29 && $$('.item').length >= 42 + 112 && tP < 1500, ms(tP));
 ok('Sin scroll horizontal con 28 secciones', document.documentElement.scrollWidth <= innerWidth);
 t = Date.now(); insp(); Q.elegir(torre, 'M-101'); await esperar(50); $('#aviso-historial .si') && $('#aviso-historial .si').click(); const tH = Date.now() - t;
-ok('Traer historial de M-101 con 151 partidas en pantalla: ' + ms(tH), tH < 1500 && $$('.item.heredado').length === 39, $$('.item.heredado').length);
+ok('Traer historial de M-101 con 151 partidas en pantalla: ' + ms(tH), tH < 1500 && $$('.item.heredado').length === 42, $$('.item.heredado').length);
 ok('Ningún error de página', !Q.R.some(r => /pageerror|unhandled/.test(r.n)));

@@ -76,7 +76,7 @@ const it0 = $('#items-urb_drenaje .item'); Q.escribir(it0.querySelector('.cant')
 Q.dialogos = []; siguienteTorre();
 ok('Sig. manzana: guarda 1 informe, conserva sector SR, inspector GB y fecha; suelta manzana, residente y empresa? (empresa por sector)', listaGuardada().length === 1 && conv.value === 'Convenio Rusos' && inspectoresElegidos()[0] === INSPECTORES_DB[0] && $('#fecha').value === hoy && torre.value === '', JSON.stringify({ l: listaGuardada().length, c: conv.value, e: $('#empresa').value, r: $('#residente').value }));
 ok('(UX) tras Sig. manzana la empresa del sector queda visible', /PROCODIMA/.test($('#empresa').value), $('#empresa').value);
-ok('El informe guardado lleva manzana, sector, empresa, residente y la cantidad', (function(){ const d = listaGuardada()[0]; return d.torre === 'ÑANDÚ/2 "B" <B>X</B>' && d.convenio === 'Convenio Rusos' && /PROCODIMA/.test(d.empresa) && d.residente === 'ING. RESIDENTE SR' && d.general[0].items[0].cant === '12.5' && d.general[0].items[0].ud === 'm'; })(), JSON.stringify(listaGuardada()[0]).slice(0, 200));
+ok('El informe guardado lleva manzana, sector, empresa, residente y la cantidad', (function(){ const d = listaGuardada()[0]; return d.torre === 'ÑANDÚ/2 "B" <B>X</B>' && d.convenio === 'Convenio Rusos' && /PROCODIMA/.test(d.empresa) && d.residente === 'ING. RESIDENTE SR' && d.general[1].items[0].cant === '12.5' && d.general[1].items[0].ud === 'm'; })(), JSON.stringify(listaGuardada()[0]).slice(0, 200));
 
 // 8. residente «se recuerda por manzana»: volver a elegirla
 Q.elegir(torre, 'ÑANDÚ/2 "B" <B>X</B>'); await esperar(300);

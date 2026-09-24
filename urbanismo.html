@@ -142,6 +142,17 @@ body.plan .item{border-color:#1a237e}
 .avance{font-size:13px;font-weight:700;color:#1a237e;min-width:44px;text-align:right}
 body:not(.plan) .item.heredado.her-pr{border-left-color:transparent}
 body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
+.camiones{margin:0 0 8px;padding:8px;border:1px dashed #94a3b8;border-radius:8px;background:#f8fafc}
+.camiones:not(.con) .cam-base{display:none}
+.camion{border-top:1px solid #e2e8f0;padding:6px 0}
+.camion:first-child{border-top:0}
+.cam-cab{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#334155;margin-bottom:4px}
+.cam-cab .quitar-cam{background:none;border:0;color:#b91c1c;font-size:12px;padding:4px 6px}
+.cam-campos{display:grid;grid-template-columns:1.3fr 1fr .8fr;gap:6px}
+.cam-campos label{display:flex;flex-direction:column;font-size:11px;color:#64748b;min-width:0}
+.cam-campos input{min-width:0;width:100%}
+.cam-total{font-size:13px;font-weight:700;color:#1a237e;margin:4px 0}
+.cant[readonly]{background:#eef2ff}
 .plan-aviso{background:#e8eaf6;border:1px solid #1a237e;color:#1a237e;border-radius:8px;padding:8px 12px;margin:0 12px 8px;font-size:13px;font-weight:700}
 .etq-her{display:inline-block;font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;
       border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap}
@@ -250,7 +261,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v88</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v89</div>
 </div>
 
 <div class="acciones">
@@ -280,8 +291,17 @@ const SECTOR_POR_CONVENIO = {
 const INSPECTORES_DB = ["Gabriel Barrios (CIV-NC)", "Mariana Rojas (CIV-NC)", "Alejandro Bastidas (CIV-67.316)", "Birmania Rada (CIV-NC)", "Charbel Abdul (CIV en trámite)", "Christian Fricke (CIV-184.558)", "Cleidy Chacón (CIV-NC)", "Diego Orta (CIV-301.823)", "Diego Rosales (CIV-296.226)", "Edenil Narváez (CIV-150.422)", "Génesis Cordobés (CIV-307.057)", "Girlenys Lacruz (CIV-288.041)", "Hernán Escobar (CIV-151.021)", "Katherine Correia (CIV-237.904)", "Leidy Villamizar (CIV-258.266)", "Lizeira Aragort (CIV-298.127)", "Manuel Madrid (CIV-256.842)", "Martha Azcarate (CIV-87.616)", "Oriana Plaza (CIV en trámite)", "Selehidy Rivero (CIV-292.273)", "Skarlet Gómez (CIV-317.442)", "Víctor Mendoza (CIV-NC)", "Yenddy Sierra (CIV-307.772)"];
 const GENERAL = [
   {
+    "id": "urb_preliminares",
+    "nombre": "1. OBRAS PRELIMINARES",
+    "items": [
+      "Desmalezamiento",
+      "Movimiento de tierra",
+      "Bote de material"
+    ]
+  },
+  {
     "id": "urb_drenaje",
-    "nombre": "1. DRENAJE",
+    "nombre": "2. DRENAJE",
     "items": [
       "Topografía",
       "Excavación",
@@ -291,7 +311,7 @@ const GENERAL = [
   },
   {
     "id": "urb_estructura",
-    "nombre": "2. ESTRUCTURA",
+    "nombre": "3. ESTRUCTURA",
     "items": [
       "Excavación / Movimiento de tierra",
       "Acero de refuerzo",
@@ -301,7 +321,7 @@ const GENERAL = [
   },
   {
     "id": "urb_acueductos",
-    "nombre": "3. ACUEDUCTOS",
+    "nombre": "4. ACUEDUCTOS",
     "items": [
       "Topografía",
       "Excavación",
@@ -311,7 +331,7 @@ const GENERAL = [
   },
   {
     "id": "urb_electricidad",
-    "nombre": "4. ELECTRICIDAD",
+    "nombre": "5. ELECTRICIDAD",
     "items": [
       "Puntos cableados",
       "Canalización",
@@ -322,7 +342,7 @@ const GENERAL = [
   },
   {
     "id": "urb_aguas_servidas",
-    "nombre": "5. AGUAS SERVIDAS",
+    "nombre": "6. AGUAS SERVIDAS",
     "items": [
       "Topografía",
       "Excavación",
@@ -333,7 +353,7 @@ const GENERAL = [
   },
   {
     "id": "urb_vialidad",
-    "nombre": "6. VIALIDAD",
+    "nombre": "7. VIALIDAD",
     "items": [
       "Topografía",
       "Escarificación",
@@ -347,7 +367,7 @@ const GENERAL = [
   },
   {
     "id": "urb_camineria",
-    "nombre": "7. CAMINERÍA",
+    "nombre": "8. CAMINERÍA",
     "items": [
       "Topografía / Trazo",
       "Excavación y conformación",
@@ -356,7 +376,7 @@ const GENERAL = [
   },
   {
     "id": "urb_paisajismo",
-    "nombre": "8. PAISAJISMO",
+    "nombre": "9. PAISAJISMO",
     "items": [
       "Topografía",
       "Jardinería",
@@ -379,7 +399,9 @@ const EMPRESA_POR_SECTOR = {"Convenio Bielorrusos": "ADDISON", "Convenio Rusos":
 const CLAVE_MANZANAS = 'garmel_urb_manzanas';
 const CLAVE_SECCIONES = 'garmel_urb_secciones';
 const UNIDADES = ["m", "m²", "m³", "und", "kg", "glb", "ha", "ton"];
-const UNIDAD_DE = {"urb_drenaje": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquilla": "und"}, "urb_estructura": {"Excavación / Movimiento de tierra": "m³", "Acero de refuerzo": "kg", "Concreto": "m³", "Encofrado": "m²"}, "urb_acueductos": {"Topografía": "m", "Excavación": "m³", "Canalizaciones": "m", "Captación": "und"}, "urb_electricidad": {"Puntos cableados": "und", "Canalización": "m", "Tuberías": "m", "Tanquillas": "und", "Postes de luminaria": "und"}, "urb_aguas_servidas": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquillas": "und", "Colectores": "m"}, "urb_vialidad": {"Topografía": "m", "Escarificación": "m²", "Suministro y colocación": "m³", "Carpeta de rodamiento": "m²", "Brocales": "m", "Aceras": "m²", "Demarcación": "m", "Transporte y maquinaria": "glb"}, "urb_camineria": {"Topografía / Trazo": "m", "Excavación y conformación": "m³", "Pavimento / Acabado": "m²"}, "urb_paisajismo": {"Topografía": "m", "Jardinería": "m²", "Sistema de riego": "m", "Iluminación": "und", "Mobiliario urbano": "und", "Caminerías": "m²"}};
+const UNIDAD_DE = {"urb_preliminares": {"Desmalezamiento": "m²", "Movimiento de tierra": "m³", "Bote de material": "m³"}, "urb_drenaje": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquilla": "und"}, "urb_estructura": {"Excavación / Movimiento de tierra": "m³", "Acero de refuerzo": "kg", "Concreto": "m³", "Encofrado": "m²"}, "urb_acueductos": {"Topografía": "m", "Excavación": "m³", "Canalizaciones": "m", "Captación": "und"}, "urb_electricidad": {"Puntos cableados": "und", "Canalización": "m", "Tuberías": "m", "Tanquillas": "und", "Postes de luminaria": "und"}, "urb_aguas_servidas": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquillas": "und", "Colectores": "m"}, "urb_vialidad": {"Topografía": "m", "Escarificación": "m²", "Suministro y colocación": "m³", "Carpeta de rodamiento": "m²", "Brocales": "m", "Aceras": "m²", "Demarcación": "m", "Transporte y maquinaria": "glb"}, "urb_camineria": {"Topografía / Trazo": "m", "Excavación y conformación": "m³", "Pavimento / Acabado": "m²"}, "urb_paisajismo": {"Topografía": "m", "Jardinería": "m²", "Sistema de riego": "m", "Iluminación": "und", "Mobiliario urbano": "und", "Caminerías": "m²"}};
+const CAMIONES = {"urb_preliminares": ["Bote de material"]};
+const RETIRADA = new RegExp("^urb_x_.*(preliminar|malez)", 'i');
 
 // ── Cascada: la torre manda ───────────────────────────────────────────────
 // Cuatro torres (T-04, T-07, T-12, T-13) están en el maestro DOS VECES, con dos
@@ -633,6 +655,7 @@ function addItem(sid, nombre, fijo, recordado){
     // en una torre sin red— y sin botón propio se confundía con «sin contestar».
     '<div class="cant-fila"><span class="et">Ejecutado</span><input type="text" inputmode="decimal" class="cant" placeholder="Cantidad a la fecha" oninput="numero(this); marcar()">' + ud + '</div>' +
     '<div class="cant-fila proy"><span class="et">Proyectado</span><input type="text" inputmode="decimal" class="pr" placeholder="Cantidad proyectada" oninput="numero(this); marcar()"><span class="avance"></span></div>' +
+    camionesHtml(sid, nombre) +
     '<div class="sino">' +
       '<button type="button" onclick="marcarSN(this,\'B\')">B</button>' +
       '<button type="button" onclick="marcarSN(this,\'R\')">R</button>' +
@@ -982,6 +1005,7 @@ function datosDelFormulario(){
       cant: (it.querySelector('.cant').value || '').trim(),
       pr: (it.querySelector('.pr').value || '').trim(),
       ud: unidadLeida(it),
+      ...camionesDe(it),
       // De qué informe viene la respuesta, si nadie la tocó hoy. Vacío = de hoy.
       heredado: it.classList.contains('her-pr') ? '' : (it.dataset.heredado || '')
     }))
@@ -1289,7 +1313,7 @@ function traerHistorial(){
       if (!el) return;
       ponerSN(el, it.sn);
       el.querySelector('textarea').value = it.obs || '';
-      ponerCant(el, it);
+      ponerCant(el, it, true);
       if (!(it.sn || it.obs || it.cant) && it.pr) el.classList.add('her-pr');
       if (it.sn || it.obs || it.cant || it.pr){ el.classList.add('heredado'); el.dataset.heredado = it.heredado || e.nro; }
     });
@@ -1924,10 +1948,13 @@ function unidadLeida(it){
   const s = it.querySelector('.ud-sel'); if (s) return s.value || '';
   const e = it.querySelector('.ud'); return e ? e.textContent.trim() : '';
 }
-function ponerCant(el, it){
+// Al heredar de la visita anterior pasa el acumulado, no los camiones: esos
+// viajes ya están dentro del acumulado y contarlos otra vez lo inflaría.
+function ponerCant(el, it, heredando){
   el.querySelector('.cant').value = it.cant || '';
   el.querySelector('.pr').value = it.pr || '';
   const s = el.querySelector('.ud-sel'); if (s && it.ud) s.value = it.ud;
+  if (!heredando) ponerCamiones(el, it);
   actualizarAvance(el);
 }
 // % de avance = ejecutado / proyectado, solo cuando hay proyectado. Sin él no
@@ -1939,22 +1966,114 @@ function actualizarAvance(it){
 }
 function actualizarAvances(){ document.querySelectorAll('.item').forEach(actualizarAvance); }
 
+// ── Camiones (Skarlet, 24-sep) ─────────────────────────────────────────────
+// En «Bote de material» se anota cada camión de la visita: placa, m³ que carga
+// y viajes. El ejecutado sigue siendo el ACUMULADO a la fecha: es el acumulado
+// anterior más lo de los camiones de hoy, y mientras haya camiones se calcula
+// solo. El acumulado anterior se toma del ejecutado que había al agregar el
+// primer camión —el heredado de la visita anterior, o lo escrito— y se puede
+// corregir. Sin camiones, el ejecutado vuelve a escribirse a mano.
+function camionesHtml(sid, nombre){
+  if ((CAMIONES[sid] || []).indexOf(nombre) < 0) return '';
+  return '<div class="camiones">' +
+    '<div class="cant-fila cam-base"><span class="et">Acumulado anterior</span><input type="text" inputmode="decimal" class="base" placeholder="0" oninput="numero(this); recalcCamiones(this)"><span class="ud">m³</span></div>' +
+    '<div class="cam-lista"></div><div class="cam-total"></div>' +
+    '<button type="button" class="btn-add" onclick="agregarCamion(this)">🚚 ＋ Agregar camión</button></div>';
+}
+function filaCamion(c, x){
+  x = x || {};
+  const esc = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const f = document.createElement('div'); f.className = 'camion';
+  f.innerHTML = '<div class="cam-cab"><b class="cam-n"></b><button type="button" class="quitar-cam" onclick="quitarCamion(this)">Quitar</button></div>' +
+    '<div class="cam-campos">' +
+      '<label>Placa<input type="text" class="placa" autocapitalize="characters" value="' + esc(x.placa) + '"></label>' +
+      '<label>m³ por viaje<input type="text" inputmode="decimal" class="m3" value="' + esc(x.m3) + '" oninput="numero(this); recalcCamiones(this)"></label>' +
+      '<label>Viajes<input type="text" inputmode="numeric" class="viajes" value="' + esc(x.viajes == null ? '1' : x.viajes) + '" oninput="this.value=this.value.replace(/\\D/g,\'\'); recalcCamiones(this)"></label>' +
+    '</div>';
+  c.querySelector('.cam-lista').appendChild(f);
+  return f;
+}
+function agregarCamion(btn){
+  const c = btn.closest('.camiones'), it = c.closest('.item');
+  tocado(btn);
+  if (!c.querySelector('.camion')) c.querySelector('.base').value = it.querySelector('.cant').value;
+  filaCamion(c).querySelector('.placa').focus();
+  recalcCamiones(c); marcar();
+}
+function quitarCamion(btn){
+  const f = btn.closest('.camion'), c = f.closest('.camiones');
+  const placa = f.querySelector('.placa').value.trim();
+  if ((placa || f.querySelector('.m3').value) && !confirm('¿Quitar el camión' + (placa ? ' ' + placa : '') + '?')) return;
+  tocado(btn); f.remove(); recalcCamiones(c); marcar();
+}
+const redondear = x => String(Math.round(x * 100) / 100);
+function recalcCamiones(el){
+  const c = el.closest('.camiones'); if (!c) return;
+  const it = c.closest('.item'), cant = it.querySelector('.cant'), base = c.querySelector('.base');
+  const filas = [...c.querySelectorAll('.camion')];
+  let hoy = 0, viajes = 0;
+  filas.forEach((f, k) => {
+    f.querySelector('.cam-n').textContent = 'Camión ' + (k + 1);
+    const v = parseInt(f.querySelector('.viajes').value, 10) || 0;
+    hoy += (parseFloat(f.querySelector('.m3').value) || 0) * v; viajes += v;
+  });
+  if (filas.length){
+    c.classList.add('con'); cant.readOnly = true;
+    cant.value = (base.value || hoy) ? redondear((parseFloat(base.value) || 0) + hoy) : '';
+    c.querySelector('.cam-total').textContent = filas.length + ' camión(es) · ' + viajes + ' viaje(s) · ' + redondear(hoy) + ' m³ hoy';
+  } else {
+    c.classList.remove('con'); c.querySelector('.cam-total').textContent = '';
+    if (cant.readOnly){ cant.readOnly = false; cant.value = base.value; }
+  }
+  actualizarAvance(it);
+}
+function camionesDe(it){
+  const c = it.querySelector('.camiones'); if (!c) return {};
+  const lista = [...c.querySelectorAll('.camion')].map(f => ({
+    placa: f.querySelector('.placa').value.trim().toUpperCase(),
+    m3: f.querySelector('.m3').value.trim(),
+    viajes: f.querySelector('.viajes').value.trim()
+  })).filter(x => x.placa || x.m3);
+  return lista.length ? { camiones: lista, base: c.querySelector('.base').value.trim() } : {};
+}
+function ponerCamiones(el, it){
+  const c = el.querySelector('.camiones'); if (!c) return;
+  c.querySelector('.cam-lista').innerHTML = '';
+  c.querySelector('.base').value = it.base || '';
+  (it.camiones || []).forEach(x => filaCamion(c, x));
+  recalcCamiones(c);
+}
+
 function seccionesRecordadas(){
   try { return JSON.parse(localStorage.getItem(CLAVE_SECCIONES) || '[]'); } catch(e){ return []; }
 }
+// El número va por posición: una sección agregada que en su día fue la «9»
+// pasa a la 10 ahora que Obras Preliminares es la 1.
+function numerada(nombre){
+  return (GENERAL.length + 1) + '. ' + String(nombre || '').replace(/^\d+\.\s*/, '');
+}
 function recordarSeccion(s){
+  if (RETIRADA.test(s.id)) return;
   const rec = seccionesRecordadas();
   if (!rec.some(x => x.id === s.id)) rec.push({ id: s.id, nombre: s.nombre, items: [] });
   try { localStorage.setItem(CLAVE_SECCIONES, JSON.stringify(rec)); } catch(e){}
 }
 function cargarSeccionesRecordadas(){
-  seccionesRecordadas().forEach(s => { if (!GENERAL.some(g => g.id === s.id)) GENERAL.push({ id: s.id, nombre: s.nombre, items: [] }); });
+  const rec = seccionesRecordadas(), vivas = rec.filter(s => !RETIRADA.test(s.id));
+  if (vivas.length !== rec.length){
+    try { localStorage.setItem(CLAVE_SECCIONES, JSON.stringify(vivas)); } catch(e){}
+    const m = memoriaItems();
+    rec.forEach(s => { if (RETIRADA.test(s.id)) delete m[s.id]; });
+    guardarMemoriaItems(m);
+  }
+  vivas.forEach(s => { if (!GENERAL.some(g => g.id === s.id)) GENERAL.push({ id: s.id, nombre: numerada(s.nombre), items: [] }); });
 }
 function agregarSeccion(){
   const nombre = (document.getElementById('ns-nombre').value || '').trim();
   if (!nombre){ alert('Escriba el nombre de la sección.'); return; }
   const id = 'urb_x_' + limpiar(nombre).toLowerCase();
   if (GENERAL.some(g => g.id === id)){ alert('Esa sección ya existe.'); return; }
+  if (RETIRADA.test(id)){ alert('Obras Preliminares ya es la sección 1: agregue ahí la partida que falte.'); return; }
   // Lo que hay en pantalla se guarda ANTES de sumar la sección (guardar lee
   // GENERAL y la sección aún no está pintada), se vuelve a pintar todo y se
   // reabre: pintar una sección sola exigiría partir el motor en dos.
@@ -1964,7 +2083,7 @@ function agregarSeccion(){
   const habia = !informeVacio(datosDelFormulario());
   if (habia) guardar(false);
   const id0 = idActual;
-  const s = { id, nombre: (GENERAL.length + 1) + '. ' + nombre.toUpperCase(), items: [] };
+  const s = { id, nombre: numerada(nombre.toUpperCase()), items: [] };
   GENERAL.push(s); recordarSeccion(s);
   pintarGeneral();
   if (habia && id0) cargarInforme(id0);
@@ -1974,11 +2093,22 @@ function agregarSeccion(){
 }
 // Un informe guardado o heredado puede traer secciones que este teléfono no
 // tiene: se crean antes de pintarlo.
+// Lo de una sección retirada pasa a Obras Preliminares, donde las partidas con
+// el mismo nombre caen en la fija. Si trae fotos se deja como está, sin
+// recordarla: las fotos van por sección y moverlas no vale el riesgo.
 function asegurarSecciones(general){
   let nuevas = false;
   (general || []).forEach(g => {
-    if (!g || !g.id || GENERAL.some(s => s.id === g.id)) return;
-    const s = { id: g.id, nombre: g.nombre || g.id, items: [] };
+    if (!g || !RETIRADA.test(g.id || '') || (g.fotos || []).length) return;
+    let t = general.find(x => x && x.id === 'urb_preliminares');
+    if (!t){ t = { id: 'urb_preliminares', nombre: '', items: [], obs: '', fotos: [] }; general.push(t); }
+    t.items = (t.items || []).concat(g.items || []);
+    if ((g.obs || '').trim()) t.obs = [t.obs, g.obs].filter(x => (x || '').trim()).join('\n');
+    g.items = []; g.obs = ''; g.retirada = true;
+  });
+  (general || []).forEach(g => {
+    if (!g || !g.id || g.retirada || GENERAL.some(s => s.id === g.id)) return;
+    const s = { id: g.id, nombre: numerada(g.nombre || g.id), items: [] };
     GENERAL.push(s); recordarSeccion(s); nuevas = true;
   });
   if (nuevas) pintarGeneral();

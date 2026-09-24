@@ -14,8 +14,8 @@ Q.ponerFotos($('#srv-urb_drenaje input[type=file]'), [await Q.foto(800, 600, 11)
 toggleNoInsp('urb_paisajismo');
 agregarItemNuevo('urb_electricidad'); const ag = items('urb_electricidad').pop(); Q.escribir(ag.querySelector('.nombre-libre'), 'Transformador'); Q.elegir(ag.querySelector('.ud-sel'), 'und'); Q.escribir(ag.querySelector('.cant'), '2');
 guardar(false); const id1 = idActual; await _escrituraFotos;
-Q.ok('depuración', true, JSON.stringify((function(){ const d = listaGuardada()[0]; return [d.general[0].items.map(i => i.cant).join(), d.general[5].items[0].sn, d.general[5].items[1].sn, d.general[5].obs, d.general[0].fotos.length, d.noInspeccionados.join(), d.general[3].items.some(i => i.nombre === 'Transformador')]; })()));
-ok('Informe 1 guardado con 4 cant, 2 calidades, nota, 1 foto, NI, agregada', (function(){ const d = listaGuardada()[0]; return d.general[0].items.map(i => i.cant).join() === '10,20,30,40' && d.general[5].items[0].sn === 'B' && d.general[5].items[1].sn === 'M' && d.general[5].obs === 'nota de vialidad' && d.general[0].fotos.length === 1 && d.noInspeccionados.join() === 'urb_paisajismo' && d.general[3].items.some(i => i.nombre === 'Transformador'); })());
+Q.ok('depuración', true, JSON.stringify((function(){ const d = listaGuardada()[0]; return [d.general[1].items.map(i => i.cant).join(), d.general[6].items[0].sn, d.general[6].items[1].sn, d.general[6].obs, d.general[1].fotos.length, d.noInspeccionados.join(), d.general[4].items.some(i => i.nombre === 'Transformador')]; })()));
+ok('Informe 1 guardado con 4 cant, 2 calidades, nota, 1 foto, NI, agregada', (function(){ const d = listaGuardada()[0]; return d.general[1].items.map(i => i.cant).join() === '10,20,30,40' && d.general[6].items[0].sn === 'B' && d.general[6].items[1].sn === 'M' && d.general[6].obs === 'nota de vialidad' && d.general[1].fotos.length === 1 && d.noInspeccionados.join() === 'urb_paisajismo' && d.general[4].items.some(i => i.nombre === 'Transformador'); })());
 
 // 2. nuevo, misma manzana: oferta y herencia
 nuevoInforme(); insp(); Q.elegir(torre, 'M-2'); await esperar(200);
@@ -53,8 +53,8 @@ Q.aceptar = true; items('urb_vialidad')[0].querySelectorAll('.sino button')[0].c
 ok('Tocar B otra vez y reescribir 20 los confirma: quedan 4 heredados', $$('.item.heredado').length === 4, $$('.item.heredado').length);
 guardar(false); Q.dialogos = []; enviar(); await hasta(() => !_tandaEnCurso && !$('#cartel-envio'), 30000); await esperar(300);
 const env = await Q.envios();
-ok('Avisa 4 y envía; en los datos, los heredados llevan el número de origen y los de hoy no', /: 4/.test(Q.dialogos[0] || '') && env.length === 1 && env[0].datos.general[0].items[0].heredado === '' && env[0].datos.general[0].items[2].heredado === listaGuardada()[0].nro, env[0] && JSON.stringify(env[0].datos.general[0].items.map(i => i.cant + ':' + i.heredado)));
-ok('Los ítems agregados heredados viajan con «agregado: true»', env[0] && env[0].datos.general[3].items.some(i => i.nombre === 'Transformador' && i.agregado === true));
+ok('Avisa 4 y envía; en los datos, los heredados llevan el número de origen y los de hoy no', /: 4/.test(Q.dialogos[0] || '') && env.length === 1 && env[0].datos.general[1].items[0].heredado === '' && env[0].datos.general[1].items[2].heredado === listaGuardada()[0].nro, env[0] && JSON.stringify(env[0].datos.general[1].items.map(i => i.cant + ':' + i.heredado)));
+ok('Los ítems agregados heredados viajan con «agregado: true»', env[0] && env[0].datos.general[4].items.some(i => i.nombre === 'Transformador' && i.agregado === true));
 
 // 6. historial desde el relevo en un teléfono limpio
 localStorage.removeItem('garmel_urb_list'); localStorage.removeItem('garmel_urb_torres'); localStorage.removeItem('garmel_urb_actual');

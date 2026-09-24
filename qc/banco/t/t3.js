@@ -31,7 +31,7 @@ nuevoInforme(); Q.elegir(torre, 'M-1 L1'); await esperar(100); if ($('#aviso-his
 Q.elegir($('#inspectores select'), INSPECTORES_DB[1]);
 const drena = items('urb_drenaje'); drena.forEach((x, i) => Q.escribir(x.querySelector('.pr'), String((i + 1) * 100)));
 let d = datosDelFormulario();
-ok('Los 4 proyectados están en los datos', d.general[0].items.map(i => i.pr).join() === '100,200,300,400', d.general[0].items.map(i => i.pr).join());
+ok('Los 4 proyectados están en los datos', d.general[1].items.map(i => i.pr).join() === '100,200,300,400', d.general[1].items.map(i => i.pr).join());
 const antes = listaGuardada().length; const g = guardar(true);
 ok('(HALLAZGO) un informe con SOLO proyectadas se considera «en blanco» y NO se guarda', g === true && listaGuardada().length === antes + 1, 'guardar→' + g + ' · ' + (Q.dialogos.slice(-1)[0] || '') + ' · lista ' + antes + '→' + listaGuardada().length);
 ok('(HALLAZGO) …ni cuenta como contestado para la sección', /1\/4|4\/4/.test($('#cuenta-urb_drenaje').textContent), JSON.stringify($('#cuenta-urb_drenaje').textContent));
@@ -42,13 +42,13 @@ Q.elegir(torre, 'M-1 L1'); await esperar(100); if ($('#aviso-historial .no')) $(
 items('urb_drenaje').forEach((x, i) => Q.escribir(x.querySelector('.pr'), String((i + 1) * 100)));
 Q.escribir(items('urb_drenaje')[0].querySelector('.cant'), '50'); guardar(false);
 d = listaGuardada().find(x => x.torre === 'M-1 L1');
-ok('Con un ejecutado además, se guarda con los 4 proyectados', d && d.general[0].items.map(i => i.pr).join() === '100,200,300,400' && d.general[0].items[0].cant === '50', d && d.general[0].items.map(i => i.pr + '/' + i.cant).join());
+ok('Con un ejecutado además, se guarda con los 4 proyectados', d && d.general[1].items.map(i => i.pr).join() === '100,200,300,400' && d.general[1].items[0].cant === '50', d && d.general[1].items.map(i => i.pr + '/' + i.cant).join());
 
 // salir del modo plan: el proyectado sigue viajando aunque no se vea
 btnP.click();
 ok('Apagar: sin clase plan, sin aviso, proyectado oculto, los valores siguen', !document.body.classList.contains('plan') && !$('.plan-aviso') && getComputedStyle(items('urb_drenaje')[0].querySelector('.proy')).display === 'none' && items('urb_drenaje')[3].querySelector('.pr').value === '400');
 guardar(false); d = listaGuardada().find(x => x.torre === 'M-1 L1');
-ok('Guardado en modo inspector: los proyectados no se pierden', d.general[0].items.map(i => i.pr).join() === '100,200,300,400');
+ok('Guardado en modo inspector: los proyectados no se pierden', d.general[1].items.map(i => i.pr).join() === '100,200,300,400');
 
 // historial: el inspector del día siguiente hereda cant y recibe pr sin verlo
 nuevoInforme(); Q.elegir(torre, 'M-1 L1'); await esperar(200); $('#aviso-historial .si').click(); await esperar(100);
@@ -58,13 +58,13 @@ Q.escribir(d0.querySelector('.cant'), '80');
 ok('El inspector escribe 80 encima: deja de ser heredado y el pr 100 sigue', !d0.classList.contains('heredado') && d0.querySelector('.pr').value === '100');
 guardar(false);
 d = listaGuardada().slice(-1)[0];
-ok('El informe de hoy lleva cant 80 / pr 100 en drenaje[0] y pr 400 en [3]', d.general[0].items[0].cant === '80' && d.general[0].items[0].pr === '100' && d.general[0].items[3].pr === '400', JSON.stringify(d.general[0].items.map(i => i.cant + '/' + i.pr)));
+ok('El informe de hoy lleva cant 80 / pr 100 en drenaje[0] y pr 400 en [3]', d.general[1].items[0].cant === '80' && d.general[1].items[0].pr === '100' && d.general[1].items[3].pr === '400', JSON.stringify(d.general[1].items.map(i => i.cant + '/' + i.pr)));
 
 // envío: el sobre lleva cant, pr, ud
 await Q.relevo({ borrar: true });
 Q.dialogos = []; await enviarSolo(d.id); await hasta(() => !_tandaEnCurso && !$('#cartel-envio'), 20000);
 const env = await Q.envios();
-ok('Enviado: tipo urbanismo, ambito torre, datos con cant/pr/ud por partida', env.length === 1 && env[0].tipo === 'urbanismo' && env[0].datos.general[0].items[0].cant === '80' && env[0].datos.general[0].items[0].pr === '100' && env[0].datos.general[0].items[0].ud === 'm', JSON.stringify(env[0] && env[0].datos.general[0].items[0]));
+ok('Enviado: tipo urbanismo, ambito torre, datos con cant/pr/ud por partida', env.length === 1 && env[0].tipo === 'urbanismo' && env[0].datos.general[1].items[0].cant === '80' && env[0].datos.general[1].items[0].pr === '100' && env[0].datos.general[1].items[0].ud === 'm', JSON.stringify(env[0] && env[0].datos.general[1].items[0]));
 ok('El número del sobre es el de la manzana: PRUEBA-URB-EZ-M1L1-', /^PRUEBA-URB-EZ-M1L1-/.test(env[0] && env[0].numero), env[0] && env[0].numero);
 
 // ?rol=planificacion se prueba en la tanda 9 (arranque). Sig. manzana conserva el modo:

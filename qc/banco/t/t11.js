@@ -7,7 +7,7 @@ const insp = () => Q.elegir($('#inspectores select'), INSPECTORES_DB[0]);
 nuevoInforme(); insp(); Q.elegir(conv, EZ); Q.elegir(torre, 'M-2'); await esperar(50);
 const c0 = items('urb_drenaje')[0].querySelector('.cant');
 // A) cantidad: coma, negativo, letras
-Q.escribir(c0, '12,5'); ok('«12,5» → 12.5', c0.value === '12.5' && datosDelFormulario().general[0].items[0].cant === '12.5', c0.value);
+Q.escribir(c0, '12,5'); ok('«12,5» → 12.5', c0.value === '12.5' && datosDelFormulario().general[1].items[0].cant === '12.5', c0.value);
 Q.escribir(c0, '-3'); ok('«-3» → 3 (sin signo)', c0.value === '3', c0.value);
 Q.escribir(c0, '1.2.3'); ok('«1.2.3» → 1.23', c0.value === '1.23', c0.value);
 Q.escribir(c0, 'abc12'); ok('letras fuera', c0.value === '12', c0.value);
@@ -15,7 +15,7 @@ ok('El campo es text + inputmode decimal', c0.type === 'text' && c0.inputMode ==
 // B) solo proyectadas se guarda y cuenta
 nuevoInforme(); insp(); Q.elegir(torre, 'M-3'); await esperar(50); if ($('#aviso-historial .no')) $('#aviso-historial .no').click();
 items('urb_drenaje').forEach((x, i) => Q.escribir(x.querySelector('.pr'), String((i + 1) * 100)));
-ok('Solo proyectadas: guardar() sí guarda', guardar(false) === true && listaGuardada().some(x => x.torre === 'M-3' && x.general[0].items[3].pr === '400'));
+ok('Solo proyectadas: guardar() sí guarda', guardar(false) === true && listaGuardada().some(x => x.torre === 'M-3' && x.general[1].items[3].pr === '400'));
 Q.dialogos = []; siguienteTorre();
 ok('Sig. manzana con solo proyectadas: queda guardado y la pantalla se limpia', listaGuardada().some(x => x.torre === 'M-3') && torre.value === '' && items('urb_drenaje')[0].querySelector('.pr').value === '');
 ok('Tras Sig. manzana la empresa del sector se ve', $('#empresa').value === 'ADDISON', $('#empresa').value);
@@ -39,12 +39,12 @@ ok('5 heredados (4 cant + agregada)', $$('.item.heredado').length === 5, $$('.it
 Q.elegir(torre, 'M-6'); await esperar(50);
 ok('Cambiar a M-6: cantidades, unidad y agregada limpias; formulario en blanco', items('urb_drenaje').every(x => x.querySelector('.cant').value === '') && (function(){ const t = items('urb_electricidad').find(x => x.dataset.fijo === '0'); return !t || (t.querySelector('.cant').value === '' && t.querySelector('.ud-sel').value === ''); })() && formularioEnBlanco());
 nuevoInforme(); insp(); Q.elegir(torre, 'M-5'); await esperar(100);
-ok('Banner: «4 partida(s) con dato»', /4 partida\(s\) con dato/.test($('#aviso-historial').textContent), $('#aviso-historial').textContent.replace(/\s+/g, ' ').slice(40, 120));
+ok('Banner: «5 partida(s) con dato» (4 de drenaje + Transformador, como los 5 heredados)', /5 partida\(s\) con dato/.test($('#aviso-historial').textContent), $('#aviso-historial').textContent.replace(/\s+/g, ' ').slice(40, 120));
 $('#aviso-historial .no').click();
 // E) faltan: partida agregada sin nombre; textos
 agregarItemNuevo('urb_drenaje'); Q.escribir(items('urb_drenaje').pop().querySelector('.cant'), '7');
 Q.dialogos = []; siguienteTorre();
-ok('Sig. manzana con agregada sin nombre: avisa «el nombre de la partida agregada en 1. DRENAJE» y «otra manzana»', /nombre de la partida agregada en 1\. DRENAJE/.test(Q.dialogos[0] || '') && /otra manzana/.test(Q.dialogos[0] || ''), Q.dialogos[0]);
+ok('Sig. manzana con agregada sin nombre: avisa «el nombre de la partida agregada en 2. DRENAJE» y «otra manzana»', /nombre de la partida agregada en 2\. DRENAJE/.test(Q.dialogos[0] || '') && /otra manzana/.test(Q.dialogos[0] || ''), Q.dialogos[0]);
 quitarItem(items('urb_drenaje').pop().querySelector('.quitar-item'));
 Q.elegir(torre, ''); Q.dialogos = []; siguienteTorre();
 ok('Sin manzana: «la manzana o lote»', /la manzana o lote/.test(Q.dialogos[0] || ''), Q.dialogos[0]);
@@ -57,7 +57,7 @@ ok('Agregar sección conserva nota, foto y NI', $('#srv-urb_vialidad .obs-srv').
 // G) secciones agregadas vacías no viajan; con contenido sí
 $('#ns-nombre').value = 'Vacía'; agregarSeccion(); await esperar(300);
 let d = datosDelFormulario();
-ok('La sección vacía no va en los datos; las 8 fijas sí', d.general.length === 8 && !d.general.some(g => g.id === 'urb_x_vacia'), d.general.map(g => g.id).join());
+ok('La sección vacía no va en los datos; las 9 fijas sí', d.general.length === 9 && !d.general.some(g => g.id === 'urb_x_vacia'), d.general.map(g => g.id).join());
 agregarItemNuevo('urb_x_gas'); const pg = items('urb_x_gas').pop(); Q.escribir(pg.querySelector('.nombre-libre'), 'Tubería'); Q.escribir(pg.querySelector('.cant'), '5');
 d = datosDelFormulario();
 ok('Gas con una partida sí viaja', d.general.some(g => g.id === 'urb_x_gas' && g.items.length === 1));

@@ -129,6 +129,17 @@ body.plan .item{border-color:#1a237e}
 .avance{font-size:13px;font-weight:700;color:#1a237e;min-width:44px;text-align:right}
 body:not(.plan) .item.heredado.her-pr{border-left-color:transparent}
 body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
+.camiones{margin:0 0 8px;padding:8px;border:1px dashed #94a3b8;border-radius:8px;background:#f8fafc}
+.camiones:not(.con) .cam-base{display:none}
+.camion{border-top:1px solid #e2e8f0;padding:6px 0}
+.camion:first-child{border-top:0}
+.cam-cab{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#334155;margin-bottom:4px}
+.cam-cab .quitar-cam{background:none;border:0;color:#b91c1c;font-size:12px;padding:4px 6px}
+.cam-campos{display:grid;grid-template-columns:1.3fr 1fr .8fr;gap:6px}
+.cam-campos label{display:flex;flex-direction:column;font-size:11px;color:#64748b;min-width:0}
+.cam-campos input{min-width:0;width:100%}
+.cam-total{font-size:13px;font-weight:700;color:#1a237e;margin:4px 0}
+.cant[readonly]{background:#eef2ff}
 .plan-aviso{background:#e8eaf6;border:1px solid #1a237e;color:#1a237e;border-radius:8px;padding:8px 12px;margin:0 12px 8px;font-size:13px;font-weight:700}""", "9· estilos de cantidad, calidad y planificación")
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -247,6 +258,7 @@ J = sustituir(J, r"""    '<div class="sino">' +
     '</div>' +""",
 r"""    '<div class="cant-fila"><span class="et">Ejecutado</span><input type="text" inputmode="decimal" class="cant" placeholder="Cantidad a la fecha" oninput="numero(this); marcar()">' + ud + '</div>' +
     '<div class="cant-fila proy"><span class="et">Proyectado</span><input type="text" inputmode="decimal" class="pr" placeholder="Cantidad proyectada" oninput="numero(this); marcar()"><span class="avance"></span></div>' +
+    camionesHtml(sid, nombre) +
     '<div class="sino">' +
       '<button type="button" onclick="marcarSN(this,\'B\')">B</button>' +
       '<button type="button" onclick="marcarSN(this,\'R\')">R</button>' +
@@ -273,10 +285,13 @@ function unidadLeida(it){
   const s = it.querySelector('.ud-sel'); if (s) return s.value || '';
   const e = it.querySelector('.ud'); return e ? e.textContent.trim() : '';
 }
-function ponerCant(el, it){
+// Al heredar de la visita anterior pasa el acumulado, no los camiones: esos
+// viajes ya están dentro del acumulado y contarlos otra vez lo inflaría.
+function ponerCant(el, it, heredando){
   el.querySelector('.cant').value = it.cant || '';
   el.querySelector('.pr').value = it.pr || '';
   const s = el.querySelector('.ud-sel'); if (s && it.ud) s.value = it.ud;
+  if (!heredando) ponerCamiones(el, it);
   actualizarAvance(el);
 }
 // % de avance = ejecutado / proyectado, solo cuando hay proyectado. Sin él no
@@ -287,6 +302,84 @@ function actualizarAvance(it){
   a.textContent = (p > 0 && c >= 0) ? Math.round(c / p * 100) + '%' : '';
 }
 function actualizarAvances(){ document.querySelectorAll('.item').forEach(actualizarAvance); }
+
+// ── Camiones (Skarlet, 24-sep) ─────────────────────────────────────────────
+// En «Bote de material» se anota cada camión de la visita: placa, m³ que carga
+// y viajes. El ejecutado sigue siendo el ACUMULADO a la fecha: es el acumulado
+// anterior más lo de los camiones de hoy, y mientras haya camiones se calcula
+// solo. El acumulado anterior se toma del ejecutado que había al agregar el
+// primer camión —el heredado de la visita anterior, o lo escrito— y se puede
+// corregir. Sin camiones, el ejecutado vuelve a escribirse a mano.
+function camionesHtml(sid, nombre){
+  if ((CAMIONES[sid] || []).indexOf(nombre) < 0) return '';
+  return '<div class="camiones">' +
+    '<div class="cant-fila cam-base"><span class="et">Acumulado anterior</span><input type="text" inputmode="decimal" class="base" placeholder="0" oninput="numero(this); recalcCamiones(this)"><span class="ud">m³</span></div>' +
+    '<div class="cam-lista"></div><div class="cam-total"></div>' +
+    '<button type="button" class="btn-add" onclick="agregarCamion(this)">🚚 ＋ Agregar camión</button></div>';
+}
+function filaCamion(c, x){
+  x = x || {};
+  const esc = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const f = document.createElement('div'); f.className = 'camion';
+  f.innerHTML = '<div class="cam-cab"><b class="cam-n"></b><button type="button" class="quitar-cam" onclick="quitarCamion(this)">Quitar</button></div>' +
+    '<div class="cam-campos">' +
+      '<label>Placa<input type="text" class="placa" autocapitalize="characters" value="' + esc(x.placa) + '"></label>' +
+      '<label>m³ por viaje<input type="text" inputmode="decimal" class="m3" value="' + esc(x.m3) + '" oninput="numero(this); recalcCamiones(this)"></label>' +
+      '<label>Viajes<input type="text" inputmode="numeric" class="viajes" value="' + esc(x.viajes == null ? '1' : x.viajes) + '" oninput="this.value=this.value.replace(/\\D/g,\'\'); recalcCamiones(this)"></label>' +
+    '</div>';
+  c.querySelector('.cam-lista').appendChild(f);
+  return f;
+}
+function agregarCamion(btn){
+  const c = btn.closest('.camiones'), it = c.closest('.item');
+  tocado(btn);
+  if (!c.querySelector('.camion')) c.querySelector('.base').value = it.querySelector('.cant').value;
+  filaCamion(c).querySelector('.placa').focus();
+  recalcCamiones(c); marcar();
+}
+function quitarCamion(btn){
+  const f = btn.closest('.camion'), c = f.closest('.camiones');
+  const placa = f.querySelector('.placa').value.trim();
+  if ((placa || f.querySelector('.m3').value) && !confirm('¿Quitar el camión' + (placa ? ' ' + placa : '') + '?')) return;
+  tocado(btn); f.remove(); recalcCamiones(c); marcar();
+}
+const redondear = x => String(Math.round(x * 100) / 100);
+function recalcCamiones(el){
+  const c = el.closest('.camiones'); if (!c) return;
+  const it = c.closest('.item'), cant = it.querySelector('.cant'), base = c.querySelector('.base');
+  const filas = [...c.querySelectorAll('.camion')];
+  let hoy = 0, viajes = 0;
+  filas.forEach((f, k) => {
+    f.querySelector('.cam-n').textContent = 'Camión ' + (k + 1);
+    const v = parseInt(f.querySelector('.viajes').value, 10) || 0;
+    hoy += (parseFloat(f.querySelector('.m3').value) || 0) * v; viajes += v;
+  });
+  if (filas.length){
+    c.classList.add('con'); cant.readOnly = true;
+    cant.value = (base.value || hoy) ? redondear((parseFloat(base.value) || 0) + hoy) : '';
+    c.querySelector('.cam-total').textContent = filas.length + ' camión(es) · ' + viajes + ' viaje(s) · ' + redondear(hoy) + ' m³ hoy';
+  } else {
+    c.classList.remove('con'); c.querySelector('.cam-total').textContent = '';
+    if (cant.readOnly){ cant.readOnly = false; cant.value = base.value; }
+  }
+  actualizarAvance(it);
+}
+function camionesDe(it){
+  const c = it.querySelector('.camiones'); if (!c) return {};
+  const lista = [...c.querySelectorAll('.camion')].map(f => ({
+    placa: f.querySelector('.placa').value.trim().toUpperCase(),
+    m3: f.querySelector('.m3').value.trim(),
+    viajes: f.querySelector('.viajes').value.trim()
+  })).filter(x => x.placa || x.m3);
+  return lista.length ? { camiones: lista, base: c.querySelector('.base').value.trim() } : {};
+}
+function ponerCamiones(el, it){
+  const c = el.querySelector('.camiones'); if (!c) return;
+  c.querySelector('.cam-lista').innerHTML = '';
+  c.querySelector('.base').value = it.base || '';
+  (it.camiones || []).forEach(x => filaCamion(c, x));
+  recalcCamiones(c);
+}
 """
 # 13 · Cuatro calidades en vez de tres respuestas.
 J = sustituir(J, "  const ya = ['si-on','no-on','na-on'].some(c => btn.classList.contains(c));",
@@ -311,7 +404,7 @@ J = sustituir(J, """  if (g.querySelector('.si-on')) return 'SI';
 
 # 14 · La cantidad viaja, se restaura, se hereda y cuenta como contenido.
 J = sustituir(J, "      obs: (it.querySelector('textarea').value || '').trim(),\n",
-                 "      obs: (it.querySelector('textarea').value || '').trim(),\n      cant: (it.querySelector('.cant').value || '').trim(),\n      pr: (it.querySelector('.pr').value || '').trim(),\n      ud: unidadLeida(it),\n", "14a· datos")
+                 "      obs: (it.querySelector('textarea').value || '').trim(),\n      cant: (it.querySelector('.cant').value || '').trim(),\n      pr: (it.querySelector('.pr').value || '').trim(),\n      ud: unidadLeida(it),\n      ...camionesDe(it),\n", "14a· datos")
 # 14a' · Una proyectada que vino de la visita anterior no es «sin revisar»: es la
 # meta, y sigue vigente. El ítem que solo trae proyectado no viaja con la marca
 # de heredado —el relevo la imprime en ámbar como «sin revisar» (r22)—.
@@ -321,7 +414,7 @@ J = sustituir(J, "    .filter(i => !i.agregado || i.sn || i.obs),", "    .filter
 J = sustituir(J, "        ponerSN(el, it.sn);\n        el.querySelector('textarea').value = it.obs || '';",
                  "        ponerSN(el, it.sn);\n        el.querySelector('textarea').value = it.obs || '';\n        ponerCant(el, it);", "14c· restaurar", n=1)
 J = sustituir(J, "      ponerSN(el, it.sn);\n      el.querySelector('textarea').value = it.obs || '';\n      if (it.sn || it.obs){ el.classList.add('heredado');",
-                 "      ponerSN(el, it.sn);\n      el.querySelector('textarea').value = it.obs || '';\n      ponerCant(el, it);\n      if (!(it.sn || it.obs || it.cant) && it.pr) el.classList.add('her-pr');\n      if (it.sn || it.obs || it.cant || it.pr){ el.classList.add('heredado');", "14d· heredar con cantidad")
+                 "      ponerSN(el, it.sn);\n      el.querySelector('textarea').value = it.obs || '';\n      ponerCant(el, it, true);\n      if (!(it.sn || it.obs || it.cant) && it.pr) el.classList.add('her-pr');\n      if (it.sn || it.obs || it.cant || it.pr){ el.classList.add('heredado');", "14d· heredar con cantidad")
 J = sustituir(J, "        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs,",
                  "        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs, cant: i.cant, pr: i.pr, ud: i.ud,", "14e· memoria de la manzana")
 J = sustituir(J, "  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs)) ||",
@@ -355,19 +448,33 @@ J += r"""
 function seccionesRecordadas(){
   try { return JSON.parse(localStorage.getItem(CLAVE_SECCIONES) || '[]'); } catch(e){ return []; }
 }
+// El número va por posición: una sección agregada que en su día fue la «9»
+// pasa a la 10 ahora que Obras Preliminares es la 1.
+function numerada(nombre){
+  return (GENERAL.length + 1) + '. ' + String(nombre || '').replace(/^\d+\.\s*/, '');
+}
 function recordarSeccion(s){
+  if (RETIRADA.test(s.id)) return;
   const rec = seccionesRecordadas();
   if (!rec.some(x => x.id === s.id)) rec.push({ id: s.id, nombre: s.nombre, items: [] });
   try { localStorage.setItem(CLAVE_SECCIONES, JSON.stringify(rec)); } catch(e){}
 }
 function cargarSeccionesRecordadas(){
-  seccionesRecordadas().forEach(s => { if (!GENERAL.some(g => g.id === s.id)) GENERAL.push({ id: s.id, nombre: s.nombre, items: [] }); });
+  const rec = seccionesRecordadas(), vivas = rec.filter(s => !RETIRADA.test(s.id));
+  if (vivas.length !== rec.length){
+    try { localStorage.setItem(CLAVE_SECCIONES, JSON.stringify(vivas)); } catch(e){}
+    const m = memoriaItems();
+    rec.forEach(s => { if (RETIRADA.test(s.id)) delete m[s.id]; });
+    guardarMemoriaItems(m);
+  }
+  vivas.forEach(s => { if (!GENERAL.some(g => g.id === s.id)) GENERAL.push({ id: s.id, nombre: numerada(s.nombre), items: [] }); });
 }
 function agregarSeccion(){
   const nombre = (document.getElementById('ns-nombre').value || '').trim();
   if (!nombre){ alert('Escriba el nombre de la sección.'); return; }
   const id = 'urb_x_' + limpiar(nombre).toLowerCase();
   if (GENERAL.some(g => g.id === id)){ alert('Esa sección ya existe.'); return; }
+  if (RETIRADA.test(id)){ alert('Obras Preliminares ya es la sección 1: agregue ahí la partida que falte.'); return; }
   // Lo que hay en pantalla se guarda ANTES de sumar la sección (guardar lee
   // GENERAL y la sección aún no está pintada), se vuelve a pintar todo y se
   // reabre: pintar una sección sola exigiría partir el motor en dos.
@@ -377,7 +484,7 @@ function agregarSeccion(){
   const habia = !informeVacio(datosDelFormulario());
   if (habia) guardar(false);
   const id0 = idActual;
-  const s = { id, nombre: (GENERAL.length + 1) + '. ' + nombre.toUpperCase(), items: [] };
+  const s = { id, nombre: numerada(nombre.toUpperCase()), items: [] };
   GENERAL.push(s); recordarSeccion(s);
   pintarGeneral();
   if (habia && id0) cargarInforme(id0);
@@ -387,11 +494,22 @@ function agregarSeccion(){
 }
 // Un informe guardado o heredado puede traer secciones que este teléfono no
 // tiene: se crean antes de pintarlo.
+// Lo de una sección retirada pasa a Obras Preliminares, donde las partidas con
+// el mismo nombre caen en la fija. Si trae fotos se deja como está, sin
+// recordarla: las fotos van por sección y moverlas no vale el riesgo.
 function asegurarSecciones(general){
   let nuevas = false;
   (general || []).forEach(g => {
-    if (!g || !g.id || GENERAL.some(s => s.id === g.id)) return;
-    const s = { id: g.id, nombre: g.nombre || g.id, items: [] };
+    if (!g || !RETIRADA.test(g.id || '') || (g.fotos || []).length) return;
+    let t = general.find(x => x && x.id === 'urb_preliminares');
+    if (!t){ t = { id: 'urb_preliminares', nombre: '', items: [], obs: '', fotos: [] }; general.push(t); }
+    t.items = (t.items || []).concat(g.items || []);
+    if ((g.obs || '').trim()) t.obs = [t.obs, g.obs].filter(x => (x || '').trim()).join('\n');
+    g.items = []; g.obs = ''; g.retirada = true;
+  });
+  (general || []).forEach(g => {
+    if (!g || !g.id || g.retirada || GENERAL.some(s => s.id === g.id)) return;
+    const s = { id: g.id, nombre: numerada(g.nombre || g.id), items: [] };
     GENERAL.push(s); recordarSeccion(s); nuevas = true;
   });
   if (nuevas) pintarGeneral();
@@ -400,7 +518,7 @@ function asegurarSecciones(general){
 # 15d · Una sección agregada sin nada dentro no viaja en el informe: si viajara,
 # cualquier teléfono que abriera ese informe —o lo heredara del relevo— la
 # crearía y la recordaría, y veinte secciones de prueba de un teléfono acabarían
-# en todos (QC del 21-sep). Las ocho fijas viajan siempre.
+# en todos (QC del 21-sep). Las fijas viajan siempre.
 J = sustituir(J, "    general, apartamentos: aptos,",
                  "    general: general.filter(g => !/^urb_x_/.test(g.id) || g.items.length || g.obs || g.fotos.length || noInsp.indexOf(g.id) >= 0),\n    apartamentos: aptos,", "15d· secciones agregadas vacías no viajan")
 J = sustituir(J, "    (d.general || []).forEach(g => {\n      const cont = document.getElementById('items-' + g.id); if (!cont) return;",
@@ -514,7 +632,9 @@ def construir():
         .replace('@@NOMBRE_SECTOR@@', json.dumps(contenido.NOMBRE_SECTOR, ensure_ascii=False))
         .replace('@@EMPRESA_POR_SECTOR@@', json.dumps(contenido.EMPRESA_POR_SECTOR, ensure_ascii=False))
         .replace('@@UNIDADES@@', json.dumps(contenido.UNIDADES, ensure_ascii=False))
-        .replace('@@UNIDAD_DE@@', json.dumps(unidad_de, ensure_ascii=False)))
+        .replace('@@UNIDAD_DE@@', json.dumps(unidad_de, ensure_ascii=False))
+        .replace('@@CAMIONES@@', json.dumps(contenido.CAMIONES, ensure_ascii=False))
+        .replace('@@RETIRADAS@@', json.dumps(contenido.RETIRADAS)))
 
     if '@@' in pagina:
         import re as _re
@@ -539,6 +659,8 @@ const CLAVE_MANZANAS = 'garmel_urb_manzanas';
 const CLAVE_SECCIONES = 'garmel_urb_secciones';
 const UNIDADES = @@UNIDADES@@;
 const UNIDAD_DE = @@UNIDAD_DE@@;
+const CAMIONES = @@CAMIONES@@;
+const RETIRADA = new RegExp(@@RETIRADAS@@, 'i');
 """
 
 if __name__ == "__main__":

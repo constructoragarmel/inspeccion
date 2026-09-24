@@ -41,7 +41,7 @@ Q.dialogos = []; t = Date.now(); enviar(); await esperarEnvio(); const t4 = Date
 let env = await Q.envios();
 ok('Enviado: 48 fotos aparte, tipo urbanismo', env.length === 1 && env[0].fotos.length === 48 && env[0].tipo === 'urbanismo', env[0] && (env[0].fotos.length + ' · ' + kb(env[0].bytes) + ' · ' + ms(t4)));
 ok('Nombres de foto por sección: urb_drenaje-1 … (según el motor)', env[0] && env[0].fotos.slice(0, 2).join(), env[0] && env[0].fotos.slice(0, 2).join());
-ok('Los pies viajan en datos.general[].fotos[].pie', env[0] && env[0].datos.general[0].fotos[0].pie === 'pie 1. DRENAJE');
+ok('Los pies viajan en datos.general[].fotos[].pie', env[0] && env[0].datos.general[1].fotos[0].pie === 'pie 1. DRENAJE');
 const idb = await FotosDB.leer(idGordo).then(g => Object.keys(g).length);
 ok('IndexedDB soltó las 48 y en pantalla hay 48 «ya en Drive»', idb === 0 && $$('.enDrive').length === 48, idb + ' · ' + $$('.enDrive').length);
 ok('Aviso de resultado: «1 informe(s) enviado»', Q.dialogos.some(d => /1 informe\(s\) enviado/.test(d)), Q.dialogos.slice(-1)[0]);

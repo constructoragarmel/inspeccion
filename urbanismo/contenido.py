@@ -44,7 +44,7 @@ MANZANAS = [
 
 # ── Secciones y partidas ───────────────────────────────────────────────────
 #
-# Las ocho del borrador, en su orden. Cada partida lleva su UNIDAD FIJA
+# Las ocho del borrador, en su orden, detrás de Obras Preliminares (24-sep). Cada partida lleva su UNIDAD FIJA
 # (respuesta 3 de Skarlet): el inspector escribe la cantidad ejecutada
 # acumulada a la fecha (respuesta 2). Las unidades son las del borrador,
 # asignadas por el sentido de cada partida; Ingeniería las confirma.
@@ -56,31 +56,47 @@ def _sec(id_, nombre, partidas):
             "unidades": {p: u for p, u in partidas}}
 
 GENERAL = [
-    _sec("urb_drenaje", "1. DRENAJE", [
+    # Skarlet (24-sep): Obras Preliminares es la PRIMERA partida y las demás
+    # corren un número. Los id no cambian: los informes guardados siguen
+    # encontrando sus secciones. En «Bote de material» se anotan los camiones
+    # de la visita (ver CAMIONES).
+    _sec("urb_preliminares", "1. OBRAS PRELIMINARES", [
+        ("Desmalezamiento", "m²"), ("Movimiento de tierra", "m³"), ("Bote de material", "m³")]),
+    _sec("urb_drenaje", "2. DRENAJE", [
         ("Topografía", "m"), ("Excavación", "m³"), ("Canalización", "m"), ("Tanquilla", "und")]),
-    _sec("urb_estructura", "2. ESTRUCTURA", [
+    _sec("urb_estructura", "3. ESTRUCTURA", [
         ("Excavación / Movimiento de tierra", "m³"), ("Acero de refuerzo", "kg"),
         ("Concreto", "m³"), ("Encofrado", "m²")]),
-    _sec("urb_acueductos", "3. ACUEDUCTOS", [
+    _sec("urb_acueductos", "4. ACUEDUCTOS", [
         ("Topografía", "m"), ("Excavación", "m³"), ("Canalizaciones", "m"), ("Captación", "und")]),
-    _sec("urb_electricidad", "4. ELECTRICIDAD", [
+    _sec("urb_electricidad", "5. ELECTRICIDAD", [
         ("Puntos cableados", "und"), ("Canalización", "m"), ("Tuberías", "m"),
         ("Tanquillas", "und"), ("Postes de luminaria", "und")]),
-    _sec("urb_aguas_servidas", "5. AGUAS SERVIDAS", [
+    _sec("urb_aguas_servidas", "6. AGUAS SERVIDAS", [
         ("Topografía", "m"), ("Excavación", "m³"), ("Canalización", "m"),
         ("Tanquillas", "und"), ("Colectores", "m")]),
-    _sec("urb_vialidad", "6. VIALIDAD", [
+    _sec("urb_vialidad", "7. VIALIDAD", [
         ("Topografía", "m"), ("Escarificación", "m²"), ("Suministro y colocación", "m³"),
         ("Carpeta de rodamiento", "m²"), ("Brocales", "m"), ("Aceras", "m²"),
         ("Demarcación", "m"), ("Transporte y maquinaria", "glb")]),
-    _sec("urb_camineria", "7. CAMINERÍA", [
+    _sec("urb_camineria", "8. CAMINERÍA", [
         ("Topografía / Trazo", "m"), ("Excavación y conformación", "m³"), ("Pavimento / Acabado", "m²")]),
-    _sec("urb_paisajismo", "8. PAISAJISMO", [
+    _sec("urb_paisajismo", "9. PAISAJISMO", [
         ("Topografía", "m"), ("Jardinería", "m²"), ("Sistema de riego", "m"),
         ("Iluminación", "und"), ("Mobiliario urbano", "und"), ("Caminerías", "m²")]),
 ]
 
 RENOMBRADOS = {}
+
+# Partidas que llevan la lista de camiones (Skarlet, 24-sep): cada camión con
+# su placa, los m³ que carga y los viajes de la visita. La suma de hoy se añade
+# al acumulado anterior y eso es el ejecutado.
+CAMIONES = {"urb_preliminares": ["Bote de material"]}
+
+# Secciones que un teléfono agregó a mano y que ya son fijas: Gabriel creó
+# «Obras preliminares» y «Desmalezamiento» en el suyo antes de que existiera la
+# sección 1 (24-sep). Se olvidan al abrir, y lo que traigan pasa a la sección 1.
+RETIRADAS = r"^urb_x_.*(preliminar|malez)"
 
 # Calidad de cada partida, como en inspección de obra: B / R / M y N-A.
 CALIDADES = [("B", "Bueno"), ("R", "Regular"), ("M", "Malo"), ("NA", "No aplica")]
