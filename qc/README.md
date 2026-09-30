@@ -105,3 +105,16 @@ Encontraron tres cosas, arregladas en la v94: el aviso quedaba ~1.000 px debajo 
 se anunciaba a lectores de pantalla (`role="status"`) y salía al imprimir. El relevo falso contesta `tipo: 'obra'` igual
 que el r27.
 
+
+## Lo que ya sabían servicios y SHA (30-sep-2026): `t32` a `t35`
+
+Veinte comprobaciones del cambio 153 (v96): `t32` fotos en IndexedDB (12 fotos, reabrir y guardar mientras se pintan,
+quitar una, «Enviar todos» desde IndexedDB, borrador viejo con las fotos dentro), `t33` borradores vacíos y «Enviar todos»
+(incompletos, motivo de cada fallo, corte por tiempo con el plazo acortado, guarda lo de pantalla), `t34` enviado por id,
+abrir sin perder, abierto incompleto y «editado después», y deja un informe a medias para `t34b`, que se corre **después de
+recargar sin borrar nada** (`recargar()` en el marco) y comprueba que vuelve solo; `t35` coma decimal, conteo como texto,
+lo traído de la visita anterior (marcas, «Sigue igual», heredado en el envío) y «Finalizar».
+
+Encontraron dos cosas. Al abrir un informe con otro sin guardar en pantalla, se guardaba el de pantalla, la lista se corría
+y se abría el equivocado (se arregló buscando por id). Y **un fallo que venía de antes**: tras «Finalizar», el siguiente
+informe se guardaba encima del recién finalizado, porque el id seguía puesto (cambio 153j).

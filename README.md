@@ -281,6 +281,15 @@ Dos cosas más que el papel hace distinto, por la misma razón —que es un docu
 | **El residente sale de la torre** | El cuadro de Gerencia Técnica da residentes **distintos para torres de una misma contratista**. Elegir la torre pone el suyo; elegir solo la empresa lo pone **si a esa empresa le consta uno solo** —13 de las 18—, y si tiene varios avisa de que hay que elegir torre. Donde la fuente no dice nada, el campo queda en blanco y se explica qué sí consta: no se inventa un nombre en un documento que se firma |
 | **Los hitos abren plegados** | Desplegados, el formulario mide 21 pantallas de teléfono; plegados, 5. Y plegados, los once con su porcentaje al lado son una lista de verificación: un guion dice «sin tocar» |
 | **Leyenda de B / R / M** | No estaba escrita en ninguna parte. Diez inspectores calificando con criterios distintos alimentan la misma escala |
+| **Las fotos van a IndexedDB** (cambio 153) | El almacenamiento chico del navegador corta en ~5 MB y un informe llega a 72 fotos. En la lista queda solo la marca `idb`; las fotos se guardan aparte y se borran al enviarse. Un borrador de antes, con las fotos dentro, se sigue abriendo y pasa solo al guardarse. Servicios lo aprendió el 14-sep |
+| **Si el teléfono recarga, el informe vuelve** | El que se estaba llenando (y no se envió) se reabre solo, con un aviso. Pasa al atender una llamada con poca memoria |
+| **Sin borradores vacíos** | Elegir torre y no medir nada ya no deja una ficha que «Enviar todos» mandaría |
+| **«Enviar todos» con motivo** | Guarda antes lo que hay en pantalla, no manda los incompletos (dice qué les falta), corta a los 90 s sin señal y dice por qué falló cada uno |
+| **Abrir otro informe no pierde nada** | Lo que hay en pantalla se guarda antes. Si un informe se abre incompleto, no se guarda encima del bueno |
+| **«Enviado» por informe, no por número** | Dos borradores del mismo apartamento el mismo día tienen el mismo número: enviar uno ya no marca el otro ni le borra las fotos |
+| **«Editado después de enviarlo»** | Si se cambia un informe ya enviado, la lista lo dice y el botón pasa a «🔁 Reenviar» |
+| **La coma decimal** | Las casillas de cantidad son de texto con teclado numérico: «12,5» queda 12.5. Un campo `number` rechazaba la coma en silencio en teclados es-VE |
+| **Lo traído de la visita anterior se ve** | Cada fila que vino con «Traer mediciones» queda marcada «↺ De la visita anterior» hasta que se toca o se pulsa «Sigue igual»; viaja con `heredado: true` y antes de enviar se pregunta si quedan sin revisar. No sale en el PDF |
 
 ## Qué se corrigió respecto del original
 
@@ -374,12 +383,10 @@ Tres cosas que salieron de los 10 QC del 21-sep (`qc/banco/`) y que conviene sab
 
 ## Lo que todavía no hace
 
-- **Llegar a Smartsheet.** El relevo deja cada informe en Drive y anota una fila en la hoja
-  *Registro de informes de inspección*. **Esa hoja es el puente**, y la carga a Smartsheet es
-  retroactiva: hoy no la hace nadie automáticamente.
-- **Precargar el estado anterior del apartamento.** El inspector califica las 34 subpartidas desde
-  cero en cada visita, en vez de confirmar lo que no cambió desde la anterior.
-- **Ponderar los hitos.** Sin los pesos, el porcentaje promedia cosas que no son comparables.
+- **Avisar de un conteo que no cuadra** con lo que dice el presupuesto. Se decidió esperar a ver
+  cómo miden en campo antes de ponerlo (30-sep-2026).
+- **Medir en las unidades reales** de cada subpartida: por ahora se sigue midiendo por apartamento
+  (`PA-115` en el repositorio de Garmel).
 
 ## Lo que no está probado
 

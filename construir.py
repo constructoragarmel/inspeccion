@@ -7684,6 +7684,67 @@ if LISTA_V2:
      ".opcional-tag{display:block;margin-top:3px;font-size:11px;font-weight:600;color:#5f6b7a;font-style:italic}\n</style>",
      "152c· estilo de lo opcional")
 
+# ── 153. Lo que servicios, SHA y urbanismo ya aprendieron en obra ────────────
+# Nueve arreglos que los otros formularios ya tienen (30-sep-2026): fotos en
+# IndexedDB, sin borradores vacíos, «Enviar todos» con motivo y tope, «enviado»
+# por id, abrir sin perder, «editado después», recuperar tras recarga, coma
+# decimal y lo traído de la visita anterior marcado. El código va en
+# comun/robustez.js; aquí solo los enganches que no se pueden hacer desde fuera.
+if LISTA_V2:
+    ROBUSTEZ_JS = open(os.path.join(RAIZ, "comun", "robustez.js"), encoding="utf-8").read()
+    s = sustituir(s,
+     "    if(pos >= 0) {\n      if(list[pos].enviado && !data.enviado){\n        data.enviado = list[pos].enviado;\n      }",
+     "    const _previo153 = pos >= 0 ? list[pos] : null;\n"
+     "    if(pos >= 0) {\n      if(list[pos].enviado && !data.enviado){\n        data.enviado = list[pos].enviado;\n"
+     "        // 153: si cambió algo de verdad desde que se envió, queda dicho en la lista.\n"
+     "        if(list[pos].editadoTras) data.editadoTras = list[pos].editadoTras;\n"
+     "        else if(_huellaInforme(list[pos]) !== _huellaInforme(data)) data.editadoTras = new Date().toLocaleString();\n"
+     "      }",
+     "153a· «editado después de enviarlo»")
+    s = sustituir(s,
+     "    // el inspector no puede haber leído antes que se guardó bien.\n    localStorage.setItem('garmel_reports_list', JSON.stringify(list));",
+     "    // el inspector no puede haber leído antes que se guardó bien.\n"
+     "    // 153: las fotos van a IndexedDB; en la lista queda la marca «idb».\n"
+     "    { const _g = _fotosAIdb(data, _previo153); if(_g !== data) list[list.indexOf(data)] = _g; }\n"
+     "    localStorage.setItem('garmel_reports_list', JSON.stringify(list));\n"
+     "    // 153: el informe que se está llenando, para recuperarlo si el teléfono recarga.\n"
+     "    try { if(!data.enviado) localStorage.setItem('garmel_actual', data.id);\n"
+     "          else if(localStorage.getItem('garmel_actual') === data.id) localStorage.removeItem('garmel_actual'); } catch(e) {}",
+     "153b· fotos a IndexedDB e informe en curso")
+    s = sustituir(s,
+     "d.fotos[p.id].forEach((src,fi)=>{ if(src) _pintarFoto(p.id, fi, src); });",
+     "d.fotos[p.id].forEach((src,fi)=>{ if(src && src !== 'idb') _pintarFoto(p.id, fi, src); });",
+     "153c· la marca «idb» no se pinta como foto")
+    s = sustituir(s,
+     "      _marcarComoEnviado(datos.nro);",
+     "      _marcarComoEnviado(datos.nro, datos.id);",
+     "153d· «enviado» por id")
+    # Coma decimal: las casillas de cantidad pasan a texto con teclado numérico.
+    s = sustituir(s, 'type="number" class="num" min="0" inputmode="numeric"',
+                     'type="text" class="num" min="0" inputmode="numeric"', "153e· conteo como texto", n=-1)
+    s = sustituir(s, 'type="number" class="num pct-man"',
+                     'type="text" class="num pct-man"', "153f· % escrito como texto", n=-1)
+    s = sustituir(s, 'type="number" class="num" min="0" id=',
+                     'type="text" class="num" min="0" inputmode="decimal" id=', "153g· cantidades como texto", n=-1)
+    s = sustituir(s,
+     "    currentEditingIndex = null;   // el siguiente informe no pisa al que acaba de cerrarse",
+     "    currentEditingIndex = null;   // el siguiente informe no pisa al que acaba de cerrarse\n"
+     "    _idEnEdicion = null;          // 153: sin esto el id seguía puesto y el siguiente se guardaba ENCIMA\n"
+     "    try { localStorage.removeItem('garmel_actual'); } catch(e) {}",
+     "153j· Finalizar suelta el informe cerrado")
+    s = sustituir(s,
+     "if ('serviceWorker' in navigator) {",
+     ROBUSTEZ_JS + "\nif ('serviceWorker' in navigator) {",
+     "153h· robustez (comun/robustez.js)")
+    s = sustituir(s,
+     "</style>",
+     "tr.heredada td.desc{background:#fff8e1}\n"
+     ".heredada-tag{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px;font-size:11px;font-weight:700;color:#8f4b00}\n"
+     ".heredada-tag .sigue-igual{border:1.5px solid #8f4b00;background:#fff;color:#8f4b00;border-radius:10px;padding:3px 9px;font-size:11px;font-weight:800;min-height:28px}\n"
+     ".editado-tras{color:#8f4b00!important;font-weight:700}\n"
+     "@media print{.heredada-tag{display:none!important}tr.heredada td.desc{background:none}}\n</style>",
+     "153i· estilo de lo heredado y lo editado")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

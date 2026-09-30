@@ -37,8 +37,8 @@ PARTIDAS.forEach(p => p.items.forEach((_, i) => {
   const ej = document.getElementById('ej_' + rid), pr = document.getElementById('pr_' + rid);
   const bien = t === 'estado' ? (est === 5 && !pm && ej.type === 'hidden') :
                t === 'sino' ? (est === 2 && !pm && ej.type === 'hidden') :
-               t === 'conteo' ? (est === 0 && !pm && ej.type === 'number' && pr.type === 'number' && visible(pr) && visible(ej) && ej.closest('td') === pr.closest('td')) :
-               (est === 0 && pm && ej.type === 'number');
+               t === 'conteo' ? (est === 0 && !pm && ej.type === 'text' && pr.type === 'text' && visible(pr) && visible(ej) && ej.closest('td') === pr.closest('td')) :
+               (est === 0 && pm && ej.type === 'text');
   if (!bien) malos2.push(rid + ':' + t + ' est=' + est + ' pm=' + pm);
 }));
 ok('2 · Estado: 5 botones · Sí/No: 2 · conteo: «puestas de hay» visibles juntas · % escrito solo en cantidades', malos2.length === 0, malos2.slice(0, 5).join(' · '));
@@ -47,14 +47,14 @@ ok('2 · Estado: 5 botones · Sí/No: 2 · conteo: «puestas de hay» visibles j
 const c = 'hito_acc_electricos_0';
 put('ej_' + c, '7'); put('pr_' + c, '5'); const a = pct(c);           // más puestas que las que hay: tope 100
 put('ej_' + c, '3'); put('pr_' + c, '0'); const b = pct(c);           // hay 0: no se sabe
-put('ej_' + c, '-2'); put('pr_' + c, '4'); const d = pct(c);          // negativo: 0
+put('ej_' + c, '-2'); put('pr_' + c, '4'); const d = pct(c);          // el «-» no entra (v96): queda 2 de 4 = 50 %
 put('ej_' + c, '1'); put('pr_' + c, '3'); const e3 = pct(c);          // 33,3 → se trunca a 33
 const bt = document.querySelector('.est-btn[data-rid="hito_acabados_2"][data-v="50"]');
 setEstado(bt, 50); const f1 = pct('hito_acabados_2'); setEstado(bt, 50); const f2 = pct('hito_acabados_2');   // tocar dos veces lo borra
 const sn = document.querySelector('.est-btn[data-rid="hito_pruebas_0"][data-sn="Sí"]');
 setSiNo(sn); const g1 = pct('hito_pruebas_0'); setSiNo(sn); const g2 = pct('hito_pruebas_0');
-ok('3 · Bordes: 7 de 5 = 100 %, de 0 = —, negativo = 0 %, 1 de 3 = 33 %; estado y Sí se borran al volver a tocarlos',
-   a === '100%' && b === '—' && d === '0%' && e3 === '33%' && f1 === '50%' && f2 === '—' && g1 === '100%' && g2 === '—',
+ok('3 · Bordes: 7 de 5 = 100 %, de 0 = —, «-2» queda 2 (50 %), 1 de 3 = 33 %; estado y Sí se borran al volver a tocarlos',
+   a === '100%' && b === '—' && d === '50%' && document.getElementById('ej_' + c).value !== '-2' && e3 === '33%' && f1 === '50%' && f2 === '—' && g1 === '100%' && g2 === '—',
    [a, b, d, e3, f1, f2, g1, g2].join(' '));
 
 // ── 4. El % del hito y el total son el promedio simple de lo que se ve ──
