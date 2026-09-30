@@ -7,7 +7,7 @@ const pct = rid => (document.getElementById('pct_' + rid)?.innerText || '').trim
 const aviso = () => (document.getElementById('aviso-anterior')?.innerText || '').trim();
 const limpiar = async () => { Q.aceptar = true; nuevoFormulario(); await esperar(300); };
 const cabecera = (torre, piso, apto) => {
-  sel('fecha', '2026-09-29'); sel('torre', torre || 'T-07');
+  sel('fecha', '2026-09-29'); sel('torre', torre || 'T-07'); sel('convenio', 'Convenio Bielorrusos');
   const insp = document.querySelector('.inspector-select');
   insp.value = [...insp.options].map(o => o.value).filter(Boolean)[0]; insp.dispatchEvent(new Event('change', { bubbles: true }));
   if (!document.querySelector('#estatus .ck-lbl.on')) document.querySelector('#estatus .ck-lbl').click();

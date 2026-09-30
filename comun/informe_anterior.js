@@ -79,6 +79,8 @@ async function _ofrecerAnterior(){
   if (_abiertoParaEditar || formType !== 'detallado') return;
   const t = getTorreActual();
   if (!t || t === '—') return;
+  // Sin zona (la torre existe en dos zonas y no se eligió el convenio) el archivo no sabe dónde buscar.
+  if (getSectorActual() === 'XX') return;
   if (ambito !== 'torre' && (!(document.getElementById('piso') || {}).value || !_aptoActual())) return;
   const clave = _claveAnterior();
   if (clave === _anteriorOfrecido) return;
@@ -156,6 +158,7 @@ function _traerMediciones(partidas, soloHay){
       recalcRow(pr || ej); n++;
     });
   });
+  if (typeof _uso !== 'undefined') _uso.anterior = soloHay ? 'hay' : 'mediciones';
   if (typeof _marcarCambio === 'function') _marcarCambio();
   showToast(soloHay ? '📋 ' + n + ' cantidades «hay» copiadas. Cuente las puestas.'
                     : '📋 ' + n + ' mediciones traídas. Corrija lo que cambió y evalúe de nuevo.', 'ok');

@@ -26,6 +26,12 @@ class H(http.server.BaseHTTPRequestHandler):
             self.close_connection=True; return
         if ESTADO['lento']: time.sleep(ESTADO['lento'])
         p=json.loads(raw or b'{}')
+        if p.get('accion')=='aplica':
+            # Como el relevo r28: qué subpartidas están en el presupuesto de la torre (solo códigos).
+            if p.get('torre') in ('T-17','T-18'): return self._ok({"ok":True,"sinPresupuesto":True,"codigos":None})
+            todos=['%d.%02d'%(h,i) for h,n in enumerate([3,3,19,12,6,2,7,7,4,7,4,5],1) for i in range(1,n+1)]
+            fuera={'8.03','8.04','4.10','4.11','5.04','5.05'}
+            return self._ok({"ok":True,"contratista":"Alnavic (falso)","codigos":[c for c in todos if c not in fuera]})
         if p.get('accion')=='historial' and p.get('tipo')=='obra':
             # Como el relevo r27: el último de ese apartamento (o de torre) y el último de un apartamento de la torre.
             b=(p.get('bloque') or 'TORRE').upper()

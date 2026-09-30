@@ -7665,6 +7665,25 @@ if LISTA_V2:
      "  { const _ca = document.getElementById('aviso-anterior'); if (_ca) { _ca.innerHTML = ''; _ca.dataset.clave = ''; } }\n",
      "151g· abrir un borrador quita el aviso del informe anterior")
 
+# ── 152. Lo que no está en el presupuesto, el conteo imposible y el uso ─────
+# Pedido por Stephanie el 30-sep-2026 («arregla las cosas que siguen»). El código vive en
+# `comun/presupuesto_y_uso.js`; el relevo r28 contesta `accion: 'aplica'` y anota el uso.
+if LISTA_V2:
+    PRESUPUESTO_Y_USO_JS = open(os.path.join(RAIZ, "comun", "presupuesto_y_uso.js"), encoding="utf-8").read()
+    s = sustituir(s,
+     'function nuevoFormulario() {',
+     'function nuevoFormulario() {',   # ancla de control: el bloque va DESPUÉS de la función, al final del script
+     "152a· ancla")
+    s = sustituir(s,
+     "if ('serviceWorker' in navigator) {",
+     PRESUPUESTO_Y_USO_JS + "\nif ('serviceWorker' in navigator) {",
+     "152b· opcionales por presupuesto y uso del formulario (sin nada a la vista)")
+    s = sustituir(s,
+     "</style>",
+     ".fuera-presupuesto td.desc, .fuera-presupuesto td.col-ejecutada, .fuera-presupuesto td.est-cell{opacity:.6}\n"
+     ".opcional-tag{display:block;margin-top:3px;font-size:11px;font-weight:600;color:#5f6b7a;font-style:italic}\n</style>",
+     "152c· estilo de lo opcional")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
