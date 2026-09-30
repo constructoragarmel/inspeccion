@@ -7625,10 +7625,13 @@ if LISTA_V2:
      'function nuevoFormulario() {',
      INFORME_ANTERIOR_JS + '\nfunction nuevoFormulario() {',
      "151a· el informe anterior del apartamento, o las cantidades «hay» de la torre")
+    # QC t30 (29-sep): encima de los hitos quedaba ~1.000 px por debajo de donde se
+    # escribe el apartamento, y nadie lo veía. Va justo debajo, a todo lo ancho.
     s = sustituir(s,
-     '<div class="content" id="main-content"></div>',
-     '<div id="aviso-anterior"></div>\n<div class="content" id="main-content"></div>',
-     "151b· el aviso va encima de los hitos")
+     '      <input type="text" id="apto" placeholder="Ej: 4B" oninput="updateDocInfo()">\n    </div>\n',
+     '      <input type="text" id="apto" placeholder="Ej: 4B" oninput="updateDocInfo()">\n    </div>\n'
+     '    <div id="aviso-anterior" role="status" aria-live="polite" style="grid-column:1/-1"></div>\n',
+     "151b· el aviso va justo debajo del apartamento, donde se está mirando")
     s = sustituir(s,
      "  _numeroDelBorrador = null;\n  initAppContent();\n  updateNroInforme();",
      "  _numeroDelBorrador = null;\n"
@@ -7642,7 +7645,8 @@ if LISTA_V2:
      "151d· cambiar de ámbito también busca el informe anterior")
     s = sustituir(s,
      "</style>",
-     ".aviso-anterior{background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;margin:12px 12px 4px}\n"
+     ".aviso-anterior{background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;margin:2px 0 10px}\n"
+     "@media print{#aviso-anterior{display:none!important}}\n"
      ".aviso-anterior .t{font-weight:800;font-size:14px;color:#1a237e;margin-bottom:4px}\n"
      ".aviso-anterior .s{font-size:13px;color:#475569;margin-bottom:10px;line-height:1.4}\n"
      ".aviso-anterior .b{display:flex;gap:8px;flex-wrap:wrap}\n"
