@@ -145,7 +145,18 @@ Así se sabe siempre qué se le tocó al trabajo de Skarlet y por qué.
 Hay que **subir el número de `VERSION` en `sw.js`**. Es lo que hace que los teléfonos se traigan la
 copia nueva la próxima vez que tengan internet. Si no se sube, siguen abriendo la vieja.
 
-## Los once hitos y el ámbito del informe
+## Los hitos y el ámbito del informe
+
+> **Desde el 29-sep-2026 (v91) el formulario usa la lista v2: doce hitos y 79 subpartidas** (ADR-0035 del
+> repositorio de contexto, provisional hasta que la ratifique la Ing. Beatriz Sevilla). La lista, la forma de
+> medir de cada fila y su ámbito viven en `comun/lista_v2.py`, que **no se edita a mano**: lo genera
+> `Garmel/implementacion/generar-lista-v2.py` desde la misma fuente que la tabla del relevo (`ListaV2.gs`).
+> Cada fila se mide a su modo (cambio 150 de `construir.py`): **estado** 0-25-50-75-100 %, **Sí / No**
+> (100 % o 0 %), **piezas y puntos** contados en sitio («puestas de hay»), y **cantidades** (m², m³, ml/kg)
+> con el % escrito permitido solo ahí. Los informes viajan con `lista: 'v2'` y el relevo (r26) calcula el
+> avance según el presupuesto de la torre. Un borrador de antes se envía tal cual; al abrirlo aquí se
+> cargan los datos generales, no sus mediciones. `LISTA_V2 = False` devuelve las 53. Lo de abajo es la
+> historia de la lista anterior. QC: tanda `t21` del banco.
 
 La inspección se estructura en **once hitos con cincuenta y dos subpartidas**, acordados por la
 **Ing. Beatriz Sevilla** con Skarlet Gómez. La fuente es el Excel *Hitos en desglose Ciudad Tiuna.

@@ -131,6 +131,17 @@ PARTIDAS_ONCE = """const PARTIDAS = [
   }
 ]"""
 
+# ── 150. La lista v2: 12 hitos, 79 subpartidas (ADR-0035) ──────────────────
+# Desde el 29-sep-2026 la lista, la forma de medir de cada fila y su ámbito salen
+# de `comun/lista_v2.py`, que NO se edita a mano: lo escribe
+# `Garmel/implementacion/generar-lista-v2.py` desde la misma fuente que arma la
+# tabla del relevo (`ListaV2.gs`), para que las dos no puedan quedar distintas.
+# Poner en False devuelve las 53 de siempre.
+import lista_v2
+LISTA_V2 = True
+if LISTA_V2:
+    PARTIDAS_ONCE = lista_v2.PARTIDAS_JS
+
 # ── 1. Fuera las dos librerías que se bajaban de internet ───────────────────
 # No se usaban nunca (el PDF sale de window.print()) y sin señal la página
 # se quedaba esperándolas. En su lugar entra el manifiesto de la app.
@@ -4936,6 +4947,9 @@ UNIDADES = {
     "hito_pruebas":        [UD_ESTADO] * 4,
 }
 
+if LISTA_V2:
+    UNIDADES = lista_v2.UNIDADES     # además de las unidades: 'sino', 'pza' y 'pto' (cambio 150)
+
 # Si alguien añade una subpartida y no su unidad, esto falla al construir y no
 # en el teléfono.
 if ONCE_HITOS:
@@ -7170,6 +7184,8 @@ s = sustituir(s,
 # no se cuenta y viaja marcado como fuera de ámbito, para que el PDF y Smartsheet
 # lo salten. Las filas visibles se renumeran para que no parezca que falta algo.
 AMBITO_SUB_JS = 'const AMBITO_SUB = {"hito_estructura": ["T", "T", "T"], "hito_cerramientos": ["T", "AMBOS", "T"], "hito_servicios": ["AMBOS", "AMBOS", "T", "AMBOS", "T", "AMBOS", "T", "T", "T"], "hito_acabados": ["AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS"], "hito_puertas": ["A", "A", "A"], "hito_ventanas": ["A", "A"], "hito_acc_sanitarios": ["A", "A", "A", "A", "A", "A", "A"], "hito_acc_electricos": ["A", "A", "A", "A", "A"], "hito_ascensor": ["T", "T", "T", "T"], "hito_exteriores": ["T", "T", "T", "T", "T", "T"], "hito_pruebas": ["AMBOS", "AMBOS", "AMBOS", "T"]};'
+if LISTA_V2:
+    AMBITO_SUB_JS = lista_v2.AMBITO_SUB_JS
 s = sustituir(s,
  "function _esSiNo(pid, i){",
  AMBITO_SUB_JS + "\n"
@@ -7482,6 +7498,102 @@ s = sustituir(s,
  "}\n"
  "function toggleTestMode() {",
  "142c\u00b7 guarda y vuelve al men\u00fa, con el modo de prueba en el enlace")
+
+# ── 150b-j. La medición de la lista v2 (Stephanie González, 29-sep-2026) ───
+# «Que trabajen con las medidas que son, que no tomen tantos atajos.» Cada fila se
+# mide como dice la lista v2, sin el % escrito a mano salvo donde hay cantidades:
+#   estado  → cinco botones, 0-25-50-75-100 % (acabados, instalaciones, ascensor…)
+#   sino    → Sí / No, que ahora SÍ es un porcentaje: 100 % o 0 % (pruebas)
+#   pza/pto → se cuentan las dos cosas en sitio: cuántas puestas DE cuántas hay.
+#             La cantidad que hay se muestra al inspector en estas filas: sin ella
+#             no hay porcentaje, y nadie la carga (PA-101). Decidido el mismo día.
+#   m², m³, ml/kg → cantidades, y aquí sí se admite el % escrito (estructura, fachada)
+# Los informes llevan `lista: 'v2'` y el relevo los lee con su tabla nueva. Un
+# borrador de antes se puede enviar tal cual («Enviar todos»: el relevo conserva
+# la tabla de las 53), pero al abrirlo aquí sus mediciones no se cargan en la
+# lista nueva, porque se emparejan por posición y quedarían en otra subpartida.
+if LISTA_V2:
+    s = sustituir(s,
+     "const ESCALA_HITOS = ['#1a237e','#283593','#303f9f','#3949ab','#1565c0','#0277bd','#01579b'];",
+     "const ESCALA_HITOS = ['#1a237e','#283593','#303f9f','#3949ab','#1565c0','#0277bd','#01579b','#0d47a1','#1e3a8a','#1d4ed8','#172554','#312e81'];",
+     "150b· doce azules para doce hitos")
+    s = sustituir(s,
+     "const HITOS_SI_NO = ['hito_cerramientos', 'hito_servicios', 'hito_ascensor', 'hito_pruebas'];",
+     "// Lista v2: el Sí / No va por fila (UNIDADES = 'sino'), no por hito.\n"
+     "const HITOS_SI_NO = [];\n"
+     "const VERSION_LISTA = '" + lista_v2.VERSION_LISTA + "';\n" + lista_v2.CODIGOS_JS,
+     "150c· el Sí / No por fila, y la versión de la lista")
+    s = sustituir(s,
+     "const HITOS_SOLO_PCT = ['hito_acabados'];",
+     "const HITOS_SOLO_PCT = [];   // lista v2: los acabados van por estado, no por % escrito",
+     "150d· acabados por estado")
+    s = sustituir(s,
+     "function _esSiNo(pid, i){\n  return MEDICION === 'propuesta' && (HITOS_SI_NO.indexOf(pid) >= 0 || _esEstado(pid, i));\n}",
+     "function _esSiNo(pid, i){ return (UNIDADES[pid] || [])[i] === 'sino'; }\n"
+     "// Se cuentan: cuántas puestas de cuántas hay.\n"
+     "function _esConteo(pid, i){ const u = (UNIDADES[pid] || [])[i]; return u === 'pza' || u === 'pto'; }\n"
+     "// El % escrito solo donde hay cantidades de obra que el inspector no siempre puede medir.\n"
+     "function _pctManualPermitido(pid, i){ const u = (UNIDADES[pid] || [])[i]; return Array.isArray(u) || u === 'm²' || u === 'm³'; }",
+     "150e· qué fila es Sí / No, cuál se cuenta y dónde se admite el % escrito")
+    s = sustituir(s,
+     '\n            <input type="number" class="num pct-man" id="pm_${rid}" data-rid="${rid}" data-p="${p.id}" min="0" max="100" inputmode="decimal"\n'
+     '                   placeholder="%" title="Porcentaje de avance de esta subpartida, escrito por el inspector" oninput="recalcRow(this)">',
+     '',
+     "150f· el Sí / No ya no lleva % escrito")
+    s = sustituir(s,
+     '          <td class="col-proyectada"><input type="number" class="num" min="0" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>\n'
+     '          <td class="col-ejecutada"><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0">${HITOS_PCT_MANUAL.indexOf(p.id) >= 0 ?',
+     '          ${_esConteo(p.id,i) ? `<td class="col-proyectada est-vacia"></td>\n'
+     '          <td class="col-ejecutada conteo"><input type="number" class="num" min="0" inputmode="numeric" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="puestas" title="Cuántas están puestas"><span class="de">de</span><input type="number" class="num" min="0" inputmode="numeric" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="hay" title="Cuántas hay que poner aquí: se cuentan en sitio"></td>` : `'
+     '<td class="col-proyectada"><input type="number" class="num" min="0" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>\n'
+     '          <td class="col-ejecutada"><input type="number" class="num" min="0" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0">${_pctManualPermitido(p.id,i) ?',
+     "150g· piezas y puntos: «puestas de hay», las dos a la vista")
+    s = sustituir(s,
+     "placeholder=\"%\" title=\"Porcentaje de avance de esta subpartida, escrito por el inspector; si se deja vacío se calcula con las cantidades\" oninput=\"recalcRow(this)\">` : ''}</td>`}",
+     "placeholder=\"%\" title=\"Porcentaje de avance de esta subpartida, escrito por el inspector; si se deja vacío se calcula con las cantidades\" oninput=\"recalcRow(this)\">` : ''}</td>`}`}",
+     "150h· cierre de la rama de conteo")
+    s = sustituir(s,
+     "  sn.value = (sn.value === btn.dataset.sn) ? '' : btn.dataset.sn;\n  recalcRow(document.getElementById('pr_' + rid));",
+     "  sn.value = (sn.value === btn.dataset.sn) ? '' : btn.dataset.sn;\n"
+     "  // Lista v2: Sí es 100 % y No es 0 %; sin marcar no cuenta (ADR-0024).\n"
+     "  const _prSN = document.getElementById('pr_' + rid), _ejSN = document.getElementById('ej_' + rid);\n"
+     "  if(_prSN && _ejSN){\n"
+     "    if(sn.value){ _prSN.value = '100'; _ejSN.value = (sn.value === 'No') ? '0' : '100'; }\n"
+     "    else { _prSN.value = ''; _ejSN.value = ''; }\n"
+     "  }\n"
+     "  recalcRow(document.getElementById('pr_' + rid));",
+     "150i· el Sí / No da 100 % o 0 %")
+    s = sustituir(s,
+     "    const rid=inp.dataset.rid;\n    // Un ítem marcado N/A no entra al promedio: no es un cero, es «no cuenta».",
+     "    const rid=inp.dataset.rid;\n"
+     "    // Una fila de otro ámbito está oculta y no se envía: tampoco cuenta aquí.\n"
+     "    const _mA = rid.match(/^(.*)_(\\d+)$/);\n"
+     "    if(_mA && _mA[1] === pid && !_aplica(pid, Number(_mA[2]))) return;\n"
+     "    // Un ítem marcado N/A no entra al promedio: no es un cero, es «no cuenta».",
+     "150j· lo que está fuera del ámbito no entra al promedio")
+    s = sustituir(s,
+     "    formType: formType,\n    ambito: ambito,",
+     "    formType: formType,\n    lista: VERSION_LISTA,\n    ambito: ambito,",
+     "150k· el informe dice con qué lista se hizo")
+    s = sustituir(s,
+     "function loadDraftData(index) {\n  _falloAlAbrir = [];\n  const list = getSavedReports();\n  const d = list[index];\n  if (!d) return;",
+     "function loadDraftData(index) {\n  _falloAlAbrir = [];\n  const list = getSavedReports();\n  let d = list[index];\n  if (!d) return;\n"
+     "  // Un borrador hecho con la lista anterior (53) no se puede volcar en esta: las\n"
+     "  // mediciones van por posición y caerían en otra subpartida sin avisar.\n"
+     "  if (d.lista !== VERSION_LISTA && d.partidas && Object.keys(d.partidas).length) {\n"
+     "    if (!confirm('Este borrador se hizo con la lista ANTERIOR de subpartidas.\\n\\n' +\n"
+     "                 'Si lo abre aquí, se cargan los datos generales, las fotos y las observaciones, ' +\n"
+     "                 'pero las mediciones hay que marcarlas de nuevo con la lista nueva.\\n\\n' +\n"
+     "                 'Si prefiere enviarlo como estaba, cancele y use «Enviar todos».\\n\\n¿Abrirlo así?')) return;\n"
+     "    d = Object.assign({}, d, { partidas: {}, extraRows: {}, noInspeccionados: [] });\n"
+     "  }",
+     "150l· un borrador de la lista anterior no se vuelca en la nueva")
+    s = sustituir(s,
+     "</style>",
+     ".col-ejecutada.conteo{white-space:nowrap}\n"
+     ".col-ejecutada.conteo .num{width:56px;display:inline-block}\n"
+     ".col-ejecutada.conteo .de{margin:0 4px;color:#5f6b7a;font-size:12px}\n</style>",
+     "150m· estilo de «puestas de hay»")
 
 open(SALIDA, "w", encoding="utf-8").write(s)
 

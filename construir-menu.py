@@ -37,7 +37,7 @@ SALIDA = os.path.join(RAIZ, "index.html")
 FORMULARIOS = [
     {"id": "inspeccion", "archivo": "inspeccion.html",
      "titulo": "Inspección de obra",
-     "sub": "Por apartamento y por torre · once hitos",
+     "sub": "Por apartamento y por torre · doce hitos",
      "lista": "garmel_reports_list", "activo": True},
     {"id": "servicios", "archivo": "servicios.html",
      "titulo": "Servicios públicos",
