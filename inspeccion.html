@@ -814,6 +814,13 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 /* El conteo: rótulo corto y las dos casillas se reparten lo que queda, para que se lea «puestas» y «hay» a 320 px */
 .tbl-wrap td.col-ejecutada.conteo::before{content:'Conteo';flex:0 0 58px}
 .tbl-wrap td.col-ejecutada.conteo .num{width:84px!important;flex:none}
+.aviso-anterior{background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;margin:12px 12px 4px}
+.aviso-anterior .t{font-weight:800;font-size:14px;color:#1a237e;margin-bottom:4px}
+.aviso-anterior .s{font-size:13px;color:#475569;margin-bottom:10px;line-height:1.4}
+.aviso-anterior .b{display:flex;gap:8px;flex-wrap:wrap}
+.aviso-anterior .b button{flex:1 1 140px;min-height:44px;border-radius:8px;font-weight:700;font-size:14px;border:none;cursor:pointer}
+.aviso-anterior .b .si{background:#1a237e;color:#fff}
+.aviso-anterior .b .no{background:#e2e8f0;color:#334155}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a237e">
@@ -1076,6 +1083,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 
 <!-- SECCIÓN EVALUACIÓN -->
 <div class="sec-div">EVALUACIÓN DE AVANCE POR HITOS Y SUBPARTIDAS<span id="aviso-ambito" style="display:block;text-transform:none;letter-spacing:0;font-weight:600;font-size:11.5px;color:#1a237e;margin-top:5px"></span></div>
+<div id="aviso-anterior"></div>
 <div class="content" id="main-content"></div>
 
 <!-- SERVICIOS PÚBLICOS -->
@@ -1313,10 +1321,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v92';
+    el.textContent = '● en línea · v93';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v92 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v93 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -1385,6 +1393,7 @@ let ambito = 'apartamento';   // 'apartamento' u 'torre'
 
 function setAmbito(a){
   ambito = (a === 'torre') ? 'torre' : 'apartamento';
+  if (typeof _programarAnterior === 'function') _programarAnterior();
   const esTorre = (ambito === 'torre');
 
   const base = 'padding:10px 16px;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;';
@@ -2525,7 +2534,7 @@ function initAppContent() {
   <div class="total-card">
     <h2 id="total-titulo">% AVANCE GENERAL</h2>
     <div class="total-num" id="total-num">—</div>
-    <div style="font-size:11px;opacity:.85;margin-top:3px">Promedio simple de los hitos inspeccionados · sin ponderar</div>
+    <div style="font-size:11px;opacity:.85;margin-top:3px">Promedio simple de los hitos inspeccionados · el avance según el presupuesto sale en el PDF</div>
     <div class="total-bar-bg"><div class="total-bar-fill" id="total-bar" style="width:0%"></div></div>
   </div>`;
 
@@ -3237,6 +3246,8 @@ function loadDraftData(index) {
   const list = getSavedReports();
   let d = list[index];
   if (!d) return;
+  // Al abrir un borrador para corregirlo no se ofrece otro informe: el aviso se quita.
+  { const _ca = document.getElementById('aviso-anterior'); if (_ca) { _ca.innerHTML = ''; _ca.dataset.clave = ''; } }
   // Un borrador hecho con la lista anterior (53) no se puede volcar en esta: las
   // mediciones van por posición y caerían en otra subpartida sin avisar.
   if (d.lista !== VERSION_LISTA && d.partidas && Object.keys(d.partidas).length) {
@@ -3463,6 +3474,176 @@ function siguienteApartamento(){
   showToast('➡️ Informe guardado. Listo para el siguiente apartamento', 'ok');
 }
 
+// ── 151. El informe anterior (29-sep-2026) ─────────────────────────────────
+// Para que el inspector no cuente otra vez lo que ya contó. Al elegir torre,
+// piso y apartamento (o torre, en un informe de torre), si todavía no hay nada
+// medido, el formulario busca el último informe de la lista v2 de ese mismo
+// apartamento —primero en este teléfono, después en el archivo (relevo r27)— y
+// ofrece traer sus mediciones: se corrige solo lo que cambió. La evaluación
+// B/R/M, las fotos y las observaciones NO se traen: son de cada visita.
+// Si ese apartamento no tiene informe, ofrece las cantidades «hay» del último
+// apartamento de la torre: los apartamentos se repiten, y así solo se cuentan
+// las puestas. Nada se trae sin que el inspector lo pida.
+let _anteriorOfrecido = '';
+let _temporizadorAnterior = null;
+
+function _hayMediciones(){
+  return Array.prototype.some.call(
+    document.querySelectorAll('input[id^="pr_"], input[id^="ej_"], input[id^="pm_"], input[id^="sn_"]'),
+    function(e){ return String(e.value || '').trim() !== ''; });
+}
+
+function _aptoActual(){
+  return String((document.getElementById('apto') || {}).value || '').trim().toUpperCase();
+}
+
+function _claveAnterior(){
+  return [getTorreActual(), ambito,
+          ambito === 'torre' ? '' : (document.getElementById('piso') || {}).value || '',
+          ambito === 'torre' ? '' : _aptoActual()].join('|');
+}
+
+// El bloque de piso y apartamento del número de informe: «P03AA».
+function _bloqueActual(){
+  if (ambito === 'torre') return null;
+  const piso = _digitosFinales(document.getElementById('piso')?.value, 2);
+  const avRaw = _limpiar(document.getElementById('apto')?.value);
+  if (!piso || !avRaw) return null;
+  return 'P' + piso + 'A' + (/^\d+$/.test(avRaw) ? avRaw.padStart(2, '0') : avRaw);
+}
+
+function _fechaDe(b){ return String(b.fecha || '') + '|' + String(b.timestamp || ''); }
+
+function _anterioresLocales(){
+  const t = getTorreActual(), piso = (document.getElementById('piso') || {}).value || '', apto = _aptoActual();
+  return getSavedReports().filter(function(b){
+    return b && b.lista === VERSION_LISTA && b.id !== _idEnEdicion && b.torre === t &&
+           (b.ambito || 'apartamento') === ambito && _tieneContenido(b);
+  }).map(function(b){
+    return { b: b, mismo: ambito === 'torre' ? true :
+                          (b.piso === piso && String(b.apto || '').trim().toUpperCase() === apto) };
+  }).sort(function(x, y){ return _fechaDe(y.b) < _fechaDe(x.b) ? -1 : 1; });
+}
+
+async function _anteriorDelArchivo(){
+  const clave = localStorage.getItem('garmel_clave_envio') || '';
+  if (!clave || !navigator.onLine) return null;
+  const corte = new AbortController();
+  const reloj = setTimeout(function(){ corte.abort(); }, 9000);
+  try {
+    const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave: clave, accion: 'historial', tipo: 'obra', sector: getSectorActual(),
+                             torre: getTorreActual(), bloque: _bloqueActual(), prueba: !!TEST_MODE }),
+      signal: corte.signal });
+    const j = await r.json();
+    return (j && j.ok) ? j : null;
+  } catch (e) { return null; } finally { clearTimeout(reloj); }
+}
+
+function _programarAnterior(){
+  // Un aviso que ya no corresponde (cambió la torre, el piso o el apartamento) se
+  // quita en el acto: tocarlo traería las mediciones de OTRO apartamento.
+  const caja = document.getElementById('aviso-anterior');
+  if (caja && caja.dataset.clave && caja.dataset.clave !== _claveAnterior()) { caja.innerHTML = ''; caja.dataset.clave = ''; }
+  clearTimeout(_temporizadorAnterior);
+  _temporizadorAnterior = setTimeout(_ofrecerAnterior, 700);
+}
+
+async function _ofrecerAnterior(){
+  const caja = document.getElementById('aviso-anterior');
+  if (!caja) return;
+  if (_abiertoParaEditar || formType !== 'detallado') return;
+  const t = getTorreActual();
+  if (!t || t === '—') return;
+  if (ambito !== 'torre' && (!(document.getElementById('piso') || {}).value || !_aptoActual())) return;
+  const clave = _claveAnterior();
+  if (clave === _anteriorOfrecido) return;
+  if (_hayMediciones()) return;
+  _anteriorOfrecido = clave;
+  caja.innerHTML = '';
+
+  const locales = _anterioresLocales();
+  let mismo = (locales.find(function(x){ return x.mismo; }) || {}).b || null;
+  let deLaTorre = ambito === 'torre' ? null : ((locales.find(function(x){ return !x.mismo; }) || {}).b || null);
+  let origen = 'guardado en este teléfono';
+  if (!mismo) {
+    const r = await _anteriorDelArchivo();
+    if (clave !== _claveAnterior() || _hayMediciones()) return;   // cambió mientras se buscaba
+    if (r && r.mismo) { mismo = r.mismo; origen = 'del archivo'; }
+    if (!deLaTorre && r && r.deLaTorre) deLaTorre = r.deLaTorre;
+  }
+  if (mismo) {
+    const quien = ambito === 'torre' ? 'Esta torre' : 'Este apartamento';
+    _pintarAvisoAnterior(caja, quien + ' ya tiene un informe (' + (mismo.fecha || 'sin fecha') + ', ' + origen + ').',
+      '¿Traer sus mediciones? Así solo corrige lo que cambió. La evaluación B/R/M, las fotos y las observaciones se hacen de nuevo.',
+      'Traer mediciones', function(){ _traerMediciones(mismo.partidas, false); });
+  } else if (deLaTorre && ambito !== 'torre') {
+    const cual = [deLaTorre.piso, deLaTorre.apto ? 'apto ' + deLaTorre.apto : ''].filter(Boolean).join(' · ');
+    _pintarAvisoAnterior(caja, '¿Usar las cantidades «hay» de otro apartamento de esta torre?',
+      'Del ' + (cual || 'último informe') + ' (' + (deLaTorre.fecha || 'sin fecha') + '). Los apartamentos se repiten: ' +
+      'así solo cuenta las puestas. Revise las que no coincidan.',
+      'Usar las cantidades', function(){ _traerMediciones(deLaTorre.partidas, true); });
+  }
+}
+
+function _pintarAvisoAnterior(caja, titulo, texto, boton, alAceptar){
+  caja.dataset.clave = _claveAnterior();
+  caja.innerHTML =
+    '<div class="aviso-anterior"><div class="t"></div><div class="s"></div>' +
+    '<div class="b"><button type="button" class="si"></button><button type="button" class="no">No, empezar vacío</button></div></div>';
+  caja.querySelector('.t').textContent = titulo;
+  caja.querySelector('.s').textContent = texto;
+  const si = caja.querySelector('.si');
+  si.textContent = boton;
+  si.onclick = function(){
+    // Última defensa: si entre medio cambió el apartamento o se midió algo, no se trae.
+    if (caja.dataset.clave !== _claveAnterior() || _hayMediciones()) { caja.innerHTML = ''; return; }
+    caja.innerHTML = ''; alAceptar();
+  };
+  caja.querySelector('.no').onclick = function(){ caja.innerHTML = ''; };
+}
+
+// Vuelca las mediciones de otro informe de la lista v2. soloHay: solo la
+// cantidad «hay» de las filas que se cuentan.
+function _traerMediciones(partidas, soloHay){
+  let n = 0;
+  Object.keys(partidas || {}).forEach(function(pid){
+    if (pid.slice(-6) === '_extra') return;
+    const arr = partidas[pid];
+    if (!Array.isArray(arr)) return;
+    arr.forEach(function(item, i){
+      if (!item || item.fueraDeAmbito || !_aplica(pid, i)) return;
+      const rid = pid + '_' + i;
+      const pr = document.getElementById('pr_' + rid), ej = document.getElementById('ej_' + rid);
+      if (!pr && !ej) return;
+      if (soloHay) {
+        if (!_esConteo(pid, i) || !String(item.pr || '').trim()) return;
+        pr.value = item.pr; recalcRow(pr); n++;
+        return;
+      }
+      const hay = ['pr', 'ej', 'sn', 'pct'].some(function(k){ return String(item[k] || '').trim() !== ''; });
+      if (!hay) return;
+      const ud = document.getElementById('ud_' + pid + '_' + i);
+      if (ud && item.ud) { ud.value = item.ud; if (typeof _unidadElegida === 'function') _unidadElegida(ud); }
+      if (pr && item.pr !== undefined) pr.value = item.pr;
+      if (ej && item.ej !== undefined) ej.value = item.ej;
+      const sn = document.getElementById('sn_' + rid); if (sn && item.sn !== undefined) sn.value = item.sn;
+      const pm = document.getElementById('pm_' + rid); if (pm && item.pct !== undefined) pm.value = item.pct;
+      recalcRow(pr || ej); n++;
+    });
+  });
+  if (typeof _marcarCambio === 'function') _marcarCambio();
+  showToast(soloHay ? '📋 ' + n + ' cantidades «hay» copiadas. Cuente las puestas.'
+                    : '📋 ' + n + ' mediciones traídas. Corrija lo que cambió y evalúe de nuevo.', 'ok');
+}
+
+document.addEventListener('change', function(e){
+  if (e.target && /^(torre|piso|convenio)$/.test(e.target.id)) _programarAnterior();
+}, true);
+document.addEventListener('input', function(e){
+  if (e.target && e.target.id === 'apto') _programarAnterior();
+}, true);
+
 function nuevoFormulario() {
   if(!confirm('¿Limpiar todo este informe?\n\nSe borra lo que hay en pantalla: torre, apartamento, personal, estatus, evaluación, observaciones y fotografías.\n\nLos informes que ya están en «Mis informes» NO se tocan.')) return;
   // Un informe nuevo vuelve siempre al modo de la sesión.
@@ -3490,6 +3671,7 @@ function nuevoFormulario() {
   document.querySelectorAll('.ag-btn').forEach(b=>b.classList.remove('on'));
   hitosNoInspeccionados = {};
   _numeroDelBorrador = null;
+  _anteriorOfrecido = ''; const _cajaAnt = document.getElementById('aviso-anterior'); if (_cajaAnt) _cajaAnt.innerHTML = '';
   initAppContent();
   updateNroInforme();
   showToast('🧹 Formulario limpio', 'ok');

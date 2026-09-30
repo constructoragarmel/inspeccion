@@ -7614,6 +7614,53 @@ if LISTA_V2:
      ".tbl-wrap td.col-ejecutada.conteo .num{width:84px!important;flex:none}\n</style>",
      "150m· estilo de «puestas de hay»")
 
+# ── 151. El informe anterior: no contar otra vez lo que ya se contó ────────
+# Propuesto el 29-sep-2026 (Stephanie: «suma lo que se pueda»): el riesgo de la
+# lista v2 es el trabajo del inspector —46 filas por apartamento, 31 de ellas
+# «puestas de hay»—. El código vive en `comun/informe_anterior.js`; el relevo
+# r27 contesta `accion: 'historial', tipo: 'obra'`.
+if LISTA_V2:
+    INFORME_ANTERIOR_JS = open(os.path.join(RAIZ, "comun", "informe_anterior.js"), encoding="utf-8").read()
+    s = sustituir(s,
+     'function nuevoFormulario() {',
+     INFORME_ANTERIOR_JS + '\nfunction nuevoFormulario() {',
+     "151a· el informe anterior del apartamento, o las cantidades «hay» de la torre")
+    s = sustituir(s,
+     '<div class="content" id="main-content"></div>',
+     '<div id="aviso-anterior"></div>\n<div class="content" id="main-content"></div>',
+     "151b· el aviso va encima de los hitos")
+    s = sustituir(s,
+     "  _numeroDelBorrador = null;\n  initAppContent();\n  updateNroInforme();",
+     "  _numeroDelBorrador = null;\n"
+     "  _anteriorOfrecido = ''; const _cajaAnt = document.getElementById('aviso-anterior'); if (_cajaAnt) _cajaAnt.innerHTML = '';\n"
+     "  initAppContent();\n  updateNroInforme();",
+     "151c· limpiar el formulario vuelve a ofrecer el informe anterior")
+    s = sustituir(s,
+     "function setAmbito(a){\n  ambito = (a === 'torre') ? 'torre' : 'apartamento';",
+     "function setAmbito(a){\n  ambito = (a === 'torre') ? 'torre' : 'apartamento';\n"
+     "  if (typeof _programarAnterior === 'function') _programarAnterior();",
+     "151d· cambiar de ámbito también busca el informe anterior")
+    s = sustituir(s,
+     "</style>",
+     ".aviso-anterior{background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;margin:12px 12px 4px}\n"
+     ".aviso-anterior .t{font-weight:800;font-size:14px;color:#1a237e;margin-bottom:4px}\n"
+     ".aviso-anterior .s{font-size:13px;color:#475569;margin-bottom:10px;line-height:1.4}\n"
+     ".aviso-anterior .b{display:flex;gap:8px;flex-wrap:wrap}\n"
+     ".aviso-anterior .b button{flex:1 1 140px;min-height:44px;border-radius:8px;font-weight:700;font-size:14px;border:none;cursor:pointer}\n"
+     ".aviso-anterior .b .si{background:#1a237e;color:#fff}\n"
+     ".aviso-anterior .b .no{background:#e2e8f0;color:#334155}\n</style>",
+     "151e· estilo del aviso")
+    s = sustituir(s,
+     'Promedio simple de los hitos inspeccionados · sin ponderar',
+     'Promedio simple de los hitos inspeccionados · el avance según el presupuesto sale en el PDF',
+     "151f· el total del teléfono dice dónde está el ponderado")
+    s = sustituir(s,
+     "  let d = list[index];\n  if (!d) return;\n",
+     "  let d = list[index];\n  if (!d) return;\n"
+     "  // Al abrir un borrador para corregirlo no se ofrece otro informe: el aviso se quita.\n"
+     "  { const _ca = document.getElementById('aviso-anterior'); if (_ca) { _ca.innerHTML = ''; _ca.dataset.clave = ''; } }\n",
+     "151g· abrir un borrador quita el aviso del informe anterior")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

@@ -3,6 +3,8 @@ S=os.path.dirname(os.path.abspath(__file__))
 ESTADO={'tipos':['inspeccion','servicios','sha','urbanismo'],'caido':False,'fallar':[],'lento':0,'clave':'qc'}
 class H(http.server.BaseHTTPRequestHandler):
     historial={}
+    obra={}
+    obraApto={}
     def _ok(self,obj,code=200):
         b=json.dumps(obj,ensure_ascii=False).encode()
         self.send_response(code); self.send_header('Content-Type','application/json'); self.send_header('Access-Control-Allow-Origin','*')
@@ -18,12 +20,16 @@ class H(http.server.BaseHTTPRequestHandler):
         n=int(self.headers.get('Content-Length',0)); raw=self.rfile.read(n)
         if self.path.startswith('/control'):
             ESTADO.update(json.loads(raw or b'{}'))
-            if ESTADO.get('borrar'): H.historial.clear(); open(S+'/envios.jsonl','w').close(); ESTADO['borrar']=False
+            if ESTADO.get('borrar'): H.historial.clear(); H.obra.clear(); H.obraApto.clear(); open(S+'/envios.jsonl','w').close(); ESTADO['borrar']=False
             return self._ok({'ok':True,'estado':ESTADO})
         if ESTADO['caido']:
             self.close_connection=True; return
         if ESTADO['lento']: time.sleep(ESTADO['lento'])
         p=json.loads(raw or b'{}')
+        if p.get('accion')=='historial' and p.get('tipo')=='obra':
+            # Como el relevo r27: el último de ese apartamento (o de torre) y el último de un apartamento de la torre.
+            b=(p.get('bloque') or 'TORRE').upper()
+            return self._ok({"ok":True,"mismo":H.obra.get((p.get('torre'),b)),"deLaTorre":H.obraApto.get(p.get('torre')) if p.get('bloque') else None})
         if p.get('accion')=='historial':
             h=H.historial.get((p.get('tipo'),p.get('torre'))); return self._ok({"ok":True,"informe":h})
         with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":p.get('numero'),"tipo":p.get('tipo'),"ambito":p.get('ambito'),"fotos":[x.get('nombre') for x in (p.get('fotos') or [])],"datos":p.get('datos')}, ensure_ascii=False)+"\n")
@@ -31,6 +37,13 @@ class H(http.server.BaseHTTPRequestHandler):
         if 'numero' not in p: return self._ok({"ok":True})
         if p['numero'] in ESTADO['fallar']: return self._ok({"ok":False,"error":"fallo simulado del relevo"})
         if p.get('datos'): H.historial[(p.get('tipo'),p['datos'].get('torre'))]=p['datos']
+        d=p.get('datos') or {}
+        if not p.get('tipo') and d.get('lista')=='v2':
+            import re
+            m=re.search(r'-(P\d{2}A[^-]*)-\d{6}-',p['numero'].upper())
+            r={"nro":d.get('nro'),"fecha":d.get('fecha'),"piso":d.get('piso'),"apto":d.get('apto'),"ambito":d.get('ambito'),"partidas":d.get('partidas')}
+            H.obra[(d.get('torre'),m.group(1) if m else 'TORRE')]=r
+            if m: H.obraApto[d.get('torre')]=r
         self._ok({"ok":True,"numero":p['numero'],"archivos":[p['numero']+'.json',p['numero']+'.pdf']})
     def log_message(self,*a): pass
 http.server.ThreadingHTTPServer(('127.0.0.1',8776),H).serve_forever()
