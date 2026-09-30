@@ -71,7 +71,7 @@ const env5 = (await Q.envios()).filter(e => e.tipo === 'servicios');
 await nuevo(); cargarInforme(id5); await esperar(100);
 const reab5 = boton('zona').classList.contains('on') && torre.value === 'ZONA' && conv.value === 'Convenio Bielorrusos' && $$('#otras-lista .otra').length === 1;
 boton('una').click(); await esperar(50);
-const vuelta = !torre.closest('.campo').hidden && torre.value === '' && document.querySelector('label[for="convenio"]').textContent === 'Convenio' &&
+const vuelta = !torre.closest('.campo').hidden && torre.value === '' && document.querySelector('label[for="convenio"]').textContent === 'Sector' &&
                $('#campo-otras').hidden && !datosDelFormulario().ubicacion;
 ok('5 · Sale con torre ZONA (sector EZ), se reabre en «Toda la zona», y volver a «Una torre» lo deja como siempre',
    env5.length === 1 && /elegir la torre/.test($('#empresa').placeholder) && /SRV-EZ-ZONA-/.test(env5[0].numero) && env5[0].datos.torre === 'ZONA' && reab5 && vuelta, 'envíos ' + env5.length + ' ' + (env5[0] || {}).numero + ' · reabierto ' + reab5 + ' · vuelta ' + vuelta);

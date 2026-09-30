@@ -137,3 +137,16 @@ arregló: `faltan` lee la ubicación del borrador.
 La regresión de las pruebas viejas de urbanismo y SHA da lo mismo que la v96 publicada, corrida sobre
 `*-base.html` (copias de `git show HEAD:`). Eso incluye las expectativas vencidas de `t1`, `t2`, `t4`, `t5` y `t6`,
 escritas antes de arreglos posteriores (la coma decimal, entre otros).
+
+## Primero el sector (30-sep-2026): `t39` a `t41`
+
+Diez comprobaciones de la v99:
+- `t39`, en `inspeccion.html`: el orden y el rótulo; que Simón Rodríguez oculte las torres de otros sectores y
+  tome la T-07 sin preguntar; que cambiar de sector suelte la torre ajena; que sin sector todo funcione como antes;
+  y que un borrador de la T-07 de otro sector se abra bien.
+- `t40`, en `servicios.html`: el caso real del 30-sep (T-15 + T-14 + T-13 ya no suma a Master) y la T-13 en los
+  dos sectores.
+- `t41`, en `sha.html`: «el sector» en lo que falta, y el borrador de otro sector.
+
+Encontraron que en inspección las opciones del sector no traían `value`: el valor salía del texto y, al cambiar el
+texto al nombre del sector, cambiaba también el valor. Se arregló fijando el `value` antes de cambiar el rótulo.

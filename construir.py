@@ -7745,6 +7745,21 @@ if LISTA_V2:
      "@media print{.heredada-tag{display:none!important}tr.heredada td.desc{background:none}}\n</style>",
      "153i· estilo de lo heredado y lo editado")
 
+# ── 154. Primero el sector (Diego Orta, 30-sep-2026) ─────────────────────────
+# El campo de convenio sube arriba de la torre, se llama «Sector» y muestra los
+# nombres de los sectores; elegido, la torre solo ofrece las suyas. El código vive en
+# comun/sector.js.
+if LISTA_V2:
+    SECTOR_JS = open(os.path.join(RAIZ, "comun", "sector.js"), encoding="utf-8").read()
+    s = sustituir(s,
+     "if ('serviceWorker' in navigator) {",
+     SECTOR_JS + "\nif ('serviceWorker' in navigator) {",
+     "154a· primero el sector (comun/sector.js)")
+    s = sustituir(s,
+     "['convenio','Convenio']",
+     "['convenio','Sector']",
+     "154b· el aviso de lo que falta dice «Sector»")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

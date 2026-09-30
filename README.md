@@ -350,6 +350,13 @@ Lo que lo distingue del de inspección, y por qué (los tres salieron de la prim
   - En los dos casos, el relevo escribe la ubicación en el PDF y en la columna «Ubicación» de Smartsheet.
   - El código vive en `comun/ubicacion.js` y entra al final del motor, así que SHA y urbanismo lo heredan.
   - Decisión provisional: ADR-0038, en el repositorio de Garmel.
+- **Primero el sector** (v99, 30-sep-2026, también en inspección y SHA; urbanismo ya lo hacía). Lo pidió
+  Planificación: «que la caída sea sector, torre y de ahí para abajo», con los nombres de los sectores (Ezequiel
+  Zamora, Simón Rodríguez, Simón Bolívar) y no los de los convenios. El campo es el de siempre, ahora arriba y
+  rotulado «Sector», y su valor sigue siendo el convenio, que es lo que leen el número, el relevo y los borradores.
+  Elegido el sector, la torre ofrece solo las suyas. Así la T-04, la T-07, la T-12 y la T-13, que están en dos
+  sectores, ya no se mezclan. El 30-sep un informe de SHA de «varias torres» había sumado la empresa y el residente
+  de la T-13 del otro sector. El código está en `comun/sector.js` (inspección) y `comun/ubicacion.js` (servicios y SHA).
 
 ## El formulario de SHA (Seguridad, Higiene y Ambiente)
 

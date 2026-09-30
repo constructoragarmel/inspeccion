@@ -8,7 +8,7 @@ const nuevo = async () => { Q.aceptar = true; nuevoInforme(); await esperar(80);
 const boton = m => $('#campo-donde button[data-m="' + m + '"]');
 const contestar = () => { marcarSN($('#items-' + GENERAL[0].id + ' .item button'), 'SI'); const e = $('#estatus'); if (e && e.tagName === 'SELECT' && !e.value) Q.elegir(e, [...e.options].map(o => o.value).filter(Boolean)[0]); };
 const t1 = TORRES_DATA.find(x => entradasDe(x.t).length === 1 && SECTOR_POR_CONVENIO[x.c] === 'EZ');
-const t2 = torresUnicas().find(t => t !== t1.t && entradasDe(t).length === 1 && entradasDe(t)[0].e !== t1.e);
+const t2 = torresUnicas().find(t => t !== t1.t && entradasDe(t).length === 1 && entradasDe(t)[0].c === t1.c && entradasDe(t)[0].e !== t1.e);
 
 // ── 9. SHA varias torres de dos empresas: se asigna a las dos (Skarlet, 30-sep), un solo envío; volver a «Una» devuelve la suya ──
 await nuevo(); insp(); Q.elegir(torre, t1.t); await esperar(60); if ($('#aviso-historial .no')) $('#aviso-historial .no').click();
@@ -26,7 +26,8 @@ ok('9 · SHA: con otra empresa en la otra torre lo avisa; sale un solo informe S
    nota.slice(0, 90) + ' · ' + (env9[0] || {}).numero + ' · ' + ((env9[0] || {}).datos || {}).empresa + ' · vuelta ' + vuelta9);
 
 // ── 10. SHA toda la zona: sin zona elegida dice «la zona»; los botones y los chips caben a lo ancho ──
-await nuevo(); insp(); boton('zona').click(); contestar();
+await nuevo(); insp(); Q.elegir(conv, '');   // el sector se conserva entre informes: aquí se parte sin él
+boton('zona').click(); contestar();
 const f10 = faltan(datosDelFormulario()).join(', ');   // el estatus ya va puesto: solo debe faltar la zona
 Q.elegir(conv, 'Convenio Rusos'); Q.elegir($('#otra-lugar'), 'Ezequiel Zamora'); Q.elegir($('#otra-lugar'), 'Simón Bolívar');
 const ancho = document.documentElement.scrollWidth <= innerWidth + 1;

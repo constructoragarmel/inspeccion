@@ -218,7 +218,7 @@ textarea{min-height:64px;resize:vertical}
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún servicio..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v98</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v99</div>
 </div>
 
 <div class="acciones">
@@ -1872,7 +1872,15 @@ const _TXT_DONDE = _LUGAR === 'manzana'
 const _ZONA_NOMBRE = { 'Convenio Bielorrusos': 'Ezequiel Zamora', 'Convenio Rusos': 'Simón Rodríguez', 'Convenio Chinos': 'Simón Bolívar' };
 let _modoDonde = 'una', _otras = [];
 let _propios = { empresa: '', residente: '' };   // los de la principal, como los dejó la cascada
-const _etiquetaConvenio = (document.querySelector('label[for="convenio"]') || {}).textContent || 'Convenio';
+let _etiquetaConvenio = (document.querySelector('label[for="convenio"]') || {}).textContent || 'Convenio';
+// ── Primero el sector (Diego Orta, 30-sep-2026) ──
+// «Que la caída sea sector, torre y de ahí para abajo», con el nombre del sector y no
+// el del convenio. Elegido el sector, la lista de torres queda solo con las suyas: la
+// T-04, la T-07, la T-12 y la T-13 existen en dos sectores, y así ya no se mezclan
+// (el 30-sep un informe de SHA de la T-13 sumó la empresa de la T-13 del otro sector).
+// Urbanismo ya elegía primero el sector: allí no se toca.
+const _SECTOR_PRIMERO = (typeof llenarManzanas !== 'function');
+let _sectorElegido = '';
 // En «Toda la zona» no hay torre que llene empresa y residente: el rótulo lo dice.
 const _placeholders = { empresa: (document.getElementById('empresa') || {}).placeholder || '',
                         residente: (document.getElementById('residente') || {}).placeholder || '' };
@@ -1900,6 +1908,13 @@ const _placeholders = { empresa: (document.getElementById('empresa') || {}).plac
       return '<button type="button" role="radio" data-m="' + x[0] + '">' + x[1] + '</button>'; }).join('') +
     '</div><div class="donde-ayuda" id="donde-ayuda"></div>';
   rej.insertBefore(caja, rej.firstChild);
+  if (_SECTOR_PRIMERO) {
+    const cc = document.getElementById('convenio').closest('.campo');
+    torre.closest('.campo').before(cc);
+    const lc = document.querySelector('label[for="convenio"]'); if (lc) lc.textContent = 'Sector';
+    _etiquetaConvenio = 'Sector';
+    _opcionesSector();
+  }
   caja.querySelectorAll('button').forEach(function(b){ b.onclick = function(){ ponerModoDonde(b.dataset.m); }; });
   const otras = document.createElement('div');
   otras.className = 'campo'; otras.id = 'campo-otras'; otras.hidden = true; otras.style.gridColumn = '1 / -1';
@@ -1919,14 +1934,38 @@ function _asegurarOpcionZona(){
   }
 }
 function _nombreZona(c){ return _ZONA_NOMBRE[c] || c || ''; }
+function _entradasDelSector(t){
+  const c = _sectorElegido || document.getElementById('convenio').value;
+  const todas = entradasDe(t) || [];
+  const del = todas.filter(function(x){ return x.c === c; });
+  return (c && del.length) ? del : todas;
+}
+function _opcionesSector(){
+  if (!_SECTOR_PRIMERO) return;
+  const conv = document.getElementById('convenio');
+  const v = _sectorElegido || conv.value;
+  conv.innerHTML = '<option value="">— Seleccione sector —</option>' + Object.keys(SECTOR_POR_CONVENIO).map(function(c){
+    return '<option value="' + escapar(c) + '">' + escapar(_nombreZona(c)) + '</option>'; }).join('');
+  if (v && SECTOR_POR_CONVENIO[v]) conv.value = v;
+}
+function _torresDelSector(){
+  if (!_SECTOR_PRIMERO) return;
+  const sel = document.getElementById('torre');
+  [...sel.options].forEach(function(o){
+    if (!o.value) { o.textContent = _sectorElegido ? '— Seleccione torre —' : '— Elija primero el sector —'; return; }
+    if (o.value === 'ZONA') return;
+    const ok = !_sectorElegido || (entradasDe(o.value) || []).some(function(x){ return x.c === _sectorElegido; });
+    o.hidden = !ok; o.disabled = !ok;
+  });
+}
 function _unicos(l){ const r = []; l.forEach(function(x){ x = String(x || '').trim(); if (x && r.indexOf(x) < 0) r.push(x); }); return r; }
 function _empresasDeTodas(){
-  return _unicos([_propios.empresa].concat([].concat.apply([], _otras.map(function(t){ return (entradasDe(t) || []).map(function(x){ return x.e; }); }))));
+  return _unicos([_propios.empresa].concat([].concat.apply([], _otras.map(function(t){ return _entradasDelSector(t).map(function(x){ return x.e; }); }))));
 }
 // Empresa y residente de «Varias»: los de la principal más los de las demás.
 function _asignarATodas(){
   if (_modoDonde !== 'varias') return;
-  const res = _unicos([_propios.residente].concat([].concat.apply([], _otras.map(function(t){ return (entradasDe(t) || []).map(function(x){ return x.r; }); }))));
+  const res = _unicos([_propios.residente].concat([].concat.apply([], _otras.map(function(t){ return _entradasDelSector(t).map(function(x){ return x.r; }); }))));
   document.getElementById('empresa').value = _empresasDeTodas().join(' · ');
   document.getElementById('residente').value = res.join(' · ');
 }
@@ -1963,7 +2002,7 @@ function _pintarDonde(){
   }).join('');
   const candidatos = zona
     ? Object.keys(SECTOR_POR_CONVENIO).map(_nombreZona).filter(function(z){ return z !== _nombreZona(conv); })
-    : torresUnicas().filter(function(t){ return t !== principal; });
+    : torresUnicas().filter(function(t){ return t !== principal && (!_sectorElegido || (entradasDe(t) || []).some(function(x){ return x.c === _sectorElegido; })); });
   const sel = document.getElementById('otra-lugar');
   sel.innerHTML = '<option value="">' + (zona ? '＋ Agregar otra zona' : _TXT_DONDE.otra) + '</option>' +
     candidatos.filter(function(x){ return _otras.indexOf(x) < 0; })
@@ -2030,6 +2069,23 @@ alElegirTorre = function(){
   if (t === 'ZONA') { _modoDonde = 'zona'; _pintarDonde(); return _zonaElegida(); }
   if (_modoDonde === 'zona') { _modoDonde = 'una'; _otras = []; }
   const r = _alElegirTorreBaseU.apply(this, arguments);
+  if (_SECTOR_PRIMERO) {
+    // El motor rehace el desplegable con los convenios de la torre: se devuelven los tres sectores.
+    const conv = document.getElementById('convenio');
+    const filas = entradasDe(t) || [];
+    if (t && _sectorElegido && filas.some(function(x){ return x.c === _sectorElegido; })) {
+      _opcionesSector(); conv.value = _sectorElegido;
+      const f = filas.find(function(x){ return x.c === _sectorElegido; });
+      if (!_cargando) { document.getElementById('empresa').value = f.e || ''; document.getElementById('residente').value = f.r || ''; }
+      document.getElementById('aviso-torre').innerHTML = '';
+      actualizarNro(); pedirHistorialAlRelevo();
+    } else {
+      const v = conv.value;
+      _opcionesSector();
+      if (v) { conv.value = v; _sectorElegido = v; }
+    }
+    _torresDelSector();
+  }
   if (_otras.indexOf(t) >= 0) _otras.splice(_otras.indexOf(t), 1);   // la principal no es «también»
   if (!_cargando) { _recordarPropios(); _asignarATodas(); }
   _pintarDonde();
@@ -2039,11 +2095,22 @@ alElegirTorre = function(){
 const _alElegirConvenioBaseU = alElegirConvenio;
 alElegirConvenio = function(){
   if (_modoDonde !== 'zona') {
+    if (_SECTOR_PRIMERO) {
+      _sectorElegido = document.getElementById('convenio').value;
+      const torre = document.getElementById('torre');
+      if (torre.value && !(entradasDe(torre.value) || []).some(function(x){ return x.c === _sectorElegido; })) {
+        torre.value = ''; alElegirTorre();
+        document.getElementById('convenio').value = _sectorElegido;
+      }
+      _otras = _otras.filter(function(t){ return (entradasDe(t) || []).some(function(x){ return x.c === _sectorElegido; }); });
+      _torresDelSector();
+    }
     const r = _alElegirConvenioBaseU.apply(this, arguments);
     if (!_cargando) { _recordarPropios(); _asignarATodas(); }
     _pintarDonde(); return r;
   }
   const c = document.getElementById('convenio').value;
+  if (_SECTOR_PRIMERO) _sectorElegido = c;
   if (typeof llenarManzanas === 'function') llenarManzanas(c);
   _asegurarOpcionZona(); document.getElementById('torre').value = 'ZONA';
   if (typeof EMPRESA_POR_SECTOR !== 'undefined' && !_cargando) document.getElementById('empresa').value = EMPRESA_POR_SECTOR[c] || '';
@@ -2091,6 +2158,7 @@ faltan = function(d){
   const u = (d && d.ubicacion) || {};
   const modo = (d && d.torre === 'ZONA') ? 'zona' : (u.modo || 'una');
   if (modo === 'zona') f = f.map(function(x){ return /convenio|sector/.test(x) ? 'la zona' : x; });
+  else if (_SECTOR_PRIMERO) f = f.map(function(x){ return x === 'el convenio' ? 'el sector' : x; });
   if (modo === 'varias' && !(u.otras || []).length) f.push('las otras ' + _TXT_DONDE.plural + ' (o elija «' + _TXT_DONDE.una + '»)');
   return f;
 };
@@ -2107,6 +2175,7 @@ const _cargarInformeBaseU = cargarInforme;
 cargarInforme = function(id){
   const d = listaGuardada().find(function(x){ return x.id === id; });
   if (d && d.torre === 'ZONA') _asegurarOpcionZona();
+  if (d && _SECTOR_PRIMERO && d.convenio) _sectorElegido = d.convenio;
   const r = _cargarInformeBaseU.apply(this, arguments);
   if (d && idActual === d.id) {
     const u = d.ubicacion || {};
@@ -2120,6 +2189,7 @@ cargarInforme = function(id){
 };
 
 _pintarDonde();
+_torresDelSector();
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js');
