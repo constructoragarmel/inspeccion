@@ -34,10 +34,11 @@ ok('1 · Conteo 3 de 5 = 60 %, estado «Avanzado» = 75 %, Sí = 100 % y No = 0 
 ok('1b · El % escrito solo existe en filas de cantidad (m², m³, ml/kg)', conPm.length === cantidades, conPm.join(',') + ' vs ' + cantidades);
 
 // ── 2. Guardar y reabrir ──
+const guardadoNro = document.getElementById('nro-display').textContent;
 saveDraft(true);
 await esperar(300);
 const lista = getSavedReports();
-const idx = lista.length - 1;
+const idx = lista.findIndex(b => b.nro === guardadoNro);
 const guardado = lista[idx];
 Q.aceptar = true; nuevoFormulario(); await esperar(300);
 Q.aceptar = true;

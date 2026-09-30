@@ -804,9 +804,16 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 }
 .tbl-wrap td.falt-cell, td.falt-cell{display:none!important}   /* el faltante no se registra aquí (4-sep-2026) */
 .hbtn-inicio{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3)}
+/* QC del 29-sep (t25): los avisos iban en una sola línea y uno largo se salía de la pantalla del teléfono */
+.toast{white-space:normal;width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;text-align:center;line-height:1.35}
 .col-ejecutada.conteo{white-space:nowrap}
 .col-ejecutada.conteo .num{width:56px;display:inline-block}
 .col-ejecutada.conteo .de{margin:0 4px;color:#5f6b7a;font-size:12px}
+/* En el teléfono las casillas miden 96 px (regla con !important): dos no caben a 320 px (QC t25, 29-sep) */
+.tbl-wrap td.col-ejecutada .num{width:68px!important}
+/* El conteo: rótulo corto y las dos casillas se reparten lo que queda, para que se lea «puestas» y «hay» a 320 px */
+.tbl-wrap td.col-ejecutada.conteo::before{content:'Conteo';flex:0 0 58px}
+.tbl-wrap td.col-ejecutada.conteo .num{width:84px!important;flex:none}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a237e">
@@ -1306,10 +1313,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v91';
+    el.textContent = '● en línea · v92';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v91 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v92 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -3237,7 +3244,10 @@ function loadDraftData(index) {
                  'Si lo abre aquí, se cargan los datos generales, las fotos y las observaciones, ' +
                  'pero las mediciones hay que marcarlas de nuevo con la lista nueva.\n\n' +
                  'Si prefiere enviarlo como estaba, cancele y use «Enviar todos».\n\n¿Abrirlo así?')) return;
-    d = Object.assign({}, d, { partidas: {}, extraRows: {}, noInspeccionados: [] });
+    // Y se abre en el modo de siempre: un borrador del antiguo modo «por hitos» no
+    // puede dejar el formulario en ese modo, que ya no se ofrece (ADR-0023).
+    d = Object.assign({}, d, { partidas: {}, extraRows: {}, noInspeccionados: [], formType: 'detallado' });
+    delete d.hitoPct;
   }
 
   formType = d.formType || 'detallado';
@@ -3799,6 +3809,8 @@ async function enviarAlRelevo() {
 
   if(!clave){ alert('Escriba la clave de envío.'); return; }
 
+  // Primero se guarda: si el envío falla, el aviso dice que el borrador sigue aquí, y tiene que ser cierto.
+  try { saveDraft(true); } catch(e) {}
   const datos = getFormData();
   const fotos = _fotosParaEnviar();
   logEl.style.display = 'block';

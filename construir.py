@@ -7585,14 +7585,33 @@ if LISTA_V2:
      "                 'Si lo abre aquí, se cargan los datos generales, las fotos y las observaciones, ' +\n"
      "                 'pero las mediciones hay que marcarlas de nuevo con la lista nueva.\\n\\n' +\n"
      "                 'Si prefiere enviarlo como estaba, cancele y use «Enviar todos».\\n\\n¿Abrirlo así?')) return;\n"
-     "    d = Object.assign({}, d, { partidas: {}, extraRows: {}, noInspeccionados: [] });\n"
+     "    // Y se abre en el modo de siempre: un borrador del antiguo modo «por hitos» no\n"
+     "    // puede dejar el formulario en ese modo, que ya no se ofrece (ADR-0023).\n"
+     "    d = Object.assign({}, d, { partidas: {}, extraRows: {}, noInspeccionados: [], formType: 'detallado' });\n"
+     "    delete d.hitoPct;\n"
      "  }",
      "150l· un borrador de la lista anterior no se vuelca en la nueva")
+    # QC del 29-sep-2026 (tanda t24): el aviso de fallo dice «el borrador sigue
+    # guardado», pero Enviar no guardaba: dependía de que el autoguardado (2 s
+    # después del último cambio) ya hubiera pasado. Ahora guarda antes de enviar.
+    s = sustituir(s,
+     "  const datos = getFormData();\n  const fotos = _fotosParaEnviar();",
+     "  // Primero se guarda: si el env\u00edo falla, el aviso dice que el borrador sigue aqu\u00ed, y tiene que ser cierto.\n"
+     "  try { saveDraft(true); } catch(e) {}\n"
+     "  const datos = getFormData();\n  const fotos = _fotosParaEnviar();",
+     "150n\u00b7 Enviar guarda el borrador antes de mandarlo")
     s = sustituir(s,
      "</style>",
+     "/* QC del 29-sep (t25): los avisos iban en una sola l\u00ednea y uno largo se sal\u00eda de la pantalla del tel\u00e9fono */\n"
+     ".toast{white-space:normal;width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;text-align:center;line-height:1.35}\n"
      ".col-ejecutada.conteo{white-space:nowrap}\n"
      ".col-ejecutada.conteo .num{width:56px;display:inline-block}\n"
-     ".col-ejecutada.conteo .de{margin:0 4px;color:#5f6b7a;font-size:12px}\n</style>",
+     ".col-ejecutada.conteo .de{margin:0 4px;color:#5f6b7a;font-size:12px}\n"
+     "/* En el tel\u00e9fono las casillas miden 96 px (regla con !important): dos no caben a 320 px (QC t25, 29-sep) */\n"
+     ".tbl-wrap td.col-ejecutada .num{width:68px!important}\n"
+     "/* El conteo: r\u00f3tulo corto y las dos casillas se reparten lo que queda, para que se lea \u00abpuestas\u00bb y \u00abhay\u00bb a 320 px */\n"
+     ".tbl-wrap td.col-ejecutada.conteo::before{content:'Conteo';flex:0 0 58px}\n"
+     ".tbl-wrap td.col-ejecutada.conteo .num{width:84px!important;flex:none}\n</style>",
      "150m· estilo de «puestas de hay»")
 
 open(SALIDA, "w", encoding="utf-8").write(s)

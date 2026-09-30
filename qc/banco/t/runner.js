@@ -3,7 +3,13 @@
   window.alert = m => { Q.dialogos.push(String(m)); };
   window.confirm = m => { Q.dialogos.push(String(m)); return Q.aceptar; };
   Q.ok = (n, c, d) => { Q.R.push({ n, c: !!c, d: d === undefined ? '' : String(d).slice(0, 240) }); return !!c; };
-  Q.esperar = ms => new Promise(r => setTimeout(r, ms));
+  // Con la pestaña oculta Chrome estrangula setTimeout (hasta uno por minuto) y las tandas no terminan.
+  // Oculta, la espera corre sobre MessageChannel, que no se estrangula (29-sep-2026).
+  Q.esperar = ms => document.hidden
+    ? new Promise(r => { const t0 = performance.now(), ch = new MessageChannel();
+        ch.port1.onmessage = () => (performance.now() - t0 >= ms) ? (ch.port1.close(), r()) : ch.port2.postMessage(0);
+        ch.port2.postMessage(0); })
+    : new Promise(r => setTimeout(r, ms));
   Q.hasta = async (fn, ms, paso) => { const t = Date.now(); while (Date.now() - t < (ms || 10000)) { try { if (fn()) return true; } catch(e){} await Q.esperar(paso || 50); } return false; };
   Q.foto = async (w, h, semilla) => {
     const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const ctx = cv.getContext('2d');
