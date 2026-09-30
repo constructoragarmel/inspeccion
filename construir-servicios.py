@@ -1767,6 +1767,17 @@ if ('serviceWorker' in navigator) {
 })();
 """
 
+# ── ¿Dónde es? Una torre, varias o toda la zona (PA-112, 30-sep-2026) ────────
+# El código vive en comun/ubicacion.js y entra aquí, al final del motor y antes
+# del service worker, para que SHA y urbanismo lo hereden sin tocar nada: los
+# `onchange` que se asignan al arrancar ya encuentran las funciones envueltas.
+UBICACION_JS = open(os.path.join(RAIZ, "comun", "ubicacion.js"), encoding="utf-8").read()
+_ANCLA_SW = "if ('serviceWorker' in navigator) {"
+if JS.count(_ANCLA_SW) != 1:
+    sys.exit("✗ No encontré (una vez) el ancla del service worker para ubicacion.js")
+JS = JS.replace(_ANCLA_SW, UBICACION_JS + "\n" + _ANCLA_SW)
+
+
 # ══════════════════════════════════════════════════════════════════════════
 # MONTAJE
 # ══════════════════════════════════════════════════════════════════════════

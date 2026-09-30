@@ -339,6 +339,17 @@ Lo que lo distingue del de inspección, y por qué (los tres salieron de la prim
   texto se sigue leyendo.
 - **En las 20 torres cuyo maestro no trae residente**, el que se escribió la vez anterior vuelve con el
   historial; donde el maestro lo trae, manda el maestro.
+- **«¿Dónde es?»: una torre, varias o toda la zona** (v97, 30-sep-2026, también en SHA y urbanismo). Lo
+  pidieron los inspectores porque hay incidencias entre dos torres, entre dos manzanas o de todo un urbanismo, y les
+  tocaba hacer tres o cuatro informes de lo mismo. Sigue siendo **un solo informe**:
+  - **Varias.** La torre del desplegable es la principal y ahí se archiva. Las demás se agregan como «también afecta
+    a» y el número lleva `+N`. **Se asigna a todas las empresas**: empresa y residente llevan los de todas las
+    torres, separados por « · ». Así lo pidió Skarlet Gómez el 30-sep.
+  - **Toda la zona.** El lugar es `ZONA` y la zona se elige donde va el convenio. Se archiva en la carpeta
+    «General» de la zona.
+  - En los dos casos, el relevo escribe la ubicación en el PDF y en la columna «Ubicación» de Smartsheet.
+  - El código vive en `comun/ubicacion.js` y entra al final del motor, así que SHA y urbanismo lo heredan.
+  - Decisión provisional: ADR-0038, en el repositorio de Garmel.
 
 ## El formulario de SHA (Seguridad, Higiene y Ambiente)
 

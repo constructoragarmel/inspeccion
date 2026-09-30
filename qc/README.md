@@ -118,3 +118,22 @@ lo traído de la visita anterior (marcas, «Sigue igual», heredado en el envío
 Encontraron dos cosas. Al abrir un informe con otro sin guardar en pantalla, se guardaba el de pantalla, la lista se corría
 y se abría el equivocado (se arregló buscando por id). Y **un fallo que venía de antes**: tras «Finalizar», el siguiente
 informe se guardaba encima del recién finalizado, porque el id seguía puesto (cambio 153j).
+
+## «¿Dónde es?» (30-sep-2026): `t36` a `t38`
+
+Diez comprobaciones del selector de lugar (v97, `comun/ubicacion.js`). `t36` en `servicios.html` cubre:
+- por defecto, una sola torre;
+- «Varias», con chips, número `+N` y empresa de todas;
+- envío único y reapertura;
+- «Toda la zona», con la zona donde va el convenio y el número `ZONA`;
+- la vuelta a una torre.
+
+`t37` en `urbanismo.html` prueba los rótulos de manzana, la opción ZONA que sobrevive a elegir el sector y
+«Siguiente». `t38` en `sha.html` prueba dos empresas asignadas a la vez y el ancho a 375 y a 320.
+
+Encontraron que «Enviar» revisaba los borradores pendientes con el modo de la pantalla y no con el de cada uno. Se
+arregló: `faltan` lee la ubicación del borrador.
+
+La regresión de las pruebas viejas de urbanismo y SHA da lo mismo que la v96 publicada, corrida sobre
+`*-base.html` (copias de `git show HEAD:`). Eso incluye las expectativas vencidas de `t1`, `t2`, `t4`, `t5` y `t6`,
+escritas antes de arreglos posteriores (la coma decimal, entre otros).
