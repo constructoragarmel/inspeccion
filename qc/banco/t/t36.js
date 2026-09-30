@@ -58,7 +58,7 @@ Q.elegir($('#otra-lugar'), 'Simón Rodríguez');
 contestar();
 const d4 = datosDelFormulario();
 ok('4 · Toda la zona: campo de torre oculto, «Zona» con las 3, número SRV-EZ-ZONA, ubicación «Toda la zona Ezequiel Zamora · Simón Rodríguez»',
-   torre.closest('.campo').hidden && etiq === 'Zona' && opciones.length === 3 && /SRV-EZ-ZONA-/.test(numeroInforme()) &&
+   torre.closest('.campo').hidden && etiq === 'Zona' && /Si aplica/.test($('#empresa').placeholder) && opciones.length === 3 && /SRV-EZ-ZONA-/.test(numeroInforme()) &&
    d4.torre === 'ZONA' && d4.convenio === 'Convenio Bielorrusos' && !faltan(d4).length &&
    d4.ubicacion.texto === 'Toda la zona Ezequiel Zamora · Simón Rodríguez',
    etiq + ' · ' + opciones.join('/') + ' · ' + numeroInforme() + ' · ' + d4.ubicacion.texto);
@@ -74,4 +74,4 @@ boton('una').click(); await esperar(50);
 const vuelta = !torre.closest('.campo').hidden && torre.value === '' && document.querySelector('label[for="convenio"]').textContent === 'Convenio' &&
                $('#campo-otras').hidden && !datosDelFormulario().ubicacion;
 ok('5 · Sale con torre ZONA (sector EZ), se reabre en «Toda la zona», y volver a «Una torre» lo deja como siempre',
-   env5.length === 1 && /SRV-EZ-ZONA-/.test(env5[0].numero) && env5[0].datos.torre === 'ZONA' && reab5 && vuelta, 'envíos ' + env5.length + ' ' + (env5[0] || {}).numero + ' · reabierto ' + reab5 + ' · vuelta ' + vuelta);
+   env5.length === 1 && /elegir la torre/.test($('#empresa').placeholder) && /SRV-EZ-ZONA-/.test(env5[0].numero) && env5[0].datos.torre === 'ZONA' && reab5 && vuelta, 'envíos ' + env5.length + ' ' + (env5[0] || {}).numero + ' · reabierto ' + reab5 + ' · vuelta ' + vuelta);

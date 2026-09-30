@@ -261,7 +261,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v97</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v98</div>
 </div>
 
 <div class="acciones">
@@ -1839,6 +1839,9 @@ const _ZONA_NOMBRE = { 'Convenio Bielorrusos': 'Ezequiel Zamora', 'Convenio Ruso
 let _modoDonde = 'una', _otras = [];
 let _propios = { empresa: '', residente: '' };   // los de la principal, como los dejó la cascada
 const _etiquetaConvenio = (document.querySelector('label[for="convenio"]') || {}).textContent || 'Convenio';
+// En «Toda la zona» no hay torre que llene empresa y residente: el rótulo lo dice.
+const _placeholders = { empresa: (document.getElementById('empresa') || {}).placeholder || '',
+                        residente: (document.getElementById('residente') || {}).placeholder || '' };
 
 (function(){
   const st = document.createElement('style');
@@ -1908,6 +1911,10 @@ function _pintarDonde(){
   document.getElementById('torre').closest('.campo').hidden = (_modoDonde === 'zona');
   const lab = document.querySelector('label[for="convenio"]');
   if (lab) lab.textContent = (_modoDonde === 'zona' && _LUGAR === 'torre') ? 'Zona' : _etiquetaConvenio;
+  ['empresa', 'residente'].forEach(function(id){
+    const e = document.getElementById(id);
+    if (e && _placeholders[id]) e.placeholder = (_modoDonde === 'zona' && _LUGAR === 'torre') ? 'Si aplica, escríbalo aquí' : _placeholders[id];
+  });
   document.getElementById('donde-ayuda').textContent =
     _modoDonde === 'varias' ? 'Elija abajo la ' + (_LUGAR === 'manzana' ? 'manzana principal' : 'torre principal') +
                               ' (ahí se archiva el informe) y agregue las demás.'
