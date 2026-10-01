@@ -184,3 +184,28 @@ Las otras dos, del relevo, están en `pdf/t43relevo.js`:
 10. que los pesos sean coherentes con la lista y que las torres de la Inmobiliaria salgan sin presupuesto.
 
 Las 10 en verde.
+
+**`t44minutas` (1-oct-2026), diez QC de la minuta automática del relevo (r31).** No es del formulario: prueba
+`Minutas.gs`, que arma la minuta de cada reunión desde `SEG_Reuniones`. Corre en `pdf/minutas.html` con **reuniones
+inventadas** (este repositorio es público: lo que se dice en una reunión no va aquí):
+
+```bash
+cp ~/512/Garmel/implementacion/relevo-drive/{Logos.gs,PDF.gs,Contactos.gs,Reuniones.gs,Minutas.gs} qc/banco/pdf/
+python3 qc/banco/pdf/sirve.py &      # 127.0.0.1:8781 → abrir minutas.html
+# en la consola:  eval(await (await fetch('t44minutas.js')).text())
+# para ver una minuta dibujada:  minutas.html?id=REU-2026-10-05-SR
+```
+
+1. qué reuniones llevan minuta (desde el 28-sep, con empresas);
+2. cómo se separan los puntos de una celda (« / » y salto de línea, pero no dentro de un paréntesis);
+3. la minuta de un lunes: columnas, una fila por empresa, torre como se dice y total de cemento y bloques;
+4. la de un martes: sin procura y sin línea de cemento;
+5. compromisos con fecha: orden, fecha al inicio o al final, torres y responsable;
+6. por confirmar: lo de la reunión y lo de cada empresa;
+7. texto con etiquetas, «Por Garmel» sin correo y la huella del contenido;
+8. primera vuelta: agrega las dos columnas, crea un PDF por reunión en su carpeta y deja el enlace;
+9. segunda vuelta sin cambios no escribe; una corrección reemplaza el mismo archivo;
+10. no pisa un enlace puesto a mano; si Drive no deja reemplazar, papelera y archivo nuevo; `mirarMinutas` no escribe.
+
+Las 8 a 10 corren contra un Smartsheet y un Drive falsos. Las 10 en verde. El conversor de Google no es Chrome: el
+papel de verdad se revisó aparte, con las cuatro minutas del 28 y el 29-sep generadas en Apps Script.

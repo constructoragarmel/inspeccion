@@ -1,0 +1,35 @@
+<!doctype html><meta charset="utf-8"><title>Prueba de la minuta</title><body>
+<script>
+// Banco de la minuta automática del relevo (Minutas.gs). Necesita al lado Logos.gs, PDF.gs, Contactos.gs, Reuniones.gs y
+// Minutas.gs del repositorio Garmel (ver qc/README.md). Las filas son INVENTADAS: este repositorio es público y lo que
+// se dice en una reunión no va aquí.
+window.HITOS = []; window.SEG_ESPACIO = ''; window.TORRES = []; window.SECTORES = []; window.ENTES = [];
+window.MimeType = {}; window.Logger = { log: function (t) { (window.__log = window.__log || []).push(t); } };
+window.Utilities = { formatDate: function () { return '01/10/2026 a las 11:00'; }, DigestAlgorithm: { MD5: 1 }, Charset: { UTF_8: 1 },
+  computeDigest: function (a, t) { var h = [0, 0, 0, 0]; for (var i = 0; i < t.length; i++) h[i % 4] = (h[i % 4] * 31 + t.charCodeAt(i)) & 0xff; return h; } };
+// Como las devuelve _estadoDeReuniones: el padre es la reunión, las hijas son las empresas.
+function filasDePrueba() {
+  var L = 'Contratistas (lunes)', M = 'Servicios y urbanismo (martes)', f = [], n = 1;
+  var reunion = function (id, fecha, tipo, sector, mas) { var v = { _id: n++, 'Reunión / Empresa': fecha + ' · ' + sector, 'ID de reunión': id, 'Fecha': fecha, 'Tipo': tipo, 'Sector': sector }; for (var k in mas) v[k] = mas[k]; f.push(v); return v; };
+  var empresa = function (p, nombre, mas) { var v = { _id: n++, _parentId: p._id, 'ID de reunión': p['ID de reunión'], 'Fecha': p['Fecha'], 'Tipo': p['Tipo'], 'Sector': p['Sector'], 'Contratista / Ente': nombre }; for (var k in mas) v[k] = mas[k]; f.push(v); };
+  var sb = reunion('REU-2026-09-28-SB', '2026-09-28', L, 'Simón Bolívar', { 'Observaciones': 'Primer punto del resumen / Segundo punto del resumen' });
+  empresa(sb, 'CONTRATISTA UNO, C.A.', { 'Torre(s)': ['SB-D08'], 'Procura': 'Faltan 7 gandolas / Falta el catálogo', 'Cemento pendiente (gandolas)': 7, 'Solicitudes': 'Apoyo con el despacho', 'Recomendaciones / exigencias': 'Mandar la carta hoy', 'Observaciones': 'Avance constante' });
+  empresa(sb, 'CONTRATISTA DOS, C.A.', { 'Torre(s)': ['SB-J09', 'SB-J10'], 'Procura': 'En espera de 1 gandola y 12.000 bloques', 'Cemento pendiente (gandolas)': 1, 'Bloques pendientes (und.)': 12000, 'Solicitudes': 'Autorización de traslado' });
+  empresa(sb, 'ENTE DE PRUEBA', { 'Recomendaciones / exigencias': 'Entregar el aval' });
+  var srv = reunion('REU-2026-09-29-SRV', '2026-09-29', M, 'Todos', { 'Observaciones': 'Urbanismo (UNO / DOS): desmontaje de grúas / Electricidad (ENTE A / ENTE B): inspecciones' });
+  empresa(srv, 'ENTE A', { 'Solicitudes': 'Fosas en Torres J7/J8', 'Recomendaciones / exigencias': 'Un solo vocero', 'Observaciones': 'Materiales disponibles' });
+  empresa(srv, 'ENTE B', { 'Solicitudes': 'Inspección conjunta' });
+  var sr = reunion('REU-2026-10-05-SR', '2026-10-05', L, 'Simón Rodríguez', { 'Observaciones': 'Resumen de la reunión de prueba', 'Por confirmar': 'Frase cortada en el minuto 12: no se entiende quién entrega los planos' });
+  empresa(sr, 'CONTRATISTA TRES, C.A.', { 'Torre(s)': ['SR-T07'], 'Asistentes': ['Ing. Prueba Uno', 'Ing. Prueba Dos'], 'Avance declarado': '92 % físico', 'Compromisos con fecha': '2026-10-21: Entrega de la T-07 / Culminar pintura de pasillos de la T-07 y la T-12 (2026-10-15)' });
+  empresa(sr, 'CONTRATISTA CUATRO, C.A.', { 'Torre(s)': ['SR-T12'], 'Compromisos con fecha': 'Entrega de la T-12: 2026-10-23 / Consignar la valuación el viernes', 'Por confirmar': '«Ceballos»: no se sabe si es persona o empresa' });
+  return f;
+}
+window.__listo = (async () => {
+  for (const g of ['Logos.gs', 'PDF.gs', 'Contactos.gs', 'Reuniones.gs', 'Minutas.gs']) (0, eval)(await (await fetch(g)).text());
+  window.__filas = filasDePrueba();
+  window.__reuniones = _reunionesParaMinuta(window.__filas);
+  var id = new URLSearchParams(location.search).get('id');   // ?id=REU-… dibuja esa minuta, para verla o imprimirla
+  if (id) { var r = window.__reuniones.filter(function (x) { return x.id === id; })[0]; document.open(); document.write(_minutaHtml(r, '01/10/2026 a las 11:00')); document.close(); }
+  return 'ok';
+})();
+</script></body>
