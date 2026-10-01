@@ -1043,6 +1043,8 @@ tr.heredada td.desc{background:#fff8e1}
       style="padding:10px 16px;border:2px solid var(--blue);border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:var(--blue);color:#fff">🚪 Apartamento</button>
     <button type="button" id="btnAmbTorre" onclick="setAmbito('torre')"
       style="padding:10px 16px;border:2px solid #c9cdd6;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:#fff;color:#37474f">🏢 Torre completa</button>
+    <button type="button" id="btnAmbEstr" onclick="setAmbito('estructura')"
+      style="padding:10px 16px;border:2px solid #c9cdd6;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:#fff;color:#37474f">🏗️ Estructura</button>
     <span id="ambito-nota" style="font-size:11px;color:#5a6672"></span>
   </div>
   <div class="grid3">
@@ -1329,10 +1331,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v104';
+    el.textContent = '● en línea · v105';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v104 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v105 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -1398,9 +1400,11 @@ async function comprobarClave(clave){
 // ingeniería (ADR-0017). Esta lista es lo único que hay que cambiar si el
 // ingeniero responsable decide otro reparto.
 let ambito = 'apartamento';   // 'apartamento' u 'torre'
+let vista = '';               // '' o 'estructura': un informe de torre que solo muestra el hito de estructura
 
 function setAmbito(a){
-  ambito = (a === 'torre') ? 'torre' : 'apartamento';
+  vista = (a === 'estructura') ? 'estructura' : '';
+  ambito = (a === 'torre' || a === 'estructura') ? 'torre' : 'apartamento';
   if (typeof _programarAnterior === 'function') _programarAnterior();
   const esTorre = (ambito === 'torre');
 
@@ -1410,7 +1414,9 @@ function setAmbito(a){
   const off = base + 'border:2px solid #c5cae9;background:#fff;color:var(--blue)';
   const bA = document.getElementById('btnAmbApto'), bT = document.getElementById('btnAmbTorre');
   if(bA) bA.style.cssText = esTorre ? off : on;
-  if(bT) bT.style.cssText = esTorre ? on  : off;
+  if(bT) bT.style.cssText = (esTorre && !vista) ? on : off;
+  const bE = document.getElementById('btnAmbEstr');
+  if(bE) bE.style.cssText = vista ? on : off;
 
   // Piso y apartamento solo aplican al informe de vivienda. Se guardan al
   // ocultarlos y se devuelven al volver: si no, un toque en «Torre completa»
@@ -1449,7 +1455,7 @@ function setAmbito(a){
   });
 
   const tt = document.getElementById('total-titulo');
-  if(tt) tt.textContent = esTorre ? '% AVANCE GENERAL DE LA TORRE' : '% AVANCE GENERAL DEL APARTAMENTO';
+  if(tt) tt.textContent = vista ? '% AVANCE DE ESTRUCTURA DE LA TORRE' : esTorre ? '% AVANCE GENERAL DE LA TORRE' : '% AVANCE GENERAL DEL APARTAMENTO';
 
   // Se dice cuántos hitos se están mostrando y cuáles quedan fuera: si no, la
   // numeración salta y el formulario parece incompleto.
@@ -1463,12 +1469,16 @@ function setAmbito(a){
       + (esTorre ? 'de la torre' : 'del apartamento')
       + (fuera.length ? '. Quedan fuera: ' + fuera.join(', ') + '.' : '.')
       + ' El que no aplique, márquelo como «hito no inspeccionado»: no cuenta para el promedio, que no es lo mismo que ponerle cero.';
+    // En «Estructura» la lista de once hitos que quedan fuera es ruido: se dice dónde se miden.
+    if (vista) aviso.textContent = 'Solo se muestra el hito de estructura. Los demás hitos de la torre se miden en «Torre completa».';
   }
 
   // La nota describía el reparto de hitos, que ya no existe. Ahora describe
   // lo que el ámbito sí sigue decidiendo.
   const nota = document.getElementById('ambito-nota');
-  if(nota) nota.textContent = esTorre
+  if(nota) nota.textContent = vista
+    ? 'Informe de estructura de la torre — solo el hito de estructura, sin piso ni apartamento'
+    : esTorre
     ? 'Informe de la torre completa — sin piso ni apartamento; el número sale …-TORRE-…'
     : 'Informe de una vivienda — piso y apartamento son obligatorios';
 
@@ -1584,6 +1594,7 @@ const HITOS_PCT_MANUAL = ['hito_estructura', 'hito_cerramientos', 'hito_servicio
 const AMBITO_SUB = {"hito_estructura": ["T", "T", "T", "T", "T", "T"], "hito_cerramientos": ["T", "AMBOS", "T"], "hito_servicios": ["A", "A", "AMBOS", "AMBOS", "T", "T", "A", "A", "T", "T", "T", "T", "T", "T", "T", "A", "A", "T", "T"], "hito_acabados": ["AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "A", "A", "A", "AMBOS"], "hito_puertas": ["A", "A", "A", "A", "A", "A", "T", "A"], "hito_ventanas": ["A", "A"], "hito_acc_sanitarios": ["A", "A", "A", "A", "A", "A", "A", "T", "A"], "hito_acc_electricos": ["A", "A", "A", "A", "A", "A", "A", "T", "AMBOS"], "hito_ascensor": ["T", "T", "T", "T", "T", "T"], "hito_exteriores": ["T", "T", "T", "T", "T", "T", "T", "T"], "hito_pruebas": ["AMBOS", "AMBOS", "AMBOS", "T"], "hito_contra_incendio": ["T", "T"]};
 function _aplica(pid, i){
   const a = (AMBITO_SUB[pid] || [])[i] || 'AMBOS';
+  if (typeof vista !== 'undefined' && vista === 'estructura') return pid === 'hito_estructura' && a !== 'A';
   return (typeof ambito !== 'undefined' && ambito === 'torre') ? a !== 'A' : a !== 'T';
 }
 function _hitoAplica(pid){ return (AMBITO_SUB[pid] || ['AMBOS']).some((_, i) => _aplica(pid, i)); }
@@ -2102,7 +2113,7 @@ function updateNroInforme() {
   // En el informe de torre no se repite «TORRE»: la torre ya está en el
   // bloque anterior. Sigue siendo inequívoco — con bloque de piso y
   // apartamento es de una vivienda; sin él, de la torre entera.
-  const bloque = (ambito === 'torre') ? null : ('P' + piso + 'A' + apto);
+  const bloque = (ambito === 'torre') ? (vista === 'estructura' ? 'ESTR' : null) : ('P' + piso + 'A' + apto);
   const nro    = (TEST_MODE ? 'PRUEBA-' : '') +
                  [sector, torre, bloque, fecha, inic].filter(Boolean).join('-');
   const el    = document.getElementById('nro-display');
@@ -2572,7 +2583,7 @@ function initAppContent() {
     if(mb) mb.style.display = 'none';
   }
 
-  setAmbito(ambito);
+  setAmbito(vista || ambito);
 }
 
 // ═══════════════════════════════════════════════
@@ -3009,6 +3020,7 @@ function getFormData(){
     formType: formType,
     lista: VERSION_LISTA,
     ambito: ambito,
+    vista: vista,
     noInspeccionados: Object.keys(hitosNoInspeccionados).filter(k=>hitosNoInspeccionados[k]),
     timestamp: new Date().toLocaleString(),
     fecha:gv('fecha'),
@@ -3294,7 +3306,7 @@ function loadDraftData(index) {
   }
 
   formType = d.formType || 'detallado';
-  setAmbito(d.ambito || 'apartamento');
+  setAmbito(d.vista === 'estructura' ? 'estructura' : (d.ambito || 'apartamento'));
   _numeroDelBorrador = d.nro || null;
   hitosNoInspeccionados = {};
   (d.noInspeccionados || []).forEach(function(pid){
@@ -3530,14 +3542,14 @@ function _aptoActual(){
 }
 
 function _claveAnterior(){
-  return [getTorreActual(), ambito,
+  return [getTorreActual(), ambito + (vista ? '+' + vista : ''),
           ambito === 'torre' ? '' : (document.getElementById('piso') || {}).value || '',
           ambito === 'torre' ? '' : _aptoActual()].join('|');
 }
 
 // El bloque de piso y apartamento del número de informe: «P03AA».
 function _bloqueActual(){
-  if (ambito === 'torre') return null;
+  if (ambito === 'torre') return vista === 'estructura' ? 'ESTR' : null;
   const piso = _digitosFinales(document.getElementById('piso')?.value, 2);
   const avRaw = _limpiar(document.getElementById('apto')?.value);
   if (!piso || !avRaw) return null;
@@ -3550,7 +3562,7 @@ function _anterioresLocales(){
   const t = getTorreActual(), piso = (document.getElementById('piso') || {}).value || '', apto = _aptoActual();
   return getSavedReports().filter(function(b){
     return b && b.lista === VERSION_LISTA && b.id !== _idEnEdicion && b.torre === t &&
-           (b.ambito || 'apartamento') === ambito && _tieneContenido(b);
+           (b.ambito || 'apartamento') === ambito && (b.vista || '') === vista && _tieneContenido(b);
   }).map(function(b){
     return { b: b, mismo: ambito === 'torre' ? true :
                           (b.piso === piso && String(b.apto || '').trim().toUpperCase() === apto) };

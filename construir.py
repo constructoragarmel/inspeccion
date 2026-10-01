@@ -7778,6 +7778,87 @@ if LISTA_V2:
      "function _traerMediciones(partidas, soloHay){\n  _reubicarV2(partidas);\n",
      "155c· la visita anterior también")
 
+# ── 156. Tercer ámbito: «Estructura» (1-oct-2026) ───────────────────────────────
+# Entró un ingeniero estructural y Planificación propuso un formulario aparte, solo con
+# estructura. En vez de copiar el formulario, «Estructura» es un informe de TORRE que
+# muestra solo el hito de estructura: mismo registro, mismo avance por torre. En los
+# datos viaja `ambito: 'torre'` (el relevo no cambia nada de lo que hace con una torre)
+# más `vista: 'estructura'`, y el número lleva «ESTR» donde el de apartamento lleva
+# piso y apartamento: EZ-T07-ESTR-261001-CJ. No se quita nada del ámbito «Torre
+# completa»: quién mide la estructura lo decide Dirección.
+if LISTA_V2:
+    s = sustituir(s,
+     """font-weight:700;cursor:pointer;min-height:44px;background:#fff;color:#37474f">🏢 Torre completa</button>\n""",
+     """font-weight:700;cursor:pointer;min-height:44px;background:#fff;color:#37474f">🏢 Torre completa</button>\n"""
+     """    <button type="button" id="btnAmbEstr" onclick="setAmbito('estructura')"\n"""
+     """      style="padding:10px 16px;border:2px solid #c9cdd6;border-radius:22px;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;background:#fff;color:#37474f">🏗️ Estructura</button>\n""",
+     "156a· botón «Estructura»")
+    s = sustituir(s,
+     "let ambito = 'apartamento';   // 'apartamento' u 'torre'\n",
+     "let ambito = 'apartamento';   // 'apartamento' u 'torre'\n"
+     "let vista = '';               // '' o 'estructura': un informe de torre que solo muestra el hito de estructura\n",
+     "156b· la vista")
+    s = sustituir(s,
+     "  ambito = (a === 'torre') ? 'torre' : 'apartamento';",
+     "  vista = (a === 'estructura') ? 'estructura' : '';\n"
+     "  ambito = (a === 'torre' || a === 'estructura') ? 'torre' : 'apartamento';",
+     "156c· setAmbito acepta «estructura»")
+    s = sustituir(s,
+     "  if(bT) bT.style.cssText = esTorre ? on  : off;",
+     "  if(bT) bT.style.cssText = (esTorre && !vista) ? on : off;\n"
+     "  const bE = document.getElementById('btnAmbEstr');\n"
+     "  if(bE) bE.style.cssText = vista ? on : off;",
+     "156d· cuál botón queda marcado")
+    s = sustituir(s,
+     "esTorre ? '% AVANCE GENERAL DE LA TORRE' : '% AVANCE GENERAL DEL APARTAMENTO'",
+     "vista ? '% AVANCE DE ESTRUCTURA DE LA TORRE' : esTorre ? '% AVANCE GENERAL DE LA TORRE' : '% AVANCE GENERAL DEL APARTAMENTO'",
+     "156e· título del total")
+    s = sustituir(s,
+     "  return (typeof ambito !== 'undefined' && ambito === 'torre') ? a !== 'A' : a !== 'T';",
+     "  if (typeof vista !== 'undefined' && vista === 'estructura') return pid === 'hito_estructura' && a !== 'A';\n"
+     "  return (typeof ambito !== 'undefined' && ambito === 'torre') ? a !== 'A' : a !== 'T';",
+     "156f· en «Estructura» solo aplica el hito de estructura")
+    s = sustituir(s,
+     "const bloque = (ambito === 'torre') ? null : ('P' + piso + 'A' + apto);",
+     "const bloque = (ambito === 'torre') ? (vista === 'estructura' ? 'ESTR' : null) : ('P' + piso + 'A' + apto);",
+     "156g· «ESTR» en el número del informe")
+    s = sustituir(s,
+     "  return [getTorreActual(), ambito,",
+     "  return [getTorreActual(), ambito + (vista ? '+' + vista : ''),",
+     "156h· la visita anterior se ofrece por vista")
+    s = sustituir(s,
+     "if (ambito === 'torre') return null;",
+     "if (ambito === 'torre') return vista === 'estructura' ? 'ESTR' : null;",
+     "156i· al archivo se le pide el anterior de estructura")
+    s = sustituir(s,
+     "(b.ambito || 'apartamento') === ambito && _tieneContenido(b);",
+     "(b.ambito || 'apartamento') === ambito && (b.vista || '') === vista && _tieneContenido(b);",
+     "156j· un informe de torre no es el anterior de uno de estructura, ni al revés")
+    s = sustituir(s,
+     "\n    ambito: ambito,\n",
+     "\n    ambito: ambito,\n    vista: vista,\n",
+     "156k· la vista viaja en los datos")
+    s = sustituir(s,
+     "  setAmbito(d.ambito || 'apartamento');",
+     "  setAmbito(d.vista === 'estructura' ? 'estructura' : (d.ambito || 'apartamento'));",
+     "156l· el borrador reabre en su vista")
+    s = sustituir(s,
+     "setAmbito(ambito);",
+     "setAmbito(vista || ambito);",
+     "156m· cambiar de modo no saca de la vista")
+    s = sustituir(s,
+     "  if(nota) nota.textContent = esTorre\n",
+     "  if(nota) nota.textContent = vista\n"
+     "    ? 'Informe de estructura de la torre — solo el hito de estructura, sin piso ni apartamento'\n"
+     "    : esTorre\n",
+     "156n· la nota del ámbito dice qué es «Estructura»")
+    s = sustituir(s,
+     "      + ' El que no aplique, márquelo como «hito no inspeccionado»: no cuenta para el promedio, que no es lo mismo que ponerle cero.';\n  }\n",
+     "      + ' El que no aplique, márquelo como «hito no inspeccionado»: no cuenta para el promedio, que no es lo mismo que ponerle cero.';\n"
+     "    // En «Estructura» la lista de once hitos que quedan fuera es ruido: se dice dónde se miden.\n"
+     "    if (vista) aviso.textContent = 'Solo se muestra el hito de estructura. Los demás hitos de la torre se miden en «Torre completa».';\n  }\n",
+     "156o· el aviso de hitos, corto en «Estructura»")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

@@ -34,13 +34,14 @@ class H(http.server.BaseHTTPRequestHandler):
                 # sin calentadores ni preliminares (t43).
                 todos=['%d.%02d'%(h,i) for h,n in enumerate([6,3,19,13,8,2,9,9,6,8,4],1) for i in range(1,n+1)]+['12.02','12.03']
                 return self._ok({"ok":True,"contratista":"Tepuy (falso)","codigos":[c for c in todos if c not in ('1.04','7.08','7.09')]})
-            todos=['%d.%02d'%(h,i) for h,n in enumerate([3,3,19,12,6,2,7,7,4,7,4,5],1) for i in range(1,n+1)]
+            # La lista de la v100 (antes era la de 79 subpartidas y, desde la v100, todo lo nuevo salía «opcional»: t31).
+            todos=['%d.%02d'%(h,i) for h,n in enumerate([6,3,19,13,8,2,9,9,6,8,4],1) for i in range(1,n+1)]+['12.02','12.03']
             fuera={'8.03','8.04','4.10','4.11','5.04','5.05'}
             return self._ok({"ok":True,"contratista":"Alnavic (falso)","codigos":[c for c in todos if c not in fuera]})
         if p.get('accion')=='historial' and p.get('tipo')=='obra':
             # Como el relevo r27: el último de ese apartamento (o de torre) y el último de un apartamento de la torre.
             b=(p.get('bloque') or 'TORRE').upper()
-            return self._ok({"ok":True,"mismo":H.obra.get((p.get('torre'),b)),"deLaTorre":H.obraApto.get(p.get('torre')) if p.get('bloque') else None})
+            return self._ok({"ok":True,"mismo":H.obra.get((p.get('torre'),b)),"deLaTorre":H.obraApto.get(p.get('torre')) if p.get('bloque') and b!='ESTR' else None})
         if p.get('accion')=='historial':
             h=H.historial.get((p.get('tipo'),p.get('torre'))); return self._ok({"ok":True,"informe":h})
         with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":p.get('numero'),"tipo":p.get('tipo'),"ambito":p.get('ambito'),"fotos":[x.get('nombre') for x in (p.get('fotos') or [])],"datos":p.get('datos')}, ensure_ascii=False)+"\n")
@@ -51,10 +52,10 @@ class H(http.server.BaseHTTPRequestHandler):
         d=p.get('datos') or {}
         if not p.get('tipo') and d.get('lista')=='v2':
             import re
-            m=re.search(r'-(P\d{2}A[^-]*)-\d{6}-',p['numero'].upper())
+            m=re.search(r'-(P\d{2}A[^-]*|ESTR)-\d{6}-',p['numero'].upper())
             r={"nro":d.get('nro'),"fecha":d.get('fecha'),"piso":d.get('piso'),"apto":d.get('apto'),"ambito":d.get('ambito'),"partidas":d.get('partidas')}
             H.obra[(d.get('torre'),m.group(1) if m else 'TORRE')]=r
-            if m: H.obraApto[d.get('torre')]=r
+            if m and m.group(1)!='ESTR': H.obraApto[d.get('torre')]=r
         self._ok({"ok":True,"numero":p['numero'],"archivos":[p['numero']+'.json',p['numero']+'.pdf']})
     def log_message(self,*a): pass
 http.server.ThreadingHTTPServer(('127.0.0.1',8776),H).serve_forever()

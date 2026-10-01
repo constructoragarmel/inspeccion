@@ -66,5 +66,5 @@ const u = d5.uso || {};
 const medidas = _hitosDelAmbito().reduce((a, h) => a + (d5.partidas[h.id] || []).filter(r => r && !r.fueraDeAmbito && (['pr', 'ej', 'sn', 'pct'].some(k => String(r[k] || '').trim()) || r.ev)).length, 0);
 const visible = /minutos activos|filas vac[ií]as|filas medidas/i.test(document.body.innerText);
 ok('5 · El informe lleva el uso (tiempo activo, filas medidas y vacías, si se trajo el anterior) y nada de eso se ve en pantalla',
-   u.segundos >= 2 && u.medidas === medidas && u.medidas + u.vacias === 46 && u.anterior === 'hay' && !visible,
+   u.segundos >= 2 && u.medidas === medidas && u.medidas + u.vacias === 50 && u.anterior === 'hay' && !visible,
    JSON.stringify({ segundos: u.segundos, medidas: u.medidas, vacias: u.vacias, anterior: u.anterior, esperadas: medidas, visible: visible }));

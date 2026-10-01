@@ -81,7 +81,7 @@ ok('4 · No ofrece si ya hay algo medido, ni tras decir «No», ni al abrir un b
 // ── 5. Informe de torre, y el aviso cabe en pantalla ──
 await limpiar(); setAmbito('torre'); await esperar(200); cabecera();
 await esperar(900); document.querySelector('#aviso-anterior .no')?.click();
-setEstado(document.querySelector('.est-btn[data-rid="hito_contra_incendio_3"][data-v="50"]'), 50);
+setEstado(document.querySelector('.est-btn[data-rid="hito_exteriores_1"][data-v="50"]'), 50);
 saveDraft(true); await esperar(200);
 await limpiar(); setAmbito('torre'); await esperar(200); cabecera();
 const a5 = await esperarAviso();
@@ -89,5 +89,5 @@ const r = caja().getBoundingClientRect();
 const botones = [...caja().querySelectorAll('button')].map(b => Math.round(b.getBoundingClientRect().height));
 document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
 ok('5 · Torre: ofrece el último informe de torre y lo trae; el aviso cabe en ' + innerWidth + ' px con botones ≥ 44 px',
-   /Esta torre ya tiene un informe/.test(a5) && pct('hito_contra_incendio_3') === '50%' && r.right <= innerWidth && botones.every(h => h >= 44),
-   'aviso: «' + a5.slice(0, 50) + '» · h12 ' + pct('hito_contra_incendio_3') + ' · ancho ' + Math.round(r.right) + ' · botones ' + botones.join(','));
+   /Esta torre ya tiene un informe/.test(a5) && pct('hito_exteriores_1') === '50%' && r.right <= innerWidth && botones.every(h => h >= 44),
+   'aviso: «' + a5.slice(0, 50) + '» · h12 ' + pct('hito_exteriores_1') + ' · ancho ' + Math.round(r.right) + ' · botones ' + botones.join(','));

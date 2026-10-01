@@ -248,3 +248,16 @@ en Apps Script con el informe real, y el archivo que salió se abrió con python
 La tanda encontró que la memoria de la manzana (`anotarEstadoTorre`) no guardaba los camiones: sin eso el botón no
 habría aparecido en un teléfono de verdad. Corregido en la misma v104. Regresión: `t19` 26/26. **`t4` da 21/23 y ya
 los daba en la v103** (los dos de «heredado con su número de origen»): es el guion el que quedó viejo, falta revisarlo.
+
+**`t47` (1-oct-2026, v105), el ámbito «Estructura».** Once comprobaciones en `inspeccion.html`, a 375×812 y a 320×640:
+el tercer botón de «Ámbito del informe» deja solo las 6 filas del hito de estructura; el número lleva `ESTR`
+(`EZ-T07-ESTR-261001-CJ`); en los datos viaja `ambito: 'torre'` y `vista: 'estructura'`; ir a «Torre completa» o a
+«Apartamento» y volver no pierde nada; el borrador reabre en su vista; el envío sale solo con estructura; y la visita
+anterior de estructura no se cruza con la de torre completa, ni en el archivo ni en el teléfono. El relevo falso aprendió
+lo mismo que el relevo r33.
+
+**Regresión del 1-oct sobre la v105** (cada tanda sola y en página recién cargada; dos navegadores a la vez contra el
+mismo relevo falso se pisan): `t21` a `t33`, `t35`, `t39`, `t42`, `t43` (a 320) y `t47` en inspección; `t19`, `t37` y
+`t46` en urbanismo; `t36` y `t40` en servicios; `t38` y `t41` en SHA. Todas en verde. Tres guiones estaban viejos desde
+la v100 y se corrigieron: `t26` medía una fila del hito 12 que se retiró, `t31` contaba 46 filas de apartamento (son 50)
+y el relevo falso seguía con la lista de 79 subpartidas. Queda por revisar `t4` de urbanismo (21 de 23, igual que antes).
