@@ -7760,6 +7760,24 @@ if LISTA_V2:
      "['convenio','Sector']",
      "154b· el aviso de lo que falta dice «Sector»")
 
+# ── 155. Subpartidas retiradas (Ing. Beatriz Sevilla, 30-sep-2026) ──────────────
+# Del hito 12 solo quedan gabinetes y extintores. Las mediciones van por posición: un
+# borrador o una visita anterior de antes trae el hito con 5 filas, y `_reubicarV2`
+# (generado en comun/lista_v2.py) se queda con las que siguen, en su orden nuevo.
+if LISTA_V2:
+    s = sustituir(s,
+     "const VERSION_LISTA = '" + lista_v2.VERSION_LISTA + "';\n" + lista_v2.CODIGOS_JS,
+     "const VERSION_LISTA = '" + lista_v2.VERSION_LISTA + "';\n" + lista_v2.CODIGOS_JS + "\n" + lista_v2.REUBICAR_JS,
+     "155a· _reubicarV2 junto a los códigos")
+    s = sustituir(s,
+     "  let d = list[index];\n  if (!d) return;\n",
+     "  let d = list[index];\n  if (!d) return;\n  if (d.lista === VERSION_LISTA && d.partidas) _reubicarV2(d.partidas);\n",
+     "155b· el borrador de antes se reacomoda al abrirlo")
+    s = sustituir(s,
+     "function _traerMediciones(partidas, soloHay){\n",
+     "function _traerMediciones(partidas, soloHay){\n  _reubicarV2(partidas);\n",
+     "155c· la visita anterior también")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

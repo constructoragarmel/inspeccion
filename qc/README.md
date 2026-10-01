@@ -150,3 +150,17 @@ Diez comprobaciones de la v99:
 
 Encontraron que en inspección las opciones del sector no traían `value`: el valor salía del texto y, al cambiar el
 texto al nombre del sector, cambiaba también el valor. Se arregló fijando el `value` antes de cambiar el rótulo.
+
+## Lo que decidió la Ing. Beatriz Sevilla (30-sep-2026): `t42`
+
+Seis comprobaciones de la v100:
+- en torre aparecen las 11 subpartidas nuevas de torre (56 filas) y el hito 12 queda con gabinetes y extintores
+  (12.02 y 12.03); en apartamento, las 4 suyas (50 filas);
+- el ascensor se mide «comprado» y «en obra» con Sí / No;
+- un borrador hecho antes, con el hito 12 de 5 filas, se abre con cada medición en su fila (`_reubicarV2`);
+- lo traído de una visita anterior de antes, igual;
+- el envío de torre lleva las filas nuevas en su lugar.
+
+`t21` a `t24` y `t28` tenían escritas las cuentas viejas (46 y 48 filas, 8 hitos de torre, 48 fotos) o medían el hito 12
+por estado. Se corrigieron las cifras sin quitar comprobaciones: ahora son 50 y 56 filas, 11 hitos de torre y 66 fotos.
+`t21`–`t35`, `t39` y `t42` en verde sobre la v100.

@@ -23,7 +23,7 @@ const enviar = async () => {
 };
 await Q.relevo({ caido: false, fallar: [], lento: 0, borrar: true });   // cuenta solo los envíos de esta tanda
 
-// ── 11 y 12. Seis fotos en cada uno de los 8 hitos de un informe de torre ──
+// ── 11 y 12. Seis fotos en cada uno de los 11 hitos de un informe de torre (v100: eran 8) ──
 await limpiar(); setAmbito('torre'); await esperar(200); cabecera();
 const hitos = _hitosDelAmbito().map(p => p.id);
 let semilla = 1;
@@ -33,15 +33,15 @@ for (const pid of hitos) {
   }
 }
 await hasta(() => hitos.every(pid => [0, 1, 2, 3, 4, 5].every(k => /^data:/.test(document.getElementById('fimg_' + pid + '_' + k)?.src || ''))), 90000, 200);
-setEstado(document.querySelector('.est-btn[data-rid="hito_contra_incendio_0"][data-v="100"]'), 100);
+setEstado(document.querySelector('.est-btn[data-rid="hito_estructura_3"][data-v="100"]'), 100);   // 1.04 Obras preliminares
 const log11 = await enviar();
 const env11 = (await Q.envios()).slice(-1)[0];
 const nombres = (env11 && env11.fotos) || [];
-ok('11 · 48 fotos (6 en cada uno de los 8 hitos de torre, hito 12 incluido) llegan al relevo',
-   hitos.length === 8 && nombres.length === 48 && hitos.every(pid => nombres.filter(n => n.indexOf(pid + '-') === 0).length === 6) && env11.datos.lista === 'v2',
+ok('11 · 66 fotos (6 en cada uno de los 11 hitos de torre, hito 12 incluido) llegan al relevo',
+   hitos.length === 11 && nombres.length === 66 && hitos.every(pid => nombres.filter(n => n.indexOf(pid + '-') === 0).length === 6) && env11.datos.lista === 'v2',
    (env11 && env11.numero) + ' · ' + nombres.length + ' fotos · ' + log11.split('\n').slice(-3).join(' '));
 ok('12 · Los nombres de las fotos casan con el patrón de limpieza del relevo (hito_[a-z_]+-N), también las del hito 12',
-   nombres.length === 48 && nombres.every(n => /^hito_[a-z_]+-[1-6]$/.test(n)), nombres.filter(n => /incendio/.test(n)).join(' '));
+   nombres.length === 66 && nombres.every(n => /^hito_[a-z_]+-[1-6]$/.test(n)), nombres.filter(n => /incendio/.test(n)).join(' '));
 
 // ── 13. El relevo se cae y vuelve ──
 await limpiar(); setAmbito('apartamento'); await esperar(150); cabecera('R1');

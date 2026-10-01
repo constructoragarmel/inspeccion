@@ -38,21 +38,21 @@ for (const amb of ['apartamento', 'torre']) {
   const despues = getFormData();
   r6.push(amb + ':' + (soloPartidas(antes) === soloPartidas(despues)) + ' lista=' + getSavedReports()[idx].lista + ' ámbito=' + despues.ambito);
 }
-ok('6 · Guardar, limpiar y reabrir devuelve exactamente las mismas mediciones (46 filas de apartamento y 48 de torre)',
+ok('6 · Guardar, limpiar y reabrir devuelve exactamente las mismas mediciones (50 filas de apartamento y 56 de torre)',
    r6.every(x => /:true lista=v2/.test(x)), r6.join(' | '));
 
 // ── 7. Cambiar de ámbito a mitad del llenado ──
 await limpiar(); setAmbito('apartamento'); await esperar(150); cabecera('D');
 put('pm_hito_cerramientos_1', '40');                                        // tabiquería: ambos
 setEstado(document.querySelector('.est-btn[data-rid="hito_acabados_0"][data-v="75"]'), 75);   // frisos: ambos
-put('pr_hito_acc_electricos_0', '5'); put('ej_hito_acc_electricos_0', '5'); // tomas: solo apartamento
+put('pr_hito_ventanas_0', '5'); put('ej_hito_ventanas_0', '5');           // marcos de ventana: solo apartamento (v100: eléctricos ya tiene filas de torre)
 setAmbito('torre'); await esperar(200);
 const dT = getFormData();
-const enTorre = pct('hito_cerramientos_1') === '40%' && pct('hito_acabados_0') === '75%' && !dT.partidas.hito_acc_electricos;
+const enTorre = pct('hito_cerramientos_1') === '40%' && pct('hito_acabados_0') === '75%' && !dT.partidas.hito_ventanas;
 setAmbito('apartamento'); await esperar(200);
-const deVuelta = pct('hito_acc_electricos_0') === '100%' && pct('hito_acabados_0') === '75%';
+const deVuelta = pct('hito_ventanas_0') === '100%' && pct('hito_acabados_0') === '75%';
 ok('7 · Pasar a torre conserva lo común, deja fuera lo del apartamento, y al volver sigue todo', enTorre && deVuelta,
-   'torre: tabiq ' + pct('hito_cerramientos_1') + ' · eléctricos en el sobre: ' + !!dT.partidas.hito_acc_electricos + ' · vuelta: tomas ' + pct('hito_acc_electricos_0'));
+   'torre: tabiq ' + pct('hito_cerramientos_1') + ' · ventanas en el sobre: ' + !!dT.partidas.hito_ventanas + ' · vuelta: marcos ' + pct('hito_ventanas_0'));
 
 // ── 8. Treinta borradores ──
 const base = getSavedReports().length;
@@ -91,10 +91,12 @@ ok('9 · Viejo «por hitos»: avisa y se abre como detallado sin mediciones · v
 
 // ── 10. El autoguardado escribe la lista v2 en el almacenamiento ──
 await limpiar(); setAmbito('torre'); await esperar(150); cabecera();
-setEstado(document.querySelector('.est-btn[data-rid="hito_contra_incendio_3"][data-v="25"]'), 25);
+setEstado(document.querySelector('.est-btn[data-rid="hito_exteriores_7"][data-v="25"]'), 25);   // 10.08 fachada de vidrio de PB (v100)
 autoguardar(); await esperar(200);
 const crudo = JSON.parse(localStorage.getItem('garmel_reports_list') || '[]');
 const ult = crudo[0] || {};                                           // el más nuevo va primero
-ok('10 · El autoguardado deja en el teléfono un borrador de torre con lista v2 y el hito 12 medido',
-   ult.lista === 'v2' && ult.ambito === 'torre' && ult.partidas && ult.partidas.hito_contra_incendio && ult.partidas.hito_contra_incendio[3].ej === '25',
-   'lista=' + ult.lista + ' ámbito=' + ult.ambito + ' h12[3]=' + (ult.partidas && ult.partidas.hito_contra_incendio && ult.partidas.hito_contra_incendio[3].ej));
+ok('10 · El autoguardado deja en el teléfono un borrador de torre con lista v2, una subpartida nueva medida y el hito 12 con 2 filas',
+   ult.lista === 'v2' && ult.ambito === 'torre' && ult.partidas && ult.partidas.hito_exteriores && ult.partidas.hito_exteriores[7].ej === '25' &&
+   (ult.partidas.hito_contra_incendio || []).length === 2,
+   'lista=' + ult.lista + ' ámbito=' + ult.ambito + ' h10[7]=' + (ult.partidas && ult.partidas.hito_exteriores && ult.partidas.hito_exteriores[7].ej) +
+   ' h12=' + (ult.partidas && (ult.partidas.hito_contra_incendio || []).length));

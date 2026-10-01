@@ -81,21 +81,24 @@ const vis = _hitosDelAmbito().map(p => p.id);
 put('ej_hito_servicios_4', '1'); put('pr_hito_servicios_4', '1');          // módulo del edificio (torre): 100 %
 put('ej_hito_servicios_0', '0'); put('pr_hito_servicios_0', '8');          // aguas blancas (apartamento, oculta): 0 %
 const b3 = document.getElementById('badge_hito_servicios').innerText.trim();
-ok('4 · Torre: hitos 1, 9, 10 y 12 a la vista, puertas no, y una fila oculta de apartamento no baja el promedio',
-   ['hito_estructura', 'hito_ascensor', 'hito_exteriores', 'hito_contra_incendio'].every(h => vis.indexOf(h) >= 0) &&
-   vis.indexOf('hito_puertas') < 0 && b3 === '100%', vis.join(',') + ' · hito 3 = ' + b3);
+// v100 (30-sep): puertas, sanitarios y eléctricos tienen filas de torre (puertas de vidrio de PB, suministro de
+// calentadores y de extractores); ventanas sigue siendo solo de apartamento.
+ok('4 · Torre: hitos 1, 5, 9, 10 y 12 a la vista, ventanas no, y una fila oculta de apartamento no baja el promedio',
+   ['hito_estructura', 'hito_puertas', 'hito_ascensor', 'hito_exteriores', 'hito_contra_incendio'].every(h => vis.indexOf(h) >= 0) &&
+   vis.indexOf('hito_ventanas') < 0 && b3 === '100%', vis.join(',') + ' · hito 3 = ' + b3);
 
 // ── 5. El envío lleva la lista y su forma ──
 cabecera();
-setEstado(document.querySelector('.est-btn[data-rid="hito_contra_incendio_0"][data-v="50"]'), 50);
+setEstado(document.querySelector('.est-btn[data-rid="hito_estructura_3"][data-v="50"]'), 50);   // 1.04 Obras preliminares
 document.getElementById('btn-enviar-relevo').disabled = false;
 if (typeof refrescarEstadoClave === 'function') refrescarEstadoClave();
 await enviarAlRelevo();
 await esperar(800); await hasta(() => !/enviando/i.test(document.getElementById('sendLog').textContent), 20000);
 const env = (await Q.envios()).slice(-1)[0];
 const pd = env && env.datos && env.datos.partidas || {};
-ok('5 · Envío de torre: lista v2, 19 filas en servicios, contra incendio al 50 % y las filas de apartamento marcadas fuera de ámbito',
+ok('5 · Envío de torre: lista v2, 19 filas en servicios, obras preliminares al 50 %, contra incendio con 2 filas y las de apartamento fuera de ámbito',
    env && env.datos.lista === 'v2' && env.datos.ambito === 'torre' && (pd.hito_servicios || []).length === 19 &&
-   pd.hito_contra_incendio && pd.hito_contra_incendio[0].ej === '50' && pd.hito_servicios[0].fueraDeAmbito === true &&
+   pd.hito_estructura && pd.hito_estructura[3].ej === '50' && (pd.hito_contra_incendio || []).length === 2 &&
+   pd.hito_servicios[0].fueraDeAmbito === true &&
    !pd.hito_servicios[4].fueraDeAmbito,
    env && (env.numero + ' · lista=' + env.datos.lista + ' · servicios=' + (pd.hito_servicios || []).length));

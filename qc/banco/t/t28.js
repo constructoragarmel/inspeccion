@@ -58,14 +58,14 @@ ok('8 · «Usar las cantidades» llena solo el «hay» de las filas de conteo qu
 await limpiar(); setAmbito('torre'); await esperar(200); cabecera('T-09'); await esperar(900); document.querySelector('#aviso-anterior .no')?.click();
 const ud = document.getElementById('ud_hito_estructura_1'); ud.value = 'kg'; ud.dispatchEvent(new Event('change', { bubbles: true }));
 put('pm_hito_estructura_1', '35'); put('pm_hito_estructura_0', '80');
-setEstado(document.querySelector('.est-btn[data-rid="hito_contra_incendio_0"][data-v="25"]'), 25);
+setEstado(document.querySelector('.est-btn[data-rid="hito_exteriores_7"][data-v="25"]'), 25);   // v100: el hito 12 ya no tiene filas de estado
 guardarNuevo();
 await limpiar(); setAmbito('torre'); await esperar(200); cabecera('T-09');
 const a9 = await esperarAviso(); document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
 ok('9 · Torre: trae el acero con su unidad kg y su 35 %, el encofrado al 80 % y contra incendio al 25 %',
    /Esta torre/.test(a9) && document.getElementById('ud_hito_estructura_1').value === 'kg' && pct('hito_estructura_1') === '35%' &&
-   pct('hito_estructura_0') === '80%' && pct('hito_contra_incendio_0') === '25%',
-   'ud=' + document.getElementById('ud_hito_estructura_1').value + ' acero ' + pct('hito_estructura_1') + ' encofrado ' + pct('hito_estructura_0') + ' h12 ' + pct('hito_contra_incendio_0'));
+   pct('hito_estructura_0') === '80%' && pct('hito_exteriores_7') === '25%',
+   'ud=' + document.getElementById('ud_hito_estructura_1').value + ' acero ' + pct('hito_estructura_1') + ' encofrado ' + pct('hito_estructura_0') + ' fachada PB ' + pct('hito_exteriores_7'));
 
 // ── 10. La consulta al archivo lleva el bloque bien armado y la marca de prueba ──
 const orig = window.fetch; let cuerpo = null;

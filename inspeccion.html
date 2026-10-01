@@ -1329,10 +1329,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v99';
+    el.textContent = '● en línea · v100';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v99 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v100 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -1564,13 +1564,24 @@ const MEDICION = 'propuesta';
 // Lista v2: el Sí / No va por fila (UNIDADES = 'sino'), no por hito.
 const HITOS_SI_NO = [];
 const VERSION_LISTA = 'v2';
-const CODIGOS_SUB = {"hito_estructura": ["1.01", "1.02", "1.03"], "hito_cerramientos": ["2.01", "2.02", "2.03"], "hito_servicios": ["3.01", "3.02", "3.03", "3.04", "3.05", "3.06", "3.07", "3.08", "3.09", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.16", "3.17", "3.18", "3.19"], "hito_acabados": ["4.01", "4.02", "4.03", "4.04", "4.05", "4.06", "4.07", "4.08", "4.09", "4.10", "4.11", "4.12"], "hito_puertas": ["5.01", "5.02", "5.03", "5.04", "5.05", "5.06"], "hito_ventanas": ["6.01", "6.02"], "hito_acc_sanitarios": ["7.01", "7.02", "7.03", "7.04", "7.05", "7.06", "7.07"], "hito_acc_electricos": ["8.01", "8.02", "8.03", "8.04", "8.05", "8.06", "8.07"], "hito_ascensor": ["9.01", "9.02", "9.03", "9.04"], "hito_exteriores": ["10.01", "10.02", "10.03", "10.04", "10.05", "10.06", "10.07"], "hito_pruebas": ["11.01", "11.02", "11.03", "11.04"], "hito_contra_incendio": ["12.01", "12.02", "12.03", "12.04", "12.05"]};
+const CODIGOS_SUB = {"hito_estructura": ["1.01", "1.02", "1.03", "1.04", "1.05", "1.06"], "hito_cerramientos": ["2.01", "2.02", "2.03"], "hito_servicios": ["3.01", "3.02", "3.03", "3.04", "3.05", "3.06", "3.07", "3.08", "3.09", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.16", "3.17", "3.18", "3.19"], "hito_acabados": ["4.01", "4.02", "4.03", "4.04", "4.05", "4.06", "4.07", "4.08", "4.09", "4.10", "4.11", "4.12", "4.13"], "hito_puertas": ["5.01", "5.02", "5.03", "5.04", "5.05", "5.06", "5.07", "5.08"], "hito_ventanas": ["6.01", "6.02"], "hito_acc_sanitarios": ["7.01", "7.02", "7.03", "7.04", "7.05", "7.06", "7.07", "7.08", "7.09"], "hito_acc_electricos": ["8.01", "8.02", "8.03", "8.04", "8.05", "8.06", "8.07", "8.08", "8.09"], "hito_ascensor": ["9.01", "9.02", "9.03", "9.04", "9.05", "9.06"], "hito_exteriores": ["10.01", "10.02", "10.03", "10.04", "10.05", "10.06", "10.07", "10.08"], "hito_pruebas": ["11.01", "11.02", "11.03", "11.04"], "hito_contra_incendio": ["12.02", "12.03"]};
+const REUBICAR_V2 = {"hito_contra_incendio": {"de": 5, "filas": [1, 2]}};
+function _reubicarV2(partidas) {
+  if (!partidas) return partidas;
+  Object.keys(REUBICAR_V2).forEach(function (pid) {
+    var r = REUBICAR_V2[pid], arr = partidas[pid];
+    if (Object.prototype.toString.call(arr) !== '[object Array]' || arr.length !== r.de) return;
+    partidas[pid] = r.filas.map(function (i) { return arr[i]; });
+  });
+  return partidas;
+}
+
 // Hitos que no se miden en cantidad ni en Sí/No: solo el % escrito por fila (Stephanie, 4-sep-2026).
 const HITOS_SOLO_PCT = [];   // lista v2: los acabados van por estado, no por % escrito
 function _soloPct(pid, i){ return MEDICION === 'propuesta' && HITOS_SOLO_PCT.indexOf(pid) >= 0 && !_esEstado(pid, i); }
 const HITOS_PCT_MANUAL = ['hito_estructura', 'hito_cerramientos', 'hito_servicios', 'hito_acabados',
                           'hito_ascensor', 'hito_exteriores', 'hito_pruebas'];
-const AMBITO_SUB = {"hito_estructura": ["T", "T", "T"], "hito_cerramientos": ["T", "AMBOS", "T"], "hito_servicios": ["A", "A", "AMBOS", "AMBOS", "T", "T", "A", "A", "T", "T", "T", "T", "T", "T", "T", "A", "A", "T", "T"], "hito_acabados": ["AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "A", "A", "A"], "hito_puertas": ["A", "A", "A", "A", "A", "A"], "hito_ventanas": ["A", "A"], "hito_acc_sanitarios": ["A", "A", "A", "A", "A", "A", "A"], "hito_acc_electricos": ["A", "A", "A", "A", "A", "A", "A"], "hito_ascensor": ["T", "T", "T", "T"], "hito_exteriores": ["T", "T", "T", "T", "T", "T", "T"], "hito_pruebas": ["AMBOS", "AMBOS", "AMBOS", "T"], "hito_contra_incendio": ["T", "T", "T", "T", "T"]};
+const AMBITO_SUB = {"hito_estructura": ["T", "T", "T", "T", "T", "T"], "hito_cerramientos": ["T", "AMBOS", "T"], "hito_servicios": ["A", "A", "AMBOS", "AMBOS", "T", "T", "A", "A", "T", "T", "T", "T", "T", "T", "T", "A", "A", "T", "T"], "hito_acabados": ["AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "AMBOS", "A", "A", "A", "AMBOS"], "hito_puertas": ["A", "A", "A", "A", "A", "A", "T", "A"], "hito_ventanas": ["A", "A"], "hito_acc_sanitarios": ["A", "A", "A", "A", "A", "A", "A", "T", "A"], "hito_acc_electricos": ["A", "A", "A", "A", "A", "A", "A", "T", "AMBOS"], "hito_ascensor": ["T", "T", "T", "T", "T", "T"], "hito_exteriores": ["T", "T", "T", "T", "T", "T", "T", "T"], "hito_pruebas": ["AMBOS", "AMBOS", "AMBOS", "T"], "hito_contra_incendio": ["T", "T"]};
 function _aplica(pid, i){
   const a = (AMBITO_SUB[pid] || [])[i] || 'AMBOS';
   return (typeof ambito !== 'undefined' && ambito === 'torre') ? a !== 'A' : a !== 'T';
@@ -1586,18 +1597,18 @@ function _estadosDe(pid, i){
   return _esSiNo(pid, i) ? [{ v: 0, n: 'No' }, { v: 100, n: 'S\u00ed' }] : ESTADOS;
 }
 const UNIDADES = {
-  'hito_estructura':      ["m²", ["ml", "kg"], "m³"],
+  'hito_estructura':      ["m²", ["ml", "kg"], "m³", "estado", "estado", "estado"],
   'hito_cerramientos':    ["m²", "m²", "m²"],
   'hito_servicios':       ["pto", "pto", "estado", "estado", "pza", "pza", "pza", "pza", "estado", "estado", "estado", "estado", "estado", "estado", "estado", "pto", "pza", "pza", "pza"],
-  'hito_acabados':        ["estado", "estado", "estado", "estado", "estado", "estado", "estado", "estado", "estado", "pza", "pza", "pza"],
-  'hito_puertas':         ["pza", "pza", "pza", "pza", "pza", "pza"],
+  'hito_acabados':        ["estado", "estado", "estado", "estado", "estado", "estado", "estado", "estado", "estado", "pza", "pza", "pza", "estado"],
+  'hito_puertas':         ["pza", "pza", "pza", "pza", "pza", "pza", "pza", "pza"],
   'hito_ventanas':        ["pza", "pza"],
-  'hito_acc_sanitarios':  ["pza", "pza", "pza", "pza", "pza", "pza", "pza"],
-  'hito_acc_electricos':  ["pza", "pza", "pza", "pza", "pza", "pza", "pza"],
-  'hito_ascensor':        ["estado", "estado", "estado", "estado"],
-  'hito_exteriores':      ["m²", "estado", "estado", "estado", "estado", "estado", "m²"],
+  'hito_acc_sanitarios':  ["pza", "pza", "pza", "pza", "pza", "pza", "pza", "estado", "pza"],
+  'hito_acc_electricos':  ["pza", "pza", "pza", "pza", "pza", "pza", "pza", "estado", "estado"],
+  'hito_ascensor':        ["estado", "estado", "estado", "estado", "sino", "sino"],
+  'hito_exteriores':      ["m²", "estado", "estado", "estado", "estado", "estado", "m²", "estado"],
   'hito_pruebas':         ["sino", "sino", "sino", "sino"],
-  'hito_contra_incendio': ["estado", "pza", "pza", "estado", "pza"]
+  'hito_contra_incendio': ["pza", "pza"]
 };
 
 function _esEstado(pid, i){ return (UNIDADES[pid] || [])[i] === UD_ESTADO; }
@@ -1725,7 +1736,7 @@ const PARTIDAS = [
     "nombre": "HITO 1: ESTRUCTURA", 
     "icon": "", 
     "color": "#1a237e", 
-    "items": ["Encofrado", "Acero de refuerzo", "Vaciados"]
+    "items": ["Encofrado", "Acero de refuerzo", "Vaciados", "Obras preliminares", "Escaleras metálicas: suministro", "Escaleras metálicas: preparación y montaje"]
   },
   {
     "id": "hito_cerramientos", 
@@ -1746,14 +1757,14 @@ const PARTIDAS = [
     "nombre": "HITO 4: ACABADOS", 
     "icon": "", 
     "color": "#3949ab", 
-    "items": ["Frisos", "Encamisados", "Fondo antialcalino", "Cerámica en paredes", "Cerámica en pisos", "Construcción de sobrepisos", "Pintura en paredes", "Pintura en techos", "Texturizado de techos", "Pintura en puertas de herrería", "Barniz en puertas de madera", "Pintura en rejas"]
+    "items": ["Frisos", "Encamisados", "Fondo antialcalino", "Cerámica en paredes", "Cerámica en pisos", "Construcción de sobrepisos", "Pintura en paredes", "Pintura en techos", "Texturizado de techos", "Pintura en puertas de herrería", "Barniz en puertas de madera", "Pintura en rejas", "Piso de cemento liso"]
   },
   {
     "id": "hito_puertas", 
     "nombre": "HITO 5: PUERTAS", 
     "icon": "", 
     "color": "#1565c0", 
-    "items": ["Puertas metálicas", "Puertas de servicios", "Puertas de madera", "Marcos de puertas", "Rejas de jardinera", "Rejas del área de batea"]
+    "items": ["Puertas metálicas", "Puertas de servicios", "Puertas de madera", "Marcos de puertas", "Rejas de jardinera", "Rejas del área de batea", "Puertas de vidrio de planta baja", "Carpintería metálica (rejas de protección)"]
   },
   {
     "id": "hito_ventanas", 
@@ -1767,28 +1778,28 @@ const PARTIDAS = [
     "nombre": "HITO 7: ACCESORIOS SANITARIOS", 
     "icon": "", 
     "color": "#01579b", 
-    "items": ["Ducha", "Fregadero de acero inoxidable", "W.C.", "Lavamanos", "Batea", "Centro de piso (C.P.)", "Tapón de registro (T.R.)"]
+    "items": ["Ducha", "Fregadero de acero inoxidable", "W.C.", "Lavamanos", "Batea", "Centro de piso (C.P.)", "Tapón de registro (T.R.)", "Calentadores: suministro y transporte", "Calentadores: instalación"]
   },
   {
     "id": "hito_acc_electricos", 
     "nombre": "HITO 8: ACCESORIOS ELÉCTRICOS", 
     "icon": "", 
     "color": "#0d47a1", 
-    "items": ["Tomacorrientes", "Interruptores simples", "Interruptores dobles", "Interruptor de timbre", "Toma de data", "Breakers", "Lámparas"]
+    "items": ["Tomacorrientes", "Interruptores simples", "Interruptores dobles", "Interruptor de timbre", "Toma de data", "Breakers", "Lámparas", "Extractores y aire acondicionado: suministro y transporte", "Extractores y aire acondicionado: instalación"]
   },
   {
     "id": "hito_ascensor", 
     "nombre": "HITO 9: ASCENSOR", 
     "icon": "", 
     "color": "#1e3a8a", 
-    "items": ["Adecuación y verificación de plomada en foso y cuarto de máquina", "Instalación de guías, rieles y soporte estructural en la caja", "Montaje de cabina, motor y contrapeso", "Instalación de puertas de piso, botoneras y sistema electrónico de control"]
+    "items": ["Adecuación y verificación de plomada en foso y cuarto de máquina", "Instalación de guías, rieles y soporte estructural en la caja", "Montaje de cabina, motor y contrapeso", "Instalación de puertas de piso, botoneras y sistema electrónico de control", "Ascensor: compra del equipo", "Ascensor: equipo en obra"]
   },
   {
     "id": "hito_exteriores", 
     "nombre": "HITO 10: ACABADOS EXTERIORES Y ÁREAS COMUNES", 
     "icon": "", 
     "color": "#1d4ed8", 
-    "items": ["Revestimiento y pintura de fachada exterior", "Pintura en pasillos y áreas comunes", "Adecuación de accesos y pasillos", "Instalación de iluminación en común", "Instalación de barandas", "Instalación de pasamanos escaleras", "Frisos de áreas comunes"]
+    "items": ["Revestimiento y pintura de fachada exterior", "Pintura en pasillos y áreas comunes", "Adecuación de accesos y pasillos", "Instalación de iluminación en común", "Instalación de barandas", "Instalación de pasamanos escaleras", "Frisos de áreas comunes", "Fachada de vidrio y locales de planta baja"]
   },
   {
     "id": "hito_pruebas", 
@@ -1802,7 +1813,7 @@ const PARTIDAS = [
     "nombre": "HITO 12: SISTEMA CONTRA INCENDIO", 
     "icon": "", 
     "color": "#312e81", 
-    "items": ["Montante contra incendio", "Gabinetes de manguera", "Extintores", "Detección y alarma", "Siamesa"]
+    "items": ["Gabinetes de manguera", "Extintores"]
   }
 ];
 
@@ -3263,6 +3274,7 @@ function loadDraftData(index) {
   const list = getSavedReports();
   let d = list[index];
   if (!d) return;
+  if (d.lista === VERSION_LISTA && d.partidas) _reubicarV2(d.partidas);
   // Al abrir un borrador para corregirlo no se ofrece otro informe: el aviso se quita.
   { const _ca = document.getElementById('aviso-anterior'); if (_ca) { _ca.innerHTML = ''; _ca.dataset.clave = ''; } }
   // Un borrador hecho con la lista anterior (53) no se puede volcar en esta: las
@@ -3625,6 +3637,7 @@ function _pintarAvisoAnterior(caja, titulo, texto, boton, alAceptar){
 // Vuelca las mediciones de otro informe de la lista v2. soloHay: solo la
 // cantidad «hay» de las filas que se cuentan.
 function _traerMediciones(partidas, soloHay){
+  _reubicarV2(partidas);
   let n = 0;
   Object.keys(partidas || {}).forEach(function(pid){
     if (pid.slice(-6) === '_extra') return;
