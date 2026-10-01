@@ -310,3 +310,11 @@ primera subpartida, no solo al marcar. `t50` pasa a 16 comprobaciones (15 y 16: 
 de identificación. Cambia el rótulo de la casilla y el aviso de repetido («Ese camión ya está en esta lista»); las tres
 casillas quedan alineadas abajo. `t46` pasa a 13 comprobaciones; `t46`, `t19` y `t49b` de urbanismo en verde, y `t46` a
 375 px a la vista.
+
+**`t51consolidado` (1-oct-2026), el PDF único por torre y día (relevo r36).** `Consolidado.gs` junta los informes de
+obra de una torre con la misma fecha en un solo PDF. Trece comprobaciones en `pdf/`, con Drive y registro de mentira e
+informes inventados: qué entra en un grupo (sin `PRUEBA-`, sin «Estructura», sin otros tipos, sin lo viejo); mirar no
+escribe; el primero se crea con su huella; el documento trae una sección por apartamento y una firma por inspector; sin
+cambios no hace nada (aunque pierda su memoria); un tercer apartamento o una corrección `-r2` lo reemplazan en sitio;
+el de torre completa va primero; con un solo informe no hay consolidado; uno recién llegado espera a la vuelta
+siguiente; con más de 60 fotos va sin fotografías; y el mismo residente escrito distinto firma una sola vez.
