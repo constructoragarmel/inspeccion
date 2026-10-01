@@ -234,3 +234,17 @@ python3 qc/banco/pdf/sirve.py &      # 127.0.0.1:8781 → abrir borrador.html
 
 Las 10 en verde. Lo que este banco no prueba es abrir y cerrar el `.pptx` (`Utilities.unzip` y `zip`): eso se comprobó
 en Apps Script con el informe real, y el archivo que salió se abrió con python-pptx y con LibreOffice.
+
+**`t46` (1-oct-2026, v104), memoria de camiones en urbanismo.** Doce comprobaciones sobre `urbanismo.html?prueba=1` a
+375×812 (la tanda recarga la página una vez: se corre dos veces):
+
+- una placa que ya se anotó llena sus m³ por viaje, sin pisar lo que ya esté escrito;
+- la memoria sale del último informe de cada manzana y de lo escrito en el teléfono;
+- una placa repetida en la lista de hoy avisa;
+- al traer la visita anterior llega el acumulado y **no** los camiones: aparece el botón «Traer los N camiones de la
+  visita anterior (sin viajes)», que los pone con los viajes en blanco;
+- el borrador conserva la lista de ayer (`camionesAntes`) y la visita siguiente parte de lo de hoy.
+
+La tanda encontró que la memoria de la manzana (`anotarEstadoTorre`) no guardaba los camiones: sin eso el botón no
+habría aparecido en un teléfono de verdad. Corregido en la misma v104. Regresión: `t19` 26/26. **`t4` da 21/23 y ya
+los daba en la v103** (los dos de «heredado con su número de origen»): es el guion el que quedó viejo, falta revisarlo.

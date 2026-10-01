@@ -135,6 +135,9 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
 .camion:first-child{border-top:0}
 .cam-cab{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#334155;margin-bottom:4px}
 .cam-cab .quitar-cam{background:none;border:0;color:#b91c1c;font-size:12px;padding:4px 6px}
+.cam-ayuda{font-size:12px;color:#475569;margin-top:3px}
+.cam-ayuda:empty{display:none}
+.camiones .cam-ant{margin-top:6px;border-style:solid}
 .cam-campos{display:grid;grid-template-columns:1.3fr 1fr .8fr;gap:6px}
 .cam-campos label{display:flex;flex-direction:column;font-size:11px;color:#64748b;min-width:0}
 .cam-campos input{min-width:0;width:100%}
@@ -294,6 +297,12 @@ function ponerCant(el, it, heredando){
   el.querySelector('.pr').value = it.pr || '';
   const s = el.querySelector('.ud-sel'); if (s && it.ud) s.value = it.ud;
   if (!heredando) ponerCamiones(el, it);
+  else {
+    const c = el.querySelector('.camiones');
+    if (c){ c._antes = ((it.camiones || []).length ? it.camiones : (it.camionesAntes || []))
+                        .filter(x => clavePlaca(x.placa)).map(x => ({ placa: String(x.placa).trim().toUpperCase(), m3: String(x.m3 || '').trim() }));
+            botonCamionesAnteriores(c); }
+  }
   actualizarAvance(el);
 }
 // % de avance = ejecutado / proyectado, solo cuando hay proyectado. Sin él no
@@ -317,7 +326,8 @@ function camionesHtml(sid, nombre){
   return '<div class="camiones">' +
     '<div class="cant-fila cam-base"><span class="et">Acumulado anterior</span><input type="text" inputmode="decimal" class="base" placeholder="0" oninput="numero(this); recalcCamiones(this)"><span class="ud">m³</span></div>' +
     '<div class="cam-lista"></div><div class="cam-total"></div>' +
-    '<button type="button" class="btn-add" onclick="agregarCamion(this)">🚚 ＋ Agregar camión</button></div>';
+    '<button type="button" class="btn-add" onclick="agregarCamion(this)">🚚 ＋ Agregar camión</button>' +
+    '<button type="button" class="btn-add cam-ant" style="display:none" onclick="traerCamionesAnteriores(this)"></button></div>';
 }
 function filaCamion(c, x){
   x = x || {};
@@ -325,10 +335,10 @@ function filaCamion(c, x){
   const f = document.createElement('div'); f.className = 'camion';
   f.innerHTML = '<div class="cam-cab"><b class="cam-n"></b><button type="button" class="quitar-cam" onclick="quitarCamion(this)">Quitar</button></div>' +
     '<div class="cam-campos">' +
-      '<label>Placa<input type="text" class="placa" autocapitalize="characters" value="' + esc(x.placa) + '"></label>' +
-      '<label>m³ por viaje<input type="text" inputmode="decimal" class="m3" value="' + esc(x.m3) + '" oninput="numero(this); recalcCamiones(this)"></label>' +
+      '<label>Placa<input type="text" class="placa" autocapitalize="characters" autocomplete="off" list="placas-conocidas" value="' + esc(x.placa) + '" onfocus="listaDePlacas()" onchange="alCambiarPlaca(this)"></label>' +
+      '<label>m³ por viaje<input type="text" inputmode="decimal" class="m3" value="' + esc(x.m3) + '" oninput="numero(this); recalcCamiones(this)" onchange="recordarCamion(this.closest(\'.camion\'))"></label>' +
       '<label>Viajes<input type="text" inputmode="numeric" class="viajes" value="' + esc(x.viajes == null ? '1' : x.viajes) + '" oninput="this.value=this.value.replace(/\\D/g,\'\'); recalcCamiones(this)"></label>' +
-    '</div>';
+    '</div><div class="cam-ayuda"></div>';
   c.querySelector('.cam-lista').appendChild(f);
   return f;
 }
@@ -367,6 +377,7 @@ function recalcCamiones(el){
     c.classList.remove('con'); c.querySelector('.cam-total').textContent = '';
     if (cant.readOnly){ cant.readOnly = false; cant.value = base.value; }
   }
+  botonCamionesAnteriores(c);
   actualizarAvance(it);
 }
 function camionesDe(it){
@@ -376,14 +387,79 @@ function camionesDe(it){
     m3: f.querySelector('.m3').value.trim(),
     viajes: f.querySelector('.viajes').value.trim()
   })).filter(x => x.placa || x.m3);
-  return lista.length ? { camiones: lista, base: c.querySelector('.base').value.trim() } : {};
+  const d = lista.length ? { camiones: lista, base: c.querySelector('.base').value.trim() } : {};
+  if ((c._antes || []).length) d.camionesAntes = c._antes;
+  return d;
 }
 function ponerCamiones(el, it){
   const c = el.querySelector('.camiones'); if (!c) return;
   c.querySelector('.cam-lista').innerHTML = '';
   c.querySelector('.base').value = it.base || '';
   (it.camiones || []).forEach(x => filaCamion(c, x));
+  c._antes = it.camionesAntes || [];
   recalcCamiones(c);
+}
+
+// ── Memoria de camiones (1-oct-2026, pedido de los inspectores de urbanismo) ──
+// Dos ayudas para no volver a escribir lo mismo cada día. NINGUNA trae viajes:
+// los viajes son de hoy y los cuenta el inspector.
+//  · Al escribir una placa que ya se anotó antes, se llenan sus m³ por viaje.
+//    La memoria sale del último informe de cada manzana y de lo escrito en
+//    este teléfono. Si los m³ ya están escritos, no se pisan.
+//  · Si la visita anterior de la manzana tuvo camiones, un botón los trae a la
+//    lista con los viajes en blanco. Esa lista viaja con el borrador
+//    (camionesAntes), porque al guardar el borrador de hoy el «estado de la
+//    manzana» pasa a ser el de hoy y la visita anterior ya no está a mano.
+function clavePlaca(p){ return String(p || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+function camionesConocidos(){
+  const m = {};
+  const poner = x => { const k = clavePlaca(x && x.placa); if (k && parseFloat(x.m3) > 0) m[k] = { placa: String(x.placa).trim().toUpperCase(), m3: String(x.m3).trim() }; };
+  try { const es = estadosDeTorres(); Object.keys(es).forEach(t => (es[t].general || []).forEach(g => (g.items || []).forEach(it => {
+    (it.camionesAntes || []).forEach(poner); (it.camiones || []).forEach(poner); }))); } catch (e) {}
+  // lo escrito en este teléfono es lo más reciente que se sabe de cada camión
+  try { const g = JSON.parse(localStorage.getItem('garmel_urb_camiones') || '{}'); Object.keys(g).forEach(k => poner(g[k])); } catch (e) {}
+  return m;
+}
+function recordarCamion(f){
+  if (!f) return;
+  const placa = f.querySelector('.placa').value.trim().toUpperCase(), m3 = f.querySelector('.m3').value.trim(), k = clavePlaca(placa);
+  if (!k || !(parseFloat(m3) > 0)) return;
+  try { const g = JSON.parse(localStorage.getItem('garmel_urb_camiones') || '{}'); g[k] = { placa: placa, m3: m3 };
+        localStorage.setItem('garmel_urb_camiones', JSON.stringify(g)); } catch (e) {}
+}
+function listaDePlacas(){
+  let d = document.getElementById('placas-conocidas');
+  if (!d){ d = document.createElement('datalist'); d.id = 'placas-conocidas'; document.body.appendChild(d); }
+  const m = camionesConocidos();
+  d.innerHTML = Object.keys(m).sort().map(k => '<option value="' + escapar(m[k].placa).replace(/"/g, '&quot;') + '">' + escapar(m[k].m3) + ' m³</option>').join('');
+}
+function alCambiarPlaca(inp){
+  const f = inp.closest('.camion'), c = f.closest('.camiones'), ay = f.querySelector('.cam-ayuda'), m3 = f.querySelector('.m3');
+  inp.value = inp.value.trim().toUpperCase();
+  const k = clavePlaca(inp.value), con = camionesConocidos()[k];
+  let nota = '';
+  if (k && [...c.querySelectorAll('.camion')].some(o => o !== f && clavePlaca(o.querySelector('.placa').value) === k)) nota = '⚠️ Esa placa ya está en esta lista.';
+  else if (con && !m3.value.trim()){ m3.value = con.m3; nota = 'Se pusieron los m³ de la última vez que se anotó este camión. Corríjalos si cambió.'; }
+  ay.textContent = nota;
+  recordarCamion(f); recalcCamiones(c); marcar();
+}
+// Los camiones de la visita anterior que todavía no están en la lista de hoy.
+function camionesPorTraer(c){
+  const hoy = [...c.querySelectorAll('.camion .placa')].map(i => clavePlaca(i.value));
+  return (c._antes || []).filter(x => clavePlaca(x.placa) && hoy.indexOf(clavePlaca(x.placa)) < 0);
+}
+function botonCamionesAnteriores(c){
+  const b = c.querySelector('.cam-ant'); if (!b) return;
+  const n = camionesPorTraer(c).length;
+  b.style.display = n ? '' : 'none';
+  b.textContent = '🚚 Traer ' + (n === 1 ? 'el camión' : 'los ' + n + ' camiones') + ' de la visita anterior (sin viajes)';
+}
+function traerCamionesAnteriores(btn){
+  const c = btn.closest('.camiones'), it = c.closest('.item');
+  tocado(btn);
+  if (!c.querySelector('.camion')) c.querySelector('.base').value = it.querySelector('.cant').value;
+  camionesPorTraer(c).forEach(x => filaCamion(c, { placa: x.placa, m3: x.m3, viajes: '' }));
+  recalcCamiones(c); marcar();
 }
 """
 # 13 · Cuatro calidades en vez de tres respuestas.
@@ -421,7 +497,11 @@ J = sustituir(J, "        ponerSN(el, it.sn);\n        el.querySelector('textare
 J = sustituir(J, "      ponerSN(el, it.sn);\n      el.querySelector('textarea').value = it.obs || '';\n      if (it.sn || it.obs){ el.classList.add('heredado');",
                  "      ponerSN(el, it.sn);\n      el.querySelector('textarea').value = it.obs || '';\n      ponerCant(el, it, true);\n      if (!(it.sn || it.obs || it.cant) && it.pr) el.classList.add('her-pr');\n      if (it.sn || it.obs || it.cant || it.pr){ el.classList.add('heredado');", "14d· heredar con cantidad")
 J = sustituir(J, "        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs,",
-                 "        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs, cant: i.cant, pr: i.pr, ud: i.ud,", "14e· memoria de la manzana")
+                 "        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs, cant: i.cant, pr: i.pr, ud: i.ud,\n"
+                 "        // los camiones (placa y m³, sin viajes) y la lista de la visita anterior: de aquí salen la\n"
+                 "        // memoria por placa y el botón «traer los camiones de la visita anterior» (v104)\n"
+                 "        ...((i.camiones || []).length ? { camiones: i.camiones.map(x => ({ placa: x.placa, m3: x.m3 })) } : {}),\n"
+                 "        ...((i.camionesAntes || []).length ? { camionesAntes: i.camionesAntes } : {}),", "14e· memoria de la manzana")
 J = sustituir(J, "  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs)) ||",
                  "  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs || i.cant || i.pr)) ||", "14f· contestado")
 J = sustituir(J, "                                      (g.items || []).some(i => i.sn || (i.obs || '').trim())) &&",
