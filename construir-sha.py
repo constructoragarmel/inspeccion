@@ -121,6 +121,8 @@ H = sustituir(H, """  <div class="tarjeta">
     <label style="font-weight:600;font-size:13px;color:#475569;margin-top:12px;display:block">Comentarios y recomendaciones del inspector</label>
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún recaudo ni hallazgo..."></textarea>
     <div class="tarjeta" style="margin:8px 0 0"><label style="font-weight:600;font-size:13px;color:#475569">Fotografías generales de la visita (máx. @@MAXFOTOS@@)</label>
+      <label class="btn-camara">📷 Tomar foto<input type="file" accept="image/*" capture="environment" onchange="tomarFotos(event,'fotos-general')"></label>
+      <div class="o-galeria">o elija fotos que ya tomó:</div>
       <input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-general')">
       <div class="fotos" id="fotos-general"></div></div>
   </div>""", "5· cierre")

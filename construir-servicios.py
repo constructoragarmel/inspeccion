@@ -114,6 +114,10 @@ textarea{min-height:64px;resize:vertical}
 .sino button.na-on{background:#475569;color:#fff;border-color:#475569}
 .vacio{padding:14px;text-align:center;color:#64748b;font-size:13px;
       border:1px dashed var(--borde);border-radius:8px;background:#f8fafc}
+.btn-camara{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin:8px 0 6px;border:2px solid var(--azul);
+  border-radius:22px;background:#fff;color:var(--azul);font-size:14px;font-weight:700;cursor:pointer}
+.btn-camara input{display:none}
+.o-galeria{font-size:12px;color:#64748b;margin:0 0 4px}
 .btn-add{min-height:44px;width:100%;border:1px dashed var(--azul);background:var(--azul-cl);
       color:var(--azul);font-weight:700;border-radius:8px;margin-bottom:10px}
 .fila-apto{border:1px solid var(--borde);border-radius:8px;padding:10px;margin-bottom:8px;background:#fff}
@@ -618,6 +622,8 @@ function tocado(el){
 function bloqueFotos(gridId, titulo){
   return '<div class="tarjeta" style="margin:8px 0 0"><label style="font-weight:600;font-size:13px;color:#475569">' +
     titulo + ' (máx. ' + MAX_FOTOS_SECCION + ')</label>' +
+    '<label class="btn-camara">📷 Tomar foto<input type="file" accept="image/*" capture="environment" onchange="tomarFotos(event,\\'' + gridId + '\\')"></label>' +
+    '<div class="o-galeria">o elija fotos que ya tomó:</div>' +
     '<input type="file" accept="image/*" multiple onchange="tomarFotos(event,\\'' + gridId + '\\')">' +
     '<div class="fotos" id="' + gridId + '"></div></div>';
 }

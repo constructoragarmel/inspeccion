@@ -267,3 +267,21 @@ archivados y deja una fila por camión y por informe en `OPE_Camiones_Urbanismo`
 Drive y Smartsheet de mentira: una fila por camión con su «m³ del día», mirar no escribe, la primera carga salta los
 `PRUEBA-`, la segunda no hace nada, un informe corregido (`-r2`) reemplaza sus filas, y el mismo camión escrito distinto
 otro día lleva la misma «Clave del camión».
+
+**`t49` y `t49b` (1-oct-2026, v106).** Dos cosas que salieron de la primera corrida en obra con la v105:
+
+- **Una fila agregada en campo no daba porcentaje.** Al inspector se le ocultaba la casilla del total, así que
+  escribía lo hecho y el % se quedaba en «—». Ahora se llena «hechas de total», como las de conteo (`t49`, 1 a 6).
+- **Tomar la foto ahí mismo.** En los Android recientes el selector de fotos ya no ofrece la cámara. Cada bloque de
+  fotos tiene un botón «📷 Tomar foto» (`capture="environment"`) y conserva la galería. En inspección la foto cae en el
+  primer hueco libre del hito (`t49`, 7 a 9); en servicios, SHA y urbanismo entra al bloque (`t49b`, seis
+  comprobaciones en cada página; servicios y SHA admiten 3 fotos por bloque y urbanismo 6).
+
+**`headless.py`: correr tandas sin ventana.** Con el navegador oculto Chrome estrangula los temporizadores y las
+tandas de fotos tardan diez minutos o no terminan. `python3 qc/banco/headless.py <banco> inspeccion:t21,t24
+urbanismo:t46` corre cada tanda en un Chrome sin ventana, con perfil limpio y tiempo virtual. Dos límites: el ancho
+mínimo ahí es 500 px (la maqueta a 375 y 320 se mira en un navegador de verdad), y las tandas que esperan al relevo
+«caído» o «lento» (`t32`, `t33`, `t36`, `t37`, `t38`) no terminan con tiempo virtual: esas se corren a la vista.
+
+Regresión del 1-oct sobre la v106: `t21` a `t33`, `t35`, `t39`, `t42`, `t43`, `t47` y `t49` en inspección; `t19`,
+`t37`, `t46` y `t49b` en urbanismo; `t36`, `t40` y `t49b` en servicios; `t38`, `t41` y `t49b` en SHA. Todas en verde.

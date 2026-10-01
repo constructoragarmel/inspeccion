@@ -7859,6 +7859,58 @@ if LISTA_V2:
      "    if (vista) aviso.textContent = 'Solo se muestra el hito de estructura. Los demás hitos de la torre se miden en «Torre completa».';\n  }\n",
      "156o· el aviso de hitos, corto en «Estructura»")
 
+# ── 157. Una fila agregada en campo no daba porcentaje (1-oct-2026) ─────────────
+# Al inspector se le ocultaba la casilla de la cantidad total («proyectada») de la fila
+# que él mismo agregaba, así que escribía lo hecho y el % se quedaba en «—», y con él el
+# del hito. Visto en la primera corrida con la v105. Ahora la fila agregada se llena
+# como las de conteo: «hechas de total», las dos casillas a la vista.
+if LISTA_V2:
+    s = sustituir(s,
+     """    <td class="col-proyectada"><input type="text" class="num" min="0" inputmode="decimal" id="pr_${rid}" data-rid="${rid}" data-p="${pid}" value="${customPr}" oninput="recalcRow(this)" placeholder="0"></td>
+    <td><input type="text" class="num" min="0" inputmode="decimal" id="ej_${rid}" data-rid="${rid}" data-p="${pid}" value="${customEj}" oninput="recalcRow(this)" placeholder="0"></td>""",
+     """    <td class="col-proyectada"></td>
+    <td class="col-ejecutada conteo agregada"><input type="text" class="num" min="0" inputmode="decimal" id="ej_${rid}" data-rid="${rid}" data-p="${pid}" value="${customEj}" oninput="recalcRow(this)" placeholder="hechas" title="Cuánto está hecho"><span class="de">de</span><input type="text" class="num" min="0" inputmode="decimal" id="pr_${rid}" data-rid="${rid}" data-p="${pid}" value="${customPr}" oninput="recalcRow(this)" placeholder="total" title="Cuánto es en total. Sin el total no hay porcentaje"></td>""",
+     "157a· la fila agregada se llena «hechas de total»")
+    s = sustituir(s,
+     ".tbl-wrap td.col-ejecutada.conteo::before{content:'Conteo';flex:0 0 58px}",
+     ".tbl-wrap td.col-ejecutada.conteo::before{content:'Conteo';flex:0 0 58px}\n"
+     ".tbl-wrap td.col-ejecutada.conteo.agregada::before{content:'Cantidad'}",
+     "157b· su rótulo en el teléfono")
+
+# ── 158. Tomar la foto ahí mismo (pedido de Planificación, 1-oct-2026) ─────────
+# En los Android recientes el selector de fotos que abre «accept=image/*» ya no ofrece
+# la cámara: había que salir, tomar la foto y volver a buscarla en la galería. Se agrega
+# un botón «Tomar foto» que abre la cámara y deja la foto en el primer hueco libre del
+# hito. Los huecos siguen abriendo la galería, como pidió campo el 31-ago (cambio 21i).
+s = sustituir(s,
+ """            <div class="foto-grid" id="fotos_${p.id}">""",
+ """            <label class="btn-camara solo-pantalla">📷 Tomar foto<input type="file" accept="image/*" capture="environment" onchange="tomarFotoCamara('${p.id}', this)"></label>
+            <div class="foto-grid" id="fotos_${p.id}">""",
+ "158a· botón «Tomar foto» en cada hito", n=2)
+s = sustituir(s,
+ "function removeFoto(pid,fi){",
+ """// La cámara deja la foto en el primer hueco libre del hito.
+function tomarFotoCamara(pid, inp){
+  let libre = -1;
+  for (let fi = 0; fi < 6 && libre < 0; fi++){
+    const img = document.getElementById('fimg_' + pid + '_' + fi);
+    if (img && (img.style.display === 'none' || !img.getAttribute('src'))) libre = fi;
+  }
+  if (libre < 0){ alert('Este hito ya tiene sus 6 fotos. Quite una para tomar otra.'); inp.value = ''; return; }
+  loadFoto(pid, libre, inp);
+  setTimeout(function(){ inp.value = ''; }, 1500);   // para que la misma foto se pueda volver a tomar
+}
+
+function removeFoto(pid,fi){""",
+ "158b· la foto de la cámara va al primer hueco libre")
+s = sustituir(s,
+ ".foto-slot:hover{border-color:var(--blue2)}",
+ ".foto-slot:hover{border-color:var(--blue2)}\n"
+ ".btn-camara{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 16px;margin:0 0 8px;"
+ "border:2px solid var(--blue);border-radius:22px;background:#fff;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer}\n"
+ ".btn-camara input{display:none}",
+ "158c· estilo del botón de cámara")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

@@ -271,6 +271,8 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .foto-grid{display:flex;gap:10px;flex-wrap:wrap}
 .foto-slot{width:90px;height:70px;border:2px dashed #c5cae9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#5f6b7a;cursor:pointer;position:relative;overflow:hidden;flex-shrink:0;text-align:center;background:#fff;transition:border-color .15s}
 .foto-slot:hover{border-color:var(--blue2)}
+.btn-camara{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 16px;margin:0 0 8px;border:2px solid var(--blue);border-radius:22px;background:#fff;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer}
+.btn-camara input{display:none}
 .foto-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .foto-slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .foto-remove{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:2}
@@ -813,6 +815,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 .tbl-wrap td.col-ejecutada .num{width:68px!important}
 /* El conteo: rótulo corto y las dos casillas se reparten lo que queda, para que se lea «puestas» y «hay» a 320 px */
 .tbl-wrap td.col-ejecutada.conteo::before{content:'Conteo';flex:0 0 58px}
+.tbl-wrap td.col-ejecutada.conteo.agregada::before{content:'Cantidad'}
 .tbl-wrap td.col-ejecutada.conteo .num{width:84px!important;flex:none}
 .aviso-anterior{background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;margin:2px 0 10px}
 @media print{#aviso-anterior{display:none!important}}
@@ -1331,10 +1334,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v105';
+    el.textContent = '● en línea · v106';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v105 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v106 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2438,6 +2441,7 @@ function initAppContent() {
           </div>
           <div class="foto-sec">
             <div class="foto-sec-title">Fotografías<span class="solo-impresion"> — ${p.nombre}</span><span class="solo-pantalla"> (máx. 6)</span></div>
+            <label class="btn-camara solo-pantalla">📷 Tomar foto<input type="file" accept="image/*" capture="environment" onchange="tomarFotoCamara('${p.id}', this)"></label>
             <div class="foto-grid" id="fotos_${p.id}">
               ${[0,1,2,3,4,5].map(fi=>`
                 <div class="foto-slot" id="fslot_${p.id}_${fi}">
@@ -2530,6 +2534,7 @@ function initAppContent() {
           <button class="add-row-btn" onclick="addRow('${p.id}')">＋ Agregar subpartida adicional</button>
           <div class="foto-sec">
             <div class="foto-sec-title">📷 Fotografías — ${p.nombre}<span class="solo-pantalla"> (máx. 6)</span></div>
+            <label class="btn-camara solo-pantalla">📷 Tomar foto<input type="file" accept="image/*" capture="environment" onchange="tomarFotoCamara('${p.id}', this)"></label>
             <div class="foto-grid" id="fotos_${p.id}">
               ${[0,1,2,3,4,5].map(fi=>`
                 <div class="foto-slot" id="fslot_${p.id}_${fi}">
@@ -2908,8 +2913,8 @@ function addRow(pid, customDesc='', customPr='', customEj='', customEv=''){
       <button onclick="deleteExtraRow('${rid}','${pid}')" title="Eliminar subpartida" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#ffebee;border:1px solid #ffcdd2;color:#c62828;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;line-height:1;padding:0;display:flex;align-items:center;justify-content:center">✕</button>
     </td>
     <td class="desc"><input type="text" placeholder="Descripción de la subpartida..." id="desc_${rid}" value="${customDesc}" oninput="saveExtraDesc('${pid}',${extraRows[pid].length-1},this.value)"></td>
-    <td class="col-proyectada"><input type="text" class="num" min="0" inputmode="decimal" id="pr_${rid}" data-rid="${rid}" data-p="${pid}" value="${customPr}" oninput="recalcRow(this)" placeholder="0"></td>
-    <td><input type="text" class="num" min="0" inputmode="decimal" id="ej_${rid}" data-rid="${rid}" data-p="${pid}" value="${customEj}" oninput="recalcRow(this)" placeholder="0"></td>
+    <td class="col-proyectada"></td>
+    <td class="col-ejecutada conteo agregada"><input type="text" class="num" min="0" inputmode="decimal" id="ej_${rid}" data-rid="${rid}" data-p="${pid}" value="${customEj}" oninput="recalcRow(this)" placeholder="hechas" title="Cuánto está hecho"><span class="de">de</span><input type="text" class="num" min="0" inputmode="decimal" id="pr_${rid}" data-rid="${rid}" data-p="${pid}" value="${customPr}" oninput="recalcRow(this)" placeholder="total" title="Cuánto es en total. Sin el total no hay porcentaje"></td>
     <td><div class="ev">
       <button class="ev-btn B ${customEv==='B'?'on':''}" data-rid="${rid}" onclick="setEv(this)">B</button>
       <button class="ev-btn R ${customEv==='R'?'on':''}" data-rid="${rid}" onclick="setEv(this)">R</button>
@@ -2976,6 +2981,18 @@ function loadFoto(pid,fi,inp){
     tmp.src = original;
   };
   r.readAsDataURL(file);
+}
+
+// La cámara deja la foto en el primer hueco libre del hito.
+function tomarFotoCamara(pid, inp){
+  let libre = -1;
+  for (let fi = 0; fi < 6 && libre < 0; fi++){
+    const img = document.getElementById('fimg_' + pid + '_' + fi);
+    if (img && (img.style.display === 'none' || !img.getAttribute('src'))) libre = fi;
+  }
+  if (libre < 0){ alert('Este hito ya tiene sus 6 fotos. Quite una para tomar otra.'); inp.value = ''; return; }
+  loadFoto(pid, libre, inp);
+  setTimeout(function(){ inp.value = ''; }, 1500);   // para que la misma foto se pueda volver a tomar
 }
 
 function removeFoto(pid,fi){
