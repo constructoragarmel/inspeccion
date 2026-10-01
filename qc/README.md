@@ -209,3 +209,28 @@ python3 qc/banco/pdf/sirve.py &      # 127.0.0.1:8781 → abrir minutas.html
 
 Las 8 a 10 corren contra un Smartsheet y un Drive falsos. Las 10 en verde. El conversor de Google no es Chrome: el
 papel de verdad se revisó aparte, con las cuatro minutas del 28 y el 29-sep generadas en Apps Script.
+
+**`t45borrador` (1-oct-2026), diez QC del borrador del informe semanal (relevo r32).** Tampoco es del formulario: prueba
+`BorradorInforme.gs`, que toma el `.pptx` del informe de la semana anterior y le actualiza la portada y las láminas de
+materiales con lo que las contratistas declararon en la reunión del lunes. Corre en `pdf/borrador.html` con **un informe
+y unas reuniones inventados**:
+
+```bash
+cp ~/512/Garmel/implementacion/relevo-drive/{Smartsheet.gs,Tablero.gs,Contactos.gs,Reuniones.gs,Minutas.gs,BorradorInforme.gs} qc/banco/pdf/
+python3 qc/banco/pdf/sirve.py &      # 127.0.0.1:8781 → abrir borrador.html
+# en la consola:  eval(await (await fetch('t45borrador.js')).text())
+```
+
+1. el corte es el viernes de la semana;
+2. toma la reunión de contratistas de esta semana y suma las filas repetidas de una empresa;
+3. recorre las láminas en el orden en que se ven;
+4. portada: fecha de corte y mes, sin tocar otras fechas;
+5. materiales: cada empresa recibe lo suyo aunque el nombre esté escrito distinto;
+6. dos datos, dos renglones con el formato de la celda; las celdas combinadas no se tocan; el XML queda bien formado;
+7. la fecha del cuadro y el cartel de «no hubo requerimiento»;
+8. un sector sin reunión no se toca; una lámina que no es de materiales se ignora;
+9. una empresa sin fila en la reunión no hereda el texto viejo;
+10. de punta a punta: qué partes cambian, las notas amarillas y el relato de lo hecho.
+
+Las 10 en verde. Lo que este banco no prueba es abrir y cerrar el `.pptx` (`Utilities.unzip` y `zip`): eso se comprobó
+en Apps Script con el informe real, y el archivo que salió se abrió con python-pptx y con LibreOffice.

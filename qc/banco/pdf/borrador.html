@@ -1,0 +1,14 @@
+<!doctype html><meta charset="utf-8"><title>Prueba del borrador del informe</title><body>
+<script>
+// Banco del borrador del informe semanal (BorradorInforme.gs del relevo). Necesita al lado Smartsheet.gs, Tablero.gs,
+// Contactos.gs, Reuniones.gs, Minutas.gs y BorradorInforme.gs del repositorio Garmel (ver qc/README.md). El informe y
+// las reuniones son INVENTADOS: este repositorio es público.
+window.Logger = { log: function (t) { (window.__log = window.__log || []).push(String(t)); } };
+window.MimeType = {}; window.SpreadsheetApp = {}; window.PropertiesService = {}; window.UrlFetchApp = {}; window.DriveApp = {}; window.ScriptApp = {}; window.Session = {};
+window.Utilities = { newBlob: function (t, tipo, n) { return { __nuevo: true, getName: function () { return n; }, getDataAsString: function () { return t; } }; },
+  DigestAlgorithm: { MD5: 1 }, Charset: { UTF_8: 1 }, computeDigest: function (a, t) { var h = [0, 0, 0, 0]; for (var i = 0; i < t.length; i++) h[i % 4] = (h[i % 4] * 31 + t.charCodeAt(i)) & 0xff; return h; } };
+window.__listo = (async () => {
+  for (const g of ['Smartsheet.gs', 'Tablero.gs', 'Contactos.gs', 'Reuniones.gs', 'Minutas.gs', 'BorradorInforme.gs']) (0, eval)(await (await fetch(g)).text());
+  return 'ok';
+})();
+</script></body>
