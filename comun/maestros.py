@@ -116,7 +116,8 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # 1-oct-2026: tres CIV puestos al día con la hoja de cargos, que es el maestro. Mariana Rojas 321.563 (dado
 # por Stephanie el 29-sep), Cleidy Chacón 240.930 (su carnet) y Diego Orta 307.823 (su formulario de datos; el
 # 301.823 de antes salió del sello del título, que tiene un dígito ilegible). Los informes ya hechos no se tocan.
-# Charbel Abdul y Oriana Plaza siguen «en trámite»: la hoja ya trae un número, pero solo dicho por ellos.
+# Charbel Abdul 321.425 y Oriana Plaza 321.434 (v102, mismo día): los dieron ellos el 27-sep y están en la
+# hoja; Stephanie pidió ponerlos. Falta la copia del carnet de los dos.
 #
 # Las iniciales de los 23 son distintas entre sí (Diego Orta DO, Diego Rosales
 # DR) — el número del informe las usa, y dos iguales el mismo día en el mismo
@@ -124,7 +125,7 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 INSPECTORES_JS = """const INSPECTORES_DB = [
   "Alejandro Bastidas (CIV-67.316)",
   "Birmania Rada (CIV-NC)",
-  "Charbel Abdul (CIV en trámite)",
+  "Charbel Abdul (CIV-321.425)",
   "Christian Fricke (CIV-184.558)",
   "Cleidy Chacón (CIV-240.930)",
   "Diego Orta (CIV-307.823)",
@@ -140,7 +141,7 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Manuel Madrid (CIV-256.842)",
   "Mariana Rojas (CIV-321.563)",
   "Martha Azcarate (CIV-87.616)",
-  "Oriana Plaza (CIV en trámite)",
+  "Oriana Plaza (CIV-321.434)",
   "Selehidy Rivero (CIV-292.273)",
   "Skarlet Gómez (CIV-317.442)",
   "Víctor Mendoza (CIV-NC)",
