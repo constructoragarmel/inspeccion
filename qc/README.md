@@ -164,3 +164,23 @@ Seis comprobaciones de la v100:
 `t21` a `t24` y `t28` tenían escritas las cuentas viejas (46 y 48 filas, 8 hitos de torre, 48 fotos) o medían el hito 12
 por estado. Se corrigieron las cifras sin quitar comprobaciones: ahora son 50 y 56 filas, 11 hitos de torre y 66 fotos.
 `t21`–`t35`, `t39` y `t42` en verde sobre la v100.
+
+**`t43` (1-oct-2026), diez QC más de la v100.** Ocho en `inspeccion.html`, corridos a 320×640:
+1. cada fila nueva con su control;
+2. el % del hito 1;
+3. N/A en una fila nueva;
+4. «opcional» con el presupuesto de la T-56; el relevo falso contesta su lista nueva;
+5. el cambio de ámbito;
+6. un borrador de la v99 con el ascensor de 4 filas;
+7. «Usar las cantidades» de una visita con el hito 12 viejo;
+8. que a 320 px nada se salga.
+
+La 8 pasaba al principio sin mirar nada, porque los hitos estaban cerrados. Ahora los abre y exige ver las filas
+nuevas: son 11 a la vista.
+
+Las otras dos, del relevo, están en `pdf/t43relevo.js`:
+
+9. un informe de antes en el PDF y en las filas de Smartsheet;
+10. que los pesos sean coherentes con la lista y que las torres de la Inmobiliaria salgan sin presupuesto.
+
+Las 10 en verde.

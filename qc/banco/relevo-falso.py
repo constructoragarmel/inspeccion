@@ -29,6 +29,11 @@ class H(http.server.BaseHTTPRequestHandler):
         if p.get('accion')=='aplica':
             # Como el relevo r28: qué subpartidas están en el presupuesto de la torre (solo códigos).
             if p.get('torre') in ('T-17','T-18'): return self._ok({"ok":True,"sinPresupuesto":True,"codigos":None})
+            if p.get('torre')=='T-56':
+                # v100 (30-sep): la lista con las 13 nuevas y el hito 12 con 12.02 y 12.03; como un presupuesto
+                # sin calentadores ni preliminares (t43).
+                todos=['%d.%02d'%(h,i) for h,n in enumerate([6,3,19,13,8,2,9,9,6,8,4],1) for i in range(1,n+1)]+['12.02','12.03']
+                return self._ok({"ok":True,"contratista":"Tepuy (falso)","codigos":[c for c in todos if c not in ('1.04','7.08','7.09')]})
             todos=['%d.%02d'%(h,i) for h,n in enumerate([3,3,19,12,6,2,7,7,4,7,4,5],1) for i in range(1,n+1)]
             fuera={'8.03','8.04','4.10','4.11','5.04','5.05'}
             return self._ok({"ok":True,"contratista":"Alnavic (falso)","codigos":[c for c in todos if c not in fuera]})
