@@ -105,7 +105,7 @@ async function _ofrecerAnterior(){
       'Traer mediciones', function(){ _traerMediciones(mismo.partidas, false); });
   } else if (deLaTorre && ambito !== 'torre') {
     const cual = [deLaTorre.piso, deLaTorre.apto ? 'apto ' + deLaTorre.apto : ''].filter(Boolean).join(' · ');
-    _pintarAvisoAnterior(caja, '¿Usar las cantidades «hay» de otro apartamento de esta torre?',
+    _pintarAvisoAnterior(caja, '¿Usar los totales de otro apartamento de esta torre?',
       'Del ' + (cual || 'último informe') + ' (' + (deLaTorre.fecha || 'sin fecha') + '). Los apartamentos se repiten: ' +
       'así solo cuenta las puestas. Revise las que no coincidan.',
       'Usar las cantidades', function(){ _traerMediciones(deLaTorre.partidas, true); });
@@ -160,7 +160,7 @@ function _traerMediciones(partidas, soloHay){
   });
   if (typeof _uso !== 'undefined') _uso.anterior = soloHay ? 'hay' : 'mediciones';
   if (typeof _marcarCambio === 'function') _marcarCambio();
-  showToast(soloHay ? '📋 ' + n + ' cantidades «hay» copiadas. Cuente las puestas.'
+  showToast(soloHay ? '📋 ' + n + ' totales copiados. Cuente las puestas.'
                     : '📋 ' + n + ' mediciones traídas. Corrija lo que cambió y evalúe de nuevo.', 'ok');
 }
 

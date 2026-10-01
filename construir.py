@@ -7911,6 +7911,81 @@ s = sustituir(s,
  ".btn-camara input{display:none}",
  "158c· estilo del botón de cámara")
 
+# ── 159. Que el N/A deje de usarse para «todavía no está hecho» (1-oct-2026) ───────
+# Dos veces en dos días (30-sep y 1-oct) llegaron informes con N/A en lo pendiente, y eso
+# saca la fila del avance. Dos causas, vistas en los datos: «N/A» se lee como «todavía no
+# aplica», y la casilla «hay» se leía como «cuántas hay puestas»: con «0 de 0» no salía
+# porcentaje y la salida era el N/A. Cuatro cosas, para que no haga falta leer la guía:
+#   a) la casilla se llama «total», no «hay»;
+#   b) un cero escrito es 0 % aunque no se sepa el total (0 de lo que sea es 0);
+#   c) al marcar N/A, la fila dice debajo qué significa;
+#   d) antes de enviar, si hay tres N/A o más, se pregunta una vez.
+# El relevo aplica la misma regla del cero desde el r35 (_pdfPctFila).
+if LISTA_V2:
+    s = sustituir(s,
+     'placeholder="hay" title="Cuántas hay que poner aquí: se cuentan en sitio"',
+     'placeholder="total" title="Cuántas van en total aquí: se cuentan en sitio"',
+     "159a· la casilla «hay» pasa a llamarse «total»")
+    s = sustituir(s,
+     "function recalcRow(inp){\n",
+     "// Un cero ESCRITO es 0 % aunque falte el total: cero de lo que sea es cero. Una casilla vacía no es un cero.\n"
+     "function _ceroEscrito(rid){\n"
+     "  const pr = document.getElementById('pr_' + rid), ej = document.getElementById('ej_' + rid);\n"
+     "  if (!ej || (pr && pr.dataset.est)) return false;\n"
+     "  const t = String(ej.value || '').trim().replace(',', '.');\n"
+     "  return t !== '' && parseFloat(t) === 0;\n"
+     "}\n"
+     "function recalcRow(inp){\n",
+     "159b· _ceroEscrito")
+    s = sustituir(s,
+     "  if(pm!==null || pr>0){\n    const pct=pm!==null ? pm : Math.min(100,Math.floor((ej/pr)*100));",
+     "  if(pm!==null || pr>0 || _ceroEscrito(rid)){\n    const pct=pm!==null ? pm : (pr>0 ? Math.min(100,Math.floor((ej/pr)*100)) : 0);",
+     "159c· el cero escrito da 0 % en la fila")
+    s = sustituir(s,
+     "    else if(pr>0){sumPct+=Math.min(100,Math.floor((ej/pr)*100));cnt++;}",
+     "    else if(pr>0){sumPct+=Math.min(100,Math.floor((ej/pr)*100));cnt++;}\n"
+     "    else if(_ceroEscrito(rid)){cnt++;}",
+     "159d· y cuenta como cero en el hito")
+    s = sustituir(s,
+     "  if (!isAlreadyOn) {\n    btn.classList.add('on');\n  }\n",
+     "  if (!isAlreadyOn) {\n    btn.classList.add('on');\n  }\n"
+     "  // Al marcar N/A la fila dice qué significa: se estaba usando para lo que todavía no está hecho.\n"
+     "  const _cel = btn.closest('td');\n"
+     "  if (_cel) {\n"
+     "    let _nota = _cel.querySelector('.na-nota');\n"
+     "    if (btn.classList.contains('NA') && !isAlreadyOn) {\n"
+     "      if (!_nota) { _nota = document.createElement('div'); _nota.className = 'na-nota solo-pantalla'; _cel.appendChild(_nota); }\n"
+     "      _nota.textContent = 'N/A = esto no existe aquí, o no se pudo ver. Si todavía no está hecho, quite el N/A y ponga 0.';\n"
+     "    } else if (_nota) { _nota.remove(); }\n"
+     "  }\n",
+     "159e· la nota al marcar N/A")
+    # Va por fuera de la envoltura del cambio 153 (las filas heredadas), no dentro de la función: el ancla de la
+    # clave se repite en probarClave. Si faltan datos obligatorios no pregunta: de eso avisa la función de siempre.
+    s = sustituir(s,
+     "  return _enviarAlRelevoBase153.apply(this, arguments);\n};\n",
+     "  return _enviarAlRelevoBase153.apply(this, arguments);\n};\n"
+     "// Tres N/A o más en las filas de este informe: se pregunta una vez antes de enviar (cambio 159).\n"
+     "function _filasEnNA(){\n"
+     "  return [...document.querySelectorAll('.ev-btn.NA.on')].filter(function(b){\n"
+     "    const m = String(b.dataset.rid || '').match(/^(.*)_(\\d+)$/);\n"
+     "    if (!m || !PARTIDAS.some(function(p){ return p.id === m[1]; })) return true;   // fila agregada en campo\n"
+     "    return _hitosDelAmbito().some(function(p){ return p.id === m[1]; }) && _aplica(m[1], Number(m[2]));\n"
+     "  }).length;\n"
+     "}\n"
+     "const _enviarAlRelevoBase159 = enviarAlRelevo;\n"
+     "enviarAlRelevo = async function(){\n"
+     "  const n = camposFaltantes().length ? 0 : _filasEnNA();\n"
+     "  if (n >= 3 && !confirm('Marcó N/A en ' + n + ' filas.\\n\\nN/A es solo para lo que NO EXISTE en este ' + (ambito === 'torre' ? 'edificio' : 'apartamento') +\n"
+     "      ' o no se pudo ver: esas filas salen del avance.\\nLo que todavía no está hecho va en 0.\\n\\n¿Enviar así?')) return;\n"
+     "  return _enviarAlRelevoBase159.apply(this, arguments);\n"
+     "};\n",
+     "159f· pregunta antes de enviar con tres N/A o más")
+    s = sustituir(s,
+     ".tbl-wrap td.col-ejecutada.conteo.agregada::before{content:'Cantidad'}",
+     ".tbl-wrap td.col-ejecutada.conteo.agregada::before{content:'Cantidad'}\n"
+     ".na-nota{flex-basis:100%;width:100%;margin-top:4px;font-size:11.5px;line-height:1.3;color:#8f4b00;font-weight:600;white-space:normal;text-align:left}",
+     "159g· estilo de la nota")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

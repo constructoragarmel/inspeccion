@@ -285,3 +285,19 @@ mínimo ahí es 500 px (la maqueta a 375 y 320 se mira en un navegador de verdad
 
 Regresión del 1-oct sobre la v106: `t21` a `t33`, `t35`, `t39`, `t42`, `t43`, `t47` y `t49` en inspección; `t19`,
 `t37`, `t46` y `t49b` en urbanismo; `t36`, `t40` y `t49b` en servicios; `t38`, `t41` y `t49b` en SHA. Todas en verde.
+
+**`t50` y `t50relevo` (1-oct-2026, v107 y relevo r35): que el N/A deje de usarse para «todavía no está hecho».** Dos
+días seguidos llegaron informes con N/A en lo pendiente, y esas filas salen del avance. Catorce comprobaciones en
+`inspeccion.html`:
+
+- la casilla del conteo se llama «total» (antes «hay», que se leía como «cuántas hay puestas»);
+- un cero escrito da 0 % aunque falte el total, en el conteo, en las cantidades y en las filas agregadas; vacío no es
+  cero, y «3 puestas» sin total sigue sin porcentaje;
+- al marcar N/A la fila dice debajo qué significa, y se quita al desmarcar;
+- con tres N/A o más se pregunta una vez antes de enviar, y «Cancelar» no envía; con dos no pregunta;
+- el borrador conserva el cero y las notas caben a 375 px.
+
+Del lado del relevo (`pdf/t50relevo.js`, seis comprobaciones): `_pdfPctFila` y `_pct` dan 0 con el cero escrito, N/A
+sigue fuera y lo demás no cambia. Regresión sobre la v107: `t21` a `t31`, `t35`, `t39`, `t42`, `t43`, `t47`, `t49` y
+`t50` en inspección; `t19`, `t46` y `t49b` en urbanismo; `t40` y `t49b` en servicios; `t41` y `t49b` en SHA; y `t32` y
+`t33` a la vista. Todas en verde.

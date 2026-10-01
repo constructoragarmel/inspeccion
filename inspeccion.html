@@ -816,6 +816,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 /* El conteo: rótulo corto y las dos casillas se reparten lo que queda, para que se lea «puestas» y «hay» a 320 px */
 .tbl-wrap td.col-ejecutada.conteo::before{content:'Conteo';flex:0 0 58px}
 .tbl-wrap td.col-ejecutada.conteo.agregada::before{content:'Cantidad'}
+.na-nota{flex-basis:100%;width:100%;margin-top:4px;font-size:11.5px;line-height:1.3;color:#8f4b00;font-weight:600;white-space:normal;text-align:left}
 .tbl-wrap td.col-ejecutada.conteo .num{width:84px!important;flex:none}
 .aviso-anterior{background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;margin:2px 0 10px}
 @media print{#aviso-anterior{display:none!important}}
@@ -1334,10 +1335,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v106';
+    el.textContent = '● en línea · v107';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v106 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v107 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2488,7 +2489,7 @@ function initAppContent() {
           <td class="col-proyectada est-vacia"><input type="hidden" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}"></td>
           <td class="col-ejecutada est-cell"><input type="text" class="num pct-man" id="pm_${rid}" data-rid="${rid}" data-p="${p.id}" min="0" max="100" inputmode="decimal" placeholder="%" title="Porcentaje de avance de esta subpartida, escrito por el inspector" oninput="recalcRow(this)"><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}"></td>` : `
           ${_esConteo(p.id,i) ? `<td class="col-proyectada est-vacia"></td>
-          <td class="col-ejecutada conteo"><input type="text" class="num" min="0" inputmode="numeric" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="puestas" title="Cuántas están puestas"><span class="de">de</span><input type="text" class="num" min="0" inputmode="numeric" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="hay" title="Cuántas hay que poner aquí: se cuentan en sitio"></td>` : `<td class="col-proyectada"><input type="text" class="num" min="0" inputmode="decimal" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>
+          <td class="col-ejecutada conteo"><input type="text" class="num" min="0" inputmode="numeric" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="puestas" title="Cuántas están puestas"><span class="de">de</span><input type="text" class="num" min="0" inputmode="numeric" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="total" title="Cuántas van en total aquí: se cuentan en sitio"></td>` : `<td class="col-proyectada"><input type="text" class="num" min="0" inputmode="decimal" id="pr_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0"></td>
           <td class="col-ejecutada"><input type="text" class="num" min="0" inputmode="decimal" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}" oninput="recalcRow(this)" placeholder="0">${_pctManualPermitido(p.id,i) ? `<input type="text" class="num pct-man" id="pm_${rid}" data-rid="${rid}" data-p="${p.id}" min="0" max="100" inputmode="decimal" placeholder="%" title="Porcentaje de avance de esta subpartida, escrito por el inspector; si se deja vacío se calcula con las cantidades" oninput="recalcRow(this)">` : ''}</td>`}`}
           <td class="col-eval"><div class="ev">
             <button class="ev-btn B" data-rid="${rid}" onclick="setEv(this)">B</button>
@@ -2698,6 +2699,13 @@ function setEstado(btn, valor){
   if(typeof _marcarCambio === 'function') _marcarCambio();
 }
 
+// Un cero ESCRITO es 0 % aunque falte el total: cero de lo que sea es cero. Una casilla vacía no es un cero.
+function _ceroEscrito(rid){
+  const pr = document.getElementById('pr_' + rid), ej = document.getElementById('ej_' + rid);
+  if (!ej || (pr && pr.dataset.est)) return false;
+  const t = String(ej.value || '').trim().replace(',', '.');
+  return t !== '' && parseFloat(t) === 0;
+}
 function recalcRow(inp){
   const rid=inp.dataset.rid, pid=inp.dataset.p;
   const _pr = document.getElementById('pr_'+rid);
@@ -2736,8 +2744,8 @@ function recalcRow(inp){
   }
   const pctEl=document.getElementById('pct_'+rid);
   const pm=_pctManual(rid);   // el % escrito por el inspector manda sobre el calculado
-  if(pm!==null || pr>0){
-    const pct=pm!==null ? pm : Math.min(100,Math.floor((ej/pr)*100));   // 99,9 % no es 100 % (cambio 30)
+  if(pm!==null || pr>0 || _ceroEscrito(rid)){
+    const pct=pm!==null ? pm : (pr>0 ? Math.min(100,Math.floor((ej/pr)*100)) : 0);   // 99,9 % no es 100 % (cambio 30)
     const cls=pCls(pct);
     pctEl.innerHTML=`<div class="pv ${cls.n}">${pct}%</div><div class="bar-bg"><div class="bar-fill ${cls.b}" style="width:${pct}%"></div></div>`;
   } else {
@@ -2765,6 +2773,7 @@ function recalcP(pid){
     const pm=_pctManual(rid);
     if(pm!==null){sumPct+=pm;cnt++;}
     else if(pr>0){sumPct+=Math.min(100,Math.floor((ej/pr)*100));cnt++;}
+    else if(_ceroEscrito(rid)){cnt++;}
   });
   let pct=cnt>0?Math.floor(sumPct/cnt):null;   // igual que el total (cambio 34)
   const txt=pct!==null?pct+'%':'—';
@@ -2886,6 +2895,15 @@ function setEv(btn){
   document.querySelectorAll(`.ev-btn[data-rid="${rid}"]`).forEach(b=>b.classList.remove('on'));
   if (!isAlreadyOn) {
     btn.classList.add('on');
+  }
+  // Al marcar N/A la fila dice qué significa: se estaba usando para lo que todavía no está hecho.
+  const _cel = btn.closest('td');
+  if (_cel) {
+    let _nota = _cel.querySelector('.na-nota');
+    if (btn.classList.contains('NA') && !isAlreadyOn) {
+      if (!_nota) { _nota = document.createElement('div'); _nota.className = 'na-nota solo-pantalla'; _cel.appendChild(_nota); }
+      _nota.textContent = 'N/A = esto no existe aquí, o no se pudo ver. Si todavía no está hecho, quite el N/A y ponga 0.';
+    } else if (_nota) { _nota.remove(); }
   }
   // Un ítem marcado N/A sale del promedio del hito, y uno que deja de estarlo
   // vuelve a entrar. Sin esto el porcentaje se quedaba con el valor viejo.
@@ -3642,7 +3660,7 @@ async function _ofrecerAnterior(){
       'Traer mediciones', function(){ _traerMediciones(mismo.partidas, false); });
   } else if (deLaTorre && ambito !== 'torre') {
     const cual = [deLaTorre.piso, deLaTorre.apto ? 'apto ' + deLaTorre.apto : ''].filter(Boolean).join(' · ');
-    _pintarAvisoAnterior(caja, '¿Usar las cantidades «hay» de otro apartamento de esta torre?',
+    _pintarAvisoAnterior(caja, '¿Usar los totales de otro apartamento de esta torre?',
       'Del ' + (cual || 'último informe') + ' (' + (deLaTorre.fecha || 'sin fecha') + '). Los apartamentos se repiten: ' +
       'así solo cuenta las puestas. Revise las que no coincidan.',
       'Usar las cantidades', function(){ _traerMediciones(deLaTorre.partidas, true); });
@@ -3698,7 +3716,7 @@ function _traerMediciones(partidas, soloHay){
   });
   if (typeof _uso !== 'undefined') _uso.anterior = soloHay ? 'hay' : 'mediciones';
   if (typeof _marcarCambio === 'function') _marcarCambio();
-  showToast(soloHay ? '📋 ' + n + ' cantidades «hay» copiadas. Cuente las puestas.'
+  showToast(soloHay ? '📋 ' + n + ' totales copiados. Cuente las puestas.'
                     : '📋 ' + n + ' mediciones traídas. Corrija lo que cambió y evalúe de nuevo.', 'ok');
 }
 
@@ -4727,6 +4745,21 @@ enviarAlRelevo = async function(){
   if (n && !confirm(n + ' fila(s) vienen de la visita anterior y no se revisaron hoy (están marcadas «↺ De la visita anterior»).\n\n' +
                     '¿Enviar igual? Si ya las miró, toque «Sigue igual» en cada una.')) return;
   return _enviarAlRelevoBase153.apply(this, arguments);
+};
+// Tres N/A o más en las filas de este informe: se pregunta una vez antes de enviar (cambio 159).
+function _filasEnNA(){
+  return [...document.querySelectorAll('.ev-btn.NA.on')].filter(function(b){
+    const m = String(b.dataset.rid || '').match(/^(.*)_(\d+)$/);
+    if (!m || !PARTIDAS.some(function(p){ return p.id === m[1]; })) return true;   // fila agregada en campo
+    return _hitosDelAmbito().some(function(p){ return p.id === m[1]; }) && _aplica(m[1], Number(m[2]));
+  }).length;
+}
+const _enviarAlRelevoBase159 = enviarAlRelevo;
+enviarAlRelevo = async function(){
+  const n = camposFaltantes().length ? 0 : _filasEnNA();
+  if (n >= 3 && !confirm('Marcó N/A en ' + n + ' filas.\n\nN/A es solo para lo que NO EXISTE en este ' + (ambito === 'torre' ? 'edificio' : 'apartamento') +
+      ' o no se pudo ver: esas filas salen del avance.\nLo que todavía no está hecho va en 0.\n\n¿Enviar así?')) return;
+  return _enviarAlRelevoBase159.apply(this, arguments);
 };
 
 // ── 154. Primero el sector (Diego Orta, 30-sep-2026) ──
