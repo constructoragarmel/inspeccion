@@ -7986,6 +7986,24 @@ if LISTA_V2:
      ".na-nota{flex-basis:100%;width:100%;margin-top:4px;font-size:11.5px;line-height:1.3;color:#8f4b00;font-weight:600;white-space:normal;text-align:left}",
      "159g· estilo de la nota")
 
+# ── 160. La leyenda del N/A al inicio de cada hito (1-oct-2026, pedido de Planificación) ──
+# «Colócales una mini leyenda que diga que no aplica no va si no está iniciado, pero al inicio de las
+# subpartidas». La nota del cambio 159 sale DESPUÉS de marcar; esta se lee antes. El botón sigue
+# diciendo N/A: Planificación no pidió cambiar la palabra.
+if LISTA_V2:
+    s = sustituir(s,
+     '        <div class="p-body">\n          <div class="tbl-wrap"><table>',
+     '        <div class="p-body">\n'
+     '          <div class="leyenda-na solo-pantalla"><b>N/A</b> es solo para lo que <b>no existe aquí</b> o no se pudo ver. '
+     'Si <b>no está iniciado</b>, no es N/A: marque «No iniciado» o ponga 0.</div>\n'
+     '          <div class="tbl-wrap"><table>',
+     "160a· la leyenda al inicio de las subpartidas")
+    s = sustituir(s,
+     ".na-nota{flex-basis:100%;",
+     ".leyenda-na{margin:8px 10px 4px;padding:7px 10px;border-left:4px solid #f9a825;background:#fff8e1;border-radius:4px;"
+     "font-size:12.5px;line-height:1.35;color:#4e342e}\n.na-nota{flex-basis:100%;",
+     "160b· su estilo")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

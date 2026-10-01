@@ -3,7 +3,7 @@
 // 5 el cero sin total entra al promedio del hito · 6 un m² en 0 sin total da 0 % · 7 la fila agregada en 0
 // 8 al marcar N/A la fila dice qué significa, y se quita al desmarcar · 9 N/A sobre un cero lo saca del promedio
 // 10 lo que viaja · 11 con tres N/A pregunta antes de enviar y «Cancelar» no envía · 12 con dos no pregunta
-// 13 el borrador conserva el cero · 14 la nota no ensancha la página
+// 13 el borrador conserva el cero · 14 la nota no ensancha la página · 15 y 16 la leyenda al inicio de cada hito (v108)
 localStorage.setItem('garmel_rol', 'inspector');
 localStorage.setItem('garmel_clave_envio', 'qc');
 const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); e.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -127,3 +127,16 @@ const ancho = window.innerWidth, notas = [...document.querySelectorAll('.na-nota
 const fuera = notas.filter(n => n.getBoundingClientRect().right > ancho + 1 || n.getBoundingClientRect().left < -1);
 ok('14 · A ' + ancho + ' px las notas del N/A caben: no ensanchan la página ni se salen', notas.length >= 3 && fuera.length === 0 && document.documentElement.scrollWidth <= ancho + 1,
    notas.length + ' notas · fuera ' + fuera.length + ' · scrollWidth ' + document.documentElement.scrollWidth + ' / ' + ancho + ' · alto de la nota ' + Math.round(notas[0]?.getBoundingClientRect().height || 0) + ' px');
+
+// ── 15 y 16. La leyenda al inicio de cada hito (v108) ──
+const hitos = _hitosDelAmbito().map(p => document.getElementById('p_' + p.id)).filter(Boolean);
+const ley = hitos.map(h => h.querySelector('.p-body > .leyenda-na'));
+const primera = ley[0];
+ok('15 · Cada hito del ámbito abre con la leyenda del N/A, antes de la primera subpartida, y dice que lo no iniciado no es N/A',
+   hitos.length >= 8 && ley.every(l => l && l.nextElementSibling && l.nextElementSibling.classList.contains('tbl-wrap') && /no existe aquí/.test(l.textContent) && /no está iniciado/.test(l.textContent)),
+   hitos.length + ' hitos · con leyenda ' + ley.filter(Boolean).length);
+const vis = ley.filter(l => l && l.offsetParent), r0 = primera.getBoundingClientRect();
+ok('16 · La leyenda se ve con el hito abierto, cabe a ' + ancho + ' px en no más de tres renglones y no sale en el PDF (solo pantalla)',
+   vis.length >= 8 && vis.every(l => { const r = l.getBoundingClientRect(); return r.left >= 0 && r.right <= ancho + 1 && r.height <= 80; }) &&
+   ley.every(l => l.classList.contains('solo-pantalla')) && document.documentElement.scrollWidth <= ancho + 1,
+   vis.length + ' a la vista · alto ' + Math.round(r0.height) + ' px · ancho ' + Math.round(r0.width) + ' px');

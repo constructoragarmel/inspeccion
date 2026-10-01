@@ -816,6 +816,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 /* El conteo: rótulo corto y las dos casillas se reparten lo que queda, para que se lea «puestas» y «hay» a 320 px */
 .tbl-wrap td.col-ejecutada.conteo::before{content:'Conteo';flex:0 0 58px}
 .tbl-wrap td.col-ejecutada.conteo.agregada::before{content:'Cantidad'}
+.leyenda-na{margin:8px 10px 4px;padding:7px 10px;border-left:4px solid #f9a825;background:#fff8e1;border-radius:4px;font-size:12.5px;line-height:1.35;color:#4e342e}
 .na-nota{flex-basis:100%;width:100%;margin-top:4px;font-size:11.5px;line-height:1.3;color:#8f4b00;font-weight:600;white-space:normal;text-align:left}
 .tbl-wrap td.col-ejecutada.conteo .num{width:84px!important;flex:none}
 .aviso-anterior{background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;margin:2px 0 10px}
@@ -1335,10 +1336,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v107';
+    el.textContent = '● en línea · v108';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v107 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v108 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2518,6 +2519,7 @@ function initAppContent() {
           </div>
         </div>
         <div class="p-body">
+          <div class="leyenda-na solo-pantalla"><b>N/A</b> es solo para lo que <b>no existe aquí</b> o no se pudo ver. Si <b>no está iniciado</b>, no es N/A: marque «No iniciado» o ponga 0.</div>
           <div class="tbl-wrap"><table>
             <thead style="background:${colorHito(p)}">
               <tr>

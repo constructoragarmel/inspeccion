@@ -301,3 +301,7 @@ Del lado del relevo (`pdf/t50relevo.js`, seis comprobaciones): `_pdfPctFila` y `
 sigue fuera y lo demás no cambia. Regresión sobre la v107: `t21` a `t31`, `t35`, `t39`, `t42`, `t43`, `t47`, `t49` y
 `t50` en inspección; `t19`, `t46` y `t49b` en urbanismo; `t40` y `t49b` en servicios; `t41` y `t49b` en SHA; y `t32` y
 `t33` a la vista. Todas en verde.
+
+**v108 (1-oct-2026): la leyenda del N/A al inicio de cada hito.** Pedido de Planificación: que lo diga antes de la
+primera subpartida, no solo al marcar. `t50` pasa a 16 comprobaciones (15 y 16: cada hito abre con la leyenda, cabe a
+375 px y no sale en el PDF). Regresión: `t21` a `t31`, `t35`, `t39`, `t42`, `t43` (a 320), `t47`, `t49` y `t50`, en verde.
