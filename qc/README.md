@@ -261,3 +261,9 @@ mismo relevo falso se pisan): `t21` a `t33`, `t35`, `t39`, `t42`, `t43` (a 320) 
 `t46` en urbanismo; `t36` y `t40` en servicios; `t38` y `t41` en SHA. Todas en verde. Tres guiones estaban viejos desde
 la v100 y se corrigieron: `t26` medía una fila del hito 12 que se retiró, `t31` contaba 46 filas de apartamento (son 50)
 y el relevo falso seguía con la lista de 79 subpartidas. Queda por revisar `t4` de urbanismo (21 de 23, igual que antes).
+
+**`t48camiones` (1-oct-2026), la hoja de camiones del relevo (r34).** `Camiones.gs` lee los informes de urbanismo ya
+archivados y deja una fila por camión y por informe en `OPE_Camiones_Urbanismo`. Siete comprobaciones en `pdf/`, con
+Drive y Smartsheet de mentira: una fila por camión con su «m³ del día», mirar no escribe, la primera carga salta los
+`PRUEBA-`, la segunda no hace nada, un informe corregido (`-r2`) reemplaza sus filas, y el mismo camión escrito distinto
+otro día lleva la misma «Clave del camión».
