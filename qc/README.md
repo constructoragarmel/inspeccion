@@ -305,3 +305,8 @@ sigue fuera y lo demás no cambia. Regresión sobre la v107: `t21` a `t31`, `t35
 **v108 (1-oct-2026): la leyenda del N/A al inicio de cada hito.** Pedido de Planificación: que lo diga antes de la
 primera subpartida, no solo al marcar. `t50` pasa a 16 comprobaciones (15 y 16: cada hito abre con la leyenda, cabe a
 375 px y no sale en el PDF). Regresión: `t21` a `t31`, `t35`, `t39`, `t42`, `t43` (a 320), `t47`, `t49` y `t50`, en verde.
+
+**v109 (1-oct-2026): «Placa o N° del camión» en urbanismo.** Tres camiones no tienen placa y se anotan con su número
+de identificación. Cambia el rótulo de la casilla y el aviso de repetido («Ese camión ya está en esta lista»); las tres
+casillas quedan alineadas abajo. `t46` pasa a 13 comprobaciones; `t46`, `t19` y `t49b` de urbanismo en verde, y `t46` a
+375 px a la vista.

@@ -138,7 +138,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
 .cam-ayuda{font-size:12px;color:#475569;margin-top:3px}
 .cam-ayuda:empty{display:none}
 .camiones .cam-ant{margin-top:6px;border-style:solid}
-.cam-campos{display:grid;grid-template-columns:1.3fr 1fr .8fr;gap:6px}
+.cam-campos{display:grid;grid-template-columns:1.5fr 1fr .7fr;gap:6px;align-items:end}
 .cam-campos label{display:flex;flex-direction:column;font-size:11px;color:#64748b;min-width:0}
 .cam-campos input{min-width:0;width:100%}
 .cam-total{font-size:13px;font-weight:700;color:#1a237e;margin:4px 0}
@@ -335,7 +335,7 @@ function filaCamion(c, x){
   const f = document.createElement('div'); f.className = 'camion';
   f.innerHTML = '<div class="cam-cab"><b class="cam-n"></b><button type="button" class="quitar-cam" onclick="quitarCamion(this)">Quitar</button></div>' +
     '<div class="cam-campos">' +
-      '<label>Placa<input type="text" class="placa" autocapitalize="characters" autocomplete="off" list="placas-conocidas" value="' + esc(x.placa) + '" onfocus="listaDePlacas()" onchange="alCambiarPlaca(this)"></label>' +
+      '<label>Placa o N° del camión<input type="text" class="placa" autocapitalize="characters" autocomplete="off" list="placas-conocidas" value="' + esc(x.placa) + '" onfocus="listaDePlacas()" onchange="alCambiarPlaca(this)"></label>' +
       '<label>m³ por viaje<input type="text" inputmode="decimal" class="m3" value="' + esc(x.m3) + '" oninput="numero(this); recalcCamiones(this)" onchange="recordarCamion(this.closest(\'.camion\'))"></label>' +
       '<label>Viajes<input type="text" inputmode="numeric" class="viajes" value="' + esc(x.viajes == null ? '1' : x.viajes) + '" oninput="this.value=this.value.replace(/\\D/g,\'\'); recalcCamiones(this)"></label>' +
     '</div><div class="cam-ayuda"></div>';
@@ -438,7 +438,7 @@ function alCambiarPlaca(inp){
   inp.value = inp.value.trim().toUpperCase();
   const k = clavePlaca(inp.value), con = camionesConocidos()[k];
   let nota = '';
-  if (k && [...c.querySelectorAll('.camion')].some(o => o !== f && clavePlaca(o.querySelector('.placa').value) === k)) nota = '⚠️ Esa placa ya está en esta lista.';
+  if (k && [...c.querySelectorAll('.camion')].some(o => o !== f && clavePlaca(o.querySelector('.placa').value) === k)) nota = '⚠️ Ese camión ya está en esta lista.';
   else if (con && !m3.value.trim()){ m3.value = con.m3; nota = 'Se pusieron los m³ de la última vez que se anotó este camión. Corríjalos si cambió.'; }
   ay.textContent = nota;
   recordarCamion(f); recalcCamiones(c); marcar();

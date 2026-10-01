@@ -97,3 +97,9 @@ ok('10 · Para la visita siguiente la manzana queda con el acumulado de hoy (182
 // 11. maqueta
 ant().click();
 ok('11 · Con el botón y los avisos a la vista, nada se sale a ' + innerWidth + ' px', document.documentElement.scrollWidth <= innerWidth, document.documentElement.scrollWidth + ' / ' + innerWidth);
+
+// ── 13. El rótulo (v109): hay camiones sin placa, que se anotan con su número ──
+const rot = fila(0).querySelector('.cam-campos label'), cajas = [...fila(0).querySelectorAll('.cam-campos input')].map(i => Math.round(i.getBoundingClientRect().bottom));
+ok('13 · La casilla dice «Placa o N° del camión», las tres casillas quedan alineadas y nada se sale de la pantalla',
+   /^Placa o N° del camión/.test(rot.textContent) && Math.max(...cajas) - Math.min(...cajas) <= 1 && document.documentElement.scrollWidth <= window.innerWidth + 1,
+   '«' + rot.firstChild.textContent + '» · bordes de abajo ' + cajas.join('/') + ' · scrollWidth ' + document.documentElement.scrollWidth + ' / ' + window.innerWidth);
