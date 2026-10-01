@@ -113,6 +113,11 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # nombre y los cuadros de obra el primero. Sus iniciales pasan de IM a MM —no
 # chocan con nadie— y los informes que ya lleven IM no se tocan.
 #
+# 1-oct-2026: tres CIV puestos al día con la hoja de cargos, que es el maestro. Mariana Rojas 321.563 (dado
+# por Stephanie el 29-sep), Cleidy Chacón 240.930 (su carnet) y Diego Orta 307.823 (su formulario de datos; el
+# 301.823 de antes salió del sello del título, que tiene un dígito ilegible). Los informes ya hechos no se tocan.
+# Charbel Abdul y Oriana Plaza siguen «en trámite»: la hoja ya trae un número, pero solo dicho por ellos.
+#
 # Las iniciales de los 23 son distintas entre sí (Diego Orta DO, Diego Rosales
 # DR) — el número del informe las usa, y dos iguales el mismo día en el mismo
 # sitio chocarían. Al agregar a alguien, comprobarlo.
@@ -121,8 +126,8 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Birmania Rada (CIV-NC)",
   "Charbel Abdul (CIV en trámite)",
   "Christian Fricke (CIV-184.558)",
-  "Cleidy Chacón (CIV-NC)",
-  "Diego Orta (CIV-301.823)",
+  "Cleidy Chacón (CIV-240.930)",
+  "Diego Orta (CIV-307.823)",
   "Diego Rosales (CIV-296.226)",
   "Edenil Narváez (CIV-150.422)",
   "Gabriel Barrios (CIV-NC)",
@@ -133,7 +138,7 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Leidy Villamizar (CIV-258.266)",
   "Lizeira Aragort (CIV-298.127)",
   "Manuel Madrid (CIV-256.842)",
-  "Mariana Rojas (CIV-NC)",
+  "Mariana Rojas (CIV-321.563)",
   "Martha Azcarate (CIV-87.616)",
   "Oriana Plaza (CIV en trámite)",
   "Selehidy Rivero (CIV-292.273)",
