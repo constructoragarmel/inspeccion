@@ -119,18 +119,25 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # Charbel Abdul 321.425 y Oriana Plaza 321.434 (v102, mismo día): los dieron ellos el 27-sep y están en la
 # hoja; Stephanie pidió ponerlos. Falta la copia del carnet de los dos.
 #
-# Las iniciales de los 23 son distintas entre sí (Diego Orta DO, Diego Rosales
+# v103 (1-oct-2026): entran los tres que la hoja trae con ingreso el 5-oct. Carlos Julio Colmenares (coordinador,
+# ingeniero estructural, CIV 127.709), Eduardo Rivero (coordinador, CIV 169.435) y Miguel Eduardo Ávila (técnico de
+# control y seguimiento, TSU: sin CIV). Carlos y Miguel llevan la inicial del segundo nombre porque «CC» ya es
+# Cleidy Chacón y «MA» ya es Martha Azcarate: así sus informes salen CJ y ME.
+#
+# Las iniciales de los 26 son distintas entre sí (Diego Orta DO, Diego Rosales
 # DR) — el número del informe las usa, y dos iguales el mismo día en el mismo
 # sitio chocarían. Al agregar a alguien, comprobarlo.
 INSPECTORES_JS = """const INSPECTORES_DB = [
   "Alejandro Bastidas (CIV-67.316)",
   "Birmania Rada (CIV-NC)",
+  "Carlos J. Colmenares (CIV-127.709)",
   "Charbel Abdul (CIV-321.425)",
   "Christian Fricke (CIV-184.558)",
   "Cleidy Chacón (CIV-240.930)",
   "Diego Orta (CIV-307.823)",
   "Diego Rosales (CIV-296.226)",
   "Edenil Narváez (CIV-150.422)",
+  "Eduardo Rivero (CIV-169.435)",
   "Gabriel Barrios (CIV-NC)",
   "Génesis Cordobés (CIV-307.057)",
   "Girlenys Lacruz (CIV-288.041)",
@@ -141,6 +148,7 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Manuel Madrid (CIV-256.842)",
   "Mariana Rojas (CIV-321.563)",
   "Martha Azcarate (CIV-87.616)",
+  "Miguel E. Ávila (CIV-NC)",
   "Oriana Plaza (CIV-321.434)",
   "Selehidy Rivero (CIV-292.273)",
   "Skarlet Gómez (CIV-317.442)",
