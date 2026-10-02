@@ -56,8 +56,8 @@ if (pagina === 'sha') {
 } else if (pagina === 'urbanismo') {
   await nuevo();
   const a = document.getElementById('actividades'), card = document.getElementById('tarjeta-actividades'), og = document.getElementById('obs_general').closest('.tarjeta');
-  ok('1 · «Actividades en ejecución» va justo antes de la observación general, y dice qué va en cada una',
-     !!a && !!card && card.nextElementSibling === og && /Actividades en ejecución/.test(card.querySelector('label').textContent) &&
+  ok('1 · «Actividades en ejecución» va después de las secciones y antes de la observación general (entre las dos, desde la v116, las minutas), y dice qué va en cada una',
+     !!a && !!card && !!(card.compareDocumentPosition(og) & Node.DOCUMENT_POSITION_FOLLOWING) && card.previousElementSibling.id === 'agregar-seccion' && /Actividades en ejecución/.test(card.querySelector('label').textContent) &&
      /haciendo hoy en esta manzana/.test(card.querySelector('.act-pista').textContent) && /observación general/.test(card.querySelector('.act-pista').textContent), card ? card.querySelector('.act-pista').textContent : 'sin tarjeta');
   const vacio0 = informeVacio(datosDelFormulario());
   escribir(a, 'Limpieza y desmalezamiento en la zona posterior; replanteo topográfico.');

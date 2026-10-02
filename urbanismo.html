@@ -284,14 +284,6 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
   <div id="panel-a" class="panel on"></div>
   <div id="panel-b" class="panel"></div>
 
-  <div class="tarjeta" id="tarjeta-minutas">
-    <label style="font-weight:600;font-size:13px;color:#475569">Minutas de campo (máx. 6)</label>
-    <div class="act-pista">Si en la visita se firmó una minuta, fotografíela aquí, hoja por hoja. Queda archivada con el informe y sale como anexo del PDF.</div>
-    <label class="btn-camara">📷 Fotografiar minuta<input type="file" accept="image/*" capture="environment" onchange="tomarFotos(event,'fotos-minutas')"></label>
-    <div class="o-galeria">o elija fotos que ya tomó:</div>
-    <input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-minutas')">
-    <div class="fotos" id="fotos-minutas"></div>
-  </div>
   <div class="tarjeta" id="agregar-seccion">
     <label style="font-weight:600;font-size:13px;color:#475569">¿Falta una sección?</label>
     <div style="display:flex;gap:8px;margin-top:6px">
@@ -304,12 +296,20 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
     <div class="act-pista">Lo que se está haciendo hoy en esta manzana. Lo que usted encontró o pidió corregir va abajo, en la observación general.</div>
     <textarea id="actividades" placeholder="Ej.: limpieza y desmalezamiento en la zona posterior; replanteo topográfico..."></textarea>
   </div>
+  <div class="tarjeta" id="tarjeta-minutas">
+    <label style="font-weight:600;font-size:13px;color:#475569">Minutas de campo (máx. 6)</label>
+    <div class="act-pista">Si en la visita se firmó una minuta, fotografíela aquí, hoja por hoja. Queda archivada con el informe y sale como anexo del PDF.</div>
+    <label class="btn-camara">📷 Fotografiar minuta<input type="file" accept="image/*" capture="environment" onchange="tomarFotos(event,'fotos-minutas')"></label>
+    <div class="o-galeria">o elija fotos que ya tomó:</div>
+    <input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-minutas')">
+    <div class="fotos" id="fotos-minutas"></div>
+  </div>
   <div class="tarjeta">
     <label style="font-weight:600;font-size:13px;color:#475569">Observación general</label>
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v116</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v117</div>
 </div>
 
 <div class="acciones">

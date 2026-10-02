@@ -108,6 +108,20 @@ H = sustituir(H, """  <div class="tarjeta">
     <label style="font-weight:600;font-size:13px;color:#475569">Observación general</label>
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>""", "6· agregar sección, actividades en ejecución (v114) y observación general")
+# 6b · «Minutas de campo» (v116) la pone el motor antes de la observación general, que aquí quedó precedida por «¿Falta
+# una sección?» y «Actividades en ejecución»: la tarjeta se baja para que vaya justo antes de la observación general, y
+# «¿Falta una sección?» siga pegada a las secciones.
+import re as _re
+_min = _re.search(r'  <div class="tarjeta" id="tarjeta-minutas">.*?\n  </div>\n', H, _re.S)
+if not _min:
+    sys.exit("✗ No encontré la tarjeta de minutas del motor")
+H = H.replace(_min.group(0), "", 1)
+H = sustituir(H, """  <div class="tarjeta">
+    <label style="font-weight:600;font-size:13px;color:#475569">Observación general</label>
+    <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>""",
+_min.group(0).replace("Si en la visita se firmó una minuta", "Si en la visita se firmó una minuta") + """  <div class="tarjeta">
+    <label style="font-weight:600;font-size:13px;color:#475569">Observación general</label>
+    <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>""", "6b· minutas, justo antes de la observación general")
 H = sustituir(H, "➡️ Sig. torre", "➡️ Sig. manzana", "7· botón")
 # 7c · El botón interno de Planificación (respuesta 4 de Skarlet): detrás del
 # «⋯», enciende y apaga el campo «Proyectado» sin cambiar de enlace.
