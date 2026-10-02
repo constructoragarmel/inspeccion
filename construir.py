@@ -8224,6 +8224,76 @@ s = sustituir(s,
  "});\n",
  "162i· la memoria por torre y día")
 
+# ── 163. «Minutas de campo»: la minuta firmada en la visita, fotografiada (2-oct-2026) ──────────
+# Pedido del equipo desde la inducción del 25-sep (PA-116: hoy se escanean y se suben a mano) y, el 2-oct, de un
+# inspector de urbanismo; Planificación dijo que se suben como foto, que es lo más fácil en campo. Stephanie González
+# aprobó el bloque. Es un grupo de fotos más, `minutas`: viaja como «minutas-N», se archiva con el informe y el relevo
+# lo imprime como anexo del PDF (r42). Reutiliza las funciones de las fotos de los hitos; solo cambian dos cosas: una
+# hoja de minuta se guarda más grande (1600 px) para que se pueda leer, y el bloque es fijo, no de un hito.
+_HOJAS_MINUTA = "".join(
+    '\n      <div class="foto-slot" id="fslot_minutas_%d"><span>📄<br>Hoja %d</span><img id="fimg_minutas_%d" style="display:none">'
+    '<input type="file" accept="image/*" onchange="loadFoto(\'minutas\',%d,this)">'
+    '<button class="foto-remove" onclick="removeFoto(\'minutas\',%d)">✕</button></div>' % (i, i + 1, i, i, i) for i in range(6))
+s = sustituir(s,
+ "<!-- MODAL INFORMES GUARDADOS LOCALMENTE -->",
+ "<!-- MINUTAS DE CAMPO (163) -->\n<div class=\"content\">\n<div class=\"obs-card\" id=\"min-card\">\n"
+ "  <h3>Minutas de campo<span class=\"solo-pantalla\" style=\"font-weight:400;color:#666\"> (máx. 6 hojas)</span></h3>\n"
+ "  <p class=\"act-pista solo-pantalla\">Si en la visita se firmó una minuta, fotografíela aquí, hoja por hoja. Queda archivada con el informe y sale como anexo del PDF.</p>\n"
+ "  <div class=\"foto-sec\" style=\"margin:0\">\n"
+ "    <label class=\"btn-camara solo-pantalla\">📷 Fotografiar minuta<input type=\"file\" accept=\"image/*\" capture=\"environment\" onchange=\"tomarFotoCamara('minutas', this)\"></label>\n"
+ "    <div class=\"foto-grid\" id=\"fotos_minutas\">" + _HOJAS_MINUTA + "\n    </div>\n"
+ "  </div>\n</div>\n</div>\n\n"
+ "<!-- MODAL INFORMES GUARDADOS LOCALMENTE -->",
+ "163a· la tarjeta, al final del informe")
+s = sustituir(s,
+ "      return (im && im.src && im.src.indexOf('data:') === 0) ? im.src : '';\n    });\n  });\n  \n  if (formType === 'hitos') {",
+ "      return (im && im.src && im.src.indexOf('data:') === 0) ? im.src : '';\n    });\n  });\n"
+ "  // 163: las minutas de campo son un grupo de fotos más.\n"
+ "  d.fotos.minutas = [0,1,2,3,4,5].map(fi=>{\n"
+ "    const im = document.getElementById('fimg_minutas_' + fi);\n"
+ "    return (im && im.src && im.src.indexOf('data:') === 0) ? im.src : '';\n"
+ "  });\n  \n  if (formType === 'hitos') {",
+ "163b· viajan con las fotos del informe")
+s = sustituir(s,
+ "    if(d.fotos && d.fotos[p.id]){\n      d.fotos[p.id].forEach((src,fi)=>{ if(src && src !== 'idb') _pintarFoto(p.id, fi, src); });\n    }\n  });\n",
+ "    if(d.fotos && d.fotos[p.id]){\n      d.fotos[p.id].forEach((src,fi)=>{ if(src && src !== 'idb') _pintarFoto(p.id, fi, src); });\n    }\n  });\n"
+ "  if(d.fotos && d.fotos.minutas){\n"
+ "    d.fotos.minutas.forEach((src,fi)=>{ if(src && src !== 'idb') _pintarFoto('minutas', fi, src); });\n"
+ "  }\n",
+ "163c· se reponen al abrir un borrador")
+s = sustituir(s,
+ "  if (libre < 0){ alert('Este hito ya tiene sus 6 fotos. Quite una para tomar otra.'); inp.value = ''; return; }",
+ "  if (libre < 0){ alert(pid === 'minutas' ? 'Ya hay 6 hojas de minuta. Quite una para tomar otra.' : 'Este hito ya tiene sus 6 fotos. Quite una para tomar otra.'); inp.value = ''; return; }",
+ "163d· el aviso del tope")
+s = sustituir(s,
+ "        const esc = Math.min(1, MAX_FOTO_PX / Math.max(w, h));",
+ "        const esc = Math.min(1, (pid === 'minutas' ? MAX_MINUTA_PX : MAX_FOTO_PX) / Math.max(w, h));",
+ "163e· una minuta se guarda más grande")
+s = sustituir(s,
+ "// ═══ 162. Actividades en ejecución: una vez por visita a la torre ═══════════\n",
+ "// ═══ 163. Minutas de campo ══════════════════════════════════════════════════\n"
+ "const MAX_MINUTA_PX = 1600;   // una hoja escrita a mano necesita más que una foto de obra para leerse\n"
+ "// El bloque es fijo (no lo redibuja initAppContent, como a los hitos): al empezar otro informe se vacía aquí.\n"
+ "function _minLimpiar(){\n"
+ "  for (let fi = 0; fi < 6; fi++){\n"
+ "    const img = document.getElementById('fimg_minutas_' + fi), slot = document.getElementById('fslot_minutas_' + fi);\n"
+ "    if (!img || !slot) continue;\n"
+ "    img.removeAttribute('src'); img.style.display = 'none';\n"
+ "    const sp = slot.querySelector('span'); if (sp) sp.style.display = '';\n"
+ "    const inp = slot.querySelector('input'); if (inp) inp.value = '';\n"
+ "  }\n"
+ "}\n"
+ "const _initAppContentBase163 = initAppContent;\n"
+ "initAppContent = function(){ const r = _initAppContentBase163.apply(this, arguments); _minLimpiar(); return r; };\n"
+ "// Sin minutas, la tarjeta no sale en el papel.\n"
+ "window.addEventListener('beforeprint', function(){\n"
+ "  const c = document.getElementById('min-card');\n"
+ "  if (c) c.classList.toggle('vacio-impresion', ![0,1,2,3,4,5].some(fi => { const im = document.getElementById('fimg_minutas_' + fi); return im && im.src && im.src.indexOf('data:') === 0; }));\n"
+ "});\n"
+ "\n"
+ "// ═══ 162. Actividades en ejecución: una vez por visita a la torre ═══════════\n",
+ "163f· vaciar al empezar otro informe")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

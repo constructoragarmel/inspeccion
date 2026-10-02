@@ -689,6 +689,7 @@ def construir():
         .replace('@@UNIDAD@@', json.dumps(contenido.UNIDAD_CANTIDAD))
         .replace('@@MAXFOTOS@@', str(motor.MAX_FOTOS_SECCION))
         .replace('@@MAXPX@@', str(motor.MAX_FOTO_PX))
+        .replace('@@MAXMINUTAS@@', str(motor.MAX_MINUTAS))
         .replace('@@CALIDAD@@', str(motor.CALIDAD_FOTO))
         .replace('@@RELEVO@@', json.dumps(motor.RELEVO_URL))
         .replace('@@JS@@', "const ESTADOS_HALLAZGO = %s;\n" % json.dumps(contenido.ESTADOS_HALLAZGO, ensure_ascii=False) +

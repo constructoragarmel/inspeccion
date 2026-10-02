@@ -337,5 +337,20 @@ cargarInforme = function(id){
   return r;
 };
 
+// ── Un informe de varias torres también es la visita anterior de las demás (v116, 2-oct-2026) ──
+// Se archiva una sola vez, en la principal, y hasta ahora solo la principal lo recordaba: al volver solo a la
+// T-14, el formulario no ofrecía los hallazgos del informe hecho para la T-15, la T-14 y la T-13. Ahora la memoria
+// del teléfono lo anota en cada una (y el relevo hace lo mismo para los demás teléfonos: VariasTorres.gs). Un
+// informe propio de la torre, más nuevo, sigue mandando: la regla de fechas es la de siempre.
+const _anotarEstadoTorreBaseU = anotarEstadoTorre;
+anotarEstadoTorre = function(d){
+  _anotarEstadoTorreBaseU.apply(this, arguments);
+  const u = d && d.ubicacion;
+  if (!u || u.modo !== 'varias') return;
+  (u.otras || []).forEach(function(o){
+    if (o && o !== d.torre) _anotarEstadoTorreBaseU(Object.assign({}, d, { torre: o }));
+  });
+};
+
 _pintarDonde();
 _torresDelSector();

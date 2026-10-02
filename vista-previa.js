@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: 34f6221b25
+// Huella de la fuente: 153d86e8cb
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -452,6 +452,7 @@ function _pdfHtml(p) {
       cuerpo +
       _pdfObservacionGeneral(d) +
       _pdfFirmas(p, d) +
+      _pdfMinutas(p) +
     '</body></html>';
 }
 function _pdfMembrete(p, d, titulo) {
@@ -638,6 +639,23 @@ function _pdfFotos(fotos) {
     }
     html += '</tr></table>';
   }
+  return html;
+}
+var PDF_ANCHO_MINUTA = 500;
+function _pdfMinutas(p, sinSalto) {
+  var fotos = (_pdfFotosPorHito(p)['minutas'] || []).slice().sort(function (a, b) { return a.num - b.num; });
+  if (!fotos.length) return '';
+  var meta = (p.datos || {}).fotosMinutas || [];
+  var html = '<table width="100%" cellpadding="4" cellspacing="0" style="margin-top:14px' + (sinSalto ? '' : ';page-break-before:always') + '"><tr>' +
+               '<td style="color:#1a237e;font-weight:bold;font-size:12px;border-bottom:2px solid #1a237e">ANEXO \u00b7 MINUTAS DE CAMPO (' + fotos.length + ')</td>' +
+             '</tr></table>';
+  fotos.forEach(function (f, k) {
+    var pie = String(((meta[f.num - 1] || {}).pie) || '').trim();
+    html += '<table width="100%" cellpadding="4" cellspacing="0" style="margin-top:8px;page-break-inside:avoid"><tr><td align="center">' +
+              '<img src="' + f.dato + '" width="' + PDF_ANCHO_MINUTA + '">' +
+              '<div style="font-size:9px;color:#555;margin-top:3px">Minuta ' + (k + 1) + ' de ' + fotos.length + (pie ? ' \u2014 ' + _pdfEsc(pie) : '') + '</div>' +
+            '</td></tr></table>';
+  });
   return html;
 }
 function _pdfObservacionGeneral(d, sinActividades) {
@@ -885,6 +903,7 @@ function _pdfHtmlServicios(p) {
       cuerpo +
       _pdfObservacionGeneral(d) +
       _pdfFirmas(p, d) +
+      _pdfMinutas(p) +
     '</body></html>';
 }
 function _pdfIdentificacionServicios(p, d) {
@@ -1006,6 +1025,7 @@ function _pdfHtmlSha(p) {
       cuerpo +
       _pdfObservacionGeneral(d) +
       _pdfFirmas(p, d, 'Inspector SHA') +
+      _pdfMinutas(p) +
     '</body></html>';
 }
 function _obstaculoConDato(o) {
@@ -1136,6 +1156,7 @@ function _pdfHtmlUrbanismo(p) {
       cuerpo +
       _pdfObservacionGeneral(d) +
       _pdfFirmas(p, d, 'Inspector') +
+      _pdfMinutas(p) +
     '</body></html>';
 }
 function _pdfIdentificacionUrbanismo(p, d) {
@@ -1217,7 +1238,7 @@ function _pdfCamionesUrbanismo(it) {
            '<b>Camiones:</b> ' + lista + '<br>' + cuenta + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: '34f6221b25',
+    huella: '153d86e8cb',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];

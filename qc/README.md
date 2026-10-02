@@ -423,3 +423,26 @@ panel, con sus fotos; y un informe enviado no lo ofrece. **El punto 9 lee fotos 
 **`t60torres` (2-oct-2026, relevo r41).** En `pdf/`, con `Codigo.gs` y `Sha.gs` cargados; 4 comprobaciones de
 `_torresDeSha`: una torre, varias (la del informe primero, sin repetir), las de Simón Bolívar, y que «Toda la zona» o
 una manzana no metan nada que no sea una torre del padrón.
+
+**`t61`, `t62` y `t61varias` (2-oct-2026, v116 y relevo r42): minutas de campo y los informes de varias torres.**
+
+- **Minutas de campo.** Un bloque de fotos más en los cuatro formularios (`PA-116`): la minuta firmada en la visita,
+  hoja por hoja, hasta 6. Viaja como `minutas-N`, se archiva con el informe y el relevo la imprime como anexo del PDF.
+  Una hoja se guarda a 1600 px (una foto de obra, a 1280) para que se pueda leer.
+  - `t61` (11, en `servicios.html`, `sha.html` y `urbanismo.html`): la tarjeta antes de la observación general; el
+    tamaño de la hoja; lo que viaja en los datos y en el sobre; el tope de 6 aunque las fotos de sección sean 3; el
+    anexo en la vista previa; «Nuevo» lo vacía; guardar y reabrir; y que cabe.
+  - `t62` (9, en `inspeccion.html`): lo mismo en obra, donde el bloque es fijo, al final del informe, y usa las
+    funciones de las fotos de los hitos con el grupo `minutas`.
+- **Varias torres.** Un informe de varias torres se archiva una vez, en la principal. Ahora en las otras queda un
+  acceso directo al PDF, y su «visita anterior» lo encuentra: el teléfono lo anota en la memoria de cada torre (`t61`,
+  puntos 10 y 11) y el relevo lo marca en sus propiedades (`t61varias`).
+  - `t61varias` (14, en `pdf/`, con `Codigo.gs`, `Sha.gs`, `Urbanismo.gs`, `Consolidado.gs`, `Particion.gs` y
+    `VariasTorres.gs`, contra un Drive de mentira): los accesos directos y las marcas, sin duplicar al repetir; el
+    historial de la otra torre trae el compartido, salvo que tenga uno propio más nuevo; un reenvío actualiza la marca;
+    urbanismo por manzana; y el anexo de minutas en los cuatro PDF, después de las firmas y en página nueva.
+
+Los puntos que leen IndexedDB (`t61` 8, `t62` 6) y `t61` en SHA y urbanismo se corren en navegador: sin ventana la foto
+de 3000 px no termina de reducirse. En navegador a 375 px: `t61` 11/11 en los tres y `t62` 9/9. `t49` 7a pasó a contar
+solo los botones de cámara de los hitos.
+

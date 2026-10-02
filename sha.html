@@ -260,6 +260,14 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
   <div id="panel-c" class="panel"></div>
   <div id="panel-d" class="panel"></div>
 
+  <div class="tarjeta" id="tarjeta-minutas">
+    <label style="font-weight:600;font-size:13px;color:#475569">Minutas de campo (máx. 6)</label>
+    <div class="act-pista">Si en la visita se firmó una minuta, fotografíela aquí, hoja por hoja. Queda archivada con el informe y sale como anexo del PDF.</div>
+    <label class="btn-camara">📷 Fotografiar minuta<input type="file" accept="image/*" capture="environment" onchange="tomarFotos(event,'fotos-minutas')"></label>
+    <div class="o-galeria">o elija fotos que ya tomó:</div>
+    <input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-minutas')">
+    <div class="fotos" id="fotos-minutas"></div>
+  </div>
   <div class="tarjeta" id="cierre">
     <div class="campo">
       <label for="estatus">Estatus general de la inspección</label>
@@ -284,7 +292,7 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
       <div class="fotos" id="fotos-general"></div></div>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v115</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v116</div>
 </div>
 
 <div class="acciones">
@@ -414,6 +422,8 @@ const TXT_NA = {
   nota: 'N/A = no aplica a esta contratista. Si falta o está vencido, quite el N/A y marque NO.'
 };
 const MAX_FOTO_PX = 1280;
+// Una minuta es un documento: se guarda más grande que una foto de obra, para que se pueda leer (v116).
+const MAX_MINUTAS = 6, MAX_MINUTA_PX = 1600, GRID_MINUTAS = 'fotos-minutas';
 const CALIDAD_FOTO = 0.72;
 const RELEVO_URL = "https://script.google.com/macros/s/AKfycbwWgYbgMkNcxwN2gAH89N4EVUe6LO_RXR2IzBBc6mFfgJJNjixd6omK_ElAOSiFH-EqYg/exec";
 const ESTADOS_HALLAZGO = ["Pendiente", "En proceso", "Corregido"];
@@ -929,16 +939,17 @@ function tomarFotos(ev, gridId, pie){
   // El tope se decide AQUÍ, sobre los archivos elegidos, y no dentro de cada
   // reducción: reducir es asíncrono, y contando el grid al llegar cada foto,
   // cinco elegidas de golpe pasaban las cinco porque el grid seguía vacío.
-  const sitio = MAX_FOTOS_SECCION - grid.children.length;
+  const esMinuta = gridId === GRID_MINUTAS, tope = esMinuta ? MAX_MINUTAS : MAX_FOTOS_SECCION;
+  const sitio = tope - grid.children.length;
   if (files.length > sitio){
-    alert('Máximo ' + MAX_FOTOS_SECCION + ' fotografías por sección. ' +
+    alert('Máximo ' + tope + (esMinuta ? ' hojas de minuta por informe. ' : ' fotografías por sección. ') +
           (sitio > 0 ? 'Se toman las ' + sitio + ' primeras.' : 'No cabe ninguna más aquí.'));
     files = files.slice(0, Math.max(sitio, 0));
   }
   // Si el informe recién abierto aún está trayendo sus fotos de IndexedDB, se
   // espera: pintar encima de un grid a medio cargar las mezclaría.
   _fotosCargando.then(() => files.forEach(f => {
-    reducir(f, dataUrl => { pintarFotos(grid, [{ dato: dataUrl, pie: pie || '' }], true); _fotosSucias = true; marcar(); });
+    reducir(f, dataUrl => { pintarFotos(grid, [{ dato: dataUrl, pie: pie || '' }], true); _fotosSucias = true; marcar(); }, esMinuta ? MAX_MINUTA_PX : 0);
   }));
 }
 
@@ -998,14 +1009,15 @@ function pintarFotos(grid, fotos, anadir){
   });
 }
 
-function reducir(file, listo){
+function reducir(file, listo, lado){
+  lado = lado || MAX_FOTO_PX;
   const r = new FileReader();
   r.onload = e => {
     const img = new Image();
     img.onload = () => {
       let {width: w, height: h} = img;
-      if (w > MAX_FOTO_PX || h > MAX_FOTO_PX){
-        const f = MAX_FOTO_PX / Math.max(w, h);
+      if (w > lado || h > lado){
+        const f = lado / Math.max(w, h);
         w = Math.round(w * f); h = Math.round(h * f);
       }
       const cv = document.createElement('canvas');
@@ -1080,6 +1092,7 @@ function datosDelFormulario(){
              fotos: leerFotos(fila.querySelector('.fotos')) };
   });
   const grupos = {};
+  grupos['minutas'] = leerDatosFotos(document.getElementById(GRID_MINUTAS));   // v116; va primero: los derivados anclan en las líneas de abajo
   GENERAL.forEach(srv => { grupos[srv.id] = leerDatosFotos(document.getElementById('fotos-' + srv.id)); });
   [...document.querySelectorAll('#filas-apto .fila-apto')].forEach((fila, i) => { grupos['apto:' + i] = leerDatosFotos(fila.querySelector('.fotos')); });
   grupos['general'] = leerDatosFotos(document.getElementById('fotos-general'));
@@ -1102,6 +1115,7 @@ function datosDelFormulario(){
     ...(document.getElementById('actividades') ? { actividades: val('actividades') } : {}),
     noInspeccionados: noInsp,
     general, apartamentos: aptos,
+    fotosMinutas: leerFotos(document.getElementById(GRID_MINUTAS)),
     guardado: new Date().toISOString()
   };
 }
@@ -1111,7 +1125,7 @@ function datosDelFormulario(){
 function informeVacio(d){
   return !(d.general || []).some(g => (g.obs || '').trim() || (g.fotos || []).length ||
                                       (g.items || []).some(i => i.sn || (i.obs || '').trim())) &&
-         !(d.apartamentos || []).length && !(d.fotosGenerales || []).length && !(d.incidencias || []).length && !hayObstaculos(d.obstaculos) && !(d.fotosObstaculos || []).length &&
+         !(d.apartamentos || []).length && !(d.fotosGenerales || []).length && !(d.incidencias || []).length && !hayObstaculos(d.obstaculos) && !(d.fotosObstaculos || []).length && !(d.fotosMinutas || []).length &&
          !(d.noInspeccionados || []).length && !(d.obs_general || '').trim() && !(d.actividades || '').trim() && !d.estatus;
 }
 
@@ -1573,6 +1587,7 @@ function cargarInforme(id){
       if (a.heredado){ const fila = document.querySelector('#filas-apto .fila-apto:last-child');
         fila.classList.add('heredado'); fila.dataset.heredado = a.heredado; }
     });
+    pintarFotos(document.getElementById(GRID_MINUTAS), (d.fotosMinutas || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '…' }));
     try { localStorage.setItem(CLAVE_ACTUAL, d.id); } catch(e){}
     // Las imágenes llegan de IndexedDB un instante después; mientras, cada
     // foto se pinta con su pie y un «…». Un informe anterior a la v64 puede
@@ -1583,6 +1598,8 @@ function cargarInforme(id){
         const datos = grupos[g.id] || [];
         pintarFotos(document.getElementById('fotos-' + g.id), (g.fotos || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : datos[k] || '') })));
       });
+      const dmin = grupos['minutas'] || [];
+      pintarFotos(document.getElementById(GRID_MINUTAS), (d.fotosMinutas || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : dmin[k] || '') })));
       [...document.querySelectorAll('#filas-apto .fila-apto')].forEach((fila, i) => {
         const a = (d.apartamentos || [])[i]; if (!a) return;
         const datos = grupos['apto:' + i] || [];
@@ -1615,6 +1632,7 @@ function vaciarFormulario(){
   document.getElementById('estatus').value = ''; verRechazo();
   document.getElementById('inspectores').innerHTML = ''; addInspector();
   pintarGeneral(); pintarApartamentos(); pintarIncidencias(); pintarObstaculos();
+  document.getElementById(GRID_MINUTAS).innerHTML = '';
   const hoy = new Date();
   document.getElementById('fecha').value = hoy.getFullYear() + '-' + String(hoy.getMonth()+1).padStart(2,'0') + '-' + String(hoy.getDate()).padStart(2,'0');
   idActual = null; sucio = false; actualizarNro(); actualizarCuentas();
@@ -1738,6 +1756,7 @@ function sobreDe(d, clave, grupos){
   datos.fotosGenerales = soltar(datos.fotosGenerales, 'general', grupos['general']);
   (datos.incidencias || []).forEach((x, i) => { x.fotos = soltar(x.fotos, 'inc-' + (i + 1), grupos['inc:' + i]); });
   datos.fotosObstaculos = soltar(datos.fotosObstaculos, 'obst', grupos['obst']);
+  datos.fotosMinutas = soltar(datos.fotosMinutas, 'minutas', grupos['minutas']);   // viajan como minutas-1, minutas-2…
   delete datos.fotosDB;
   // El registro del relevo lee `estatus` y `residentes` como LISTAS —les hace
   // .join()— porque así viajan desde inspección. Un texto suelto reventaría
@@ -1831,6 +1850,7 @@ function marcarEnviado(id, nro){
       x.fotosGenerales = (x.fotosGenerales || []).map(soltar);
       (x.incidencias || []).forEach(k => { k.fotos = (k.fotos || []).map(soltar); });
       x.fotosObstaculos = (x.fotosObstaculos || []).map(soltar);
+      x.fotosMinutas = (x.fotosMinutas || []).map(soltar);
       FotosDB.borrar(id).catch(() => {});
       // Si es el que está en pantalla, sus fotos en el grid pasan a «ya en
       // Drive» en el próximo guardado; hasta entonces se siguen viendo.
@@ -2402,6 +2422,21 @@ cargarInforme = function(id){
     _pintarDonde(); actualizarNro();
   }
   return r;
+};
+
+// ── Un informe de varias torres también es la visita anterior de las demás (v116, 2-oct-2026) ──
+// Se archiva una sola vez, en la principal, y hasta ahora solo la principal lo recordaba: al volver solo a la
+// T-14, el formulario no ofrecía los hallazgos del informe hecho para la T-15, la T-14 y la T-13. Ahora la memoria
+// del teléfono lo anota en cada una (y el relevo hace lo mismo para los demás teléfonos: VariasTorres.gs). Un
+// informe propio de la torre, más nuevo, sigue mandando: la regla de fechas es la de siempre.
+const _anotarEstadoTorreBaseU = anotarEstadoTorre;
+anotarEstadoTorre = function(d){
+  _anotarEstadoTorreBaseU.apply(this, arguments);
+  const u = d && d.ubicacion;
+  if (!u || u.modo !== 'varias') return;
+  (u.otras || []).forEach(function(o){
+    if (o && o !== d.torre) _anotarEstadoTorreBaseU(Object.assign({}, d, { torre: o }));
+  });
 };
 
 _pintarDonde();

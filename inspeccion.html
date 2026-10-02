@@ -1180,6 +1180,25 @@ tr.heredada td.desc{background:#fff8e1}
 </div>
 </div>
 
+<!-- MINUTAS DE CAMPO (163) -->
+<div class="content">
+<div class="obs-card" id="min-card">
+  <h3>Minutas de campo<span class="solo-pantalla" style="font-weight:400;color:#666"> (máx. 6 hojas)</span></h3>
+  <p class="act-pista solo-pantalla">Si en la visita se firmó una minuta, fotografíela aquí, hoja por hoja. Queda archivada con el informe y sale como anexo del PDF.</p>
+  <div class="foto-sec" style="margin:0">
+    <label class="btn-camara solo-pantalla">📷 Fotografiar minuta<input type="file" accept="image/*" capture="environment" onchange="tomarFotoCamara('minutas', this)"></label>
+    <div class="foto-grid" id="fotos_minutas">
+      <div class="foto-slot" id="fslot_minutas_0"><span>📄<br>Hoja 1</span><img id="fimg_minutas_0" style="display:none"><input type="file" accept="image/*" onchange="loadFoto('minutas',0,this)"><button class="foto-remove" onclick="removeFoto('minutas',0)">✕</button></div>
+      <div class="foto-slot" id="fslot_minutas_1"><span>📄<br>Hoja 2</span><img id="fimg_minutas_1" style="display:none"><input type="file" accept="image/*" onchange="loadFoto('minutas',1,this)"><button class="foto-remove" onclick="removeFoto('minutas',1)">✕</button></div>
+      <div class="foto-slot" id="fslot_minutas_2"><span>📄<br>Hoja 3</span><img id="fimg_minutas_2" style="display:none"><input type="file" accept="image/*" onchange="loadFoto('minutas',2,this)"><button class="foto-remove" onclick="removeFoto('minutas',2)">✕</button></div>
+      <div class="foto-slot" id="fslot_minutas_3"><span>📄<br>Hoja 4</span><img id="fimg_minutas_3" style="display:none"><input type="file" accept="image/*" onchange="loadFoto('minutas',3,this)"><button class="foto-remove" onclick="removeFoto('minutas',3)">✕</button></div>
+      <div class="foto-slot" id="fslot_minutas_4"><span>📄<br>Hoja 5</span><img id="fimg_minutas_4" style="display:none"><input type="file" accept="image/*" onchange="loadFoto('minutas',4,this)"><button class="foto-remove" onclick="removeFoto('minutas',4)">✕</button></div>
+      <div class="foto-slot" id="fslot_minutas_5"><span>📄<br>Hoja 6</span><img id="fimg_minutas_5" style="display:none"><input type="file" accept="image/*" onchange="loadFoto('minutas',5,this)"><button class="foto-remove" onclick="removeFoto('minutas',5)">✕</button></div>
+    </div>
+  </div>
+</div>
+</div>
+
 <!-- MODAL INFORMES GUARDADOS LOCALMENTE -->
 <div class="overlay" id="savedOverlay">
   <div class="modal">
@@ -1362,10 +1381,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v115';
+    el.textContent = '● en línea · v116';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v115 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v116 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -3064,7 +3083,7 @@ function loadFoto(pid,fi,inp){
     tmp.onload = () => {
       try {
         let w = tmp.naturalWidth, h = tmp.naturalHeight;
-        const esc = Math.min(1, MAX_FOTO_PX / Math.max(w, h));
+        const esc = Math.min(1, (pid === 'minutas' ? MAX_MINUTA_PX : MAX_FOTO_PX) / Math.max(w, h));
         w = Math.max(1, Math.round(w * esc));
         h = Math.max(1, Math.round(h * esc));
         const cv = document.createElement('canvas');
@@ -3090,7 +3109,7 @@ function tomarFotoCamara(pid, inp){
     const img = document.getElementById('fimg_' + pid + '_' + fi);
     if (img && (img.style.display === 'none' || !img.getAttribute('src'))) libre = fi;
   }
-  if (libre < 0){ alert('Este hito ya tiene sus 6 fotos. Quite una para tomar otra.'); inp.value = ''; return; }
+  if (libre < 0){ alert(pid === 'minutas' ? 'Ya hay 6 hojas de minuta. Quite una para tomar otra.' : 'Este hito ya tiene sus 6 fotos. Quite una para tomar otra.'); inp.value = ''; return; }
   loadFoto(pid, libre, inp);
   setTimeout(function(){ inp.value = ''; }, 1500);   // para que la misma foto se pueda volver a tomar
 }
@@ -3168,6 +3187,11 @@ function getFormData(){
       const im = document.getElementById(`fimg_${p.id}_${fi}`);
       return (im && im.src && im.src.indexOf('data:') === 0) ? im.src : '';
     });
+  });
+  // 163: las minutas de campo son un grupo de fotos más.
+  d.fotos.minutas = [0,1,2,3,4,5].map(fi=>{
+    const im = document.getElementById('fimg_minutas_' + fi);
+    return (im && im.src && im.src.indexOf('data:') === 0) ? im.src : '';
   });
   
   if (formType === 'hitos') {
@@ -3578,6 +3602,9 @@ function loadDraftData(index) {
       d.fotos[p.id].forEach((src,fi)=>{ if(src && src !== 'idb') _pintarFoto(p.id, fi, src); });
     }
   });
+  if(d.fotos && d.fotos.minutas){
+    d.fotos.minutas.forEach((src,fi)=>{ if(src && src !== 'idb') _pintarFoto('minutas', fi, src); });
+  }
 
   _todosLosValoresAlPapel();
   closeSavedModal();
@@ -3946,6 +3973,26 @@ function _restaurarTrasImpresion(){
 }
 window.addEventListener('beforeprint', _prepararImpresion);
 window.addEventListener('afterprint', _restaurarTrasImpresion);
+
+// ═══ 163. Minutas de campo ══════════════════════════════════════════════════
+const MAX_MINUTA_PX = 1600;   // una hoja escrita a mano necesita más que una foto de obra para leerse
+// El bloque es fijo (no lo redibuja initAppContent, como a los hitos): al empezar otro informe se vacía aquí.
+function _minLimpiar(){
+  for (let fi = 0; fi < 6; fi++){
+    const img = document.getElementById('fimg_minutas_' + fi), slot = document.getElementById('fslot_minutas_' + fi);
+    if (!img || !slot) continue;
+    img.removeAttribute('src'); img.style.display = 'none';
+    const sp = slot.querySelector('span'); if (sp) sp.style.display = '';
+    const inp = slot.querySelector('input'); if (inp) inp.value = '';
+  }
+}
+const _initAppContentBase163 = initAppContent;
+initAppContent = function(){ const r = _initAppContentBase163.apply(this, arguments); _minLimpiar(); return r; };
+// Sin minutas, la tarjeta no sale en el papel.
+window.addEventListener('beforeprint', function(){
+  const c = document.getElementById('min-card');
+  if (c) c.classList.toggle('vacio-impresion', ![0,1,2,3,4,5].some(fi => { const im = document.getElementById('fimg_minutas_' + fi); return im && im.src && im.src.indexOf('data:') === 0; }));
+});
 
 // ═══ 162. Actividades en ejecución: una vez por visita a la torre ═══════════
 // Lo escrito se recuerda con la torre y la fecha. En el informe siguiente de esa

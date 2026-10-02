@@ -742,6 +742,7 @@ def construir():
         .replace('@@UNIDAD@@', json.dumps(contenido.UNIDAD_CANTIDAD))
         .replace('@@MAXFOTOS@@', str(MAX_FOTOS))
         .replace('@@MAXPX@@', str(motor.MAX_FOTO_PX))
+        .replace('@@MAXMINUTAS@@', str(motor.MAX_MINUTAS))
         .replace('@@CALIDAD@@', str(motor.CALIDAD_FOTO))
         .replace('@@RELEVO@@', json.dumps(motor.RELEVO_URL))
         .replace('@@JS@@', PREFIJO + J)

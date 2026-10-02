@@ -56,7 +56,7 @@ ok('6 · Con filas agregadas, nada se sale a ' + innerWidth + ' px', document.do
 const cam = document.querySelector('#p_' + PID + ' .btn-camara input');
 const conFoto = () => [0, 1, 2, 3, 4, 5].filter(fi => { const i = document.getElementById('fimg_' + PID + '_' + fi); return i && i.style.display !== 'none' && i.getAttribute('src'); });
 ok('7a · Cada hito tiene su botón «Tomar foto», que abre la cámara', !!cam && cam.getAttribute('capture') === 'environment' && /Tomar foto/.test(cam.closest('label').textContent) &&
-   document.querySelectorAll('.btn-camara input').length === PARTIDAS.length, document.querySelectorAll('.btn-camara input').length + ' botones');
+   document.querySelectorAll('[id^="p_"] .btn-camara input').length === PARTIDAS.length, document.querySelectorAll('[id^="p_"] .btn-camara input').length + ' botones en los hitos (el de minutas, v116, va aparte)');
 Q.ponerFotos(cam, [await Q.foto(800, 600, 1)]);
 await hasta(() => conFoto().length === 1, 30000);
 ok('7 · La foto tomada con la cámara cae en el primer hueco libre', conFoto().join() === '0', 'huecos con foto: ' + conFoto().join());
