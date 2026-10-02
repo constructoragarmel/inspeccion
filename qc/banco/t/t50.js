@@ -82,8 +82,8 @@ put('ej_' + X, ''); put('desc_' + X, '');
 const antes8 = nota(B); na(B); await esperar(100); const con8 = nota(B), vis8 = !!document.getElementById('pct_' + B).closest('tr').querySelector('.na-nota')?.offsetParent;
 na(B); await esperar(100); const sin8 = nota(B);
 na(B); await esperar(50); setEv(document.querySelector(`.ev-btn.B[data-rid="${B}"]`)); await esperar(50); const otra8 = nota(B);
-ok('8 · Al marcar N/A la fila dice debajo qué significa («no existe aquí, o no se pudo ver… ponga 0»); se quita al desmarcar y al elegir otra evaluación',
-   antes8 === '' && /no existe aquí/.test(con8) && /ponga 0/.test(con8) && vis8 && sin8 === '' && otra8 === '', 'nota: «' + con8 + '» · a la vista ' + vis8);
+ok('8 · Al marcar N/A la fila dice debajo qué significa («no existe aquí, o no se pudo ver… escriba 0»); se quita al desmarcar y al elegir otra evaluación',
+   antes8 === '' && /no existe aquí/.test(con8) && /quite el N\/A y escriba 0\./.test(con8) && vis8 && sin8 === '' && otra8 === '', 'nota: «' + con8 + '» · a la vista ' + vis8);
 setEv(document.querySelector(`.ev-btn.B[data-rid="${B}"]`));
 
 // ── 9 ──
@@ -103,7 +103,7 @@ const n0 = (await Q.envios()).length; Q.dialogos.length = 0; Q.aceptar = false;
 await enviarAlRelevo(); await esperar(600);
 const n1 = (await Q.envios()).length, preg = Q.dialogos.filter(m => /Marcó N\/A en 3 filas/.test(m));
 ok('11 · Con tres N/A pregunta una vez antes de enviar, dice que lo pendiente va en 0, y con «Cancelar» no se envía nada',
-   preg.length === 1 && /NO EXISTE en este apartamento/.test(preg[0]) && /va en 0/.test(preg[0]) && n1 === n0 && !document.getElementById('btn-enviar-relevo').disabled,
+   preg.length === 1 && /NO EXISTE en este apartamento/.test(preg[0]) && /va en «No iniciado», en «No» o en 0/.test(preg[0]) && n1 === n0 && !document.getElementById('btn-enviar-relevo').disabled,
    'preguntas ' + preg.length + ' · envíos ' + n0 + ' → ' + n1);
 
 // ── 12 ──
@@ -140,3 +140,23 @@ ok('16 · La leyenda se ve con el hito abierto, cabe a ' + ancho + ' px en no m�
    vis.length >= 8 && vis.every(l => { const r = l.getBoundingClientRect(); return r.left >= 0 && r.right <= ancho + 1 && r.height <= 80; }) &&
    ley.every(l => l.classList.contains('solo-pantalla')) && document.documentElement.scrollWidth <= ancho + 1,
    vis.length + ' a la vista · alto ' + Math.round(r0.height) + ' px · ancho ' + Math.round(r0.width) + ' px');
+
+// ── 17 a 19. La leyenda y la nota nombran solo lo que la fila tiene (v111) ──
+await limpiar(); setAmbito('apartamento'); await esperar(200); cabecera(); abrirTodo(); await esperar(200);
+const ley17 = pid => (document.querySelector('.leyenda-na[data-p="' + pid + '"]')?.textContent || '');
+const a17 = { vent: ley17('hito_ventanas'), prue: ley17('hito_pruebas'), elec: ley17('hito_puertas'), serv: ley17('hito_servicios') };
+ok('17 · En apartamento: ventanas y puertas (solo piezas) dicen «escriba 0» y no nombran «No iniciado»; pruebas dice «No»; servicios, que mezcla, dice las dos',
+   /escriba 0\.$/.test(a17.vent) && !/No iniciado/.test(a17.vent) && /escriba 0\.$/.test(a17.elec) && !/No iniciado/.test(a17.elec) &&
+   /marque «No»\.$/.test(a17.prue) && !/escriba 0/.test(a17.prue) && /marque «No iniciado» o escriba 0 donde se cuenta o se mide\.$/.test(a17.serv),
+   'ventanas: …' + a17.vent.slice(-40) + ' | pruebas: …' + a17.prue.slice(-30) + ' | servicios: …' + a17.serv.slice(-60));
+setAmbito('torre'); await esperar(300);
+const t18 = ley17('hito_acc_electricos');
+setAmbito('apartamento'); await esperar(300);
+ok('18 · La leyenda sigue al ámbito: accesorios eléctricos en torre solo tiene filas de estado («No iniciado», sin «escriba 0»); en apartamento, las dos',
+   /marque «No iniciado»\.$/.test(t18) && !/escriba 0/.test(t18) && /marque «No iniciado» o escriba 0 donde se cuenta o se mide\.$/.test(ley17('hito_acc_electricos')),
+   'torre: …' + t18.slice(-40) + ' | apartamento: …' + ley17('hito_acc_electricos').slice(-62));
+abrirTodo(); await esperar(200);
+const rEst = filasDe('estado')[0].rid, rSN = 'hito_pruebas_0';
+na(rEst); na(rSN); await esperar(100);
+ok('19 · La nota al marcar N/A dice el gesto de esa fila: «No iniciado» en una de estado, «No» en una de Sí / No',
+   /quite el N\/A y marque «No iniciado»\.$/.test(nota(rEst)) && /quite el N\/A y marque «No»\.$/.test(nota(rSN)), nota(rEst).slice(-45) + ' | ' + nota(rSN).slice(-35));

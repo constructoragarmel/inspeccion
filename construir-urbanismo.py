@@ -252,6 +252,11 @@ function guardarNuevaManzana(){
 }
 """
 
+# 11z · En urbanismo el N/A es de la CALIDAD (B / R / M / N/A), no una respuesta: no saca la partida del avance, que
+# sale de la cantidad. La leyenda y la nota de servicios hablarían de un «NO» que aquí no existe, así que no van.
+H = sustituir(H, "leyenda: '<b>N/A</b> es solo para lo que <b>no aplica en esta torre</b>. Si no existe o no está hecho, es <b>NO</b>.',", "leyenda: '',", "11z· sin leyenda de N/A")
+H = sustituir(H, "nota: 'N/A = no aplica en esta torre. Si no existe o no está hecho, quite el N/A y marque NO.'", "nota: ''", "11z· sin nota de N/A")
+
 # 12 · La fila de partida: cantidad ejecutada con unidad fija, proyectada (solo
 # planificación), calidad B / R / M / N-A y observación.
 J = sustituir(J, "  d.innerHTML =\n    '<div class=\"cab-item\">' +",

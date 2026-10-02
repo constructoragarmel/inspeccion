@@ -7935,6 +7935,17 @@ if LISTA_V2:
      "  const t = String(ej.value || '').trim().replace(',', '.');\n"
      "  return t !== '' && parseFloat(t) === 0;\n"
      "}\n"
+     "// Cómo se marca «todavía no está hecho» en ESTA fila: el botón «No iniciado» solo existe en las de estado, y el\n"
+     "// «No» en las de Sí / No; en las que se cuentan o se miden se escribe 0 (v111: la leyenda nombraba un botón que\n"
+     "// en muchos hitos no está).\n"
+     "function _comoVaLoPendiente(rid){\n"
+     "  const m = String(rid || '').match(/^(.*)_(\\d+)$/);\n"
+     "  if (m && PARTIDAS.some(function(p){ return p.id === m[1]; })) {\n"
+     "    if (_esSiNo(m[1], +m[2])) return 'marque «No»';\n"
+     "    if (_esEstado(m[1], +m[2])) return 'marque «No iniciado»';\n"
+     "  }\n"
+     "  return 'escriba 0';\n"
+     "}\n"
      "function recalcRow(inp){\n",
      "159b· _ceroEscrito")
     s = sustituir(s,
@@ -7955,7 +7966,7 @@ if LISTA_V2:
      "    let _nota = _cel.querySelector('.na-nota');\n"
      "    if (btn.classList.contains('NA') && !isAlreadyOn) {\n"
      "      if (!_nota) { _nota = document.createElement('div'); _nota.className = 'na-nota solo-pantalla'; _cel.appendChild(_nota); }\n"
-     "      _nota.textContent = 'N/A = esto no existe aquí, o no se pudo ver. Si todavía no está hecho, quite el N/A y ponga 0.';\n"
+     "      _nota.textContent = 'N/A = esto no existe aquí, o no se pudo ver. Si todavía no está hecho, quite el N/A y ' + _comoVaLoPendiente(rid) + '.';\n"
      "    } else if (_nota) { _nota.remove(); }\n"
      "  }\n",
      "159e· la nota al marcar N/A")
@@ -7976,7 +7987,7 @@ if LISTA_V2:
      "enviarAlRelevo = async function(){\n"
      "  const n = camposFaltantes().length ? 0 : _filasEnNA();\n"
      "  if (n >= 3 && !confirm('Marcó N/A en ' + n + ' filas.\\n\\nN/A es solo para lo que NO EXISTE en este ' + (ambito === 'torre' ? 'edificio' : 'apartamento') +\n"
-     "      ' o no se pudo ver: esas filas salen del avance.\\nLo que todavía no está hecho va en 0.\\n\\n¿Enviar así?')) return;\n"
+     "      ' o no se pudo ver: esas filas salen del avance.\\nLo que todavía no está hecho va en «No iniciado», en «No» o en 0, según la fila.\\n\\n¿Enviar así?')) return;\n"
      "  return _enviarAlRelevoBase159.apply(this, arguments);\n"
      "};\n",
      "159f· pregunta antes de enviar con tres N/A o más")
@@ -7994,10 +8005,38 @@ if LISTA_V2:
     s = sustituir(s,
      '        <div class="p-body">\n          <div class="tbl-wrap"><table>',
      '        <div class="p-body">\n'
-     '          <div class="leyenda-na solo-pantalla"><b>N/A</b> es solo para lo que <b>no existe aquí</b> o no se pudo ver. '
-     'Si <b>no está iniciado</b>, no es N/A: marque «No iniciado» o ponga 0.</div>\n'
+     '          <div class="leyenda-na solo-pantalla" data-p="${p.id}">${_leyendaNA(p.id)}</div>\n'
      '          <div class="tbl-wrap"><table>',
      "160a· la leyenda al inicio de las subpartidas")
+    # v111: la leyenda nombra solo lo que ese hito tiene a la vista. «No iniciado» es un botón de las filas de estado;
+    # en un hito de piezas (tomacorrientes, puertas) no existe, y ahí lo pendiente es escribir 0.
+    s = sustituir(s,
+     "function _comoVaLoPendiente(rid){\n",
+     "function _leyendaNA(pid){\n"
+     "  const p = PARTIDAS.find(function(x){ return x.id === pid; });\n"
+     "  let est = false, sn = false, num = false;\n"
+     "  (p ? p.items : []).forEach(function(_, i){\n"
+     "    if (!_aplica(pid, i)) return;\n"
+     "    if (_esSiNo(pid, i)) sn = true; else if (_esEstado(pid, i)) est = true; else num = true;\n"
+     "  });\n"
+     "  const como = [];\n"
+     "  if (est) como.push('marque <b>«No iniciado»</b>');\n"
+     "  if (sn) como.push('marque <b>«No»</b>');\n"
+     "  if (num || !como.length) como.push('escriba <b>0</b>' + (est || sn ? ' donde se cuenta o se mide' : ''));\n"
+     "  return '<b>N/A</b> es solo para lo que <b>no existe aquí</b> o no se pudo ver. Si <b>no está iniciado</b>, no es N/A: ' +\n"
+     "         como.join(como.length > 2 ? ', ' : ' o ').replace(/, ([^,]*)$/, ' o $1') + '.';\n"
+     "}\n"
+     "function _refrescarLeyendas(){\n"
+     "  document.querySelectorAll('.leyenda-na[data-p]').forEach(function(d){ d.innerHTML = _leyendaNA(d.dataset.p); });\n"
+     "}\n"
+     "function _comoVaLoPendiente(rid){\n",
+     "160c· la leyenda según las filas del hito")
+    s = sustituir(s,
+     "const _enviarAlRelevoBase159 = enviarAlRelevo;\n",
+     "const _setAmbitoBase160 = setAmbito;\n"
+     "setAmbito = function(){ const r = _setAmbitoBase160.apply(this, arguments); try { _refrescarLeyendas(); } catch(e) {} return r; };\n"
+     "const _enviarAlRelevoBase159 = enviarAlRelevo;\n",
+     "160d· al cambiar de ámbito, la leyenda se rehace")
     s = sustituir(s,
      ".na-nota{flex-basis:100%;",
      ".leyenda-na{margin:8px 10px 4px;padding:7px 10px;border-left:4px solid #f9a825;background:#fff8e1;border-radius:4px;"

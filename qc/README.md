@@ -326,3 +326,18 @@ fila a la vista trae su «?» con la ayuda cerrada; tocar abre y volver a tocar 
 viaja en los datos ni cambia el avance; las filas agregadas no lo llevan; el «?» y las ayudas abiertas caben en la
 pantalla; no sale en el PDF; y un borrador reabre con las ayudas cerradas. En verde a 375 y a 320 px en navegador, y
 la regresión (`t21` a `t31`, `t35`, `t39`, `t42`, `t43`, `t47`, `t49`, `t50`) también.
+
+**v111 (2-oct-2026): el N/A, igual en los formularios que lo usan como respuesta.** Dos cosas:
+
+- **Inspección:** la leyenda de cada hito y la nota de cada fila nombraban «No iniciado», un botón que solo existe en
+  las filas de estado. Ahora nombran lo que ese hito (y esa fila) tiene: «No iniciado», «No» o escribir 0. La leyenda
+  se rehace al cambiar de ámbito. `t50` pasa a 19 comprobaciones.
+- **Servicios y SHA:** la misma leyenda al inicio de cada bloque y la misma nota al marcar N/A, con sus palabras
+  («no aplica en esta torre» / «a esta contratista»; lo que falta es NO). Vive en el motor (`TXT_NA` en
+  `construir-servicios.py`) y cada derivado cambia los textos. **Urbanismo no las lleva**: ahí el N/A es de la calidad,
+  no saca la partida del avance y no hay un «NO» que ofrecer. `t53` (6 en servicios, 6 en SHA, 2 en urbanismo).
+
+No se generalizó, y por qué: el **cero escrito** (los otros tres no calculan % desde piezas contadas), la **pregunta al
+enviar con tres N/A** (en servicios el N/A es legítimo y frecuente: una torre sin red de gas) y el **«?» de cada fila**
+(no hay de dónde sacar una línea por ítem de servicios, SHA o urbanismo sin inventarla). Regresión completa de los
+cuatro formularios, en verde; `t50` y `t53` también a 375 px en navegador.

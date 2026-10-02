@@ -148,6 +148,13 @@ for k in ["items", "list", "torres", "actual"]:
     J = sustituir(J, "'garmel_srv_%s'" % k, "'garmel_sha_%s'" % k, "10e· clave garmel_sha_%s" % k)
 J = sustituir(J, "indexedDB.open('garmel_servicios', 1)", "indexedDB.open('garmel_sha', 1)", "10f· base de fotos propia")
 
+# 10b · El N/A de los recaudos (v111): la misma leyenda y la misma nota que en servicios, con las palabras de SHA
+# (la guía: SÍ está y en regla · NO falta o está vencido · N/A no aplica a esta contratista).
+H = sustituir(H, "leyenda: '<b>N/A</b> es solo para lo que <b>no aplica en esta torre</b>. Si no existe o no está hecho, es <b>NO</b>.',",
+                 "leyenda: '<b>N/A</b> es solo para lo que <b>no aplica a esta contratista</b>. Si falta o está vencido, es <b>NO</b>.',", "10b· leyenda del N/A")
+H = sustituir(H, "nota: 'N/A = no aplica en esta torre. Si no existe o no está hecho, quite el N/A y marque NO.'",
+                 "nota: 'N/A = no aplica a esta contratista. Si falta o está vencido, quite el N/A y marque NO.'", "10c· nota del N/A")
+
 # 11 · Los recaudos abren desplegados: es un solo bloque y es lo primero que se
 # llena. Plegado, el inspector veía una pantalla con una sola línea.
 J = sustituir(J, "    srv.items.forEach(nombre => addItem(srv.id, nombre, true));\n",

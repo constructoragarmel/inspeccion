@@ -1341,10 +1341,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v110';
+    el.textContent = '● en línea · v111';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v110 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v111 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2539,7 +2539,7 @@ function initAppContent() {
           </div>
         </div>
         <div class="p-body">
-          <div class="leyenda-na solo-pantalla"><b>N/A</b> es solo para lo que <b>no existe aquí</b> o no se pudo ver. Si <b>no está iniciado</b>, no es N/A: marque «No iniciado» o ponga 0.</div>
+          <div class="leyenda-na solo-pantalla" data-p="${p.id}">${_leyendaNA(p.id)}</div>
           <div class="tbl-wrap"><table>
             <thead style="background:${colorHito(p)}">
               <tr>
@@ -2727,6 +2727,34 @@ function _ceroEscrito(rid){
   if (!ej || (pr && pr.dataset.est)) return false;
   const t = String(ej.value || '').trim().replace(',', '.');
   return t !== '' && parseFloat(t) === 0;
+}
+// Cómo se marca «todavía no está hecho» en ESTA fila: el botón «No iniciado» solo existe en las de estado, y el
+// «No» en las de Sí / No; en las que se cuentan o se miden se escribe 0 (v111: la leyenda nombraba un botón que
+// en muchos hitos no está).
+function _leyendaNA(pid){
+  const p = PARTIDAS.find(function(x){ return x.id === pid; });
+  let est = false, sn = false, num = false;
+  (p ? p.items : []).forEach(function(_, i){
+    if (!_aplica(pid, i)) return;
+    if (_esSiNo(pid, i)) sn = true; else if (_esEstado(pid, i)) est = true; else num = true;
+  });
+  const como = [];
+  if (est) como.push('marque <b>«No iniciado»</b>');
+  if (sn) como.push('marque <b>«No»</b>');
+  if (num || !como.length) como.push('escriba <b>0</b>' + (est || sn ? ' donde se cuenta o se mide' : ''));
+  return '<b>N/A</b> es solo para lo que <b>no existe aquí</b> o no se pudo ver. Si <b>no está iniciado</b>, no es N/A: ' +
+         como.join(como.length > 2 ? ', ' : ' o ').replace(/, ([^,]*)$/, ' o $1') + '.';
+}
+function _refrescarLeyendas(){
+  document.querySelectorAll('.leyenda-na[data-p]').forEach(function(d){ d.innerHTML = _leyendaNA(d.dataset.p); });
+}
+function _comoVaLoPendiente(rid){
+  const m = String(rid || '').match(/^(.*)_(\d+)$/);
+  if (m && PARTIDAS.some(function(p){ return p.id === m[1]; })) {
+    if (_esSiNo(m[1], +m[2])) return 'marque «No»';
+    if (_esEstado(m[1], +m[2])) return 'marque «No iniciado»';
+  }
+  return 'escriba 0';
 }
 function recalcRow(inp){
   const rid=inp.dataset.rid, pid=inp.dataset.p;
@@ -2924,7 +2952,7 @@ function setEv(btn){
     let _nota = _cel.querySelector('.na-nota');
     if (btn.classList.contains('NA') && !isAlreadyOn) {
       if (!_nota) { _nota = document.createElement('div'); _nota.className = 'na-nota solo-pantalla'; _cel.appendChild(_nota); }
-      _nota.textContent = 'N/A = esto no existe aquí, o no se pudo ver. Si todavía no está hecho, quite el N/A y ponga 0.';
+      _nota.textContent = 'N/A = esto no existe aquí, o no se pudo ver. Si todavía no está hecho, quite el N/A y ' + _comoVaLoPendiente(rid) + '.';
     } else if (_nota) { _nota.remove(); }
   }
   // Un ítem marcado N/A sale del promedio del hito, y uno que deja de estarlo
@@ -4776,11 +4804,13 @@ function _filasEnNA(){
     return _hitosDelAmbito().some(function(p){ return p.id === m[1]; }) && _aplica(m[1], Number(m[2]));
   }).length;
 }
+const _setAmbitoBase160 = setAmbito;
+setAmbito = function(){ const r = _setAmbitoBase160.apply(this, arguments); try { _refrescarLeyendas(); } catch(e) {} return r; };
 const _enviarAlRelevoBase159 = enviarAlRelevo;
 enviarAlRelevo = async function(){
   const n = camposFaltantes().length ? 0 : _filasEnNA();
   if (n >= 3 && !confirm('Marcó N/A en ' + n + ' filas.\n\nN/A es solo para lo que NO EXISTE en este ' + (ambito === 'torre' ? 'edificio' : 'apartamento') +
-      ' o no se pudo ver: esas filas salen del avance.\nLo que todavía no está hecho va en 0.\n\n¿Enviar así?')) return;
+      ' o no se pudo ver: esas filas salen del avance.\nLo que todavía no está hecho va en «No iniciado», en «No» o en 0, según la fila.\n\n¿Enviar así?')) return;
   return _enviarAlRelevoBase159.apply(this, arguments);
 };
 

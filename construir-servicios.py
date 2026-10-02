@@ -112,6 +112,9 @@ textarea{min-height:64px;resize:vertical}
 .sino button.si-on{background:#166534;color:#fff;border-color:#166534}
 .sino button.no-on{background:#991b1b;color:#fff;border-color:#991b1b}
 .sino button.na-on{background:#475569;color:#fff;border-color:#475569}
+/* La leyenda del N/A al inicio de cada bloque y la nota al marcarlo: lo mismo que en inspección de obra (v111). */
+.leyenda-na{margin:0 0 10px;padding:7px 10px;border-left:4px solid #f9a825;background:#fff8e1;border-radius:4px;font-size:12.5px;line-height:1.35;color:#4e342e}
+.na-nota{margin:-2px 0 8px;font-size:12px;line-height:1.3;color:#8f4b00;font-weight:600}
 .vacio{padding:14px;text-align:center;color:#64748b;font-size:13px;
       border:1px dashed var(--borde);border-radius:8px;background:#f8fafc}
 .btn-camara{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin:8px 0 6px;border:2px solid var(--azul);
@@ -317,6 +320,13 @@ const RENOMBRADOS = @@RENOMBRADOS@@;
 const APARTAMENTOS = @@APARTAMENTOS@@;
 const UNIDAD = @@UNIDAD@@;
 const MAX_FOTOS_SECCION = @@MAXFOTOS@@;
+// Qué quiere decir N/A en este formulario. Va al inicio de cada bloque (leyenda) y debajo del ítem al marcarlo
+// (nota). Es la misma facilidad de inspección de obra (v107 y v108), generalizada el 2-oct-2026: en obra se usó
+// dos veces el N/A para «todavía no está hecho». Cada formulario derivado pone sus textos; vacíos, no sale nada.
+const TXT_NA = {
+  leyenda: '<b>N/A</b> es solo para lo que <b>no aplica en esta torre</b>. Si no existe o no está hecho, es <b>NO</b>.',
+  nota: 'N/A = no aplica en esta torre. Si no existe o no está hecho, quite el N/A y marque NO.'
+};
 const MAX_FOTO_PX = @@MAXPX@@;
 const CALIDAD_FOTO = @@CALIDAD@@;
 const RELEVO_URL = @@RELEVO@@;
@@ -501,6 +511,7 @@ function pintarGeneral(){
       html += '<div class="vacio">Este servicio todavía no tiene lista de ítems.<br>' +
               'Agréguelos abajo mientras Ingeniería la define.</div>';
     }
+    if (TXT_NA.leyenda) html += '<div class="leyenda-na">' + TXT_NA.leyenda + '</div>';
     html += '<div id="items-' + srv.id + '"></div>' +
             '<button type="button" class="btn-add" onclick="agregarItemNuevo(\\'' + srv.id + '\\')">＋ Agregar ítem</button>' +
             '<textarea class="obs-srv" placeholder="Observación del servicio..." oninput="marcar()"></textarea>' +
@@ -674,6 +685,15 @@ function marcarSN(btn, v){
   const confirmar = ya && fila && fila.classList.contains('heredado');
   [...grupo.children].forEach(b => b.classList.remove('si-on','no-on','na-on'));
   if (!ya || confirmar) btn.classList.add(v === 'SI' ? 'si-on' : v === 'NO' ? 'no-on' : 'na-on');
+  // Al marcar N/A el ítem dice qué significa; se quita al desmarcar o al elegir otra respuesta.
+  const _it = btn.closest('.item');
+  if (_it && TXT_NA.nota){
+    let _n = _it.querySelector('.na-nota');
+    if (btn.classList.contains('na-on')){
+      if (!_n){ _n = document.createElement('div'); _n.className = 'na-nota'; grupo.insertAdjacentElement('afterend', _n); }
+      _n.textContent = TXT_NA.nota;
+    } else if (_n) _n.remove();
+  }
   tocado(btn);
   marcar();
 }
