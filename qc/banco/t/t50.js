@@ -136,14 +136,14 @@ ok('15 · Cada hito del ámbito abre con la leyenda del N/A, antes de la primera
    hitos.length >= 8 && ley.every(l => l && l.nextElementSibling && l.nextElementSibling.classList.contains('tbl-wrap') && /no existe aquí/.test(l.textContent) && /no está iniciado/.test(l.textContent)),
    hitos.length + ' hitos · con leyenda ' + ley.filter(Boolean).length);
 const vis = ley.filter(l => l && l.offsetParent), r0 = primera.getBoundingClientRect();
-ok('16 · La leyenda se ve con el hito abierto, cabe a ' + ancho + ' px en no más de tres renglones y no sale en el PDF (solo pantalla)',
-   vis.length >= 8 && vis.every(l => { const r = l.getBoundingClientRect(); return r.left >= 0 && r.right <= ancho + 1 && r.height <= 80; }) &&
+ok('16 · La leyenda se ve con el hito abierto, cabe a ' + ancho + ' px y no sale en el PDF (solo pantalla)',
+   vis.length >= 8 && vis.every(l => { const r = l.getBoundingClientRect(); return r.left >= 0 && r.right <= ancho + 1 && r.height <= 110; }) &&
    ley.every(l => l.classList.contains('solo-pantalla')) && document.documentElement.scrollWidth <= ancho + 1,
    vis.length + ' a la vista · alto ' + Math.round(r0.height) + ' px · ancho ' + Math.round(r0.width) + ' px');
 
 // ── 17 a 19. La leyenda y la nota nombran solo lo que la fila tiene (v111) ──
 await limpiar(); setAmbito('apartamento'); await esperar(200); cabecera(); abrirTodo(); await esperar(200);
-const ley17 = pid => (document.querySelector('.leyenda-na[data-p="' + pid + '"]')?.textContent || '');
+const ley17 = pid => (document.querySelector('.leyenda-na[data-p="' + pid + '"] .ley-frase')?.textContent || '');
 const a17 = { vent: ley17('hito_ventanas'), prue: ley17('hito_pruebas'), elec: ley17('hito_puertas'), serv: ley17('hito_servicios') };
 ok('17 · En apartamento: ventanas y puertas (solo piezas) dicen «escriba 0» y no nombran «No iniciado»; pruebas dice «No»; servicios, que mezcla, dice las dos',
    /escriba 0\.$/.test(a17.vent) && !/No iniciado/.test(a17.vent) && /escriba 0\.$/.test(a17.elec) && !/No iniciado/.test(a17.elec) &&
@@ -160,3 +160,21 @@ const rEst = filasDe('estado')[0].rid, rSN = 'hito_pruebas_0';
 na(rEst); na(rSN); await esperar(100);
 ok('19 · La nota al marcar N/A dice el gesto de esa fila: «No iniciado» en una de estado, «No» en una de Sí / No',
    /quite el N\/A y marque «No iniciado»\.$/.test(nota(rEst)) && /quite el N\/A y marque «No»\.$/.test(nota(rSN)), nota(rEst).slice(-45) + ' | ' + nota(rSN).slice(-35));
+
+// ── 20 a 23. La leyenda es plegable (v112) ──
+const leys = () => [...document.querySelectorAll('.leyenda-na[data-p]')].filter(l => l.offsetParent);
+const alto = l => Math.round(l.getBoundingClientRect().height);
+const abiertas20 = leys(), a20 = abiertas20.every(l => l.querySelector('.ley-texto').offsetParent && !l.querySelector('.ley-chip').offsetParent);
+ok('20 · La primera vez la leyenda sale abierta en cada hito, con su «Entendido · ocultar» y sin la pastilla',
+   abiertas20.length >= 6 && a20 && !document.body.classList.contains('ley-na-cerrada') && /Entendido/.test(abiertas20[0].querySelector('.ley-ocultar').textContent), abiertas20.length + ' a la vista · alto ' + alto(abiertas20[0]) + ' px');
+const h20 = alto(abiertas20[0]);
+abiertas20[0].querySelector('.ley-ocultar').click(); await esperar(100);
+const c21 = leys(), todas21 = c21.every(l => !l.querySelector('.ley-texto').offsetParent && l.querySelector('.ley-chip').offsetParent && alto(l) <= 40);
+ok('21 · Con un toque en «Entendido» se pliega en TODOS los hitos: queda una pastilla de una línea («¿Cuándo va N/A?») y se recuerda en el teléfono',
+   todas21 && localStorage.getItem('garmel_leyenda_na') === '1' && alto(c21[0]) < h20, 'de ' + h20 + ' px a ' + alto(c21[0]) + ' px · guardado ' + localStorage.getItem('garmel_leyenda_na'));
+const rN = filasDe('conteo')[0].rid; na(rN); await esperar(100);
+ok('22 · Plegada la leyenda, la nota al marcar N/A sigue saliendo en la fila', /quite el N\/A y escriba 0\.$/.test(nota(rN)), nota(rN).slice(-40));
+na(rN);
+c21[1].querySelector('.ley-chip').click(); await esperar(100);
+const a23 = leys().every(l => l.querySelector('.ley-texto').offsetParent);
+ok('23 · Tocar la pastilla la vuelve a abrir en todos, y también se recuerda', a23 && localStorage.getItem('garmel_leyenda_na') === '0' && document.documentElement.scrollWidth <= window.innerWidth + 1, 'abiertas ' + a23 + ' · guardado ' + localStorage.getItem('garmel_leyenda_na'));

@@ -15,8 +15,8 @@ if (pagina === 'urbanismo') {
   ok('2 · Y al marcar N/A en la calidad no aparece ninguna nota', !!g && !it.querySelector('.na-nota') && g.children[3].classList.contains('na-on'), 'N/A marcado: ' + (!!g && g.children[3].classList.contains('na-on')));
 } else {
   ok('1 · Cada bloque abre con la leyenda del N/A, antes del primer ítem, con las palabras de este formulario',
-     bloques.length > 0 && leyendas.every(l => l && l.nextElementSibling && /^items-/.test(l.nextElementSibling.id) && ESPERA[0].test(l.textContent) && ESPERA[1].test(l.textContent)),
-     pagina + ': ' + bloques.length + ' bloques · «' + (leyendas[0] ? leyendas[0].textContent : '') + '»');
+     bloques.length > 0 && leyendas.every(l => l && l.nextElementSibling && /^items-/.test(l.nextElementSibling.id) && ESPERA[0].test(l.querySelector('.ley-frase').textContent) && ESPERA[1].test(l.querySelector('.ley-frase').textContent)),
+     pagina + ': ' + bloques.length + ' bloques · «' + (leyendas[0] ? leyendas[0].querySelector('.ley-frase').textContent : '') + '»');
   const b0 = bloques.find(b => b.querySelector('.item')), sid = b0.id.replace('srv-', '');
   if (b0.querySelector('.cuerpo').hidden) plegar(sid);
   await esperar(100);
@@ -39,4 +39,16 @@ if (pagina === 'urbanismo') {
   const fuera = cajas.filter(e => { const r = e.getBoundingClientRect(); return r.left < 0 || r.right > ancho + 1; });
   ok('6 · A ' + ancho + ' px, con todos los bloques abiertos y un N/A en cada uno, nada se sale ni ensancha la página', cajas.length >= 2 && fuera.length === 0 && document.documentElement.scrollWidth <= ancho + 1,
      cajas.length + ' leyendas y notas · fuera ' + fuera.length + ' · scrollWidth ' + document.documentElement.scrollWidth + ' / ' + ancho);
+  // ── 7 y 8. Plegable (v112) ──
+  const vis = () => leyendas.filter(l => l.offsetParent), alto = l => Math.round(l.getBoundingClientRect().height);
+  const h7 = alto(vis()[0]), abierta7 = vis().every(l => l.querySelector('.ley-texto').offsetParent && !l.querySelector('.ley-chip').offsetParent);
+  vis()[0].querySelector('.ley-ocultar').click(); await esperar(100);
+  const cerr7 = vis().every(l => !l.querySelector('.ley-texto').offsetParent && l.querySelector('.ley-chip').offsetParent && alto(l) <= 40);
+  ok('7 · La leyenda sale abierta la primera vez; «Entendido» la pliega en todos los bloques a una pastilla de una línea y se recuerda',
+     abierta7 && cerr7 && localStorage.getItem('garmel_leyenda_na') === '1', 'de ' + h7 + ' px a ' + alto(vis()[0]) + ' px');
+  const it8 = bloques.find(b => b.querySelector('.item')).querySelector('.item');
+  const tenia8 = !!it8.querySelector('.na-nota');
+  vis()[0].querySelector('.ley-chip').click(); await esperar(100);
+  ok('8 · Plegada, la nota del N/A marcado sigue en el ítem; y la pastilla vuelve a abrir la leyenda',
+     tenia8 && vis().every(l => l.querySelector('.ley-texto').offsetParent) && localStorage.getItem('garmel_leyenda_na') === '0', 'nota presente ' + tenia8);
 }

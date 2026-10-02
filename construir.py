@@ -8023,9 +8023,20 @@ if LISTA_V2:
      "  if (est) como.push('marque <b>«No iniciado»</b>');\n"
      "  if (sn) como.push('marque <b>«No»</b>');\n"
      "  if (num || !como.length) como.push('escriba <b>0</b>' + (est || sn ? ' donde se cuenta o se mide' : ''));\n"
-     "  return '<b>N/A</b> es solo para lo que <b>no existe aquí</b> o no se pudo ver. Si <b>no está iniciado</b>, no es N/A: ' +\n"
+     "  const frase = '<b>N/A</b> es solo para lo que <b>no existe aquí</b> o no se pudo ver. Si <b>no está iniciado</b>, no es N/A: ' +\n"
      "         como.join(como.length > 2 ? ', ' : ' o ').replace(/, ([^,]*)$/, ' o $1') + '.';\n"
+     "  // v112: plegable. La primera vez sale abierta; con «Entendido» se pliega en TODOS los hitos y en los otros\n"
+     "  // formularios de este teléfono (misma clave), y queda una pastilla de una línea para volver a verla.\n"
+     "  return '<button type=\"button\" class=\"ley-chip\" onclick=\"plegarLeyendaNA(false)\">ⓘ ¿Cuándo va N/A?</button>' +\n"
+     "         '<div class=\"ley-texto\"><span class=\"ley-frase\">' + frase + '</span> ' +\n"
+     "         '<button type=\"button\" class=\"ley-ocultar\" onclick=\"plegarLeyendaNA(true)\">Entendido · ocultar</button></div>';\n"
      "}\n"
+     "function plegarLeyendaNA(cerrar){\n"
+     "  document.body.classList.toggle('ley-na-cerrada', !!cerrar);\n"
+     "  try { localStorage.setItem('garmel_leyenda_na', cerrar ? '1' : '0'); } catch(e) {}\n"
+     "}\n"
+     "function _leyendaNAGuardada(){ try { if (localStorage.getItem('garmel_leyenda_na') === '1' && document.body) document.body.classList.add('ley-na-cerrada'); } catch(e) {} }\n"
+     "_leyendaNAGuardada(); document.addEventListener('DOMContentLoaded', _leyendaNAGuardada);\n"
      "function _refrescarLeyendas(){\n"
      "  document.querySelectorAll('.leyenda-na[data-p]').forEach(function(d){ d.innerHTML = _leyendaNA(d.dataset.p); });\n"
      "}\n"
@@ -8040,7 +8051,18 @@ if LISTA_V2:
     s = sustituir(s,
      ".na-nota{flex-basis:100%;",
      ".leyenda-na{margin:8px 10px 4px;padding:7px 10px;border-left:4px solid #f9a825;background:#fff8e1;border-radius:4px;"
-     "font-size:12.5px;line-height:1.35;color:#4e342e}\n.na-nota{flex-basis:100%;",
+     "font-size:12.5px;line-height:1.35;color:#4e342e}\n"
+     ".ley-chip{display:none;border:1px solid #f0d58a;background:#fff8e1;color:#6d4c00;border-radius:999px;padding:5px 12px;"
+     "font-size:12px;font-weight:700;cursor:pointer;min-height:30px}\n"
+     ".ley-ocultar{border:0;background:none;color:#8f4b00;font-size:12px;font-weight:700;text-decoration:underline;"
+     "padding:6px 2px;cursor:pointer;white-space:nowrap}\n"
+     "body.ley-na-cerrada .leyenda-na{background:none;border-left:0;padding:0;margin:6px 10px 2px}\n"
+     "body.ley-na-cerrada .ley-texto{display:none}\n"
+     "body.ley-na-cerrada .ley-chip{display:inline-block}\n"
+     # En escritorio la celda de evaluación va centrada: la nota del N/A también, y sin estirarse a todo el ancho.
+     "@media screen and (min-width:701px) and (pointer:fine), screen and (min-width:701px) and (pointer:none){.na-nota{text-align:center;max-width:360px;margin-left:auto;margin-right:auto}"
+     ".ayuda-sub{max-width:520px}}\n"
+     ".na-nota{flex-basis:100%;",
      "160b· su estilo")
 
 # ── 161. Qué incluye cada subpartida, al tocar el «?» de la fila (2-oct-2026, pedido de Stephanie) ──

@@ -341,3 +341,14 @@ No se generalizó, y por qué: el **cero escrito** (los otros tres no calculan %
 enviar con tres N/A** (en servicios el N/A es legítimo y frecuente: una torre sin red de gas) y el **«?» de cada fila**
 (no hay de dónde sacar una línea por ítem de servicios, SHA o urbanismo sin inventarla). Regresión completa de los
 cuatro formularios, en verde; `t50` y `t53` también a 375 px en navegador.
+
+**v112 (2-oct-2026): la leyenda del N/A, plegable.** La primera vez sale abierta; «Entendido · ocultar» la pliega en
+todos los hitos o bloques a una pastilla de una línea («ⓘ ¿Cuándo va N/A?») y se recuerda en el teléfono
+(`garmel_leyenda_na`, la misma clave en inspección, servicios y SHA). La nota al marcar N/A sigue saliendo aunque esté
+plegada. `t50` pasa a 23 comprobaciones y `t53` a 8 en servicios y SHA.
+
+**Teléfono y escritorio.** La regresión de los cuatro formularios se corrió dos veces con `headless.py`: a 500 px (29
+tandas, en verde) y a 1280 px (`--ancho 1280 --alto 900`; 23 tandas). A 1280 solo falla `t25` punto 17, que mide que
+los botones tengan 44 px para el dedo: en escritorio miden 25 px a propósito, se usan con el ratón. A 375 px en
+navegador: `t50`, `t52` y `t53` en verde. Capturas de escritorio de inspección (leyenda abierta y plegada, «?» abierto,
+nota del N/A) y de servicios, revisadas a ojo: la nota del N/A se centró bajo los botones en escritorio.
