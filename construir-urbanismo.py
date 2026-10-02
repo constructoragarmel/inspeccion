@@ -99,10 +99,15 @@ H = sustituir(H, """  <div class="tarjeta">
       <button type="button" class="btn-add" style="width:auto;padding:0 14px" onclick="agregarSeccion()">＋ Agregar</button>
     </div>
   </div>
+  <div class="tarjeta" id="tarjeta-actividades">
+    <label style="font-weight:600;font-size:13px;color:#475569">Actividades en ejecución</label>
+    <div class="act-pista">Lo que se está haciendo hoy en esta manzana. Lo que usted encontró o pidió corregir va abajo, en la observación general.</div>
+    <textarea id="actividades" placeholder="Ej.: limpieza y desmalezamiento en la zona posterior; replanteo topográfico..."></textarea>
+  </div>
   <div class="tarjeta">
     <label style="font-weight:600;font-size:13px;color:#475569">Observación general</label>
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
-  </div>""", "6· agregar sección y observación general")
+  </div>""", "6· agregar sección, actividades en ejecución (v114) y observación general")
 H = sustituir(H, "➡️ Sig. torre", "➡️ Sig. manzana", "7· botón")
 # 7c · El botón interno de Planificación (respuesta 4 de Skarlet): detrás del
 # «⋯», enciende y apaga el campo «Proyectado» sin cambiar de enlace.

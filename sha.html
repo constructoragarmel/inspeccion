@@ -43,6 +43,8 @@ input,select,textarea{font:inherit;padding:10px;border:1px solid var(--borde);
 button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{
   outline:3px solid #1565c0;outline-offset:2px}
 textarea{min-height:64px;resize:vertical}
+.rot-campo{display:block;font-size:12.5px;font-weight:600;color:#475569;margin:8px 0 4px}
+.act-pista{font-size:12.5px;color:#64748b;margin:2px 0 6px;line-height:1.35}
 .pestanas{display:flex;gap:8px;margin:12px 0}
 .pestanas button{flex:1;min-height:44px;border:none;border-radius:8px;font-weight:700;
       font-size:14px;background:#e2e8f0;color:#475569}
@@ -268,7 +270,7 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
       <div class="fotos" id="fotos-general"></div></div>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v113</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v114</div>
 </div>
 
 <div class="acciones">
@@ -373,6 +375,16 @@ const APARTAMENTOS = [
       [
         "Acción correctiva / estatus",
         "lista"
+      ],
+      [
+        "Solución",
+        "obs",
+        "Qué se acordó o se le pidió a la contratista..."
+      ],
+      [
+        "Responsable del correctivo",
+        "texto",
+        "Quién lo va a corregir"
       ]
     ]
   }
@@ -812,7 +824,7 @@ function addApartamento(datos){
     html += '<div style="margin-top:8px"><div style="font-weight:600;font-size:13px;color:var(--azul)">' +
             tabla.nombre + '</div>';
     tabla.columnas.forEach(col => {
-      const [etiqueta, tipo] = col;
+      const [etiqueta, tipo, pista] = col;   // pista: texto de ayuda dentro del campo; con ella el campo lleva su rótulo
       const id = tabla.id + '__' + etiqueta;
       if (tipo === 'sino'){
         html += '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
@@ -832,9 +844,13 @@ function addApartamento(datos){
                 '<input type="number" inputmode="numeric" data-campo="' + id + '" ' +
                 'oninput="marcar()" style="flex:1" placeholder="0">' +
                 '<span style="font-size:12px;font-weight:600;color:#64748b">' + UNIDAD + '</span></div>';
+      } else if (tipo === 'texto'){
+        html += '<label class="rot-campo">' + etiqueta + '</label>' +
+                '<input type="text" data-campo="' + id + '" placeholder="' + (pista || '') + '" oninput="marcar()" style="width:100%">';
       } else {
-        html += '<textarea data-campo="' + id + '" placeholder="' + etiqueta + '..." ' +
-                'oninput="marcar()" style="margin-top:6px"></textarea>';
+        html += (pista ? '<label class="rot-campo">' + etiqueta + '</label>' : '') +
+                '<textarea data-campo="' + id + '" placeholder="' + (pista || etiqueta + '...') + '" ' +
+                'oninput="marcar()" style="margin-top:' + (pista ? 0 : 6) + 'px"></textarea>';
       }
     });
     html += '</div>';
@@ -1068,6 +1084,7 @@ function datosDelFormulario(){
     fotosObstaculos: leerFotos(document.getElementById('fotos-obst')),
     inspectores: inspectoresElegidos(),
     obs_general: val('obs_general'),
+    ...(document.getElementById('actividades') ? { actividades: val('actividades') } : {}),
     noInspeccionados: noInsp,
     general, apartamentos: aptos,
     guardado: new Date().toISOString()
@@ -1080,7 +1097,7 @@ function informeVacio(d){
   return !(d.general || []).some(g => (g.obs || '').trim() || (g.fotos || []).length ||
                                       (g.items || []).some(i => i.sn || (i.obs || '').trim())) &&
          !(d.apartamentos || []).length && !(d.fotosGenerales || []).length && !(d.incidencias || []).length && !hayObstaculos(d.obstaculos) && !(d.fotosObstaculos || []).length &&
-         !(d.noInspeccionados || []).length && !(d.obs_general || '').trim() && !d.estatus;
+         !(d.noInspeccionados || []).length && !(d.obs_general || '').trim() && !(d.actividades || '').trim() && !d.estatus;
 }
 
 function guardar(avisar){
@@ -1514,6 +1531,7 @@ function cargarInforme(id){
     pintarFotos(document.getElementById('fotos-obst'), (d.fotosObstaculos || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '…' }));
     (d.incidencias || []).forEach(x => { addIncidencia(x); if (x.heredado){ const f = document.querySelector('#filas-inc .fila-inc:last-child'); f.classList.add('heredado'); f.dataset.heredado = x.heredado; } });
     document.getElementById('obs_general').value = d.obs_general || '';
+    if (document.getElementById('actividades')) document.getElementById('actividades').value = d.actividades || '';
     document.getElementById('inspectores').innerHTML = '';
     (d.inspectores && d.inspectores.length ? d.inspectores : ['']).forEach(i => addInspector(i));
     (d.general || []).forEach(g => {
@@ -1576,6 +1594,7 @@ function cargarInforme(id){
 function vaciarFormulario(){
   ['empresa','residente','obs_general','accion','accion_det'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('fotos-general').innerHTML = '';
+  if (document.getElementById('actividades')) document.getElementById('actividades').value = '';
   document.getElementById('torre').value = ''; alElegirTorre();
   document.getElementById('estatus').value = ''; verRechazo();
   document.getElementById('inspectores').innerHTML = ''; addInspector();
@@ -2306,6 +2325,7 @@ if ('serviceWorker' in navigator) {
   document.getElementById('fecha').onchange = () => { actualizarNro(); marcar(); };
   document.getElementById('estatus').onchange = () => { verRechazo(); marcar(); };
   document.getElementById('obs_general').oninput = marcar;
+  if (document.getElementById('actividades')) document.getElementById('actividades').oninput = marcar;
   if (TEST_MODE){
     const a = document.createElement('div'); a.className = 'aviso';
     a.style.margin = '12px'; a.textContent = '⚠️ MODO DE PRUEBA — este informe se archiva como PRUEBA-';

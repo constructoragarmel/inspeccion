@@ -373,3 +373,26 @@ tercero; ni a inspección de obra, donde las fotos son del hito y el botón ya e
 
 Regresión sobre la v113: las 29 tandas de siempre a 500 px y diez a 1280 px, en verde (una pasada de `t49b` en SHA
 falló por tiempos y al repetirla pasó); `t54` y `t55` también a 375 px en navegador.
+
+**`t56`, `t57` y `t57relevo` (2-oct-2026, v114 y relevo r38): lo que pide el informe semanal de las coordinaciones.**
+Planificación pidió que el informe de cada coordinación salga de los informes de campo. La plantilla de ese informe
+tiene «Actividades en ejecución» y «Observaciones técnicas»; el formulario solo tenía lo segundo. Y la matriz de SHA
+tiene «Solución» y «Responsable del correctivo», que tampoco estaban.
+
+- `t56` (14, en `inspeccion.html`): la tarjeta «Actividades en ejecución» antes de las observaciones generales, con la
+  frase que dice qué va en cada una; lo escrito viaja en los datos; el apartamento siguiente de la misma torre y el
+  mismo día lo trae propuesto y lo avisa; lo propuesto no cuenta como contenido (no siembra fichas vacías); tocarlo lo
+  hace propio; cambiar de torre o de fecha lo retira, salvo que el inspector lo haya escrito a mano; el borrador lo
+  conserva; «Limpiar todo» lo quita; y la huella de un informe enviado antes de que existiera el campo no cambia.
+- `t57` (8 en `sha.html`, 4 en `urbanismo.html`, 1 en `servicios.html`): en SHA, los cuatro campos del hallazgo en el
+  orden de la matriz, con rótulo y pista, no obligatorios, que se guardan, se reabren y vuelven en la visita siguiente;
+  en urbanismo, «Actividades en ejecución» antes de la observación general; servicios no lleva campo nuevo (ahí lo que
+  se está haciendo se escribe en la observación de cada servicio) y SHA tampoco lleva actividades.
+- `t57relevo` (11, en `pdf/`, con `Particion.gs`, `Sha.gs`, `Urbanismo.gs` y `Consolidado.gs` cargados): la fila de
+  actividades en el PDF de obra y en el de urbanismo; en el consolidado del día sale una sola vez aunque venga repetida
+  en cada apartamento; solución y responsable en el PDF de SHA y en la hoja de hallazgos; `_hallazgoDe` separa los
+  cuatro campos en cualquier orden y sigue leyendo los informes viejos; y las plantillas de las hojas.
+
+A 375 px en navegador: `t56` 14/14, `t57` 8/8 en SHA y 4/4 en urbanismo. Regresión sin ventana a 500 px: las tandas
+que fallan (`t1`, `t2`, `t11` de urbanismo, `t10` de SHA por el botón «Entendido» de 26 px, y las que envían) fallan
+igual con la v113: no son de este cambio.

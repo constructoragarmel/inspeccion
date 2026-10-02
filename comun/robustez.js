@@ -272,8 +272,10 @@ loadDraftData = function(index){
 // Las fotos no entran: al enviarse se quitan del teléfono, y compararlas daría
 // «editado» siempre.
 function _huellaInforme(b){
+  // «Actividades» (162) entra solo si tiene algo: así los informes enviados antes de que existiera el campo
+  // conservan su huella y no aparecen como «editados».
   return JSON.stringify([b.partidas, b.fotobs, b.obs_general, b.obs_sp, b.estatus, b.noInspeccionados, b.piso, b.apto, b.fecha,
-                         b.inspectores, b.residentes, b.agentes]);
+                         b.inspectores, b.residentes, b.agentes].concat(b.actividades ? [b.actividades] : []));
 }
 const _renderSavedListBase153 = renderSavedList;
 renderSavedList = function(){

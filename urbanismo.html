@@ -43,6 +43,8 @@ input,select,textarea{font:inherit;padding:10px;border:1px solid var(--borde);
 button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{
   outline:3px solid #1565c0;outline-offset:2px}
 textarea{min-height:64px;resize:vertical}
+.rot-campo{display:block;font-size:12.5px;font-weight:600;color:#475569;margin:8px 0 4px}
+.act-pista{font-size:12.5px;color:#64748b;margin:2px 0 6px;line-height:1.35}
 .pestanas{display:none}
 .pestanas button{flex:1;min-height:44px;border:none;border-radius:8px;font-weight:700;
       font-size:14px;background:#e2e8f0;color:#475569}
@@ -275,12 +277,17 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
       <button type="button" class="btn-add" style="width:auto;padding:0 14px" onclick="agregarSeccion()">＋ Agregar</button>
     </div>
   </div>
+  <div class="tarjeta" id="tarjeta-actividades">
+    <label style="font-weight:600;font-size:13px;color:#475569">Actividades en ejecución</label>
+    <div class="act-pista">Lo que se está haciendo hoy en esta manzana. Lo que usted encontró o pidió corregir va abajo, en la observación general.</div>
+    <textarea id="actividades" placeholder="Ej.: limpieza y desmalezamiento en la zona posterior; replanteo topográfico..."></textarea>
+  </div>
   <div class="tarjeta">
     <label style="font-weight:600;font-size:13px;color:#475569">Observación general</label>
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v113</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v114</div>
 </div>
 
 <div class="acciones">
@@ -850,7 +857,7 @@ function addApartamento(datos){
     html += '<div style="margin-top:8px"><div style="font-weight:600;font-size:13px;color:var(--azul)">' +
             tabla.nombre + '</div>';
     tabla.columnas.forEach(col => {
-      const [etiqueta, tipo] = col;
+      const [etiqueta, tipo, pista] = col;   // pista: texto de ayuda dentro del campo; con ella el campo lleva su rótulo
       const id = tabla.id + '__' + etiqueta;
       if (tipo === 'sino'){
         html += '<div style="display:flex;align-items:center;gap:8px;margin-top:6px">' +
@@ -865,9 +872,13 @@ function addApartamento(datos){
                 '<input type="number" inputmode="numeric" data-campo="' + id + '" ' +
                 'oninput="marcar()" style="flex:1" placeholder="0">' +
                 '<span style="font-size:12px;font-weight:600;color:#64748b">' + UNIDAD + '</span></div>';
+      } else if (tipo === 'texto'){
+        html += '<label class="rot-campo">' + etiqueta + '</label>' +
+                '<input type="text" data-campo="' + id + '" placeholder="' + (pista || '') + '" oninput="marcar()" style="width:100%">';
       } else {
-        html += '<textarea data-campo="' + id + '" placeholder="' + etiqueta + '..." ' +
-                'oninput="marcar()" style="margin-top:6px"></textarea>';
+        html += (pista ? '<label class="rot-campo">' + etiqueta + '</label>' : '') +
+                '<textarea data-campo="' + id + '" placeholder="' + (pista || etiqueta + '...') + '" ' +
+                'oninput="marcar()" style="margin-top:' + (pista ? 0 : 6) + 'px"></textarea>';
       }
     });
     html += '</div>';
@@ -1093,6 +1104,7 @@ function datosDelFormulario(){
     residente: val('residente'), fecha: val('fecha'), estatus: val('estatus'),
     inspectores: inspectoresElegidos(),
     obs_general: val('obs_general'),
+    ...(document.getElementById('actividades') ? { actividades: val('actividades') } : {}),
     noInspeccionados: noInsp,
     general: general.filter(g => !/^urb_x_/.test(g.id) || g.items.length || g.obs || g.fotos.length || noInsp.indexOf(g.id) >= 0),
     apartamentos: aptos,
@@ -1106,7 +1118,7 @@ function informeVacio(d){
   return !(d.general || []).some(g => (g.obs || '').trim() || (g.fotos || []).length ||
                                       (g.items || []).some(i => i.sn || i.cant || i.pr || (i.obs || '').trim())) &&
          !(d.apartamentos || []).length && !(d.fotosGenerales || []).length &&
-         !(d.noInspeccionados || []).length && !(d.obs_general || '').trim() && !d.estatus;
+         !(d.noInspeccionados || []).length && !(d.obs_general || '').trim() && !(d.actividades || '').trim() && !d.estatus;
 }
 
 function guardar(avisar){
@@ -1478,6 +1490,7 @@ function cargarInforme(id){
     if (d.fecha) document.getElementById('fecha').value = d.fecha;
     document.getElementById('estatus').value = d.estatus || '';
     document.getElementById('obs_general').value = d.obs_general || '';
+    if (document.getElementById('actividades')) document.getElementById('actividades').value = d.actividades || '';
     document.getElementById('inspectores').innerHTML = '';
     (d.inspectores && d.inspectores.length ? d.inspectores : ['']).forEach(i => addInspector(i));
     asegurarSecciones(d.general);
@@ -1535,6 +1548,7 @@ function cargarInforme(id){
 
 function vaciarFormulario(){
   ['empresa','residente','obs_general'].forEach(id => document.getElementById(id).value = '');
+  if (document.getElementById('actividades')) document.getElementById('actividades').value = '';
   document.getElementById('torre').value = ''; alElegirTorre();
   document.getElementById('estatus').value = '';
   document.getElementById('inspectores').innerHTML = ''; addInspector();
@@ -2249,6 +2263,7 @@ if ('serviceWorker' in navigator) {
   document.getElementById('fecha').onchange = () => { actualizarNro(); marcar(); };
   document.getElementById('estatus').onchange = marcar;
   document.getElementById('obs_general').oninput = marcar;
+  if (document.getElementById('actividades')) document.getElementById('actividades').oninput = marcar;
   if (TEST_MODE){
     const a = document.createElement('div'); a.className = 'aviso';
     a.style.margin = '12px'; a.textContent = '⚠️ MODO DE PRUEBA — este informe se archiva como PRUEBA-';

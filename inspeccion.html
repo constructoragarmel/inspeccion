@@ -320,6 +320,10 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
 .obs-card h3{font-size:13px;font-weight:800;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;gap:7px}
 .obs-card textarea{width:100%;border:1.5px solid #ddd;border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;min-height:120px;display:block;}
 .obs-card textarea:focus{outline:none;border-color:var(--blue2)}
+.act-pista{font-size:12px;color:#666;margin:-4px 0 8px;line-height:1.35}
+#actividades{min-height:90px}
+.act-heredada{margin-top:6px;padding:6px 10px;border-left:4px solid #f0d58a;background:#fff8e1;border-radius:4px;font-size:12px;color:#6d4c00}
+.act-heredada[hidden]{display:none}
 
 /* MODAL & OVERLAYS */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
@@ -1158,6 +1162,16 @@ tr.heredada td.desc{background:#fff8e1}
 <!-- RESUMEN + TOTAL -->
 <div class="content" id="resumen-content"></div>
 
+<!-- ACTIVIDADES EN EJECUCIÓN (162) -->
+<div class="content">
+<div class="obs-card" id="act-card">
+  <h3>Actividades en ejecución</h3>
+  <p class="act-pista solo-pantalla">Lo que la contratista está haciendo hoy en esta torre. Lo que usted encontró o pidió corregir va abajo, en «Observaciones».</p>
+  <textarea id="actividades" oninput="_actAlEscribir()" placeholder="Ej.: acarreo de materiales; desmontaje de plataformas; cuadrilla de albañilería en los pisos 2 y 3..."></textarea>
+  <div id="act-heredada" class="act-heredada solo-pantalla" hidden>Viene de su informe anterior de hoy en esta torre. Cámbielo si hace falta.</div>
+</div>
+</div>
+
 <!-- OBSERVACIONES GENERALES -->
 <div class="content">
 <div class="obs-card">
@@ -1237,6 +1251,7 @@ function _marcarCambio(){
 function _tieneContenido(d){
   if(!d) return false;
   if(String(d.obs_general || '').trim()) return true;
+  if(String(d.actividades || '').trim() && !d.actividadesHeredada) return true;
   if((d.fotos && Object.keys(d.fotos).some(k => (d.fotos[k]||[]).some(Boolean)))) return true;
   if(d.fotobs && Object.values(d.fotobs).some(v => String(v||'').trim())) return true;
   if(d.noInspeccionados && d.noInspeccionados.length) return true;
@@ -1347,10 +1362,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v113';
+    el.textContent = '● en línea · v114';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v113 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v114 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -3136,6 +3151,8 @@ function getFormData(){
     apto:gv('apto'),
     obs_sp:gv('obs_sp'),
     obs_general:document.getElementById('obs_general').value,
+    actividades:(document.getElementById('actividades') || {}).value || '',
+    actividadesHeredada:!!((document.getElementById('actividades') || {dataset:{}}).dataset.heredado),
     agentes:getAgentesValues(),
     estatus:[...document.querySelectorAll('#estatus .ck-lbl.on')].map(l=>l.querySelector('input').value),
     partidas:{}, extraRows: extraRows,
@@ -3428,6 +3445,7 @@ function loadDraftData(index) {
   ['fecha','convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(id=>{
     const el=document.getElementById(id); if(el&&d[id]!==undefined) el.value=d[id];
   });
+  _actPoner(d.actividades || '', !!d.actividadesHeredada);
   if(d.convenio) filtrarPorConvenio();
   if(d.empresa) document.getElementById('empresa').value = d.empresa;
   
@@ -3611,6 +3629,7 @@ function siguienteApartamento(){
   document.getElementById('apto').value = '';
   document.getElementById('obs_general').value = '';
   document.getElementById('obs_sp').value = '';
+  _actSiguiente();
   hitosNoInspeccionados = {};
   initAppContent();                  // redibuja los hitos vacíos
   updateNroInforme();
@@ -3813,6 +3832,7 @@ function nuevoFormulario() {
   });
   document.getElementById('obs_sp').value = '';
   document.getElementById('obs_general').value = '';
+  _actPoner('', false);
   document.getElementById('residentes-container').innerHTML = '';
   document.getElementById('inspectores-container').innerHTML = '';
   addResidenteField();
@@ -3857,6 +3877,7 @@ function finalizarInforme() {
       const el = document.getElementById(id);
       if(el) el.value = '';
     });
+    _actSiguiente();
     // Y el respaldo que guarda el selector de ámbito, o el apartamento del
     // informe anterior reaparece al tocar «Torre completa» y volver.
     ['piso','apto'].forEach(function(id){
@@ -3925,6 +3946,54 @@ function _restaurarTrasImpresion(){
 }
 window.addEventListener('beforeprint', _prepararImpresion);
 window.addEventListener('afterprint', _restaurarTrasImpresion);
+
+// ═══ 162. Actividades en ejecución: una vez por visita a la torre ═══════════
+// Lo escrito se recuerda con la torre y la fecha. En el informe siguiente de esa
+// torre y ese día se propone solo, marcado como «viene del anterior»; si cambia
+// la torre o la fecha, lo propuesto se retira. Lo que el inspector escribió a
+// mano no se toca nunca.
+const ACT_MEMORIA = 'garmel_actividades';
+function _actClave(){
+  const t = (typeof getTorreActual === 'function' ? getTorreActual() : '') || '';
+  const f = (document.getElementById('fecha') || {}).value || '';
+  return (t && t !== '—' && f) ? t + '|' + f : '';
+}
+function _actMemoria(){ try { return JSON.parse(localStorage.getItem(ACT_MEMORIA) || 'null'); } catch(e){ return null; } }
+function _actNota(){
+  const el = document.getElementById('actividades'), n = document.getElementById('act-heredada');
+  if (el && n) n.hidden = !el.dataset.heredado;
+}
+function _actPoner(texto, heredada){
+  const el = document.getElementById('actividades'); if (!el) return;
+  el.value = texto || '';
+  if (heredada && el.value) el.dataset.heredado = '1'; else delete el.dataset.heredado;
+  _actNota();
+}
+function _actAlEscribir(){
+  const el = document.getElementById('actividades'); if (!el) return;
+  delete el.dataset.heredado; _actNota();
+  const k = _actClave(), t = el.value.trim();
+  try {
+    if (k && t) localStorage.setItem(ACT_MEMORIA, JSON.stringify({k: k, t: t}));
+    else if (k && (_actMemoria() || {}).k === k) localStorage.removeItem(ACT_MEMORIA);
+  } catch(e){}
+}
+function _actProponer(){
+  const el = document.getElementById('actividades'); if (!el) return;
+  const m = _actMemoria(), k = _actClave(), mia = !!(m && k && m.k === k && m.t);
+  if (el.dataset.heredado && !mia) _actPoner('', false);
+  if (!el.value.trim() && mia) _actPoner(m.t, true);
+  _actNota();
+}
+function _actSiguiente(){ _actPoner('', false); _actProponer(); }
+document.addEventListener('change', function(e){
+  if (e.target && /^(torre|torre-manual|fecha)$/.test(e.target.id)) setTimeout(_actProponer, 0);
+}, true);
+// Vacía, la tarjeta no sale en el papel.
+window.addEventListener('beforeprint', function(){
+  const c = document.getElementById('act-card'), t = document.getElementById('actividades');
+  if (c && t) c.classList.toggle('vacio-impresion', !t.value.trim());
+});
 
 function openSend() {
   refrescarEstadoClave();
@@ -4642,8 +4711,10 @@ loadDraftData = function(index){
 // Las fotos no entran: al enviarse se quitan del teléfono, y compararlas daría
 // «editado» siempre.
 function _huellaInforme(b){
+  // «Actividades» (162) entra solo si tiene algo: así los informes enviados antes de que existiera el campo
+  // conservan su huella y no aparecen como «editados».
   return JSON.stringify([b.partidas, b.fotobs, b.obs_general, b.obs_sp, b.estatus, b.noInspeccionados, b.piso, b.apto, b.fecha,
-                         b.inspectores, b.residentes, b.agentes]);
+                         b.inspectores, b.residentes, b.agentes].concat(b.actividades ? [b.actividades] : []));
 }
 const _renderSavedListBase153 = renderSavedList;
 renderSavedList = function(){

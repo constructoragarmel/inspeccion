@@ -69,9 +69,15 @@ APARTAMENTOS = [
     {
         "id": "hallazgo",
         "nombre": "HALLAZGO",
+        # «Solución» y «Responsable del correctivo» son las dos columnas de la matriz de seguimiento de SHA que
+        # el formulario no tenía (pedido de Planificación, 2-oct-2026): con ellas el relevo arma la tabla de lo
+        # corregido contra lo pendiente sin que nadie la vuelva a teclear. El tercer elemento es la pista que se
+        # ve dentro del campo vacío. No son obligatorias.
         "columnas": [
             ("Descripción del hallazgo o condición observada", "obs"),
             ("Acción correctiva / estatus", "lista"),
+            ("Solución", "obs", "Qué se acordó o se le pidió a la contratista..."),
+            ("Responsable del correctivo", "texto", "Quién lo va a corregir"),
         ],
     },
 ]

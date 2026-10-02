@@ -8107,6 +8107,123 @@ if LISTA_V2:
      ".leyenda-na{margin:8px 10px 4px;",
      "161c· estilos")
 
+# ── 162. «Actividades en ejecución», una vez por visita a la torre (2-oct-2026, pedido de Planificación) ──
+# El informe semanal de cada coordinación tiene dos textos: «Actividades en ejecución» y «Observaciones
+# técnicas». El formulario solo tenía el segundo (por hito y general), así que lo primero se volvía a escribir
+# a mano en Excel. Skarlet Gómez (Planificación), 2-oct: «las actividades en ejecución deberían venir de los
+# informes diarios de la torre… ese campo es por visita a torre e iría alimentando el formato general de la
+# semana», y que no se confundan los dos. Por eso son DOS campos con los nombres de la plantilla, y cada uno
+# dice qué va en él. Como en una visita salen varios informes de la misma torre (uno por apartamento), lo
+# escrito se propone en el informe siguiente de esa torre y ese día, para no teclearlo otra vez.
+s = sustituir(s,
+ "<!-- OBSERVACIONES GENERALES -->\n<div class=\"content\">\n<div class=\"obs-card\">",
+ "<!-- ACTIVIDADES EN EJECUCIÓN (162) -->\n<div class=\"content\">\n<div class=\"obs-card\" id=\"act-card\">\n"
+ "  <h3>Actividades en ejecución</h3>\n"
+ "  <p class=\"act-pista solo-pantalla\">Lo que la contratista está haciendo hoy en esta torre. Lo que usted encontró o pidió corregir va abajo, en «Observaciones».</p>\n"
+ "  <textarea id=\"actividades\" oninput=\"_actAlEscribir()\" placeholder=\"Ej.: acarreo de materiales; desmontaje de plataformas; cuadrilla de albañilería en los pisos 2 y 3...\"></textarea>\n"
+ "  <div id=\"act-heredada\" class=\"act-heredada solo-pantalla\" hidden>Viene de su informe anterior de hoy en esta torre. Cámbielo si hace falta.</div>\n"
+ "</div>\n</div>\n\n"
+ "<!-- OBSERVACIONES GENERALES -->\n<div class=\"content\">\n<div class=\"obs-card\">",
+ "162a· la tarjeta, antes de las observaciones generales")
+s = sustituir(s,
+ ".obs-card textarea:focus{outline:none;border-color:var(--blue2)}\n",
+ ".obs-card textarea:focus{outline:none;border-color:var(--blue2)}\n"
+ ".act-pista{font-size:12px;color:#666;margin:-4px 0 8px;line-height:1.35}\n"
+ "#actividades{min-height:90px}\n"
+ ".act-heredada{margin-top:6px;padding:6px 10px;border-left:4px solid #f0d58a;background:#fff8e1;border-radius:4px;"
+ "font-size:12px;color:#6d4c00}\n"
+ ".act-heredada[hidden]{display:none}\n",
+ "162b· su estilo")
+s = sustituir(s,
+ "    obs_general:document.getElementById('obs_general').value,",
+ "    obs_general:document.getElementById('obs_general').value,\n"
+ "    actividades:(document.getElementById('actividades') || {}).value || '',\n"
+ "    actividadesHeredada:!!((document.getElementById('actividades') || {dataset:{}}).dataset.heredado),",
+ "162c· viaja en los datos")
+s = sustituir(s,
+ "  ['fecha','convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(id=>{\n"
+ "    const el=document.getElementById(id); if(el&&d[id]!==undefined) el.value=d[id];\n  });",
+ "  ['fecha','convenio','empresa','piso','apto','obs_sp','obs_general'].forEach(id=>{\n"
+ "    const el=document.getElementById(id); if(el&&d[id]!==undefined) el.value=d[id];\n  });\n"
+ "  _actPoner(d.actividades || '', !!d.actividadesHeredada);",
+ "162d· se repone al abrir un borrador")
+s = sustituir(s,
+ "  document.getElementById('obs_general').value = '';\n  document.getElementById('obs_sp').value = '';\n  hitosNoInspeccionados = {};",
+ "  document.getElementById('obs_general').value = '';\n  document.getElementById('obs_sp').value = '';\n"
+ "  _actSiguiente();\n  hitosNoInspeccionados = {};",
+ "162e· siguiente apartamento: se propone lo de hoy")
+s = sustituir(s,
+ "  document.getElementById('obs_sp').value = '';\n  document.getElementById('obs_general').value = '';\n"
+ "  document.getElementById('residentes-container').innerHTML = '';",
+ "  document.getElementById('obs_sp').value = '';\n  document.getElementById('obs_general').value = '';\n"
+ "  _actPoner('', false);\n"
+ "  document.getElementById('residentes-container').innerHTML = '';",
+ "162f· limpiar todo")
+s = sustituir(s,
+ "    ['apto', 'obs_general', 'obs_sp'].forEach(function(id){\n      const el = document.getElementById(id);\n"
+ "      if(el) el.value = '';\n    });",
+ "    ['apto', 'obs_general', 'obs_sp'].forEach(function(id){\n      const el = document.getElementById(id);\n"
+ "      if(el) el.value = '';\n    });\n"
+ "    _actSiguiente();",
+ "162g· al finalizar")
+s = sustituir(s,
+ "  if(String(d.obs_general || '').trim()) return true;",
+ "  if(String(d.obs_general || '').trim()) return true;\n"
+ "  if(String(d.actividades || '').trim() && !d.actividadesHeredada) return true;",
+ "162h· lo escrito cuenta como contenido; lo propuesto, no")
+s = sustituir(s,
+ "window.addEventListener('afterprint', _restaurarTrasImpresion);\n",
+ "window.addEventListener('afterprint', _restaurarTrasImpresion);\n"
+ "\n"
+ "// ═══ 162. Actividades en ejecución: una vez por visita a la torre ═══════════\n"
+ "// Lo escrito se recuerda con la torre y la fecha. En el informe siguiente de esa\n"
+ "// torre y ese día se propone solo, marcado como «viene del anterior»; si cambia\n"
+ "// la torre o la fecha, lo propuesto se retira. Lo que el inspector escribió a\n"
+ "// mano no se toca nunca.\n"
+ "const ACT_MEMORIA = 'garmel_actividades';\n"
+ "function _actClave(){\n"
+ "  const t = (typeof getTorreActual === 'function' ? getTorreActual() : '') || '';\n"
+ "  const f = (document.getElementById('fecha') || {}).value || '';\n"
+ "  return (t && t !== '—' && f) ? t + '|' + f : '';\n"
+ "}\n"
+ "function _actMemoria(){ try { return JSON.parse(localStorage.getItem(ACT_MEMORIA) || 'null'); } catch(e){ return null; } }\n"
+ "function _actNota(){\n"
+ "  const el = document.getElementById('actividades'), n = document.getElementById('act-heredada');\n"
+ "  if (el && n) n.hidden = !el.dataset.heredado;\n"
+ "}\n"
+ "function _actPoner(texto, heredada){\n"
+ "  const el = document.getElementById('actividades'); if (!el) return;\n"
+ "  el.value = texto || '';\n"
+ "  if (heredada && el.value) el.dataset.heredado = '1'; else delete el.dataset.heredado;\n"
+ "  _actNota();\n"
+ "}\n"
+ "function _actAlEscribir(){\n"
+ "  const el = document.getElementById('actividades'); if (!el) return;\n"
+ "  delete el.dataset.heredado; _actNota();\n"
+ "  const k = _actClave(), t = el.value.trim();\n"
+ "  try {\n"
+ "    if (k && t) localStorage.setItem(ACT_MEMORIA, JSON.stringify({k: k, t: t}));\n"
+ "    else if (k && (_actMemoria() || {}).k === k) localStorage.removeItem(ACT_MEMORIA);\n"
+ "  } catch(e){}\n"
+ "}\n"
+ "function _actProponer(){\n"
+ "  const el = document.getElementById('actividades'); if (!el) return;\n"
+ "  const m = _actMemoria(), k = _actClave(), mia = !!(m && k && m.k === k && m.t);\n"
+ "  if (el.dataset.heredado && !mia) _actPoner('', false);\n"
+ "  if (!el.value.trim() && mia) _actPoner(m.t, true);\n"
+ "  _actNota();\n"
+ "}\n"
+ "function _actSiguiente(){ _actPoner('', false); _actProponer(); }\n"
+ "document.addEventListener('change', function(e){\n"
+ "  if (e.target && /^(torre|torre-manual|fecha)$/.test(e.target.id)) setTimeout(_actProponer, 0);\n"
+ "}, true);\n"
+ "// Vacía, la tarjeta no sale en el papel.\n"
+ "window.addEventListener('beforeprint', function(){\n"
+ "  const c = document.getElementById('act-card'), t = document.getElementById('actividades');\n"
+ "  if (c && t) c.classList.toggle('vacio-impresion', !t.value.trim());\n"
+ "});\n",
+ "162i· la memoria por torre y día")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
