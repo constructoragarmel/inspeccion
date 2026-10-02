@@ -28,7 +28,7 @@ for f in ['index.html', 'inspeccion.html', 'servicios.html', 'sha.html', 'urbani
     s = s.replace("navigator.serviceWorker.register('./sw.js')", "void 0")
     s = s.replace("navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });", "void 0;")
     open(os.path.join(destino, f), 'w', encoding='utf-8').write(s)
-for f in ['sw.js', 'manifest.json', 'icon-192.png', 'icon-512.png']:
+for f in ['sw.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'vista-previa.js']:
     shutil.copy(os.path.join(RAIZ, f), destino)
 for f in ['relevo-falso.py', 'estatico.py']:
     shutil.copy(os.path.join(AQUI, f), destino)

@@ -16,6 +16,13 @@ if [ "$1" != "--solo-construir" ]; then
 else
   nueva=$actual
 fi
+# La vista previa usa la plantilla del PDF del relevo (repositorio Garmel). Si ese repositorio está al lado, se
+# regenera aquí para que no se quede atrás; si no está, se publica la copia que ya hay.
+if [ -f ../Garmel/implementacion/generar-vista-previa.py ]; then
+  python3 ../Garmel/implementacion/generar-vista-previa.py . | head -1
+else
+  echo "· vista-previa.js: se publica la copia que hay (no encuentro ../Garmel)"
+fi
 python3 construir-menu.py | head -1
 python3 construir.py > /dev/null && echo "✓ inspeccion.html construido"
 python3 construir-servicios.py | head -1

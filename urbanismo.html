@@ -127,6 +127,20 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
 .ficha{border:1px solid var(--borde);border-radius:8px;padding:10px;margin-bottom:8px}
 .ficha .n{font-weight:700;font-size:14px}.ficha .s{font-size:12px;color:#64748b}
 .ficha .b{display:flex;gap:6px;margin-top:8px}
+/* Vista previa del informe (v115): la hoja del PDF, a lo ancho de la pantalla. */
+#vista-previa{position:fixed;inset:0;z-index:60;background:#475569;display:flex;flex-direction:column}
+.vp-cab{background:var(--azul);color:#fff;display:flex;align-items:center;gap:10px;
+        padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px}
+.vp-cab .t{flex:1;min-width:0;font-weight:700;font-size:15px;line-height:1.25}
+.vp-cab .t small{display:block;font-weight:400;font-size:12px;opacity:.92}
+.vp-cab button[hidden]{display:none}
+.vp-cab button{min-height:44px;padding:0 12px;border:0;border-radius:8px;background:#fff;color:var(--azul);
+        font-weight:700;font-size:14px;white-space:nowrap;width:auto}
+.vp-aviso{background:#fff8e1;color:#6d4c00;border-bottom:1px solid #f0d58a;padding:8px 12px;font-size:13px;line-height:1.35}
+.vp-cuerpo{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:8px 8px calc(16px + env(safe-area-inset-bottom,0px))}
+.vp-hoja{background:#fff;margin:0 auto;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+#vista-previa[data-zoom] .vp-hoja{margin:0}
+.vp-hoja iframe{border:0;display:block;transform-origin:0 0;width:794px;height:400px;background:#fff}
 .ficha .b button{flex:1;min-height:44px;border:1px solid var(--borde);border-radius:6px;
       background:#f8fafc;font-weight:600;font-size:13px}
 .ficha .b .env{background:var(--azul);color:#fff;border-color:var(--azul)}
@@ -287,13 +301,14 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v114</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v115</div>
 </div>
 
 <div class="acciones">
   <!-- Lo que se usa de pie va a la vista; Guardar y Nuevo, detrás del «⋯»,
        como en inspección: cinco botones no caben en 375 px sin achicarse. -->
   <div class="fila-mas" id="fila-mas" hidden>
+    <button type="button" class="b1" onclick="vistaPrevia()" title="Muestra el informe como saldrá en el PDF, sin enviarlo">👁 Vista previa</button>
     <button type="button" class="b1" onclick="guardar(true)" title="Guarda en este teléfono. Se guarda solo a los 2 segundos y cada 30">💾 Guardar</button>
     <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
     <button type="button" class="b1" onclick="alternarPlanificacion()" title="Muestra u oculta el campo de cantidad proyectada, que carga Planificación">📊 Proyectadas</button>
@@ -1434,6 +1449,7 @@ function abrirInformes(){
         '<div class="s" style="font-weight:700;color:' + (x.enviado ? '#166534' : '#a15c07') + '">' +
         (x.enviado ? '✅ Enviado ' + x.enviado + (x.editadoTras ? ' · ✏️ editado después (' + x.editadoTras + ')' : '') : '⏳ Sin enviar') + '</div>' +
         '<div class="b"><button type="button" onclick="cargarInforme(\'' + x.id + '\')">📂 Editar</button>' +
+        (x.enviado ? '' : '<button type="button" onclick="vistaPrevia(\'' + x.id + '\')">👁 Ver</button>') +
         (x.enviado ? (x.editadoTras ? '<button type="button" class="env" onclick="enviarSolo(\'' + x.id + '\')">🔁 Reenviar</button>' : '')
                    : '<button type="button" class="env" onclick="enviarSolo(\'' + x.id + '\')">📤 Enviar</button>') +
         '<button type="button" class="del" onclick="borrarInforme(\'' + x.id + '\')">🗑️ Borrar</button></div></div>';
@@ -1874,6 +1890,110 @@ async function enviar(){
   actualizarContador();
   alert((bien ? '✓ ' + bien + ' informe(s) enviado(s) a Drive.\n\n' : '') +
         (fallos.length ? '✗ ' + fallos.length + ' sin enviar — siguen guardados aquí:\n\n' + fallos.join('\n\n') : ''));
+}
+
+// ── Vista previa del informe (v115, 2-oct-2026) ─────────────────────────────
+// Pedido de un inspector de urbanismo: ver el PDF antes de enviarlo, para
+// verificarlo. La plantilla es LA MISMA que usa el relevo para el PDF oficial
+// (vista-previa.js se genera desde su PDF.gs: no hay una segunda plantilla que
+// pueda quedarse atrás). Se arma en el teléfono con el mismo sobre que viajaría,
+// sin señal y sin enviar nada. El archivo se carga la primera vez que se pide.
+const VP_ANCHO = 794;            // una hoja A4 a 96 puntos por pulgada
+let _vpCarga = null;
+function _vpCargar(){
+  if (window.VistaPrevia) return Promise.resolve();
+  if (!_vpCarga) _vpCarga = new Promise((bien, mal) => {
+    const s = document.createElement('script');
+    s.src = 'vista-previa.js';
+    s.onload = () => window.VistaPrevia ? bien() : mal(new Error('vista-previa.js no trajo la plantilla'));
+    s.onerror = () => { _vpCarga = null; s.remove(); mal(new Error('vista-previa.js no cargó')); };
+    document.head.appendChild(s);
+  });
+  return _vpCarga;
+}
+
+// Sin `id`: lo que está en pantalla, guardado o no. Con `id`: un informe guardado.
+async function vistaPrevia(id){
+  const mas = document.getElementById('fila-mas'); if (mas) mas.hidden = true;
+  let d, grupos;
+  if (id){
+    cerrarInformes();
+    d = listaGuardada().find(x => x.id === id);
+    if (!d) return;
+    await _escrituraFotos.catch(() => {});
+    grupos = await FotosDB.leer(id).catch(() => ({}));
+  } else {
+    d = datosDelFormulario();
+    if (informeVacio(d)){ alert('Todavía no hay nada que mostrar: el informe está en blanco.'); return; }
+    grupos = d.fotosDB || {};
+  }
+  try { await _vpCargar(); }
+  catch (e) { alert('No se pudo abrir la vista previa. Con señal, vuelva a intentarlo.'); console.error(e); return; }
+  let html;
+  try { html = VistaPrevia.html(sobreDe(d, '', grupos)); }
+  catch (e) { alert('No se pudo armar la vista previa de este informe. El informe no se ha tocado.'); console.error(e); return; }
+  _vpMostrar(html, d.nro || '', faltan(d));
+}
+
+function _vpMostrar(html, nro, falta){
+  _vpCerrar();
+  const v = document.createElement('div');
+  v.id = 'vista-previa';
+  v.innerHTML =
+    '<div class="vp-cab"><div class="t">Vista previa<small>Así saldrá el PDF. Todavía NO se ha enviado.</small></div>' +
+      '<button type="button" class="vp-zoom" onclick="_vpZoom()" aria-label="Ver la hoja a tamaño real">🔍 Ampliar</button>' +
+      '<button type="button" onclick="_vpCerrar()">✕ Cerrar</button></div>' +
+    (falta.length ? '<div class="vp-aviso">A este informe le falta ' + falta.join(', ') + '. Complételo antes de enviar.</div>' : '') +
+    '<div class="vp-cuerpo"><div class="vp-hoja"><iframe scrolling="no"></iframe></div></div>';
+  document.body.appendChild(v);
+  const marco = v.querySelector('iframe'), hoja = v.querySelector('.vp-hoja'), cuerpo = v.querySelector('.vp-cuerpo');
+  marco.title = 'Vista previa del informe ' + nro;
+  // La hoja se dibuja a su ancho real y se achica entera hasta caber: así se ve
+  // la página como va a quedar, no una versión reacomodada para el teléfono.
+  const ajustar = () => {
+    const doc = marco.contentDocument;
+    if (!doc || !doc.body) return;
+    // Ajustada: la hoja entera a lo ancho. Ampliada: a tamaño real, y se recorre con el dedo.
+    const cabe = Math.min(1, (cuerpo.clientWidth - 16) / VP_ANCHO);
+    const e = v.dataset.zoom ? 1 : cabe;
+    const bz = v.querySelector('.vp-zoom');
+    bz.hidden = cabe > 0.95;
+    bz.textContent = v.dataset.zoom ? '↔ Ajustar' : '🔍 Ampliar';
+    marco.style.height = '10px';
+    const alto = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight) + 8;
+    marco.style.height = alto + 'px';
+    marco.style.transform = 'scale(' + e + ')';
+    hoja.style.width = Math.round(VP_ANCHO * e) + 'px';
+    hoja.style.height = Math.round(alto * e) + 'px';
+  };
+  v._ajustar = ajustar;
+  addEventListener('resize', ajustar);
+  // Los márgenes de la hoja los pone Google al convertir; aquí se imitan. Se
+  // escribe en el marco en vez de usar `srcdoc`, a propósito: la plantilla no
+  // lleva «doctype», y así el navegador la dibuja en el mismo modo que el
+  // conversor de Google (con `srcdoc` las tablas salían con la letra a la mitad
+  // de lo que sale en el PDF).
+  const doc = marco.contentDocument;
+  doc.open();
+  doc.write(html.replace('<head>', '<head><style>body{margin:38px 56px}</style>'));
+  doc.close();
+  [...doc.images].forEach(im => im.addEventListener('load', ajustar));
+  ajustar(); setTimeout(ajustar, 400);
+}
+function _vpZoom(){
+  const v = document.getElementById('vista-previa');
+  if (!v) return;
+  if (v.dataset.zoom) delete v.dataset.zoom; else v.dataset.zoom = '1';
+  // Dos pasadas: en escritorio, al volver de «Ampliar» las barras de desplazamiento
+  // todavía ocupan sitio en la primera, y la hoja quedaba 15 px más angosta.
+  v._ajustar(); v._ajustar();
+  v.querySelector('.vp-cuerpo').scrollTo(0, 0);
+}
+function _vpCerrar(){
+  const v = document.getElementById('vista-previa');
+  if (!v) return;
+  removeEventListener('resize', v._ajustar);
+  v.remove();
 }
 
 // ── No perder lo escrito ──────────────────────────────────────────────────

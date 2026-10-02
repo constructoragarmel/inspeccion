@@ -404,3 +404,18 @@ antigüedad); el documento sin emoji y con el vencido marcado; el tablero vacío
 hallazgo una vez con su último estatus, desde cuándo está abierto, su solución y su responsable, los recaudos en NO de
 la última visita a cada torre, las incidencias sin cerrar y el cuadro por contratista.
 
+**`t59` (2-oct-2026, v115): la vista previa del informe.** Pedido de un inspector de urbanismo: ver el PDF antes de
+enviarlo. La plantilla es **la misma del relevo**: `vista-previa.js` se genera desde su `PDF.gs` y su `Logos.gs`
+(`Garmel/implementacion/generar-vista-previa.py`; `publicar.sh` lo regenera si el repositorio está al lado), se carga
+la primera vez que se pide y queda en la copia local (`sw.js`). Se arma en el teléfono con el mismo sobre que viajaría,
+sin enviar nada. Sirve en servicios, SHA y urbanismo; inspección de obra no la lleva, porque su PDF incluye el avance
+según el presupuesto, que sale de pesos que no pueden estar en este repositorio.
+
+Se corre en `urbanismo.html`, `servicios.html` y `sha.html` (15 comprobaciones en teléfono, 14 en escritorio): el botón
+detrás del «⋯»; en blanco avisa y no abre; la hoja con el título, el número y lo escrito; la foto tomada; **ningún
+envío**; el aviso si falta algo de la cabecera; la hoja entera a lo ancho, dibujada a 794 px y achicada (no
+reacomodada), en el mismo modo que el conversor de Google (`BackCompat`: con `srcdoc` las tablas salían con la letra a
+la mitad); «Ampliar» y «Ajustar»; «Cerrar» deja el formulario como estaba; «👁 Ver» en cada informe sin enviar del
+panel, con sus fotos; y un informe enviado no lo ofrece. **El punto 9 lee fotos de IndexedDB: se corre en navegador**
+(sin ventana da «fotos 0»). En navegador: 15/15 a 375 px en los tres, 14/14 a 1280 px.
+
