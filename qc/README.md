@@ -396,3 +396,11 @@ tiene «Solución» y «Responsable del correctivo», que tampoco estaban.
 A 375 px en navegador: `t56` 14/14, `t57` 8/8 en SHA y 4/4 en urbanismo. Regresión sin ventana a 500 px: las tandas
 que fallan (`t1`, `t2`, `t11` de urbanismo, `t10` de SHA por el botón «Entendido» de 26 px, y las que envían) fallan
 igual con la v113: no son de este cambio.
+
+**`t58lunes` (2-oct-2026, relevo r39): el resumen de los lunes.** En `pdf/`, con `ResumenLunes.gs` cargado; 12
+comprobaciones con filas inventadas (no toca Smartsheet ni Drive): la fecha del lunes al que corresponde; el estatus
+reconocido por su texto; de un tablero, lo abierto y lo cerrado en siete días; el orden (vencido, prioridad, estatus,
+antigüedad); el documento sin emoji y con el vencido marcado; el tablero vacío dicho en palabras; y en SHA, cada
+hallazgo una vez con su último estatus, desde cuándo está abierto, su solución y su responsable, los recaudos en NO de
+la última visita a cada torre, las incidencias sin cerrar y el cuadro por contratista.
+
