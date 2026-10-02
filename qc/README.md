@@ -419,3 +419,7 @@ la mitad); «Ampliar» y «Ajustar»; «Cerrar» deja el formulario como estaba;
 panel, con sus fotos; y un informe enviado no lo ofrece. **El punto 9 lee fotos de IndexedDB: se corre en navegador**
 (sin ventana da «fotos 0»). En navegador: 15/15 a 375 px en los tres, 14/14 a 1280 px.
 
+
+**`t60torres` (2-oct-2026, relevo r41).** En `pdf/`, con `Codigo.gs` y `Sha.gs` cargados; 4 comprobaciones de
+`_torresDeSha`: una torre, varias (la del informe primero, sin repetir), las de Simón Bolívar, y que «Toda la zona» o
+una manzana no metan nada que no sea una torre del padrón.
