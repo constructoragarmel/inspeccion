@@ -8004,6 +8004,48 @@ if LISTA_V2:
      "font-size:12.5px;line-height:1.35;color:#4e342e}\n.na-nota{flex-basis:100%;",
      "160b· su estilo")
 
+# ── 161. Qué incluye cada subpartida, al tocar el «?» de la fila (2-oct-2026, pedido de Stephanie) ──
+# Una línea corta por subpartida, que solo se ve si alguien toca el «?». Los textos vienen de la lista v2
+# (`AYUDA` en Garmel/implementacion/propuestas/lista-subpartidas-v2.py → comun/lista_v2.py), y salen de las
+# partidas de los presupuestos que cayeron en cada subpartida y de lo que decidieron Planificación y la
+# Ing. Beatriz Sevilla. Dicen QUÉ SE JUNTA en la fila; no dicen cuándo marcar cada estado (eso es criterio
+# de inspección, pendiente). Solo pantalla: no sale en el PDF ni viaja en los datos.
+if LISTA_V2:
+    s = sustituir(s,
+     "const VERSION_LISTA = '" + lista_v2.VERSION_LISTA + "';\n" + lista_v2.CODIGOS_JS,
+     "const VERSION_LISTA = '" + lista_v2.VERSION_LISTA + "';\n" + lista_v2.AYUDA_JS + "\n"
+     "function _ayudaDe(pid, i){ const c = (CODIGOS_SUB[pid] || [])[i]; return (c && AYUDA_SUB[c]) || ''; }\n"
+     "function _ayudaHtml(pid, i){\n"
+     "  const t = _ayudaDe(pid, i);\n"
+     "  if (!t) return '';\n"
+     "  return '<button type=\"button\" class=\"ayuda-btn solo-pantalla\" aria-label=\"Qué incluye esta subpartida\" aria-expanded=\"false\" onclick=\"verAyuda(this)\">?</button>' +\n"
+     "         '<div class=\"ayuda-sub solo-pantalla\" hidden><b>Qué incluye:</b> ' + t.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div>';\n"
+     "}\n"
+     "function verAyuda(btn){\n"
+     "  const caja = btn.parentElement.querySelector('.ayuda-sub');\n"
+     "  if (!caja) return;\n"
+     "  caja.hidden = !caja.hidden;\n"
+     "  btn.setAttribute('aria-expanded', caja.hidden ? 'false' : 'true');\n"
+     "  btn.classList.toggle('on', !caja.hidden);\n"
+     "}\n" + lista_v2.CODIGOS_JS,
+     "161a· los textos y el botón")
+    s = sustituir(s,
+     """<td class="desc">${item}${(_esSiNo(p.id,i) && !_esEstado(p.id,i)) || _soloPct(p.id,i) ? '' : _ud(p.id,i)}</td>""",
+     """<td class="desc">${item}${(_esSiNo(p.id,i) && !_esEstado(p.id,i)) || _soloPct(p.id,i) ? '' : _ud(p.id,i)}${_ayudaHtml(p.id,i)}</td>""",
+     "161b· el «?» en cada fila")
+    s = sustituir(s,
+     ".leyenda-na{margin:8px 10px 4px;",
+     ".ayuda-btn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin-left:8px;padding:0;"
+     "border:1.5px solid #9fa8da;border-radius:50%;background:#fff;color:#1a237e;font-size:14px;font-weight:800;line-height:1;"
+     "vertical-align:middle;cursor:pointer;position:relative}\n"
+     ".ayuda-btn::after{content:'';position:absolute;inset:-9px}\n"      # el dedo acierta aunque el círculo sea pequeño
+     ".ayuda-btn.on{background:#1a237e;border-color:#1a237e;color:#fff}\n"
+     ".ayuda-sub{margin-top:6px;padding:7px 10px;border-left:4px solid #9fa8da;background:#eef0fb;border-radius:4px;"
+     "font-size:12.5px;line-height:1.35;font-weight:400;color:#1b2235;white-space:normal;text-align:left}\n"
+     ".ayuda-sub[hidden]{display:none}\n"
+     ".leyenda-na{margin:8px 10px 4px;",
+     "161c· estilos")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

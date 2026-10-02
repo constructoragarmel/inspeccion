@@ -318,3 +318,11 @@ escribe; el primero se crea con su huella; el documento trae una sección por ap
 cambios no hace nada (aunque pierda su memoria); un tercer apartamento o una corrección `-r2` lo reemplazan en sitio;
 el de torre completa va primero; con un solo informe no hay consolidado; uno recién llegado espera a la vuelta
 siguiente; con más de 60 fotos va sin fotografías; y el mismo residente escrito distinto firma una sola vez.
+
+**`t52` (2-oct-2026, v110): «qué incluye» cada subpartida, al tocar el «?» de la fila.** Una línea corta por
+subpartida, que solo se ve si alguien toca el «?» junto al nombre. Los textos vienen de la lista v2 (`AYUDA_JS` en
+`comun/lista_v2.py`, generado). Diez comprobaciones en `inspeccion.html`: las 89 tienen su línea, sin montos; cada
+fila a la vista trae su «?» con la ayuda cerrada; tocar abre y volver a tocar cierra; el texto es el de su código; no
+viaja en los datos ni cambia el avance; las filas agregadas no lo llevan; el «?» y las ayudas abiertas caben en la
+pantalla; no sale en el PDF; y un borrador reabre con las ayudas cerradas. En verde a 375 y a 320 px en navegador, y
+la regresión (`t21` a `t31`, `t35`, `t39`, `t42`, `t43`, `t47`, `t49`, `t50`) también.
