@@ -114,6 +114,22 @@ CIERRE = [
 ]
 
 
+# ── D) Desmontaje de obstáculos ───────────────────────────────────────────
+#
+# Pedido de Skarlet Gómez (Planificación) a Stephanie González, 2-oct-2026: que SHA deje constancia de cómo va el
+# retiro de lo que estorba en cada torre, para alimentar el informe. Las cinco categorías y sus respuestas son suyas:
+#   · se anota LO RETIRADO y LO QUE QUEDA;
+#   · lo retirado es ACUMULADO a la fecha, no lo de la visita;
+#   · la chatarra no se puede contar: va en % retirado, a criterio del inspector.
+# `mide`: 'cant' = dos cantidades (retirado a la fecha, queda por retirar) · 'pct' = un porcentaje retirado.
+OBSTACULOS = [
+    {"id": "gruas", "nombre": "Torres grúa", "mide": "cant"},
+    {"id": "chatarra", "nombre": "Chatarra", "mide": "pct"},
+    {"id": "vehiculos", "nombre": "Camiones y maquinaria averiados", "mide": "cant"},
+    {"id": "ascensores_carga", "nombre": "Ascensores de carga", "mide": "cant"},
+    {"id": "andamios", "nombre": "Andamios", "mide": "cant"},
+]
+
 def total_items():
     return sum(len(s["items"]) for s in GENERAL)
 

@@ -129,6 +129,9 @@ body.plan .item{border-color:#1a237e}
 .avance{font-size:13px;font-weight:700;color:#1a237e;min-width:44px;text-align:right}
 body:not(.plan) .item.heredado.her-pr{border-left-color:transparent}
 body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
+.cam-partida{margin:2px 0 6px;min-height:40px;font-size:13px}
+.cam-aviso{font-size:12px;color:#166534;font-weight:600;margin:-2px 0 8px}
+.cam-aviso:empty{display:none}
 .camiones{margin:0 0 8px;padding:8px;border:1px dashed #94a3b8;border-radius:8px;background:#f8fafc}
 .camiones:not(.con) .cam-base{display:none}
 .camion{border-top:1px solid #e2e8f0;padding:6px 0}
@@ -274,7 +277,26 @@ r"""    '<div class="cant-fila"><span class="et">Ejecutado</span><input type="te
       '<button type="button" onclick="marcarSN(this,\'R\')">R</button>' +
       '<button type="button" onclick="marcarSN(this,\'M\')">M</button>' +
       '<button type="button" onclick="marcarSN(this,\'NA\')">N/A</button>' +
-    '</div>' +""", "12b· cantidad, proyectada y calidad")
+    '</div>' +
+    '<label class="btn-camara cam-partida">📷 Foto de esta partida<input type="file" accept="image/*" capture="environment" onchange="fotoDePartida(event, this)"></label>' +
+    '<div class="cam-aviso"></div>' +""", "12b· cantidad, proyectada y calidad")
+# 12c · La foto desde la partida (v113, 2-oct-2026, pedido de una inspectora de urbanismo: «en Desmalezamiento falta el
+# ítem de fotos»). Las fotos de urbanismo son de la SECCIÓN y su bloque queda al final, después de todas las partidas:
+# desde la primera no se ve. Cada partida tiene ahora su botón; la foto entra al mismo bloque de la sección, con el
+# nombre de la partida como descripción, y la fila lo confirma. El tope sigue siendo el de la sección.
+J += r"""
+function fotoDePartida(ev, inp){
+  const it = inp.closest('.item'), sid = it.parentElement.id.replace('items-', '');
+  const n = it.querySelector('.nombre'), libre = it.querySelector('.nombre-libre');
+  const nombre = ((n ? n.textContent : (libre ? libre.value : '')) || '').trim();
+  const grid = document.getElementById('fotos-' + sid), cabian = MAX_FOTOS_SECCION - grid.children.length;
+  const eran = (ev.target.files || []).length;
+  tomarFotos(ev, 'fotos-' + sid, nombre);
+  const aviso = it.querySelector('.cam-aviso');
+  if (aviso) aviso.textContent = (eran && cabian > 0)
+    ? '✓ Foto agregada a las fotografías de esta sección (abajo), con el nombre de la partida.' : '';
+}
+"""
 J += r"""
 // La cantidad es texto con teclado decimal, no type=number: en un teléfono con
 // teclado es-VE el decimal es la coma, y un campo number la rechaza y queda

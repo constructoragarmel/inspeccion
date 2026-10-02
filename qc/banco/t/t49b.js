@@ -1,7 +1,7 @@
 // TANDA 49b · V106 (1-oct-2026): el botón «Tomar foto» en el motor de servicios (lo heredan SHA y urbanismo).
 // Correr en servicios.html, sha.html y urbanismo.html.
 Q.aceptar = true;
-const bloques = $$('.btn-camara input[type=file]');
+const bloques = $$('.btn-camara:not(.cam-partida) input[type=file]');   // los de cada bloque; los de cada partida (urbanismo, v113) van en t55
 const b = bloques[0], tarjeta = b.closest('.tarjeta') || b.parentElement.parentElement, grid = tarjeta.querySelector('.fotos');
 const galeria = [...tarjeta.querySelectorAll('input[type=file]')].find(i => i !== b);
 if (typeof plegar === 'function' && grid.closest('[id^="srv-"]')) plegar(grid.closest('[id^="srv-"]').id.replace('srv-', ''), true);

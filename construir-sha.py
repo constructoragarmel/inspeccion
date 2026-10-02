@@ -531,6 +531,137 @@ J = sustituir(J, "    aprenderItems();\n    anotarEstadoTorre(d);",
 J = sustituir(J, "  if (d.estatus === 'Rechazado' && !d.accion) f.push('la acci\u00f3n por el rechazo');",
                  "  if (d.estatus === 'Rechazado' && !d.accion) f.push('la acci\u00f3n por el rechazo');\n  (d.incidencias || []).forEach((x, i) => { if (!x.tipo) f.push('el tipo de accidente de la incidencia ' + (i + 1)); });", "20r· incidencia sin tipo")
 
+
+# 21 · Desmontaje de obstáculos (v113), pedido por Skarlet el 2-oct-2026. Una cuarta pestaña con cinco filas FIJAS
+# (sha/contenido.py): torres grúa, chatarra, camiones y maquinaria averiados, ascensores de carga y andamios. En
+# cada una, lo retirado a la fecha (acumulado) y lo que queda; la chatarra, en % retirado a criterio del inspector.
+# Observación por fila y fotos del bloque. Como es acumulado, al traer la visita anterior de la torre vienen sus
+# valores para actualizarlos; no cuentan como «sin revisar» (un acumulado que no cambió sigue siendo cierto).
+# Viaja en `datos.obstaculos` y `datos.fotosObstaculos`; las fotos, como `obst-k`.
+H = sustituir(H, """    <button type="button" id="tab-c" onclick="verPanel('c')">Incidencias</button>""",
+                 """    <button type="button" id="tab-c" onclick="verPanel('c')">Incidencias</button>
+    <button type="button" id="tab-d" onclick="verPanel('d')">Obstáculos</button>""", "21a· pestaña D")
+H = sustituir(H, """  <div id="panel-c" class="panel"></div>""",
+                 """  <div id="panel-c" class="panel"></div>
+  <div id="panel-d" class="panel"></div>""", "21b· panel de obstáculos")
+C = sustituir(C, ".sem{display:flex;gap:8px;margin:4px 0 8px}",
+""".sem{display:flex;gap:8px;margin:4px 0 8px}
+.pestanas{flex-wrap:wrap}
+.pestanas button{flex:1 1 40%;font-size:13.5px;padding:6px 4px}
+@media (min-width:560px){.pestanas button{flex:1 1 0}}
+.obst-intro{margin:0 0 10px;padding:8px 10px;border-left:4px solid #9fa8da;background:#eef0fb;border-radius:4px;font-size:13px;line-height:1.35;color:#1b2235}
+.obst-de{margin:0 0 10px;font-size:12.5px;color:#8f4b00;font-weight:600}
+.fila-obst{border:1px solid var(--borde);border-radius:8px;padding:10px;margin-bottom:8px;background:#fff}
+.fila-obst .nombre{font-weight:700;font-size:15px;margin-bottom:8px}
+.obst-campos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;align-items:end}
+.obst-campos label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:#475569;min-width:0}
+.obst-campos input{min-height:44px;font-size:16px;text-align:center}
+.obst-resto{align-self:center;font-size:14px;font-weight:700;color:#475569;padding-bottom:10px}""", "21c· estilos de obstáculos")
+
+J += r"""
+// ── Desmontaje de obstáculos ──
+function obstNumero(el, tope){
+  let v = String(el.value || '').replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+  if (tope !== undefined && v !== '' && Number(v) > tope) v = String(tope);
+  el.value = v;
+}
+function obstResto(fila){
+  const p = fila.querySelector('.obst-pct'), r = fila.querySelector('.obst-resto');
+  if (!p || !r) return;
+  r.textContent = p.value === '' ? '' : 'Queda ' + (100 - Number(p.value)) + ' %';
+}
+function pintarObstaculos(){
+  const cont = document.getElementById('panel-d');
+  if (!cont) return;
+  delete cont.dataset.heredado;
+  let h = '<div class="obst-intro">Lo que estorba en la torre y hay que retirar. Anote lo <b>retirado a la fecha</b> ' +
+          '(el acumulado, no solo lo de hoy) y lo que <b>queda</b>. Lo que no hay ni hubo, déjelo en blanco.</div>' +
+          '<div class="obst-de" id="obst-de" hidden></div>';
+  OBSTACULOS.forEach(o => {
+    h += '<div class="fila-obst" data-id="' + o.id + '"><div class="nombre">' + o.nombre + '</div>' +
+      (o.mide === 'pct'
+        ? '<div class="obst-campos"><label>% retirado a la fecha, a su criterio' +
+          '<input type="text" inputmode="numeric" class="obst-pct" placeholder="0 a 100" oninput="obstNumero(this, 100); obstResto(this.closest(\'.fila-obst\')); marcar()"></label>' +
+          '<div class="obst-resto"></div></div>'
+        : '<div class="obst-campos"><label>Retirado a la fecha' +
+          '<input type="text" inputmode="numeric" class="obst-ret" placeholder="cantidad" oninput="obstNumero(this); marcar()"></label>' +
+          '<label>Queda por retirar' +
+          '<input type="text" inputmode="numeric" class="obst-queda" placeholder="cantidad" oninput="obstNumero(this); marcar()"></label></div>') +
+      '<textarea class="obst-obs" placeholder="Observación…" oninput="marcar()"></textarea></div>';
+  });
+  h += bloqueFotos('fotos-obst', 'Fotografías de los obstáculos');
+  cont.innerHTML = h;
+  // En cuanto el inspector toca algo, lo traído de la visita anterior ya es de hoy: no se suelta al cambiar de torre.
+  cont.oninput = () => { delete cont.dataset.heredado; };
+}
+function leerObstaculos(){
+  return [...document.querySelectorAll('#panel-d .fila-obst')].map(f => {
+    const o = OBSTACULOS.find(x => x.id === f.dataset.id) || {};
+    const v = c => { const e = f.querySelector(c); return e ? String(e.value || '').trim() : ''; };
+    return { id: f.dataset.id, nombre: o.nombre || '', mide: o.mide || 'cant',
+             retirado: v('.obst-ret'), queda: v('.obst-queda'), pct: v('.obst-pct'), obs: v('.obst-obs') };
+  });
+}
+function hayObstaculos(lista){
+  return (lista || []).some(o => o && (o.retirado !== '' && o.retirado !== undefined || o.queda !== '' && o.queda !== undefined ||
+                                       o.pct !== '' && o.pct !== undefined || (o.obs || '') !== ''));
+}
+// de: el número del informe del que vienen, cuando se traen de la visita anterior.
+function ponerObstaculos(lista, de){
+  (lista || []).forEach(o => {
+    const f = document.querySelector('#panel-d .fila-obst[data-id="' + o.id + '"]');
+    if (!f) return;
+    const p = (c, val) => { const e = f.querySelector(c); if (e) e.value = (val === undefined || val === null) ? '' : val; };
+    p('.obst-ret', o.retirado); p('.obst-queda', o.queda); p('.obst-pct', o.pct); p('.obst-obs', de ? '' : o.obs);
+    obstResto(f);
+  });
+  const nota = document.getElementById('obst-de'), cont = document.getElementById('panel-d');
+  if (nota && de && hayObstaculos(lista)){
+    nota.hidden = false; nota.textContent = 'Cantidades traídas de ' + de + ': actualice lo que cambió desde entonces.';
+    cont.dataset.heredado = de;
+  }
+}
+"""
+J = sustituir(J, "  document.getElementById('tab-c').classList.toggle('on', cual === 'c');",
+                 "  document.getElementById('tab-c').classList.toggle('on', cual === 'c');\n  document.getElementById('panel-d').classList.toggle('on', cual === 'd');\n  document.getElementById('tab-d').classList.toggle('on', cual === 'd');", "21d· ver el panel D")
+J = sustituir(J, "  pintarGeneral(); pintarApartamentos(); pintarIncidencias();", "  pintarGeneral(); pintarApartamentos(); pintarIncidencias(); pintarObstaculos();", "21e· pintar el panel", n=2)
+J = sustituir(J, "    incidencias: leerIncidencias(),",
+                 "    incidencias: leerIncidencias(),\n    obstaculos: leerObstaculos(),\n    fotosObstaculos: leerFotos(document.getElementById('fotos-obst')),", "21f· datos")
+J = sustituir(J, "[...document.querySelectorAll('#filas-inc .fila-inc')].forEach((f, i) => { grupos['inc:' + i] = leerDatosFotos(f.querySelector('.fotos')); });",
+                 "[...document.querySelectorAll('#filas-inc .fila-inc')].forEach((f, i) => { grupos['inc:' + i] = leerDatosFotos(f.querySelector('.fotos')); });\n  grupos['obst'] = leerDatosFotos(document.getElementById('fotos-obst'));", "21g· imágenes a IndexedDB")
+J = sustituir(J, "(datos.incidencias || []).forEach((x, i) => { x.fotos = soltar(x.fotos, 'inc-' + (i + 1), grupos['inc:' + i]); });",
+                 "(datos.incidencias || []).forEach((x, i) => { x.fotos = soltar(x.fotos, 'inc-' + (i + 1), grupos['inc:' + i]); });\n  datos.fotosObstaculos = soltar(datos.fotosObstaculos, 'obst', grupos['obst']);", "21h· fotos en el sobre")
+J = sustituir(J, "(x.incidencias || []).forEach(k => { k.fotos = (k.fotos || []).map(soltar); });",
+                 "(x.incidencias || []).forEach(k => { k.fotos = (k.fotos || []).map(soltar); });\n      x.fotosObstaculos = (x.fotosObstaculos || []).map(soltar);", "21i· al enviar se sueltan")
+J = sustituir(J, "    (d.incidencias || []).forEach(x => { addIncidencia(x); if (x.heredado){",
+                 "    ponerObstaculos(d.obstaculos || []);\n"
+                 "    pintarFotos(document.getElementById('fotos-obst'), (d.fotosObstaculos || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '…' }));\n"
+                 "    (d.incidencias || []).forEach(x => { addIncidencia(x); if (x.heredado){", "21j· abrir: obstáculos")
+J = sustituir(J, "      [...document.querySelectorAll('#filas-inc .fila-inc')].forEach((f, i) => { const x = (d.incidencias || [])[i]; if (!x) return; const dx = grupos['inc:' + i] || [];",
+                 "      const dob = grupos['obst'] || [];\n"
+                 "      pintarFotos(document.getElementById('fotos-obst'), (d.fotosObstaculos || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : dob[k] || '') })));\n"
+                 "      [...document.querySelectorAll('#filas-inc .fila-inc')].forEach((f, i) => { const x = (d.incidencias || [])[i]; if (!x) return; const dx = grupos['inc:' + i] || [];", "21k· abrir: imágenes de obstáculos")
+J = sustituir(J, "    f.classList.add('heredado'); f.dataset.heredado = x.heredado || e.nro;\n  });\n  actualizarCuentas(); marcar();\n}",
+                 "    f.classList.add('heredado'); f.dataset.heredado = x.heredado || e.nro;\n  });\n"
+                 "  if (!hayObstaculos(leerObstaculos())) ponerObstaculos(e.obstaculos || [], e.nro);\n  actualizarCuentas(); marcar();\n}", "21l· el acumulado viene de la visita anterior")
+J = sustituir(J, "  document.querySelectorAll('#filas-inc .fila-inc.heredado').forEach(f => f.remove());",
+                 "  document.querySelectorAll('#filas-inc .fila-inc.heredado').forEach(f => f.remove());\n"
+                 "  if ((document.getElementById('panel-d') || { dataset: {} }).dataset.heredado) pintarObstaculos();", "21m· lo traído se suelta con la torre")
+J = sustituir(J, "  if (document.querySelectorAll('#filas-apto .fila-apto, #filas-inc .fila-inc').length) return false;",
+                 "  if (document.querySelectorAll('#filas-apto .fila-apto, #filas-inc .fila-inc').length) return false;\n"
+                 "  if (hayObstaculos(leerObstaculos()) && !(document.getElementById('panel-d') || { dataset: {} }).dataset.heredado) return false;", "21n· en blanco")
+J = sustituir(J, "  if (!items.length && !aptos.length && !obs.length) return false;\n  return items.every(it => it.classList.contains('heredado')) &&",
+                 "  const _obst = hayObstaculos(leerObstaculos()), _obstHer = !!(document.getElementById('panel-d') || { dataset: {} }).dataset.heredado;\n"
+                 "  if (!items.length && !aptos.length && !obs.length && !_obst) return false;\n"
+                 "  return (!_obst || _obstHer) && items.every(it => it.classList.contains('heredado')) &&", "21n2· solo heredado, con los obstáculos")
+J = sustituir(J, "!(d.fotosGenerales || []).length && !(d.incidencias || []).length &&",
+                 "!(d.fotosGenerales || []).length && !(d.incidencias || []).length && !hayObstaculos(d.obstaculos) && !(d.fotosObstaculos || []).length &&", "21o· vacío")
+J = sustituir(J, "(d.apartamentos || []).length > 0 || (d.incidencias || []).length > 0;\n  if (!contestado) return;",
+                 "(d.apartamentos || []).length > 0 || (d.incidencias || []).length > 0 || hayObstaculos(d.obstaculos);\n  if (!contestado) return;", "21p· memoria de la torre")
+J = sustituir(J, "\n    incidencias: (d.incidencias || []).map(x => ({ fecha: x.fecha,",
+                 "\n    obstaculos: (d.obstaculos || []).map(o => ({ id: o.id, retirado: o.retirado, queda: o.queda, pct: o.pct })),"
+                 "\n    incidencias: (d.incidencias || []).map(x => ({ fecha: x.fecha,", "21q· y el teléfono lo recuerda")
+
 # ══════════════════════════════════════════════════════════════════════════
 # MONTAJE
 # ══════════════════════════════════════════════════════════════════════════
@@ -562,7 +693,8 @@ def construir():
         .replace('@@RELEVO@@', json.dumps(motor.RELEVO_URL))
         .replace('@@JS@@', "const ESTADOS_HALLAZGO = %s;\n" % json.dumps(contenido.ESTADOS_HALLAZGO, ensure_ascii=False) +
                            "const TIPOS_INCIDENCIA = @@INC_TIPOS@@;\nconst ESTADOS_INCIDENCIA = @@INC_ESTADOS@@;\n" +
-                           "const CLAVE_TIPOS_INC = 'garmel_sha_tipos_inc';\nlet _nInc = 0;\n" + J)
+                           "const CLAVE_TIPOS_INC = 'garmel_sha_tipos_inc';\nlet _nInc = 0;\n" +
+                           "const OBSTACULOS = %s;\n" % json.dumps(contenido.OBSTACULOS, ensure_ascii=False) + J)
         .replace('@@TOPE@@', str(motor.TOPE_ALMACEN))
         .replace('@@INC_TIPOS@@', json.dumps(contenido.TIPOS_INCIDENCIA, ensure_ascii=False))
         .replace('@@INC_ESTADOS@@', json.dumps(contenido.ESTADOS_INCIDENCIA, ensure_ascii=False)))

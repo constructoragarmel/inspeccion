@@ -352,3 +352,24 @@ tandas, en verde) y a 1280 px (`--ancho 1280 --alto 900`; 23 tandas). A 1280 sol
 los botones tengan 44 px para el dedo: en escritorio miden 25 px a propósito, se usan con el ratón. A 375 px en
 navegador: `t50`, `t52` y `t53` en verde. Capturas de escritorio de inspección (leyenda abierta y plegada, «?» abierto,
 nota del N/A) y de servicios, revisadas a ojo: la nota del N/A se centró bajo los botones en escritorio.
+
+**`t54` y `t54relevo` (2-oct-2026, v113 y relevo r37): «Desmontaje de obstáculos» en SHA.** Pedido de Planificación:
+una cuarta pestaña con cinco filas fijas (torres grúa, chatarra, camiones y maquinaria averiados, ascensores de carga y
+andamios); en cada una lo retirado a la fecha (acumulado) y lo que queda, y la chatarra en % a criterio del inspector.
+
+- `t54` (9, en `sha.html`): las cinco filas y sus casillas; solo números y % hasta 100; lo que viaja; guardar y reabrir;
+  el envío con su foto `obst-1`; la visita siguiente trae las cantidades (no la observación); cambiar de torre las
+  suelta, salvo que el inspector ya las haya tocado; un informe solo con obstáculos no está vacío; y las cuatro
+  pestañas caben. **Hace un envío: se corre en navegador, no con `headless.py`.**
+- `t54relevo` (4, en `pdf/`): la sección del PDF con las filas que tienen dato; sin dato no sale; las filas de
+  Smartsheet (el % de las que se cuentan sale de las dos cantidades); y el empuje no hace nada si la hoja no existe.
+
+**`t55` (2-oct-2026, v113): la foto desde cada partida, en urbanismo.** Una inspectora avisó que en «Desmalezamiento»
+faltaba dónde poner fotos: las fotos de urbanismo son de la sección y su bloque queda al final, lejos de la primera
+partida. Cada partida tiene ahora «📷 Foto de esta partida»; la foto entra al bloque de la sección con el nombre de la
+partida como descripción y la fila lo confirma. Ocho comprobaciones. `t49b` se ajustó para mirar solo los botones de
+bloque. **No se llevó a servicios ni a SHA**: ahí el tope es de 3 fotos por bloque y un botón por ítem lo agotaría al
+tercero; ni a inspección de obra, donde las fotos son del hito y el botón ya está en el hito.
+
+Regresión sobre la v113: las 29 tandas de siempre a 500 px y diez a 1280 px, en verde (una pasada de `t49b` en SHA
+falló por tiempos y al repetirla pasó); `t54` y `t55` también a 375 px en navegador.

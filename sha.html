@@ -149,6 +149,17 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
 .fila-inc .etq-her{display:none}
 .fila-inc label.et{display:block;font-size:13px;font-weight:600;color:#475569;margin:8px 0 4px}
 .sem{display:flex;gap:8px;margin:4px 0 8px}
+.pestanas{flex-wrap:wrap}
+.pestanas button{flex:1 1 40%;font-size:13.5px;padding:6px 4px}
+@media (min-width:560px){.pestanas button{flex:1 1 0}}
+.obst-intro{margin:0 0 10px;padding:8px 10px;border-left:4px solid #9fa8da;background:#eef0fb;border-radius:4px;font-size:13px;line-height:1.35;color:#1b2235}
+.obst-de{margin:0 0 10px;font-size:12.5px;color:#8f4b00;font-weight:600}
+.fila-obst{border:1px solid var(--borde);border-radius:8px;padding:10px;margin-bottom:8px;background:#fff}
+.fila-obst .nombre{font-weight:700;font-size:15px;margin-bottom:8px}
+.obst-campos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;align-items:end}
+.obst-campos label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:#475569;min-width:0}
+.obst-campos input{min-height:44px;font-size:16px;text-align:center}
+.obst-resto{align-self:center;font-size:14px;font-weight:700;color:#475569;padding-bottom:10px}
 .sem button{flex:1;min-height:44px;border:1px solid var(--borde);border-radius:6px;background:#fff;font-weight:700;font-size:14px}
 .sem button.sem-on{color:#fff;border-color:transparent}
 .fila-inc.heredado .sem button.sem-on{opacity:.55}
@@ -225,11 +236,13 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
     <button type="button" id="tab-a" class="on" onclick="verPanel('a')">Recaudos</button>
     <button type="button" id="tab-b" onclick="verPanel('b')">Hallazgos de campo</button>
     <button type="button" id="tab-c" onclick="verPanel('c')">Incidencias</button>
+    <button type="button" id="tab-d" onclick="verPanel('d')">Obstáculos</button>
   </div>
 
   <div id="panel-a" class="panel on"></div>
   <div id="panel-b" class="panel"></div>
   <div id="panel-c" class="panel"></div>
+  <div id="panel-d" class="panel"></div>
 
   <div class="tarjeta" id="cierre">
     <div class="campo">
@@ -255,7 +268,7 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
       <div class="fotos" id="fotos-general"></div></div>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v112</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v113</div>
 </div>
 
 <div class="acciones">
@@ -381,6 +394,7 @@ const TIPOS_INCIDENCIA = ["Caída de altura", "Golpe o atrapamiento", "Corte o h
 const ESTADOS_INCIDENCIA = [["Abierta", "#dc2626"], ["En seguimiento", "#d97706"], ["Cerrada", "#16a34a"]];
 const CLAVE_TIPOS_INC = 'garmel_sha_tipos_inc';
 let _nInc = 0;
+const OBSTACULOS = [{"id": "gruas", "nombre": "Torres grúa", "mide": "cant"}, {"id": "chatarra", "nombre": "Chatarra", "mide": "pct"}, {"id": "vehiculos", "nombre": "Camiones y maquinaria averiados", "mide": "cant"}, {"id": "ascensores_carga", "nombre": "Ascensores de carga", "mide": "cant"}, {"id": "andamios", "nombre": "Andamios", "mide": "cant"}];
 
 // ── Cascada: la torre manda ───────────────────────────────────────────────
 // Cuatro torres (T-04, T-07, T-12, T-13) están en el maestro DOS VECES, con dos
@@ -866,6 +880,8 @@ function verPanel(cual){
   document.getElementById('panel-b').classList.toggle('on', cual === 'b');
   document.getElementById('panel-c').classList.toggle('on', cual === 'c');
   document.getElementById('tab-c').classList.toggle('on', cual === 'c');
+  document.getElementById('panel-d').classList.toggle('on', cual === 'd');
+  document.getElementById('tab-d').classList.toggle('on', cual === 'd');
   document.getElementById('tab-a').classList.toggle('on', cual === 'a');
   document.getElementById('tab-b').classList.toggle('on', cual === 'b');
 }
@@ -874,7 +890,8 @@ function verPanel(cual){
 // Se reducen ANTES de guardarlas, con los mismos valores medidos en el otro
 // formulario. Una foto de cámara en crudo no cabe en el almacenamiento del
 // navegador, y aquí hay doce secciones donde ponerlas.
-function tomarFotos(ev, gridId){
+// `pie` (opcional): la descripción con la que entra la foto (urbanismo: el nombre de la partida).
+function tomarFotos(ev, gridId, pie){
   const grid = document.getElementById(gridId);
   let files = [...ev.target.files];
   ev.target.value = '';
@@ -890,7 +907,7 @@ function tomarFotos(ev, gridId){
   // Si el informe recién abierto aún está trayendo sus fotos de IndexedDB, se
   // espera: pintar encima de un grid a medio cargar las mezclaría.
   _fotosCargando.then(() => files.forEach(f => {
-    reducir(f, dataUrl => { pintarFotos(grid, [{ dato: dataUrl, pie: '' }], true); _fotosSucias = true; marcar(); });
+    reducir(f, dataUrl => { pintarFotos(grid, [{ dato: dataUrl, pie: pie || '' }], true); _fotosSucias = true; marcar(); });
   }));
 }
 
@@ -1036,6 +1053,7 @@ function datosDelFormulario(){
   [...document.querySelectorAll('#filas-apto .fila-apto')].forEach((fila, i) => { grupos['apto:' + i] = leerDatosFotos(fila.querySelector('.fotos')); });
   grupos['general'] = leerDatosFotos(document.getElementById('fotos-general'));
   [...document.querySelectorAll('#filas-inc .fila-inc')].forEach((f, i) => { grupos['inc:' + i] = leerDatosFotos(f.querySelector('.fotos')); });
+  grupos['obst'] = leerDatosFotos(document.getElementById('fotos-obst'));
   return {
     id: idActual || ('sha_' + Date.now()),
     tipo: 'sha',
@@ -1046,6 +1064,8 @@ function datosDelFormulario(){
     accion: val('accion'), accion_det: val('accion_det'),
     fotosGenerales: leerFotos(document.getElementById('fotos-general')),
     incidencias: leerIncidencias(),
+    obstaculos: leerObstaculos(),
+    fotosObstaculos: leerFotos(document.getElementById('fotos-obst')),
     inspectores: inspectoresElegidos(),
     obs_general: val('obs_general'),
     noInspeccionados: noInsp,
@@ -1059,7 +1079,7 @@ function datosDelFormulario(){
 function informeVacio(d){
   return !(d.general || []).some(g => (g.obs || '').trim() || (g.fotos || []).length ||
                                       (g.items || []).some(i => i.sn || (i.obs || '').trim())) &&
-         !(d.apartamentos || []).length && !(d.fotosGenerales || []).length && !(d.incidencias || []).length &&
+         !(d.apartamentos || []).length && !(d.fotosGenerales || []).length && !(d.incidencias || []).length && !hayObstaculos(d.obstaculos) && !(d.fotosObstaculos || []).length &&
          !(d.noInspeccionados || []).length && !(d.obs_general || '').trim() && !d.estatus;
 }
 
@@ -1154,7 +1174,7 @@ function anotarEstadoTorre(d){
   // de hoy pisaba al informe real de ayer —el del teléfono y el que llegaba
   // del relevo— y el historial ofrecía un vacío. Visto el 15-sep en T-12.
   const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs)) ||
-                     (d.apartamentos || []).length > 0 || (d.incidencias || []).length > 0;
+                     (d.apartamentos || []).length > 0 || (d.incidencias || []).length > 0 || hayObstaculos(d.obstaculos);
   if (!contestado) return;
   const todos = estadosDeTorres();
   const previo = todos[d.torre];
@@ -1177,6 +1197,7 @@ function anotarEstadoTorre(d){
     apartamentos: (d.apartamentos || []).map(a => ({
       apto: a.apto, piso: a.piso, campos: a.campos, heredado: a.heredado || ''
     })),
+    obstaculos: (d.obstaculos || []).map(o => ({ id: o.id, retirado: o.retirado, queda: o.queda, pct: o.pct })),
     incidencias: (d.incidencias || []).map(x => ({ fecha: x.fecha, tipo: x.tipo, notas: x.notas, acciones: x.acciones, estado: x.estado, heredado: x.heredado || '' }))
   };
   try { localStorage.setItem(CLAVE_TORRES, JSON.stringify(todos)); } catch(e){}
@@ -1281,6 +1302,7 @@ function nombreVigente(sid, nombre){
 // entonces tiene sentido proponer arrancar desde la visita anterior.
 function formularioEnBlanco(){
   if (document.querySelectorAll('#filas-apto .fila-apto, #filas-inc .fila-inc').length) return false;
+  if (hayObstaculos(leerObstaculos()) && !(document.getElementById('panel-d') || { dataset: {} }).dataset.heredado) return false;
   return ![...document.querySelectorAll('.item')].some(it =>
     valorSN(it) || (it.querySelector('textarea').value || '').trim());
 }
@@ -1290,8 +1312,9 @@ function soloHeredado(){
   const items = [...document.querySelectorAll('.item')].filter(it => valorSN(it) || (it.querySelector('textarea').value || '').trim());
   const aptos = [...document.querySelectorAll('#filas-apto .fila-apto, #filas-inc .fila-inc')];
   const obs = [...document.querySelectorAll('.obs-srv')].filter(o => (o.value || '').trim());
-  if (!items.length && !aptos.length && !obs.length) return false;
-  return items.every(it => it.classList.contains('heredado')) &&
+  const _obst = hayObstaculos(leerObstaculos()), _obstHer = !!(document.getElementById('panel-d') || { dataset: {} }).dataset.heredado;
+  if (!items.length && !aptos.length && !obs.length && !_obst) return false;
+  return (!_obst || _obstHer) && items.every(it => it.classList.contains('heredado')) &&
          aptos.every(f => f.classList.contains('heredado')) &&
          obs.every(o => o.dataset.heredado);
 }
@@ -1302,6 +1325,7 @@ function soltarHeredado(){
   });
   document.querySelectorAll('#filas-apto .fila-apto.heredado').forEach(f => f.remove());
   document.querySelectorAll('#filas-inc .fila-inc.heredado').forEach(f => f.remove());
+  if ((document.getElementById('panel-d') || { dataset: {} }).dataset.heredado) pintarObstaculos();
   if (!document.querySelectorAll('#filas-inc .fila-inc').length){ const v = document.getElementById('c-vacio'); if (v) v.style.display = ''; }
   if (!document.querySelectorAll('#filas-apto .fila-apto').length){
     const v = document.getElementById('b-vacio'); if (v) v.style.display = '';
@@ -1385,6 +1409,7 @@ function traerHistorial(){
     const f = document.querySelector('#filas-inc .fila-inc:last-child');
     f.classList.add('heredado'); f.dataset.heredado = x.heredado || e.nro;
   });
+  if (!hayObstaculos(leerObstaculos())) ponerObstaculos(e.obstaculos || [], e.nro);
   actualizarCuentas(); marcar();
 }
 
@@ -1485,6 +1510,8 @@ function cargarInforme(id){
     document.getElementById('accion_det').value = d.accion_det || '';
     verRechazo();
     pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '…' }));
+    ponerObstaculos(d.obstaculos || []);
+    pintarFotos(document.getElementById('fotos-obst'), (d.fotosObstaculos || []).map(f => f.dato ? f : { pie: f.pie, dato: f.enDrive ? '' : '…' }));
     (d.incidencias || []).forEach(x => { addIncidencia(x); if (x.heredado){ const f = document.querySelector('#filas-inc .fila-inc:last-child'); f.classList.add('heredado'); f.dataset.heredado = x.heredado; } });
     document.getElementById('obs_general').value = d.obs_general || '';
     document.getElementById('inspectores').innerHTML = '';
@@ -1529,6 +1556,8 @@ function cargarInforme(id){
       });
       const dg = grupos['general'] || [];
       pintarFotos(document.getElementById('fotos-general'), (d.fotosGenerales || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : dg[k] || '') })));
+      const dob = grupos['obst'] || [];
+      pintarFotos(document.getElementById('fotos-obst'), (d.fotosObstaculos || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : dob[k] || '') })));
       [...document.querySelectorAll('#filas-inc .fila-inc')].forEach((f, i) => { const x = (d.incidencias || [])[i]; if (!x) return; const dx = grupos['inc:' + i] || [];
         pintarFotos(f.querySelector('.fotos'), (x.fotos || []).map((ft, k) => ({ pie: ft.pie, dato: ft.dato || (ft.enDrive ? '' : dx[k] || '') }))); });
     });
@@ -1550,7 +1579,7 @@ function vaciarFormulario(){
   document.getElementById('torre').value = ''; alElegirTorre();
   document.getElementById('estatus').value = ''; verRechazo();
   document.getElementById('inspectores').innerHTML = ''; addInspector();
-  pintarGeneral(); pintarApartamentos(); pintarIncidencias();
+  pintarGeneral(); pintarApartamentos(); pintarIncidencias(); pintarObstaculos();
   const hoy = new Date();
   document.getElementById('fecha').value = hoy.getFullYear() + '-' + String(hoy.getMonth()+1).padStart(2,'0') + '-' + String(hoy.getDate()).padStart(2,'0');
   idActual = null; sucio = false; actualizarNro(); actualizarCuentas();
@@ -1673,6 +1702,7 @@ function sobreDe(d, clave, grupos){
   datos.apartamentos.forEach((a, i) => { a.fotos = soltar(a.fotos, 'apto-' + (i + 1) + '-' + limpiar(a.apto || ''), grupos['apto:' + i]); });
   datos.fotosGenerales = soltar(datos.fotosGenerales, 'general', grupos['general']);
   (datos.incidencias || []).forEach((x, i) => { x.fotos = soltar(x.fotos, 'inc-' + (i + 1), grupos['inc:' + i]); });
+  datos.fotosObstaculos = soltar(datos.fotosObstaculos, 'obst', grupos['obst']);
   delete datos.fotosDB;
   // El registro del relevo lee `estatus` y `residentes` como LISTAS —les hace
   // .join()— porque así viajan desde inspección. Un texto suelto reventaría
@@ -1765,6 +1795,7 @@ function marcarEnviado(id, nro){
       (x.apartamentos || []).forEach(a => { a.fotos = (a.fotos || []).map(soltar); });
       x.fotosGenerales = (x.fotosGenerales || []).map(soltar);
       (x.incidencias || []).forEach(k => { k.fotos = (k.fotos || []).map(soltar); });
+      x.fotosObstaculos = (x.fotosObstaculos || []).map(soltar);
       FotosDB.borrar(id).catch(() => {});
       // Si es el que está en pantalla, sus fotos en el grid pasan a «ya en
       // Drive» en el próximo guardado; hasta entonces se siguen viendo.
@@ -2280,7 +2311,7 @@ if ('serviceWorker' in navigator) {
     a.style.margin = '12px'; a.textContent = '⚠️ MODO DE PRUEBA — este informe se archiva como PRUEBA-';
     document.querySelector('.envoltorio').prepend(a);
   }
-  pintarGeneral(); pintarApartamentos(); pintarIncidencias(); addInspector();
+  pintarGeneral(); pintarApartamentos(); pintarIncidencias(); pintarObstaculos(); addInspector();
   actualizarNro(); actualizarContador(); actualizarCuentas();
   // TODO campo que se toque marca el informe para guardar, sin depender de que
   // cada control lleve su propio disparador. Residente, empresa y observación
@@ -2406,6 +2437,69 @@ function leerIncidencias(){
     heredado: f.dataset.heredado || '',
     fotos: leerFotos(f.querySelector('.fotos'))
   }));
+}
+
+// ── Desmontaje de obstáculos ──
+function obstNumero(el, tope){
+  let v = String(el.value || '').replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+  if (tope !== undefined && v !== '' && Number(v) > tope) v = String(tope);
+  el.value = v;
+}
+function obstResto(fila){
+  const p = fila.querySelector('.obst-pct'), r = fila.querySelector('.obst-resto');
+  if (!p || !r) return;
+  r.textContent = p.value === '' ? '' : 'Queda ' + (100 - Number(p.value)) + ' %';
+}
+function pintarObstaculos(){
+  const cont = document.getElementById('panel-d');
+  if (!cont) return;
+  delete cont.dataset.heredado;
+  let h = '<div class="obst-intro">Lo que estorba en la torre y hay que retirar. Anote lo <b>retirado a la fecha</b> ' +
+          '(el acumulado, no solo lo de hoy) y lo que <b>queda</b>. Lo que no hay ni hubo, déjelo en blanco.</div>' +
+          '<div class="obst-de" id="obst-de" hidden></div>';
+  OBSTACULOS.forEach(o => {
+    h += '<div class="fila-obst" data-id="' + o.id + '"><div class="nombre">' + o.nombre + '</div>' +
+      (o.mide === 'pct'
+        ? '<div class="obst-campos"><label>% retirado a la fecha, a su criterio' +
+          '<input type="text" inputmode="numeric" class="obst-pct" placeholder="0 a 100" oninput="obstNumero(this, 100); obstResto(this.closest(\'.fila-obst\')); marcar()"></label>' +
+          '<div class="obst-resto"></div></div>'
+        : '<div class="obst-campos"><label>Retirado a la fecha' +
+          '<input type="text" inputmode="numeric" class="obst-ret" placeholder="cantidad" oninput="obstNumero(this); marcar()"></label>' +
+          '<label>Queda por retirar' +
+          '<input type="text" inputmode="numeric" class="obst-queda" placeholder="cantidad" oninput="obstNumero(this); marcar()"></label></div>') +
+      '<textarea class="obst-obs" placeholder="Observación…" oninput="marcar()"></textarea></div>';
+  });
+  h += bloqueFotos('fotos-obst', 'Fotografías de los obstáculos');
+  cont.innerHTML = h;
+  // En cuanto el inspector toca algo, lo traído de la visita anterior ya es de hoy: no se suelta al cambiar de torre.
+  cont.oninput = () => { delete cont.dataset.heredado; };
+}
+function leerObstaculos(){
+  return [...document.querySelectorAll('#panel-d .fila-obst')].map(f => {
+    const o = OBSTACULOS.find(x => x.id === f.dataset.id) || {};
+    const v = c => { const e = f.querySelector(c); return e ? String(e.value || '').trim() : ''; };
+    return { id: f.dataset.id, nombre: o.nombre || '', mide: o.mide || 'cant',
+             retirado: v('.obst-ret'), queda: v('.obst-queda'), pct: v('.obst-pct'), obs: v('.obst-obs') };
+  });
+}
+function hayObstaculos(lista){
+  return (lista || []).some(o => o && (o.retirado !== '' && o.retirado !== undefined || o.queda !== '' && o.queda !== undefined ||
+                                       o.pct !== '' && o.pct !== undefined || (o.obs || '') !== ''));
+}
+// de: el número del informe del que vienen, cuando se traen de la visita anterior.
+function ponerObstaculos(lista, de){
+  (lista || []).forEach(o => {
+    const f = document.querySelector('#panel-d .fila-obst[data-id="' + o.id + '"]');
+    if (!f) return;
+    const p = (c, val) => { const e = f.querySelector(c); if (e) e.value = (val === undefined || val === null) ? '' : val; };
+    p('.obst-ret', o.retirado); p('.obst-queda', o.queda); p('.obst-pct', o.pct); p('.obst-obs', de ? '' : o.obs);
+    obstResto(f);
+  });
+  const nota = document.getElementById('obst-de'), cont = document.getElementById('panel-d');
+  if (nota && de && hayObstaculos(lista)){
+    nota.hidden = false; nota.textContent = 'Cantidades traídas de ' + de + ': actualice lo que cambió desde entonces.';
+    cont.dataset.heredado = de;
+  }
 }
 
 </script>

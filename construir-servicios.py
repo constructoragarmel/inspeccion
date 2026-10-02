@@ -831,7 +831,8 @@ function verPanel(cual){
 // Se reducen ANTES de guardarlas, con los mismos valores medidos en el otro
 // formulario. Una foto de cámara en crudo no cabe en el almacenamiento del
 // navegador, y aquí hay doce secciones donde ponerlas.
-function tomarFotos(ev, gridId){
+// `pie` (opcional): la descripción con la que entra la foto (urbanismo: el nombre de la partida).
+function tomarFotos(ev, gridId, pie){
   const grid = document.getElementById(gridId);
   let files = [...ev.target.files];
   ev.target.value = '';
@@ -847,7 +848,7 @@ function tomarFotos(ev, gridId){
   // Si el informe recién abierto aún está trayendo sus fotos de IndexedDB, se
   // espera: pintar encima de un grid a medio cargar las mezclaría.
   _fotosCargando.then(() => files.forEach(f => {
-    reducir(f, dataUrl => { pintarFotos(grid, [{ dato: dataUrl, pie: '' }], true); _fotosSucias = true; marcar(); });
+    reducir(f, dataUrl => { pintarFotos(grid, [{ dato: dataUrl, pie: pie || '' }], true); _fotosSucias = true; marcar(); });
   }));
 }
 
