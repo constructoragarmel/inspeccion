@@ -79,5 +79,37 @@
   var cuadro = /CONTRATISTA UNO<\/td><td[^>]*>(\d+)<\/td><td[^>]*>(\d+)<\/td><td[^>]*>(\d+)<\/td><td[^>]*>([^<]*)</.exec(hs) || [];
   ok('12 · El cuadro por contratista cuenta bien: CONTRATISTA UNO, 0 pendientes, 1 en proceso, 1 corregido en la semana, y su pendiente más viejo es del 21/09',
      cuadro[1] === '0' && cuadro[2] === '1' && cuadro[3] === '1' && cuadro[4] === '21/09/2026', cuadro.slice(1).join(' · '));
+
+  // ── Obra por sector (3-oct-2026) ──
+  var S = [T('De EZ por su sector', '🔴 No ejecutado', { 'Sector': 'Ezequiel Zamora' }), T('De EZ por sus torres', '🟡 En ejecución', { 'Torre(s)': 'EZ-T01, EZ-T02' }),
+           T('De SB', '🔴 No ejecutado', { 'Sector': 'Simón Bolívar', 'Torre(s)': 'SB-J09' }), T('De dos sectores', '🔵 En espera', { 'Torre(s)': 'SB-D08, SR-T04' }),
+           T('General de la obra', '🔴 No ejecutado', {}), T('General cerrado', '🟢 Ejecutado', { 'Fecha de cierre': '2026-10-02' })];
+  var de = function (c) { return S.filter(function (v) { return _lunDelSector(v, c); }).map(function (v) { return v['Pendiente']; }).join('|'); };
+  ok('13 · Cada punto de obra va al resumen de su sector, por la columna «Sector» o por el prefijo de sus torres; el que toca dos sectores va a los dos',
+     de('EZ') === 'De EZ por su sector|De EZ por sus torres' && de('SB') === 'De SB|De dos sectores' && de('SR') === 'De dos sectores', 'EZ: ' + de('EZ') + ' · SB: ' + de('SB') + ' · SR: ' + de('SR'));
+  var gen = _lunDatos(S.filter(_lunSinSector), HOY);
+  var hz = _lunHtml({ clave: 'obra', nombre: 'Inspección de obra · Ezequiel Zamora', hoja: 'SEG_Pendientes_Obra' }, _lunDatos(S.filter(function (v) { return _lunDelSector(v, 'EZ'); }), HOY), null, '2026-10-05', 'x', gen);
+  ok('14 · Lo que el tablero no asigna a ningún sector va en el resumen de cada uno, en un cuadro aparte; y el título dice el sector',
+     gen.abiertos.length === 1 && /INSPECCIÓN DE OBRA · EZEQUIEL ZAMORA/.test(hz) && /PUNTOS GENERALES DE LA OBRA, SIN SECTOR/.test(hz) && /General de la obra/.test(hz) && !/De SB/.test(hz) &&
+     hz.indexOf('PUNTOS GENERALES') > hz.indexOf('De EZ por sus torres'), gen.abiertos.length + ' general');
+
+  // ── Urbanismo, desde sus informes (3-oct-2026) ──
+  var UI = function (num, fecha, manzana, o) { var v = { 'N° de informe': num, 'Fecha de inspección': fecha, 'Manzana / Lote': manzana, 'Empresa ejecutora': 'CONTRATISTA DE PRUEBA', 'Inspector(es)': 'Inspector Uno' }; for (var k in (o || {})) v[k] = o[k]; return v; };
+  var UP = function (num, fecha, manzana, sec, par, cal, obs, os) { return { 'N° de informe': num, 'Fecha de inspección': fecha, 'Manzana / Lote': manzana, 'Sección': sec, 'Partida': par, 'Calidad': cal, 'Observación': obs || '', 'Observación de la sección': os || '' }; };
+  var u = _lunUrbDatos(
+    [UI('URB-EZ-M1-261001-XX', '2026-10-01', 'M-1', { 'Actividades en ejecución': 'Limpieza y replanteo.', 'Observación general': 'Se pidió retirar los escombros.' }),
+     UI('URB-EZ-M4-260920-XX', '2026-09-20', 'M-4', { 'Observación general': 'De hace dos semanas.' }), UI('PRUEBA-URB-EZ-M1-261002-XX', '2026-10-02', 'M-1', { 'Observación general': 'De prueba.' })],
+    [UP('URB-EZ-M1-261001-XX', '2026-10-01', 'M-1', '1. OBRAS PRELIMINARES', 'Desmalezamiento', 'M', 'Quedó maleza en el borde.', 'Nota de la sección.'),
+     UP('URB-EZ-M1-261001-XX', '2026-10-01', 'M-1', '1. OBRAS PRELIMINARES', 'Bote de material', 'B', 'Tres camiones.', 'Nota de la sección.'),
+     UP('URB-EZ-M1-261001-XX', '2026-10-01', 'M-1', '2. DRENAJE', 'Cunetas', 'R', '', ''), UP('URB-EZ-M1-261001-XX', '2026-10-01', 'M-1', '2. DRENAJE', 'Tanquillas', 'B', '', ''),
+     UP('URB-EZ-M4-260920-XX', '2026-09-20', 'M-4', '2. DRENAJE', 'Cunetas', 'M', 'Vieja.', '')], HOY);
+  ok('15 · De urbanismo salen los informes de los últimos siete días: los de antes y los de prueba no entran', u.informes.length === 1 && u.informes[0].numero === 'URB-EZ-M1-261001-XX' && u.informes[0].actividades === 'Limpieza y replanteo.', u.informes.map(function (x) { return x.numero; }).join());
+  ok('16 · Las partidas evaluadas mala o regular van primero (la mala antes), y lo demás que se escribió va como observación: la general, la de cada partida y la de la sección una sola vez',
+     u.calidad.map(function (x) { return x.partida + ':' + x.calidad; }).join() === 'Desmalezamiento:M,Cunetas:R' &&
+     u.observaciones.map(function (x) { return x.donde; }).sort().join('|') === '1. OBRAS PRELIMINARES|1. OBRAS PRELIMINARES · Bote de material|Observación general', u.calidad.length + ' de calidad · ' + u.observaciones.length + ' observaciones');
+  var hu = _lunHtmlUrbanismo(u, '2026-10-05', '05/10/2026 a las 06:10'), hu0 = _lunHtmlUrbanismo(_lunUrbDatos([], [], HOY), '2026-10-05', 'x');
+  ok('17 · El documento de urbanismo dice de dónde sale, trae las tres tablas, y sin informes en la semana lo dice',
+     /PUNTOS CRÍTICOS — URBANISMO/.test(hu) && /Quedó maleza en el borde/.test(hu) && />Malo</.test(hu) && />Regular</.test(hu) && /Se pidió retirar los escombros/.test(hu) && /Limpieza y replanteo/.test(hu) &&
+     /no lleva tablero de pendientes/.test(hu) && !/De prueba|Vieja/.test(hu) && /No llegó ningún informe de urbanismo/.test(hu0) && /<b>0<\/b> informes/.test(hu0), hu.length + ' caracteres');
   return R.join('\n');
 })();

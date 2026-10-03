@@ -446,3 +446,8 @@ Los puntos que leen IndexedDB (`t61` 8, `t62` 6) y `t61` en SHA y urbanismo se c
 de 3000 px no termina de reducirse. En navegador a 375 px: `t61` 11/11 en los tres y `t62` 9/9. `t49` 7a pasó a contar
 solo los botones de cámara de los hitos.
 
+
+**`t58lunes` ampliada (3-oct-2026, relevo r43).** Pasó de 12 a 17 comprobaciones: el reparto de los puntos de obra por
+sector (por la columna «Sector» o por el prefijo de las torres; el de dos sectores va a los dos; lo que no tiene sector,
+en un cuadro aparte en cada uno) y el resumen de urbanismo armado desde sus informes de los últimos siete días (calidad
+regular o mala, observaciones sin repetir la de la sección, y el aviso cuando no llegó ningún informe).
