@@ -8304,6 +8304,95 @@ for _viejo, _et in (('placeholder="Observación sobre las fotografías de ${p.no
                     ('placeholder="Observación sobre las fotografías de este hito..."', "164b· lo mismo en la otra plantilla")):
     s = sustituir(s, '<textarea id="fotobs_${p.id}" ' + _viejo, _ROT_164 + '<textarea id="fotobs_${p.id}" ' + _PISTA_164, _et)
 
+# ═══ 165. Leer y tocar como en los otros tres formularios (5-oct-2026) ══════
+# Revisión general pedida por Stephanie González («accesible para personas con y sin experiencia en sistemas»): este
+# formulario tenía 43 textos de menos de 12 px a la vista —las etiquetas iban a 10 px, en mayúsculas y gris— y el botón
+# «No inspeccionado» medía 32 px; servicios, SHA y urbanismo, casi ninguno. Propuesta aprobada:
+# Garmel/implementacion/propuestas/igualar-el-formulario-de-obra.md, pasos 1 y 2. Solo en teléfono y solo en pantalla:
+# ni el escritorio ni la hoja impresa cambian. No toca datos, PDF ni Smartsheet.
+def _css_chico(html):
+    """Los selectores que, fuera de @media print, ponen la letra por debajo de 12 px."""
+    out = []
+    for bloque in re.findall(r"<style[^>]*>(.*?)</style>", html, re.S):
+        bloque = re.sub(r"/\*.*?\*/", "", bloque, flags=re.S)
+        i, n, medios = 0, len(bloque), []
+        while i < n:
+            j = bloque.find("{", i)
+            if j < 0: break
+            cab = bloque[i:j].strip()
+            if cab.startswith("@media") or cab.startswith("@supports"):
+                medios.append(cab); i = j + 1; continue
+            k = bloque.find("}", j)
+            cuerpo = bloque[j + 1:k]
+            # cierres de @media que queden antes del siguiente selector
+            m = re.search(r"font-size:\s*(\d+(?:\.\d+)?)px", cuerpo)
+            if m and float(m.group(1)) < 12 and not any("print" in x for x in medios) and not cab.startswith("@") and cab:
+                out.append(cab)
+            i = k + 1
+            while i < n and bloque[i:i + 1].isspace(): i += 1
+            while i < n and bloque[i] == "}":
+                if medios: medios.pop()
+                i += 1
+                while i < n and bloque[i:i + 1].isspace(): i += 1
+    vistos, limpio = set(), []
+    for sel in out:
+        for uno in sel.split(","):
+            uno = " ".join(uno.split())
+            if uno and uno not in vistos and "@" not in uno and "%" not in uno:
+                vistos.add(uno); limpio.append(uno)
+    return limpio
+
+_chicos_165 = _css_chico(s)
+if len(_chicos_165) < 20:
+    sys.exit("✗ 165: esperaba encontrar al menos 20 reglas de letra chica y hay %d" % len(_chicos_165))
+_css_165 = """
+<style id="css-165">
+/* 165 · En teléfono, nada se lee por debajo de 12 px ni se toca por debajo de 44 px. */
+@media screen and (max-width:700px), screen and (pointer:coarse){
+  @@CHICOS@@{font-size:12px!important}
+  [style*="font-size:8px"],[style*="font-size:8.5px"],[style*="font-size:9px"],[style*="font-size:9.5px"],
+  [style*="font-size:10px"],[style*="font-size:10.5px"],[style*="font-size:11px"],[style*="font-size:11.5px"]{font-size:12px!important}
+  .field label{font-size:13px!important;color:#334155!important;text-transform:none!important;letter-spacing:0!important;font-weight:700!important}
+  .no-insp-tgl{min-height:44px;display:inline-flex!important;align-items:center;padding:0 10px!important;font-size:12.5px!important;white-space:nowrap}
+  /* El «?» y «Entendido · ocultar» se ven igual, pero el dedo tiene 44 px donde caer. */
+  .ayuda-btn{width:44px!important;height:44px!important;border:9px solid transparent!important;background-clip:padding-box!important;box-shadow:inset 0 0 0 1.5px #9fa8da;margin:-9px -1px -9px -1px!important}
+  .ley-ocultar{padding:14px 8px!important;margin:-8px -6px!important}
+  /* 166 · La barra, en una fila de cuatro como en los otros formularios. */
+  .hdr-btns > .hbtn{flex:1 1 21%!important;min-width:0;flex-direction:column;gap:2px;padding:6px 4px!important;font-size:12px!important;line-height:1.15;text-align:center;min-height:52px}
+  .hdr-btns > .hbtn span{white-space:normal}
+  .hdr-sec .hbtn{flex:1 1 38%}
+  .hdr-inicio{display:inline-flex!important}
+}
+.hdr-inicio{display:none;align-items:center;gap:5px;min-height:44px;padding:0 12px;margin-left:auto;border:1.5px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-weight:700;white-space:nowrap}
+@media print{.hdr-inicio{display:none!important}}
+</style>
+""".replace("@@CHICOS@@", ",\n  ".join(_chicos_165))
+s = sustituir(s, "</head>", _css_165 + "</head>", "165· letra y botones a la medida del teléfono")
+
+# ═══ 166. La misma barra que los otros tres (5-oct-2026) ════════════════════
+# «Limpiar todo» estaba pegado a «Enviar»: pasa a «Más». «Mis informes» sube a la barra y se llama «Informes», como
+# en servicios, SHA y urbanismo. «Inicio» sale de «Más» y queda arriba, a la vista. «Guardar y siguiente» conserva su
+# nombre: dice lo que hace en los tres ámbitos (apartamento, torre y estructura), y «Sig. apartamento» no.
+def _boton_166(html, clase):
+    m = re.search(r'[ \t]*<button class="hbtn %s"[^>]*>.*?</button>\n' % re.escape(clase), html, re.S)
+    if not m: sys.exit("✗ 166: no encontré el botón %s" % clase)
+    return m.group(0)
+_limpiar_166, _lista_166, _inicio_166 = _boton_166(s, "hbtn-nuevo2"), _boton_166(s, "hbtn-saved-list"), _boton_166(s, "hbtn-inicio")
+_enviar_166 = _boton_166(s, "hbtn-send")
+s = s.replace(_limpiar_166, "", 1).replace(_lista_166, "", 1)
+s = s.replace(_enviar_166, _lista_166.replace("      <button", "    <button", 1).replace("<span>Mis informes</span>", "<span>Informes</span>") + _enviar_166, 1)
+s = s.replace(_inicio_166, _limpiar_166.replace("    <button", "      <button", 1), 1)
+cambios.append("166a· la barra: Guardar y siguiente · Informes · Enviar · Más")
+s = sustituir(s, '<div><h1 id="hdr-title">',
+              '<div style="display:flex;align-items:center;gap:10px"><button type="button" class="hdr-inicio solo-pantalla" onclick="irAlMenu()" '
+              'title="Guarda el informe y vuelve a la página que elige formulario" style="order:2">🏠 Inicio</button><div style="min-width:0"><h1 id="hdr-title">',
+              "166b· «Inicio» arriba, a la vista")
+s = sustituir(s, '<p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>',
+              '<p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div></div>', "166c· cierre de la cabecera")
+
+# 166d · Los avisos nombran el botón como se llama ahora.
+s = sustituir(s, "«Mis informes»", "«Informes»", "166d· los avisos dicen «Informes»", -1)
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

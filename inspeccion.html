@@ -857,13 +857,67 @@ tr.heredada td.desc{background:#fff8e1}
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Inspección GARMEL">
 <link rel="apple-touch-icon" href="icon-192.png">
+
+<style id="css-165">
+/* 165 · En teléfono, nada se lee por debajo de 12 px ni se toca por debajo de 44 px. */
+@media screen and (max-width:700px), screen and (pointer:coarse){
+  .hdr p,
+  .logo-placeholder,
+  .logo-text p,
+  .doc-info,
+  .sec-lbl,
+  .field label,
+  .field-note,
+  .btn-add-item,
+  thead th,
+  td.n,
+  .est-btn,
+  .ud,
+  .ud-sel,
+  .ev-btn,
+  .no-insp-tgl,
+  .partida.no-inspeccionada .p-hdr h2::after,
+  .foto-sec-title,
+  .foto-slot,
+  .foto-remove,
+  .p-foot-lbl,
+  .modal label,
+  .m-log,
+  .saved-item-sub,
+  .s-btn,
+  .tbl-wrap td.n,
+  .tbl-wrap .est-btn .est-p,
+  .tbl-wrap td.col-proyectada::before,
+  .tbl-wrap td.col-ejecutada::before,
+  .tbl-wrap td.falt-cell::before,
+  .tbl-wrap td.pct-cell::before,
+  .na-nota,
+  .opcional-tag,
+  .heredada-tag,
+  .heredada-tag .sigue-igual{font-size:12px!important}
+  [style*="font-size:8px"],[style*="font-size:8.5px"],[style*="font-size:9px"],[style*="font-size:9.5px"],
+  [style*="font-size:10px"],[style*="font-size:10.5px"],[style*="font-size:11px"],[style*="font-size:11.5px"]{font-size:12px!important}
+  .field label{font-size:13px!important;color:#334155!important;text-transform:none!important;letter-spacing:0!important;font-weight:700!important}
+  .no-insp-tgl{min-height:44px;display:inline-flex!important;align-items:center;padding:0 10px!important;font-size:12.5px!important;white-space:nowrap}
+  /* El «?» y «Entendido · ocultar» se ven igual, pero el dedo tiene 44 px donde caer. */
+  .ayuda-btn{width:44px!important;height:44px!important;border:9px solid transparent!important;background-clip:padding-box!important;box-shadow:inset 0 0 0 1.5px #9fa8da;margin:-9px -1px -9px -1px!important}
+  .ley-ocultar{padding:14px 8px!important;margin:-8px -6px!important}
+  /* 166 · La barra, en una fila de cuatro como en los otros formularios. */
+  .hdr-btns > .hbtn{flex:1 1 21%!important;min-width:0;flex-direction:column;gap:2px;padding:6px 4px!important;font-size:12px!important;line-height:1.15;text-align:center;min-height:52px}
+  .hdr-btns > .hbtn span{white-space:normal}
+  .hdr-sec .hbtn{flex:1 1 38%}
+  .hdr-inicio{display:inline-flex!important}
+}
+.hdr-inicio{display:none;align-items:center;gap:5px;min-height:44px;padding:0 12px;margin-left:auto;border:1.5px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-weight:700;white-space:nowrap}
+@media print{.hdr-inicio{display:none!important}}
+</style>
 </head>
 <body>
 
 <!-- PANTALLA DE INICIO (WELCOME SCREEN) -->
 <!-- STICKY NAV -->
 <div class="hdr">
-  <div><h1 id="hdr-title">Informe de Inspección Técnica de Obra</h1><p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>
+  <div style="display:flex;align-items:center;gap:10px"><button type="button" class="hdr-inicio solo-pantalla" onclick="irAlMenu()" title="Guarda el informe y vuelve a la página que elige formulario" style="order:2">🏠 Inicio</button><div style="min-width:0"><h1 id="hdr-title">Informe de Inspección Técnica de Obra</h1><p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div></div>
   <div class="hdr-btns">
 <div id="aviso-version" onclick="location.reload()" title="Tocar para actualizar"
      style="display:none;align-items:center;justify-content:center;gap:8px;cursor:pointer;
@@ -872,17 +926,16 @@ tr.heredada td.desc{background:#fff8e1}
   ⟳ Hay una versión nueva — tocar para actualizar
 </div>
     <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Guarda este informe y prepara el del siguiente apartamento, conservando torre, empresa y personal">➡️ <span>Guardar y siguiente</span></button>
+    <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 <span>Informes</span><b id="cnt-guardados" style="display:none;margin-left:5px"></b></button>
     <button class="hbtn hbtn-send" onclick="openSend()" title="Manda los informes a Drive. Hasta que se envían, viven solo en este teléfono">📤 <span>Enviar</span><b id="cnt-pendientes" style="display:none;margin-left:5px"></b></button>
-    <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Borra todo lo escrito en este informe y deja el formulario en blanco. Los informes ya guardados no se tocan">🧹 <span>Limpiar todo</span></button>
     <button class="hbtn hbtn-mas" id="btn-mas" onclick="toggleMasAcciones()" title="Resto de las acciones">⋯ <span>Más</span></button>
     <span id="estado-guardado" style="font-size:11px;font-weight:700;color:#bcc6e0;align-self:center;margin-left:4px"></span>
     <span id="estado-conexion" style="font-size:11px;font-weight:700;align-self:center;margin-left:8px"></span>
     <div class="hdr-sec" id="hdr-sec">
-      <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 <span>Mis informes</span><b id="cnt-guardados" style="display:none;margin-left:5px"></b></button>
       <button class="hbtn hbtn-pdf" onclick="imprimirInforme()" title="Genera el PDF del informe que está en pantalla">🖨️ <span>PDF</span></button>
       <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guarda el informe en este teléfono. Se guarda solo a los 2 segundos de la última tecla y cada 30 segundos">💾 <span>Guardar</span></button>
       <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" style="display:none" title="Activar modo de prueba — los informes quedan marcados como PRUEBA">🧪 <span>Prueba</span></button>
-      <button class="hbtn hbtn-inicio" onclick="irAlMenu()" title="Guarda el informe y vuelve a la página principal, la que elige formulario">🏠 <span>Inicio</span></button>
+      <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Borra todo lo escrito en este informe y deja el formulario en blanco. Los informes ya guardados no se tocan">🧹 <span>Limpiar todo</span></button>
     </div>
     <!-- «Finalizar» retirado: hacía lo mismo que «Guardar y siguiente» pero sin guardar. -->
   </div>
@@ -1288,7 +1341,7 @@ function _tieneContenido(d){
 // su propia ficha.
 let _numeroDelBorrador = null;
 
-// Un informe abierto desde «Mis informes» se está CORRIGIENDO, no llenando de
+// Un informe abierto desde «Informes» se está CORRIGIENDO, no llenando de
 // corrido: cambiarle el piso o la fecha es enmendar este informe, no empezar
 // otro. Mientras esta marca esté puesta, no se separa jamás.
 let _abiertoParaEditar = false;
@@ -1381,10 +1434,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v126';
+    el.textContent = '● en línea · v127';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v126 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v127 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -3647,7 +3700,7 @@ function siguienteApartamento(){
   // pantalla, que es el único sitio donde existe. Antes se limpiaba igual.
   if (_hayAlgo && !saveDraft()) {
     alert('No se pudo guardar este informe, así que NO se va a limpiar la pantalla.\n\n' +
-          'Lo más probable es que el teléfono esté lleno: entre a «Mis informes», ' +
+          'Lo más probable es que el teléfono esté lleno: entre a «Informes», ' +
           'envíe o borre los que ya no hagan falta, y vuelva a intentarlo. ' +
           'Lo que tiene en pantalla no se ha perdido.');
     return;
@@ -3845,7 +3898,7 @@ document.addEventListener('input', function(e){
 }, true);
 
 function nuevoFormulario() {
-  if(!confirm('¿Limpiar todo este informe?\n\nSe borra lo que hay en pantalla: torre, apartamento, personal, estatus, evaluación, observaciones y fotografías.\n\nLos informes que ya están en «Mis informes» NO se tocan.')) return;
+  if(!confirm('¿Limpiar todo este informe?\n\nSe borra lo que hay en pantalla: torre, apartamento, personal, estatus, evaluación, observaciones y fotografías.\n\nLos informes que ya están en «Informes» NO se tocan.')) return;
   // Un informe nuevo vuelve siempre al modo de la sesión.
   if (formType !== _modoDeSesion) { formType = _modoDeSesion; setupFormTypeUI(); }
   currentEditingIndex = null;
@@ -3887,7 +3940,7 @@ function finalizarInforme() {
   const _hayAlgoF = (typeof _tieneContenido === 'function') ? _tieneContenido(getFormData()) : true;
   if (_hayAlgoF && !saveDraft(true)) {
     alert('No se pudo guardar este informe, así que NO se va a cerrar.\n\n' +
-          'Entre a «Mis informes», envíe o borre los que ya no hagan falta, ' +
+          'Entre a «Informes», envíe o borre los que ya no hagan falta, ' +
           'y vuelva a intentarlo. Lo que tiene en pantalla no se ha perdido.');
     return;
   }

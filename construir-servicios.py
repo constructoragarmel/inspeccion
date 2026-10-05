@@ -100,6 +100,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 textarea{min-height:64px;resize:vertical}
 .rot-campo{display:block;font-size:12.5px;font-weight:600;color:#475569;margin:8px 0 4px}
 .rot-obs{font-size:13.5px;color:#1e293b;margin-top:14px}
+/* «Entendido · ocultar» se ve igual, pero el dedo tiene 44 px donde caer (5-oct-2026). */
+@media screen and (max-width:700px), screen and (pointer:coarse){ .ley-ocultar{padding:14px 8px!important;margin:-8px -6px!important} }
 .act-pista{font-size:12.5px;color:#64748b;margin:2px 0 6px;line-height:1.35}
 .pestanas{display:flex;gap:8px;margin:12px 0}
 .pestanas button{flex:1;min-height:44px;border:none;border-radius:8px;font-weight:700;
