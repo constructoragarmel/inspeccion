@@ -120,7 +120,7 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # hoja; Stephanie pidió ponerlos. Falta la copia del carnet de los dos.
 #
 # v103 (1-oct-2026): entran los tres que la hoja trae con ingreso el 5-oct. Carlos Julio Colmenares (coordinador,
-# ingeniero estructural, CIV 127.709), Eduardo Rivero (coordinador, CIV 169.435) y Miguel Eduardo Ávila (técnico de
+# ingeniero estructural, CIV 127.708: el 127.709 del v103 salió de su CV; el sello del título dice 127.708, corregido en el v118), Eduardo Rivero (coordinador, CIV 169.435) y Miguel Eduardo Ávila (técnico de
 # control y seguimiento, TSU: sin CIV). Carlos y Miguel llevan la inicial del segundo nombre porque «CC» ya es
 # Cleidy Chacón y «MA» ya es Martha Azcarate: así sus informes salen CJ y ME.
 #
@@ -130,7 +130,7 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 INSPECTORES_JS = """const INSPECTORES_DB = [
   "Alejandro Bastidas (CIV-67.316)",
   "Birmania Rada (CIV-NC)",
-  "Carlos J. Colmenares (CIV-127.709)",
+  "Carlos J. Colmenares (CIV-127.708)",
   "Charbel Abdul (CIV-321.425)",
   "Christian Fricke (CIV-184.558)",
   "Cleidy Chacón (CIV-240.930)",
