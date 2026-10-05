@@ -1,0 +1,163 @@
+{
+ "fecha": "4-oct-2026",
+ "sectores": [
+  {
+   "id": "EZ",
+   "nombre": "Ezequiel Zamora",
+   "convenio": "Belarús",
+   "contratistas": [
+    [
+     "CONSTRUCTORA RÍO LIMÓN, C.A.",
+     [
+      "T-01",
+      "T-02",
+      "T-03",
+      "T-04"
+     ]
+    ],
+    [
+     "INVERSIONES ALNAVIC, C.A.",
+     [
+      "T-05",
+      "T-06",
+      "T-07",
+      "T-08"
+     ]
+    ],
+    [
+     "THAISA MM INVERSIONES, C.A.",
+     [
+      "T-09",
+      "T-10",
+      "T-11",
+      "T-12"
+     ]
+    ],
+    [
+     "PROCODIMA, C.A.",
+     [
+      "T-13",
+      "T-14",
+      "T-15",
+      "T-16"
+     ]
+    ],
+    [
+     "BELZARUBEZHSTORY, S.A.",
+     [
+      "T-17",
+      "T-18",
+      "T-19",
+      "T-45",
+      "T-46",
+      "T-47",
+      "T-48"
+     ]
+    ],
+    [
+     "DRIJECAE 3003, C.A.",
+     [
+      "T-49",
+      "T-50",
+      "T-51",
+      "T-52"
+     ]
+    ],
+    [
+     "CIVIKA PRO, C.A.",
+     [
+      "T-53",
+      "T-54",
+      "T-55"
+     ]
+    ],
+    [
+     "GRUPO TEPUY 314, C.A.",
+     [
+      "T-56",
+      "T-57",
+      "T-58"
+     ]
+    ]
+   ]
+  },
+  {
+   "id": "SB",
+   "nombre": "Simón Bolívar",
+   "convenio": "China",
+   "contratistas": [
+    [
+     "CONSTRUCTORA VIALPA, S.A.",
+     [
+      "D-08"
+     ]
+    ],
+    [
+     "ING&ARQ 1111, C.A.",
+     [
+      "J-07"
+     ]
+    ],
+    [
+     "CONSTRUCTORA SB86, C.A.",
+     [
+      "J-08"
+     ]
+    ],
+    [
+     "RACAR INGENIEROS, C.A.",
+     [
+      "J-09",
+      "J-10",
+      "J-11",
+      "J-12"
+     ]
+    ]
+   ]
+  },
+  {
+   "id": "SR",
+   "nombre": "Simón Rodríguez",
+   "convenio": "Rusia",
+   "contratistas": [
+    [
+     "GLAJOS PROYECTOS Y CONSTRUCCIONES, C.A.",
+     [
+      "T-04",
+      "T-43"
+     ]
+    ],
+    [
+     "TSURU 5158, C.A.",
+     [
+      "T-07"
+     ]
+    ],
+    [
+     "ZERPA'S INGENIERÍA, C.A.",
+     [
+      "T-12"
+     ]
+    ],
+    [
+     "MASTER REFORMAS RR, C.A.",
+     [
+      "T-13"
+     ]
+    ],
+    [
+     "CONSTRUCTORA 5010, C.A.",
+     [
+      "T-38"
+     ]
+    ],
+    [
+     "JVR INGENIERÍA, C.A.",
+     [
+      "T-39"
+     ]
+    ]
+   ]
+  }
+ ]
+}

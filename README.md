@@ -421,3 +421,11 @@ ni cédulas.
 
 El contexto del proyecto —decisiones, contradicciones, montos, datos de personal— vive en un
 repositorio **privado aparte** y no debe mezclarse con este.
+
+## El mapa de la obra (`mapa.html`, v119)
+
+No es un formulario: se lee. Lo genera `construir-mapa.py` desde `mapa/pagina.html` y `mapa/referencia.json`, y está en el
+menú debajo de los cuatro formularios. Qué contratista tiene cada torre se lo pide al relevo (`accion: 'mapa'`), que lo
+lee del maestro de torres en Smartsheet; lo último consultado queda en el teléfono (`garmel_mapa`) para abrir sin señal.
+Los avances por torre van con una clave aparte, no se guardan en el teléfono y **no pueden estar en este repositorio**:
+el generador se detiene si la página trae montos, teléfonos o correos.
