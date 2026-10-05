@@ -15,12 +15,12 @@ REGLA: si un dato lo usan dos formularios, vive aquí. Si lo usa uno, vive en su
 generador.
 """
 
-# ── Las 46 entradas de torre ───────────────────────────────────────────────
+# ── Las 47 entradas de torre ───────────────────────────────────────────────
 #
 # Fuente: *Cuadro Resumen de Sectores* del 28-ago-2026. Cada entrada lleva su
 # convenio, su empresa ejecutora y su ingeniero residente.
 #
-# ⚠️ SON 46 ENTRADAS Y 42 TORRES. T-04, T-07, T-12 y T-13 aparecen DOS VECES,
+# ⚠️ SON 47 ENTRADAS Y 43 TORRES. T-04, T-07, T-12 y T-13 aparecen DOS VECES,
 # con dos convenios y dos empresas distintas cada una (C-06 y C-24). No es un
 # error de transcripción: el borrador de servicios de Skarlet, hecho desde otra
 # base, marca exactamente las mismas cuatro. El formulario no adivina en esos
@@ -30,6 +30,11 @@ generador.
 # inspector. No se hereda el de otra torre de la misma empresa: el cuadro REPITE
 # el nombre cuando una persona cubre varias torres, así que una casilla vacía
 # significa «no consta», no «el mismo de arriba». Son 26 con residente de 46.
+#
+# 4-oct-2026 (Stephanie, con la Gerencia Técnica): entra la **T-43 de Simón Rodríguez**, de Glajos Proyectos y
+# Construcciones, que no estaba en el cuadro del 28-ago; y la **T-04 rusa pasa de Aroa 93 a Glajos** (mismo
+# representante, José Gregorio García). Las dos sin residente. El relevo lleva su propia copia del padrón
+# (`TORRES` en Smartsheet.gs del repositorio Garmel) y se actualizó el mismo día: si no, rechaza los informes de T-43.
 TORRES_JS = """const TORRES = [
   {t:'T-01',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:"ING HARRY ARTEAGA"},
   {t:'T-02',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:"ING MARIA T MARCANO"},
@@ -64,12 +69,13 @@ TORRES_JS = """const TORRES = [
   {t:'T-56',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
   {t:'T-57',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
   {t:'T-58',  c:'Convenio Bielorusos',   e:"GRUPO TEPUY, C.A.",             r:"ING. JIMMY CASIOPO"},
-  {t:'T-04',  c:'Convenio Rusos',        e:"AROA, C.A.",                    r:""},
+  {t:'T-04',  c:'Convenio Rusos',        e:"GLAJOS PROYECTOS Y CONSTRUCCIONES, C.A.", r:""},
   {t:'T-07',  c:'Convenio Rusos',        e:"TSURU, C.A.",                   r:"MILTON RODRIGUEZ"},
   {t:'T-12',  c:'Convenio Rusos',        e:"ZERPA CONSTRUCCIONES, C.A.",    r:"ING. IVAN MEDINA"},
   {t:'T-13',  c:'Convenio Rusos',        e:"MASTER REFORMAS RR, C.A.",      r:"ING. ERICK MARTINEZ"},
   {t:'T-38',  c:'Convenio Rusos',        e:"CONSTRUCTORA 5010, C.A.",       r:"ING. JOSE MARTINEZ"},
   {t:'T-39',  c:'Convenio Rusos',        e:"JVR INGENIERÍA C,A.",           r:"ING. JUAN COLMENARES ARQ EVER AVENDAÑO"},
+  {t:'T-43',  c:'Convenio Rusos',        e:"GLAJOS PROYECTOS Y CONSTRUCCIONES, C.A.", r:""},
   {t:'D-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA VIALPA, C.A.",     r:"ING ADRIAN OLIVARES"},
   {t:'J-07',  c:'Convenio Chinos',       e:"ING & ARQ 1111, C.A.",          r:"ING. JOANNY TAPIA / ING. JHOANNY LOPEZ"},
   {t:'J-08',  c:'Convenio Chinos',       e:"CONSTRUCTORA SB 86, C.A.",      r:"ING. JULIO LUQUEZ"},
