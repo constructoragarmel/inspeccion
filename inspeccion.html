@@ -1381,10 +1381,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v122';
+    el.textContent = '● en línea · v123';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v122 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v123 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2515,7 +2515,8 @@ function initAppContent() {
                 </div>`).join('')}
             </div>
             <div class="foto-obs">
-              <textarea id="fotobs_${p.id}" placeholder="Observación sobre las fotografías de este hito..."></textarea>
+              <label class="solo-pantalla" for="fotobs_${p.id}" style="display:block;font-size:13px;font-weight:700;color:#1e293b;margin:12px 0 4px">Observación de este hito</label>
+              <textarea id="fotobs_${p.id}" placeholder="Lo que observó en este hito. Sale en el informe, debajo del hito..."></textarea>
             </div>
           </div>
           <div class="p-foot">
@@ -2609,7 +2610,8 @@ function initAppContent() {
                 </div>`).join('')}
             </div>
             <div class="foto-obs">
-              <textarea id="fotobs_${p.id}" placeholder="Observación sobre las fotografías de ${p.nombre}..."></textarea>
+              <label class="solo-pantalla" for="fotobs_${p.id}" style="display:block;font-size:13px;font-weight:700;color:#1e293b;margin:12px 0 4px">Observación de este hito</label>
+              <textarea id="fotobs_${p.id}" placeholder="Lo que observó en este hito. Sale en el informe, debajo del hito..."></textarea>
             </div>
           </div>
           <div class="p-foot">

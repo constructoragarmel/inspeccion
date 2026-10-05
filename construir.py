@@ -8294,6 +8294,17 @@ s = sustituir(s,
  "// ═══ 162. Actividades en ejecución: una vez por visita a la torre ═══════════\n",
  "163f· vaciar al empezar otro informe")
 
+# ═══ 164. La observación del hito se llama así (5-oct-2026) ════════════════
+# El cuadro de cada hito decía «Observación sobre las fotografías de…», dentro del bloque de fotos, y en campo se leía
+# como una nota de las fotos: Planificación pidió «una observación en los hitos» creyendo que no existía. Es la misma
+# casilla (`fotobs`), y el PDF y Smartsheet ya la sacan como «Observación» del hito: solo cambia cómo se anuncia.
+_ROT_164 = ('<label class="solo-pantalla" for="fotobs_${p.id}" style="display:block;font-size:13px;font-weight:700;'
+            'color:#1e293b;margin:12px 0 4px">Observación de este hito</label>\n              ')
+_PISTA_164 = 'placeholder="Lo que observó en este hito. Sale en el informe, debajo del hito..."'
+for _viejo, _et in (('placeholder="Observación sobre las fotografías de ${p.nombre}..."', "164a· la observación del hito, con su título"),
+                    ('placeholder="Observación sobre las fotografías de este hito..."', "164b· lo mismo en la otra plantilla")):
+    s = sustituir(s, '<textarea id="fotobs_${p.id}" ' + _viejo, _ROT_164 + '<textarea id="fotobs_${p.id}" ' + _PISTA_164, _et)
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
