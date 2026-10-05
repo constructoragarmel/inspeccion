@@ -183,7 +183,8 @@ body{margin:0}
   <section class="vista" id="v-roles" role="tabpanel" hidden>
     <h2>Quién hace qué</h2>
     <p class="sub">Por función, no por persona. La información sube en este orden:</p>
-    <div class="cadena"><span>Inspectores</span><em>›</em><span>Coordinación</span><em>›</em><span>Planificación</span><em>›</em><span>Gerencia Técnica</span><em>›</em><span>Ministerio</span></div>
+    <div class="cadena"><span>Inspectores</span><em>›</em><span>Coordinación</span><em>›</em><span>Control y seguimiento</span><em>›</em><span>Gerencia Técnica</span><em>›</em><span>Ministerio</span></div>
+    <p class="sub">La inspección en campo la dirige el Gerente de Obra: de él dependen las coordinaciones y los inspectores de SHA.</p>
     <div class="roles" id="roles"></div>
   </section>
 
@@ -215,7 +216,7 @@ body{margin:0}
     <div class="indice" id="indice"></div>
   </section>
 
-  <footer class="pie"><span>Constructora Garmel, C.A. · Ciudad Tiuna</span><span>● <span id="conexion">en línea</span> · v123</span></footer>
+  <footer class="pie"><span>Constructora Garmel, C.A. · Ciudad Tiuna</span><span>● <span id="conexion">en línea</span> · v124</span></footer>
 </div>
 
 <script>
@@ -233,15 +234,20 @@ const OTROS = [
   ['Campamento', 'No es un sector de torres. Se trata en la reunión de Ezequiel Zamora.', ['FIBONACCI 24, C.A.']],
   ['Reuniones con contratistas', 'Los lunes, tres reuniones seguidas: una por sector.', ['1 · Simón Bolívar', '2 · Simón Rodríguez', '3 · Ezequiel Zamora']]
 ];
+// Por función, sin nombres. Lo que dice cada una sale del cuadro de cargos (hoja «Cargos, Funciones y Responsabilidades»);
+// donde el cuadro dice «por definir», aquí dice «por confirmar».
 const ROLES = [
-  ['Inspección de obra', 'Una coordinación por sector', 'Mide el avance de cada torre, apartamento por apartamento: cantidades, estados y calidad.', 'Formulario de inspección de obra', 'Los lunes, los puntos críticos de su sector', 'Su informe semanal: cierra el jueves en la mañana y se entrega el viernes'],
-  ['Estructura', 'Por confirmar cómo se organiza', 'Mide la estructura de cada torre, aparte del resto de la obra.', 'Formulario de inspección de obra, en «Estructura»', 'Por confirmar', 'Por confirmar'],
+  ['Gerente de Obra', 'Dirige la inspección en los tres sectores', 'Reparte la carga entre las coordinaciones, garantiza que haya registro diario de cada edificio y firma las comunicaciones formales: actas de inicio, terminación y paralización.', 'Los informes y los tableros de pendientes', 'Lo que le suben las coordinaciones y los inspectores de SHA', 'La operación de campo, ante la Dirección'],
+  ['Coordinación de inspección de obra', 'Responde por un frente completo · qué frente lleva cada coordinación: por confirmar', 'Asigna inspectores a los edificios, programa la cobertura diaria, revisa lo que registran y atiende las solicitudes de inspección de las contratistas. Depende del Gerente de Obra.', 'Formulario de inspección de obra', 'Los lunes, los puntos críticos de su frente', 'Su informe semanal: cierra el jueves en la mañana y se entrega el viernes'],
+  ['Inspección de obra', 'Ingenieros, arquitectos e inspectores, en campo', 'Verifica y deja constancia de la obra ejecutada en sus edificios, apartamento por apartamento: cantidades, estados, calidad y fotos. Depende de la coordinación de su frente.', 'Formulario de inspección de obra', 'Los edificios que le asigna su coordinación', 'Un informe por visita, que queda solo en Drive y en Smartsheet'],
+  ['Estructura', 'Una coordinación · cómo se organiza con los sectores: por confirmar', 'Mide la estructura de cada torre, aparte del resto de la obra.', 'Formulario de inspección de obra, en «Estructura»', 'Por confirmar', 'Por confirmar'],
   ['Servicios públicos', 'Una coordinación para toda la obra', 'Revisa en cada torre el agua, la electricidad, el gas, las aguas servidas y las comunicaciones, y hace seguimiento a los entes.', 'Formulario de servicios · reunión de los martes', 'Los lunes, los puntos críticos de servicios', 'Su informe semanal, por ente'],
-  ['Urbanismo', 'Una coordinación para toda la obra', 'Mide lo que está fuera de las torres, por manzana: drenajes, vialidad, acueductos, electricidad, botes de material.', 'Formulario de urbanismo', 'Los lunes, lo observado en sus informes de la semana', 'Su informe semanal'],
-  ['SHA · Seguridad, Higiene y Ambiente', 'Una coordinación para toda la obra', 'Revisa los recaudos de cada contratista, anota hallazgos e incidencias y sigue el retiro de obstáculos.', 'Formulario de SHA', 'Los lunes, lo corregido contra lo pendiente por contratista', 'El seguimiento de hallazgos hasta que se corrigen'],
-  ['Planificación y control', 'Consolida', 'Lleva los tableros de pendientes, las reuniones con contratistas y entes, y arma el informe semanal.', 'Smartsheet · Drive de Planificación', 'Copia de todos los resúmenes y el borrador del informe semanal', 'El informe semanal, a Gerencia Técnica'],
-  ['Gerencia Técnica', 'Aprueba', 'Define los criterios técnicos, revisa el informe y responde por él.', 'El informe semanal y los tableros', 'El informe consolidado', 'El informe aprobado, al Ministerio'],
-  ['Administración de contratos', 'Valuaciones y documentos', 'Lleva los contratos, los presupuestos y las valuaciones de cada contratista.', 'Drive de Administración y Control', 'Presupuestos y soportes de valuación', 'Las valuaciones revisadas']
+  ['Urbanismo', 'Inspección para toda la obra', 'Mide lo que está fuera de las torres, por manzana: drenajes, vialidad, acueductos, electricidad, botes de material.', 'Formulario de urbanismo', 'Los lunes, lo observado en sus informes de la semana', 'Su informe semanal'],
+  ['SHA · Seguridad, Higiene y Ambiente', 'Inspección para toda la obra', 'Dice si un área es apta para entrar, revisa los recaudos de seguridad de cada contratista y anota las condiciones inseguras hasta que se corrigen. Depende del Gerente de Obra.', 'Formulario de SHA', 'Los lunes, lo corregido contra lo pendiente por contratista', 'El seguimiento de hallazgos hasta que se corrigen'],
+  ['Topografía', 'Topógrafo y auxiliar', 'Hace los levantamientos y las verificaciones de medida que piden la inspección y la Gerencia Técnica.', 'Sus equipos de medición', 'Las solicitudes de levantamiento', 'Sus levantamientos'],
+  ['Control y seguimiento de obra', 'Planificación · de quién depende: por confirmar', 'Carga y mantiene el cronograma de cada contratista, compara lo programado con lo real y avisa los desvíos, y apoya la programación de la cobertura de inspección. Lleva los tableros de pendientes y las reuniones, y arma el informe semanal.', 'Smartsheet · Drive de Planificación', 'Copia de todos los resúmenes y el borrador del informe semanal', 'El informe semanal, a Gerencia Técnica'],
+  ['Administración de contratos', 'Valuaciones y documentos', 'Revisa presupuestos, precios unitarios y cómputos de las contratistas, y verifica cada valuación: partidas, cantidades, precios y saldos.', 'Drive de Administración y Control', 'Presupuestos y soportes de valuación', 'Las valuaciones revisadas'],
+  ['Gerencia Técnica', 'Dirección · aprueba', 'Define los criterios técnicos, revisa el informe y responde por él.', 'El informe semanal y los tableros', 'El informe consolidado', 'El informe aprobado, al Ministerio']
 ];
 const PASOS = [
   ['En campo', 'El inspector llena el formulario', ['Lo llena en el teléfono, con o sin señal.', 'Mide, evalúa y toma las fotos.', 'Si se firmó una minuta, la fotografía ahí mismo.', 'Revisa la vista previa y toca Enviar.']],
@@ -330,7 +336,7 @@ function pintarOtros(){
 }
 function pintarRoles(){
   $('roles').innerHTML = ROLES.map((r, i) => {
-    const abierto = estado.rol === i, duda = /Por confirmar/.test(r[1]);
+    const abierto = estado.rol === i, duda = /por confirmar/i.test(r[1]);
     return '<div class="rol"><button aria-expanded="' + abierto + '" data-r="' + i + '"><b>' + esc(r[0]) + '<br><span style="font-weight:500;font-size:13.5px;color:var(--' + (duda ? 'naranja' : 'gris') + ')">' + esc(r[1]) + '</span></b><i aria-hidden="true">›</i></button>' +
       (abierto ? '<div class="cuerpo"><dl style="margin:0"><div class="par"><dt>Qué hace</dt><dd>' + esc(r[2]) + '</dd></div><div class="par"><dt>Con qué</dt><dd>' + esc(r[3]) +
         '</dd></div><div class="par"><dt>Qué recibe</dt><dd>' + esc(r[4]) + '</dd></div><div class="par"><dt>Qué entrega</dt><dd>' + esc(r[5]) + '</dd></div></dl></div>' : '') + '</div>';
