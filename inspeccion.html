@@ -897,7 +897,8 @@ tr.heredada td.desc{background:#fff8e1}
   .heredada-tag .sigue-igual{font-size:12px!important}
   [style*="font-size:8px"],[style*="font-size:8.5px"],[style*="font-size:9px"],[style*="font-size:9.5px"],
   [style*="font-size:10px"],[style*="font-size:10.5px"],[style*="font-size:11px"],[style*="font-size:11.5px"]{font-size:12px!important}
-  .field label{font-size:13px!important;color:#334155!important;text-transform:none!important;letter-spacing:0!important;font-weight:700!important}
+  /* Solo la etiqueta del campo: las opciones de «Estatus de la obra» también son <label> y, elegidas, van en blanco sobre azul. */
+  .field > label:not(.ck-lbl){font-size:13px!important;color:#334155!important;text-transform:none!important;letter-spacing:0!important;font-weight:700!important}
   .no-insp-tgl{min-height:44px;display:inline-flex!important;align-items:center;padding:0 10px!important;font-size:12.5px!important;white-space:nowrap}
   /* El «?» y «Entendido · ocultar» se ven igual, pero el dedo tiene 44 px donde caer. */
   .ayuda-btn{width:44px!important;height:44px!important;border:9px solid transparent!important;background-clip:padding-box!important;box-shadow:inset 0 0 0 1.5px #9fa8da;margin:-9px -1px -9px -1px!important}
@@ -1434,10 +1435,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v127';
+    el.textContent = '● en línea · v128';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v127 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v128 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
