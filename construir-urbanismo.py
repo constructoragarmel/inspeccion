@@ -715,6 +715,7 @@ J = sustituir(J, "Este servicio todavía no tiene lista de ítems.<br>' +\n     
                  "Esta sección todavía no tiene partidas.<br>' +\n              'Agréguelas abajo; se recuerdan en este teléfono.", "17e· sección sin partidas")
 J = sustituir(J, "＋ Agregar ítem</button>", "＋ Agregar partida</button>", "17f· agregar partida")
 J = sustituir(J, 'placeholder="Observación del servicio..."', 'placeholder="Notas de la sección..."', "17g· notas de la sección")
+J = sustituir(J, '<label class="rot-campo rot-obs">Observación de este servicio</label>', '<label class="rot-campo rot-obs">Observación de esta sección</label>', "17g2· título de la observación de la sección")
 J = sustituir(J, 'placeholder="Escriba el ítem..."', 'placeholder="Escriba la partida..."', "17h· escriba la partida")
 # 17i · Al reabrir o heredar, una sección con solo cantidades también se abre.
 J = sustituir(J, "      if ((g.items || []).some(i => i.sn || i.obs || (i.agregado && i.nombre)) || g.obs || (g.fotos || []).length) plegar(g.id, true);",

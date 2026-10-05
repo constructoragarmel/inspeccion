@@ -654,6 +654,9 @@ J = sustituir(J, "  if (!items.length && !aptos.length && !obs.length) return fa
                  "  const _obst = hayObstaculos(leerObstaculos()), _obstHer = !!(document.getElementById('panel-d') || { dataset: {} }).dataset.heredado;\n"
                  "  if (!items.length && !aptos.length && !obs.length && !_obst) return false;\n"
                  "  return (!_obst || _obstHer) && items.every(it => it.classList.contains('heredado')) &&", "21n2· solo heredado, con los obstáculos")
+# El cuadro de observación de la sección: con su título, y sin «del servicio», que era un resto del motor (5-oct-2026).
+J = sustituir(J, '<label class="rot-campo rot-obs">Observación de este servicio</label>', '<label class="rot-campo rot-obs">Observación de esta sección</label>', "título de la observación de la sección")
+J = sustituir(J, 'placeholder="Observación del servicio..."', 'placeholder="Notas de la sección..."', "notas de la sección")
 J = sustituir(J, "!(d.fotosGenerales || []).length && !(d.incidencias || []).length &&",
                  "!(d.fotosGenerales || []).length && !(d.incidencias || []).length && !hayObstaculos(d.obstaculos) && !(d.fotosObstaculos || []).length &&", "21o· vacío")
 J = sustituir(J, "(d.apartamentos || []).length > 0 || (d.incidencias || []).length > 0;\n  if (!contestado) return;",

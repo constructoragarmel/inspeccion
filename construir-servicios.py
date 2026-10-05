@@ -99,6 +99,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   outline:3px solid #1565c0;outline-offset:2px}
 textarea{min-height:64px;resize:vertical}
 .rot-campo{display:block;font-size:12.5px;font-weight:600;color:#475569;margin:8px 0 4px}
+.rot-obs{font-size:13.5px;color:#1e293b;margin-top:14px}
 .act-pista{font-size:12.5px;color:#64748b;margin:2px 0 6px;line-height:1.35}
 .pestanas{display:flex;gap:8px;margin:12px 0}
 .pestanas button{flex:1;min-height:44px;border:none;border-radius:8px;font-weight:700;
@@ -551,6 +552,8 @@ function pintarGeneral(){
       '<button type="button" class="ley-ocultar" onclick="plegarLeyendaNA(true)">Entendido · ocultar</button></div></div>';
     html += '<div id="items-' + srv.id + '"></div>' +
             '<button type="button" class="btn-add" onclick="agregarItemNuevo(\\'' + srv.id + '\\')">＋ Agregar ítem</button>' +
+            // Con título: sin él, el cuadro quedaba debajo de «Agregar ítem» y no se veía que existía (5-oct-2026).
+            '<label class="rot-campo rot-obs">Observación de este servicio</label>' +
             '<textarea class="obs-srv" placeholder="Observación del servicio..." oninput="marcar()"></textarea>' +
             bloqueFotos('fotos-' + srv.id, 'Fotografías') + '</div>';
     bloque.innerHTML = html;
