@@ -908,6 +908,9 @@ tr.heredada td.desc{background:#fff8e1}
   .hdr-btns > .hbtn span{white-space:normal}
   .hdr-sec .hbtn{flex:1 1 38%}
   .hdr-inicio{display:inline-flex!important}
+  /* En una tableta (dedo, pero más de 700 px de ancho) el grupo de «Más» se escondía y su botón no salía: Guardar, PDF y
+     Limpiar todo quedaban sin forma de llegar (5-oct-2026). El botón sale siempre que el grupo se esconde. */
+  .hdr-btns .hbtn-mas{display:flex!important}
 }
 .hdr-inicio{display:none;align-items:center;gap:5px;min-height:44px;padding:0 12px;margin-left:auto;border:1.5px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-weight:700;white-space:nowrap}
 @media print{.hdr-inicio{display:none!important}}
@@ -1435,10 +1438,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v129';
+    el.textContent = '● en línea · v130';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v129 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v130 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }

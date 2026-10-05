@@ -8363,6 +8363,9 @@ _css_165 = """
   .hdr-btns > .hbtn span{white-space:normal}
   .hdr-sec .hbtn{flex:1 1 38%}
   .hdr-inicio{display:inline-flex!important}
+  /* En una tableta (dedo, pero más de 700 px de ancho) el grupo de «Más» se escondía y su botón no salía: Guardar, PDF y
+     Limpiar todo quedaban sin forma de llegar (5-oct-2026). El botón sale siempre que el grupo se esconde. */
+  .hdr-btns .hbtn-mas{display:flex!important}
 }
 .hdr-inicio{display:none;align-items:center;gap:5px;min-height:44px;padding:0 12px;margin-left:auto;border:1.5px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-weight:700;white-space:nowrap}
 @media print{.hdr-inicio{display:none!important}}
