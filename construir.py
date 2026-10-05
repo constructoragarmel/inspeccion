@@ -8394,6 +8394,19 @@ s = sustituir(s, '<p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hi
 # 166d · Los avisos nombran el botón como se llama ahora.
 s = sustituir(s, "«Mis informes»", "«Informes»", "166d· los avisos dicen «Informes»", -1)
 
+# ═══ 167. «Borrar los enviados» no se lleva lo que falta reenviar (5-oct-2026) ═
+# Un informe enviado y cambiado después tiene su corrección solo en este teléfono. Se borraba con los demás.
+s = sustituir(s, "  const enviados = lista.filter(function(b){ return b && b.enviado; });\n  if(!enviados.length){ showToast('No hay informes enviados que borrar', 'ok'); return; }",
+              "  const enviados = lista.filter(function(b){ return b && b.enviado && !b.editadoTras; });\n"
+              "  const _porReenviar = lista.filter(function(b){ return b && b.enviado && b.editadoTras; }).length;\n"
+              "  if(!enviados.length){ showToast(_porReenviar ? 'Los enviados que quedan los cambió después: reenvíelos primero' : 'No hay informes enviados que borrar', 'ok'); return; }",
+              "167a· los editados después no entran")
+s = sustituir(s, "'Los que todavía no se han enviado NO se tocan.')) return;\n  const quedan = lista.filter(function(b){ return !(b && b.enviado); });",
+              "'Los que todavía no se han enviado NO se tocan.' +\n"
+              "              (_porReenviar ? '\\n\\nTampoco se toca(n) ' + _porReenviar + ' que cambió después de enviarlo(s): reenvíelo(s) primero.' : ''))) return;\n"
+              "  const quedan = lista.filter(function(b){ return !(b && b.enviado && !b.editadoTras); });",
+              "167b· y se quedan en la lista")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

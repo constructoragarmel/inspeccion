@@ -1435,10 +1435,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v128';
+    el.textContent = '● en línea · v129';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v128 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v129 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -3445,12 +3445,14 @@ function _txt(v){
 // Los que NO se han enviado no se tocan nunca.
 function borrarEnviados(){
   const lista = getSavedReports();
-  const enviados = lista.filter(function(b){ return b && b.enviado; });
-  if(!enviados.length){ showToast('No hay informes enviados que borrar', 'ok'); return; }
+  const enviados = lista.filter(function(b){ return b && b.enviado && !b.editadoTras; });
+  const _porReenviar = lista.filter(function(b){ return b && b.enviado && b.editadoTras; }).length;
+  if(!enviados.length){ showToast(_porReenviar ? 'Los enviados que quedan los cambió después: reenvíelos primero' : 'No hay informes enviados que borrar', 'ok'); return; }
   if(!confirm('Se van a borrar de este teléfono ' + enviados.length + ' informe(s) YA ENVIADOS.\n\n' +
               'Siguen guardados en Drive: esto solo libera espacio aquí.\n\n' +
-              'Los que todavía no se han enviado NO se tocan.')) return;
-  const quedan = lista.filter(function(b){ return !(b && b.enviado); });
+              'Los que todavía no se han enviado NO se tocan.' +
+              (_porReenviar ? '\n\nTampoco se toca(n) ' + _porReenviar + ' que cambió después de enviarlo(s): reenvíelo(s) primero.' : ''))) return;
+  const quedan = lista.filter(function(b){ return !(b && b.enviado && !b.editadoTras); });
   localStorage.setItem('garmel_reports_list', JSON.stringify(quedan));
   currentEditingIndex = null; _idEnEdicion = null; _abiertoParaEditar = false;
   _ultimoAvisoEspacio = 0;          // que pueda volver a avisar si aún queda poco

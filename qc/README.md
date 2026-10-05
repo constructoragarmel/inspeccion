@@ -451,3 +451,10 @@ solo los botones de cámara de los hitos.
 sector (por la columna «Sector» o por el prefijo de las torres; el de dos sectores va a los dos; lo que no tiene sector,
 en un cuadro aparte en cada uno) y el resumen de urbanismo armado desde sus informes de los últimos siete días (calidad
 regular o mala, observaciones sin repetir la de la sección, y el aviso cuando no llegó ningún informe).
+
+**`t63` (5-oct-2026, v129): «Borrar los enviados» pregunta antes y no se lleva lo que falta reenviar.** Planificación
+preguntó qué hacía el botón. En servicios, SHA y urbanismo borraba sin preguntar, y en los cuatro formularios se llevaba
+también el informe «editado después de enviarlo», cuya corrección vive solo en el teléfono hasta que se reenvía. Ahora
+pregunta en los cuatro, deja ese informe en la lista y lo dice. Se corre en los cuatro: 5 comprobaciones en inspección
+y 6 en los demás, en verde con `headless.py`.
+

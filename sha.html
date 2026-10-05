@@ -295,7 +295,7 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
       <div class="fotos" id="fotos-general"></div></div>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v128</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v129</div>
 </div>
 
 <div class="acciones">
@@ -1488,13 +1488,15 @@ function abrirInformes(){
   const l = listaGuardada();
   const m = document.getElementById('modal-informes');
   const pend = l.filter(x => !x.enviado).length, env = l.length - pend;
+  const porReenviar = l.filter(x => x.enviado && x.editadoTras).length, seVan = env - porReenviar;
   let html = '<div class="caja"><h2>Informes en este teléfono</h2>';
   if (!l.length) html += '<div class="vacio">No hay informes guardados aquí.</div>';
   else {
-    html += '<p style="font-size:13px;color:#64748b;margin:0 0 10px">' + pend + ' sin enviar · ' + env + ' enviados. ' +
+    html += '<p style="font-size:13px;color:#64748b;margin:0 0 10px">' + pend + ' sin enviar · ' + env + ' enviados' +
+            (porReenviar ? ' (<b style="color:#8f4b00">' + porReenviar + ' cambiado(s) después: falta reenviar</b>)' : '') + '. ' +
             'Los que no se han enviado existen SOLO en este teléfono.</p>';
     if (pend) html += '<button type="button" class="btn-add" onclick="cerrarInformes();enviar()">📤 Enviar todos los pendientes (' + pend + ')</button>';
-    if (env)  html += '<button type="button" class="btn-add" style="border-color:#991b1b;color:#991b1b;background:#fee2e2" onclick="borrarEnviados()">🧹 Borrar los ' + env + ' que ya se enviaron</button>';
+    if (seVan) html += '<button type="button" class="btn-add" style="border-color:#991b1b;color:#991b1b;background:#fee2e2" onclick="borrarEnviados()">🧹 ' + (seVan === 1 ? 'Borrar el que ya se envió' : 'Borrar los ' + seVan + ' que ya se enviaron') + '</button>';
     [...l].reverse().forEach(x => {
       html += '<div class="ficha"><div class="n">' + x.nro + '</div>' +
         '<div class="s">📍 ' + (x.torre || '—') + ' · 📅 ' + (x.fecha || '—') + ' · ' + (x.apartamentos || []).length + ' hallazgo(s)' + ((x.incidencias || []).length ? ' · ' + x.incidencias.length + ' incidencia(s)' : '') + '</div>' +
@@ -1687,13 +1689,24 @@ function nuevoInforme(){
 }
 
 // El remedio cuando el teléfono se llena: lo enviado está a salvo en Drive.
+// Un informe enviado y CAMBIADO DESPUÉS no se borra: la corrección vive solo en este teléfono hasta que se reenvía.
+// Antes se iba con los demás y la oficina se quedaba con la versión vieja sin que nadie lo notara; y el botón borraba
+// sin preguntar, cuando el de inspección sí pregunta (Planificación, 5-oct-2026).
+const _yaEstaEnLaOficina = x => !!(x && x.enviado && !x.editadoTras);
 function borrarEnviados(){
   const todos = listaGuardada();
-  const quedan = todos.filter(x => !x.enviado);
+  const seVan = todos.filter(_yaEstaEnLaOficina);
+  const porReenviar = todos.filter(x => x.enviado && x.editadoTras).length;
+  if (!seVan.length){ alert('No hay informes enviados que borrar.' + (porReenviar ? ' Hay ' + porReenviar + ' que cambió después de enviarlo: reenvíelo primero.' : '')); return; }
+  if (!confirm('Se van a borrar de este teléfono ' + seVan.length + ' informe(s) YA ENVIADOS.\n\n' +
+               'Siguen guardados en la oficina: esto solo libera espacio aquí.\n\n' +
+               'Los que todavía no se han enviado NO se tocan.' +
+               (porReenviar ? '\n\nTampoco se toca(n) ' + porReenviar + ' que cambió después de enviarlo(s): reenvíelo(s) primero.' : ''))) return;
+  const quedan = todos.filter(x => !_yaEstaEnLaOficina(x));
   localStorage.setItem(CLAVE_LISTA, JSON.stringify(quedan));
-  FotosDB.borrarVarios(todos.filter(x => x.enviado).map(x => x.id)).catch(() => {});
+  FotosDB.borrarVarios(seVan.map(x => x.id)).catch(() => {});
   actualizarContador();
-  alert('Listo. Quedan ' + quedan.length + ' informes sin enviar en este teléfono.');
+  alert('Listo. Quedan ' + quedan.length + ' informe(s) en este teléfono' + (porReenviar ? ', ' + porReenviar + ' por reenviar.' : '.'));
   abrirInformes();
 }
 
