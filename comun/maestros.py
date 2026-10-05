@@ -133,8 +133,11 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # Las iniciales de los 26 son distintas entre sí (Diego Orta DO, Diego Rosales
 # DR) — el número del informe las usa, y dos iguales el mismo día en el mismo
 # sitio chocarían. Al agregar a alguien, comprobarlo.
+# v126 (5-oct-2026): entra Ángel Sánchez, inspector de SHA con ingreso el 8-oct según la hoja. Sus iniciales, AS, no
+# las tiene nadie más. El padrón queda en 27.
 INSPECTORES_JS = """const INSPECTORES_DB = [
   "Alejandro Bastidas (CIV-67.316)",
+  "Ángel Sánchez (CIV-NC)",
   "Birmania Rada (CIV-NC)",
   "Carlos J. Colmenares (CIV-127.708)",
   "Charbel Abdul (CIV-321.425)",
@@ -191,6 +194,10 @@ CORRECCIONES_EMPRESA = [
     # al registrar su RIF (J-29813862-9) y la del oficio MINHAV 000013. «story»
     # venía del cuadro de sectores y no tiene respaldo (Stephanie, 15-sep-2026).
     ("BELZARUBEZHSTORY, S.A.",       "BELZARUBEZHSTROY, S.A."),
+    # Estas dos vivían solo en el generador de inspección (cambio 14b), así que servicios y SHA seguían
+    # mostrando la T-39 como «JVR INGENIERÍA C,A.» y la J-07 con espacios (revisión del 5-oct-2026).
+    ("ING & ARQ 1111, C.A.",         "ING&ARQ 1111, C.A."),
+    ("JVR INGENIERÍA C,A.",          "JVR INGENIERÍA, C.A."),
 ]
 
 

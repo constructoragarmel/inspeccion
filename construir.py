@@ -5759,10 +5759,9 @@ s = sustituir(s, maestros.CORRECCIONES_TEXTO[0][0], maestros.CORRECCIONES_TEXTO[
 # ── 14b. Nombres de empresa, exactamente como en MAE_Contratistas ─────────
 # ⚠️ TESURU sale del Cuadro Resumen del 28-ago; el resto de las fuentes dice
 #    TSURU. Se sigue el maestro, pero está pendiente de confirmar cuál es.
+# Desde el 5-oct-2026 las dos de aquí (ING&ARQ y JVR) viven en maestros.CORRECCIONES_EMPRESA, con las demás:
+# se aplican en el cambio 16, y así las reciben también servicios, SHA y urbanismo.
 for viejo, nuevo, etq in [
-    ("ING & ARQ 1111, C.A.", "ING&ARQ 1111, C.A.", "14b1· ING&ARQ, como el maestro"),
-    ("JVR INGENIERÍA C,A.",  "JVR INGENIERÍA, C.A.", "14b2· JVR: la coma iba antes del C.A."),
-
 ]:
     s = sustituir(s, viejo, nuevo, etq, -1)
 

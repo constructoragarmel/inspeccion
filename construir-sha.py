@@ -43,7 +43,7 @@ motor = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(motor)
 
 SALIDA = os.path.join(RAIZ, "sha.html")
-INSPECTORES_SHA = ["Birmania Rada", "Víctor Mendoza"]
+INSPECTORES_SHA = ["Ángel Sánchez", "Birmania Rada", "Víctor Mendoza"]
 
 cambios = []
 def sustituir(s, viejo, nuevo, etiqueta, n=1):
