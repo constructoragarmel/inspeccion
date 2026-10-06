@@ -125,7 +125,7 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # Charbel Abdul 321.425 y Oriana Plaza 321.434 (v102, mismo día): los dieron ellos el 27-sep y están en la
 # hoja; Stephanie pidió ponerlos. Falta la copia del carnet de los dos.
 #
-# v103 (1-oct-2026): entran los tres que la hoja trae con ingreso el 5-oct. Carlos Julio Colmenares (coordinador,
+# v103 (1-oct-2026): entran los tres con ingreso en octubre (Carlos el 1-oct, Eduardo y Miguel el 5-oct). Carlos Julio Colmenares (coordinador,
 # ingeniero estructural, CIV 127.708: el 127.709 del v103 salió de su CV; el sello del título dice 127.708, corregido en el v118), Eduardo Rivero (coordinador, CIV 169.435) y Miguel Eduardo Ávila (técnico de
 # control y seguimiento, TSU: sin CIV). Carlos y Miguel llevan la inicial del segundo nombre porque «CC» ya es
 # Cleidy Chacón y «MA» ya es Martha Azcarate: así sus informes salen CJ y ME.
