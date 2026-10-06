@@ -135,6 +135,10 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # sitio chocarían. Al agregar a alguien, comprobarlo.
 # v126 (5-oct-2026): entra Ángel Sánchez, inspector de SHA con ingreso el 8-oct según la hoja. Sus iniciales, AS, no
 # las tiene nadie más. El padrón queda en 27.
+# 5-oct-2026: entra Génesis Márquez, ingeniera inspectora que empezó ese día en Ciudad Tiuna (venía de otra obra de
+# Garmel; dicho por Stephanie, y la hoja ya la pasa al maestro). CIV 306.358 dado por Stephanie el 30-sep. El cuadro de
+# la Gerencia Técnica del 2-oct le da SR T-04 y EZ T-13 y T-14. Sus iniciales, GM, no chocan con Génesis Cordobés (GC)
+# ni con Gabriel Barrios (GB). El padrón queda en 28.
 INSPECTORES_JS = """const INSPECTORES_DB = [
   "Alejandro Bastidas (CIV-67.316)",
   "Ángel Sánchez (CIV-NC)",
@@ -149,6 +153,7 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Eduardo Rivero (CIV-169.435)",
   "Gabriel Barrios (CIV-NC)",
   "Génesis Cordobés (CIV-307.057)",
+  "Génesis Márquez (CIV-306.358)",
   "Girlenys Lacruz (CIV-288.041)",
   "Hernán Escobar (CIV-151.021)",
   "Katherine Correia (CIV-237.904)",
