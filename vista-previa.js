@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: afa5b6d3d4
+// Huella de la fuente: e2f6adeb79
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -929,6 +929,7 @@ function _pdfIdentificacionServicios(p, d) {
     ['Empresa ejecutora', d.empresa],
     ['Ingeniero(s) residente(s)', (d.residentes || []).join(' \u00b7 ')],
     ['Ingeniero(s) inspector(es)', (d.inspectores || []).join(' \u00b7 ')],
+    ['Versi\u00f3n', _versionDelInforme(d)],   // r50: preliminar (campo) o definitiva (cerrada en oficina)
     ['Estatus de la obra', (d.estatus || []).join(' \u00b7 ')],
     ['Apartamentos visitados', String((d.apartamentos || []).length)]
   ];
@@ -1081,6 +1082,7 @@ function _pdfIdentificacionSha(p, d) {
     ['Empresa ejecutora', d.empresa],
     ['Ingeniero(s) residente(s)', (d.residentes || []).join(' \u00b7 ')],
     ['Inspector(es) SHA', (d.inspectores || []).join(' \u00b7 ')],
+    ['Versi\u00f3n', _versionDelInforme(d)],   // r50: preliminar (campo) o definitiva (cerrada en oficina)
     ['Estatus general de la inspecci\u00f3n', (d.estatus || []).join(' \u00b7 ') || '\u2014'],
     ['Hallazgos de campo', String((d.apartamentos || []).length)],
     ['Incidencias (accidentes)', String((d.incidencias || []).length)],
@@ -1186,6 +1188,7 @@ function _pdfIdentificacionUrbanismo(p, d) {
     ['Empresa ejecutora', d.empresa],
     ['Ingeniero(s) residente(s)', (d.residentes || []).join(' · ')],
     ['Inspector(es)', (d.inspectores || []).join(' · ')],
+    ['Versi\u00f3n', _versionDelInforme(d)],   // r50: preliminar (campo) o definitiva (cerrada en oficina)
     ['Estatus de la obra', (d.estatus || []).join(' · ') || '—'],
     ['Secciones no inspeccionadas', noInsp.length ? noInsp.join(' · ') : 'ninguna'],
     ['Cantidades de la visita anterior sin revisar', her ? String(her) : 'ninguna']
@@ -1250,7 +1253,7 @@ function _pdfCamionesUrbanismo(it) {
            '<b>Camiones:</b> ' + lista + '<br>' + cuenta + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: 'afa5b6d3d4',
+    huella: 'e2f6adeb79',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];
