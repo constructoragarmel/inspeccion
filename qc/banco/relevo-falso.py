@@ -39,6 +39,18 @@ class H(http.server.BaseHTTPRequestHandler):
             todos=[c for c in ['%d.%02d'%(h,i) for h,n in enumerate([6,3,21,13,9,2,9,9,6,9,4],1) for i in range(1,n+1)] if c not in ('7.06','7.07')]+['12.02','12.03']   # v134: 7.06 y 7.07 retiradas (CP y TR pasaron a 3.20 y 3.21)
             fuera={'8.03','8.04','4.10','4.11','5.04','5.05'}
             return self._ok({"ok":True,"contratista":"Alnavic (falso)","codigos":[c for c in todos if c not in fuera]})
+        if p.get('accion')=='copiar-fuentes':
+            # Como el relevo r49 (Copiar.gs): informes de la lista v2 del mismo ámbito en esas torres, con filas medidas.
+            torres=p.get('torres') or [p.get('torre')]; amb='torre' if p.get('ambito')=='torre' else 'apartamento'
+            def filas(pt): return sum(1 for pid,a in (pt or {}).items() if not pid.endswith('_extra') and isinstance(a,list) for it in a if it and not it.get('fueraDeAmbito') and any(str(it.get(k) or '').strip() for k in ('pr','ej','sn','pct')))
+            l=[{"nro":k,"torre":v['datos'].get('torre'),"piso":v['datos'].get('piso',''),"apto":v['datos'].get('apto',''),"fecha":v['datos'].get('fecha',''),"filas":filas(v['datos'].get('partidas')),"revision":v['rev']}
+               for k,v in H.oficina.items() if not v.get('tipo') and v['datos'].get('torre') in torres and (v['datos'].get('ambito') or 'apartamento')==amb and (v['datos'].get('vista') or '')==(p.get('vista') or '') and v['datos'].get('lista')=='v2']
+            l=[x for x in l if x['filas']>0]; l.sort(key=lambda x:(x['fecha'],x['nro']),reverse=True)
+            return self._ok({"ok":True,"fuentes":l})
+        if p.get('accion')=='copiar-abrir':
+            v=H.oficina.get(p.get('numero'))
+            if not v: return self._ok({"ok":False,"error":"No hay un informe archivado con el número "+str(p.get('numero'))})
+            d=v['datos']; return self._ok({"ok":True,"nro":p.get('numero'),"torre":d.get('torre'),"piso":d.get('piso',''),"apto":d.get('apto',''),"fecha":d.get('fecha',''),"partidas":d.get('partidas',{})})
         if p.get('accion')=='oficina-lista':
             # Como el relevo r47 (Oficina.gs): la última revisión de cada número de la torre.
             l=[{"numero":k,"revision":v['rev'],"fecha":v['datos'].get('fecha',''),"piso":v['datos'].get('piso',''),"apto":v['datos'].get('apto',''),

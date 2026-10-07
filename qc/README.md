@@ -477,6 +477,14 @@ marca de oficina y las fotos aparte (no vacías); «Cerrar versión definitiva»
 siempre; el reenvío dice que es la definitiva y la lista lo muestra como Definitiva, revisión 2, una sola vez; el relevo
 guardó la revisión 2 con la observación limpia y la misma foto; un informe nuevo no es definitivo.
 
+**`t69` (7-oct-2026, v139): copiar las mediciones de otro apartamento o de otra torre parecida.** Diez comprobaciones en
+`inspeccion.html` contra el relevo falso (`copiar-fuentes`, `copiar-abrir`): el botón aparece con torre, piso y apartamento y nada
+medido; el panel lista el apartamento guardado en el teléfono; copiar llena las filas y las marca «≈ Copiado de T-01 · Piso 02 apto A1»
+con «Confirmado en sitio»; el dato lleva `copiadoDe` y cada fila copiada el número de origen; **no se puede enviar con filas
+copiadas sin confirmar** (avisa y no manda nada); guardar y reabrir conserva las marcas; confirmar quita la marca y la fila sigue
+contando como copiada; con todas confirmadas sí envía; en torre, el panel ofrece la torre de la misma contratista; con algo medido el
+botón no se ofrece. En el relevo, `t70relevo` (6) prueba la fila «Mediciones a partir de» del PDF y `Copiar.gs`.
+
 **`t68` (7-oct-2026, v137): el desplegable de torre sale del maestro, no de la plantilla.** Seis comprobaciones en
 `inspeccion.html`. Lo vio Diego el 7-oct: la T-43 de Simón Rodríguez entró al maestro (`comun/maestros.py`) el 4-oct y la tabla
 `TORRES` la tenía, pero el `<select>` de torre venía escrito a mano desde la plantilla de agosto y nadie lo actualizaba, así que

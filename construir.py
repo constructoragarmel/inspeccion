@@ -8782,6 +8782,38 @@ assert set(_TORRES_PLANTILLA) <= set(_TORRES_MAESTRO) and 'T-43' in _TORRES_MAES
 s = sustituir(s, _m.group(1), "".join("        <option>%s</option>\n" % t for t in _TORRES_MAESTRO),
  "171 · el desplegable de torre sale del maestro: %d torres (la plantilla traía %d)" % (len(_TORRES_MAESTRO), len(_TORRES_PLANTILLA)))
 
+# ── 172. Copiar de otro apartamento o de otra torre ─────────────────────────
+# Pedido de la coordinación (6 y 7-oct-2026). El código vive en comun/copiar_de.js;
+# el relevo r49 contesta `copiar-fuentes` y `copiar-abrir`. Va después de todo lo
+# demás porque envuelve a robustez.js (153), al informe anterior (151) y al sector (154).
+if LISTA_V2:
+    COPIAR_DE_JS = open(os.path.join(RAIZ, "comun", "copiar_de.js"), encoding="utf-8").read()
+    s = sustituir(s,
+     "if ('serviceWorker' in navigator) {",
+     COPIAR_DE_JS + "\nif ('serviceWorker' in navigator) {",
+     "172a· copiar de otro apartamento o de otra torre")
+    s = sustituir(s,
+     '    <div id="aviso-anterior" role="status" aria-live="polite" style="grid-column:1/-1"></div>\n',
+     '    <div id="aviso-anterior" role="status" aria-live="polite" style="grid-column:1/-1"></div>\n'
+     '    <div id="copiar-de" style="grid-column:1/-1"></div>\n',
+     "172b· la caja del botón, debajo del aviso del informe anterior")
+    s = sustituir(s, ".ayuda-sub[hidden]{display:none}\n",
+     ".ayuda-sub[hidden]{display:none}\n"
+     ".copiar-boton{display:flex;align-items:center;gap:8px;margin:2px 0 10px}\n"
+     ".copiar-boton button{min-height:44px;border-radius:8px;border:1.5px solid #1a237e;background:#fff;color:#1a237e;font-weight:700;font-size:14px;padding:0 14px;cursor:pointer}\n"
+     ".copiar-panel{background:#fff8e1;border:1.5px solid #f0d58a;border-radius:10px;padding:12px 14px;margin:2px 0 10px}\n"
+     ".copiar-panel .t{font-weight:800;font-size:14px;color:#8f4b00;margin-bottom:4px}\n"
+     ".copiar-panel .s{font-size:13px;color:#475569;margin:0 0 8px;line-height:1.4}\n"
+     ".copiar-panel .g{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#8f4b00;margin:8px 0 4px}\n"
+     ".copiar-panel .f{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #f0d58a;flex-wrap:wrap}\n"
+     ".copiar-panel .f .d{flex:1 1 180px;font-size:13px;color:#1e293b;font-weight:700}\n"
+     ".copiar-panel .f .d small{display:block;color:#64748b;font-weight:400}\n"
+     ".copiar-panel .f button{min-height:44px;border:none;border-radius:8px;background:#8f4b00;color:#fff;font-weight:700;padding:0 16px;font-size:14px;cursor:pointer}\n"
+     ".copiar-panel .cerrar{margin-top:8px;min-height:44px;border:none;border-radius:8px;background:#e2e8f0;color:#334155;font-weight:700;padding:0 16px;font-size:14px;cursor:pointer}\n"
+     "tr.heredada.copiada td.desc{background:#fff3e0}\n"
+     "@media print{#copiar-de{display:none!important}}\n",
+     "172c· estilo del botón, del panel y de la fila copiada")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
