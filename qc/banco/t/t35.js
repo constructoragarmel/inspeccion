@@ -97,7 +97,7 @@ Q.aceptar = true;
 finalizarInforme(); await esperar(1600);
 const fin = lista()[0];
 put('apto', 'H2'); await hasta(() => aviso().length > 0, 12000, 100);
-const esCantidades = /Usar los totales/.test(aviso());
+const esCantidades = /Empezar desde otro apartamento|Usar los totales/.test(aviso());
 document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
 const marc20 = document.querySelectorAll('tr.heredada').length;
 put('ej_hito_acc_electricos_0', '2'); autoguardar(); await esperar(200);

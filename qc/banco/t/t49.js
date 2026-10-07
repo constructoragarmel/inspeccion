@@ -10,7 +10,7 @@ const limpiar = async () => { Q.aceptar = true; nuevoFormulario(); await esperar
 const pct = rid => (document.getElementById('pct_' + rid)?.innerText || '').trim();
 const badge = h => (document.getElementById('badge_' + h)?.innerText || '').trim();
 const aLaVista = id => { const e = document.getElementById(id); return !!e && e.offsetParent !== null; };
-const abrir = pid => { const tr = document.getElementById('pr_' + pid + '_0')?.closest('tr'); if (tr && !tr.offsetParent) { let el = document.getElementById('badge_' + pid); for (let k = 0; k < 5 && el; k++) { if (el.getAttribute && el.getAttribute('onclick')) { el.click(); break; } el = el.parentElement; } } };
+const abrir = pid => { const tr = document.getElementById('pr_' + pid + '_0')?.closest('tr'); if (tr && !tr.offsetParent && document.getElementById('p_' + pid).classList.contains('collapsed')) { /* la fila 0 puede ser de torre (oculta en apto); desde el QC de UX el primer hito viene abierto */ let el = document.getElementById('badge_' + pid); for (let k = 0; k < 5 && el; k++) { if (el.getAttribute && el.getAttribute('onclick')) { el.click(); break; } el = el.parentElement; } } };
 const PID = 'hito_cerramientos';
 
 await limpiar(); setAmbito('apartamento'); await esperar(200);

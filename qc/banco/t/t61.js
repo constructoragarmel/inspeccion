@@ -10,7 +10,7 @@ const escribir = (e, v) => { e.value = v; e.dispatchEvent(new Event('input', { b
 const opciones = s => [...s.options].map(o => o.value).filter(v => v && v !== 'ZONA');
 const cabecera = async (k) => {
   const s = $('#sector'); if (s && !s.value) { Q.elegir(s, opciones(s)[0]); await esperar(100); }
-  const c = $('#convenio'); if (c && !c.value) { Q.elegir(c, opciones(c)[0]); await esperar(100); }
+  const c = $('#convenio'); if (c && !c.value) { Q.elegir(c, opciones(c).includes('Convenio Bielorrusos') ? 'Convenio Bielorrusos' : opciones(c)[0]); await esperar(100); }   /* QC de UX 7-oct: el orden de los sectores cambió; Ezequiel Zamora es el que tiene manzanas */
   const t = $('#torre'); Q.elegir(t, opciones(t)[k || 0]); await esperar(200); if ($('#aviso-historial .no')) $('#aviso-historial .no').click();
   Q.elegir($('#inspectores select'), INSPECTORES_DB[0]);
   if (pagina === 'sha') { const e = $('#estatus'); Q.elegir(e, opciones(e)[0]); }

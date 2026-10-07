@@ -105,9 +105,9 @@ async function _ofrecerAnterior(){
       'Traer mediciones', function(){ _traerMediciones(mismo.partidas, false); });
   } else if (deLaTorre && ambito !== 'torre') {
     const cual = [deLaTorre.piso, deLaTorre.apto ? 'apto ' + deLaTorre.apto : ''].filter(Boolean).join(' · ');
-    _pintarAvisoAnterior(caja, '¿Usar los totales de otro apartamento de esta torre?',
-      'Del ' + (cual || 'último informe') + ' (' + (deLaTorre.fecha || 'sin fecha') + '). Los apartamentos se repiten: ' +
-      'así solo cuenta las puestas. Revise las que no coincidan.',
+    _pintarAvisoAnterior(caja, '¿Empezar desde otro apartamento de esta torre?',
+      'Del ' + (cual || 'último informe') + ' (' + (deLaTorre.fecha || 'sin fecha') + '). «Usar las cantidades» trae solo los totales ' +
+      '(cuántas hay de cada cosa), para que usted cuente las puestas. Revise las que no coincidan.',
       'Usar las cantidades', function(){ _traerMediciones(deLaTorre.partidas, true); });
   }
 }
@@ -126,7 +126,10 @@ function _pintarAvisoAnterior(caja, titulo, texto, boton, alAceptar){
     if (caja.dataset.clave !== _claveAnterior() || _hayMediciones()) { caja.innerHTML = ''; return; }
     caja.innerHTML = ''; alAceptar();
   };
-  caja.querySelector('.no').onclick = function(){ caja.innerHTML = ''; };
+  caja.querySelector('.no').onclick = function(){ caja.innerHTML = ''; if (typeof _copiarProgramar === 'function') _copiarProgramar(); };
+  // QC de UX del 7-oct-2026: una sola tarjeta. Si se puede copiar de otro informe (172), el botón va aquí dentro,
+  // no suelto más abajo como una segunda oferta.
+  if (typeof _copiarProgramar === 'function') _copiarProgramar();
 }
 
 // Vuelca las mediciones de otro informe de la lista v2. soloHay: solo la

@@ -59,7 +59,7 @@ const a3 = await esperarAviso();
 document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
 const pr3 = document.getElementById('pr_hito_acc_electricos_0').value, ej3 = document.getElementById('ej_hito_acc_electricos_0').value;
 ok('3 · Apartamento sin informe: copia solo las cantidades «hay» (no las puestas ni los estados)',
-   /Usar los totales/.test(a3) && pr3 === '5' && ej3 === '' && pct('hito_acabados_0') === '—' && document.getElementById('pr_hito_acc_sanitarios_0').value === '2',
+   /Empezar desde otro apartamento|Usar los totales/.test(a3) && pr3 === '5' && ej3 === '' && pct('hito_acabados_0') === '—' && document.getElementById('pr_hito_acc_sanitarios_0').value === '2',
    'aviso: «' + a3.slice(0, 60) + '» · tomas hay=' + pr3 + ' puestas=' + ej3 + ' · frisos ' + pct('hito_acabados_0'));
 
 // ── 4. Cuándo NO ofrece ──

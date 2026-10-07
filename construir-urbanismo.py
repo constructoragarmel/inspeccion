@@ -208,7 +208,9 @@ J = sustituir(J, """function alElegirConvenio(){
   if (t && (!c || !entradasDe(t).some(x => x.c === c))){ document.getElementById('torre').value = ''; alElegirTorre(); }
   if (!document.getElementById('torre').value) document.getElementById('empresa').value = c ? (EMPRESA_POR_SECTOR[c] || '') : '';
 """, "11b· el sector filtra las manzanas")
-J = sustituir(J, """  torresUnicas().forEach(t => {
+J = sustituir(J, """  // QC de UX del 7-oct-2026: el mismo orden que en obra (por letra y número: D-08, J-07…, T-01…T-58).
+  const natural = t => [t.replace(/-.*/, ''), parseInt(t.replace(/^[^0-9]*/, ''), 10) || 0];
+  torresUnicas().sort((a, b) => { const x = natural(a), y = natural(b); return x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : x[1] - y[1]; }).forEach(t => {
     const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
   });
 """, """  manzanasRecordadas().forEach(m => { if (!TORRES_DATA.some(x => x.t === m.t)) TORRES_DATA.push(m); });

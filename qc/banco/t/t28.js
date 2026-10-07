@@ -51,7 +51,7 @@ await limpiar(); setAmbito('apartamento'); cabecera('T-07', 'Piso 03', 'Z');
 const a8 = await esperarAviso(); document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
 const conValor = [...document.querySelectorAll('input[id^="pr_"], input[id^="ej_"], input[id^="pm_"]')].filter(e => e.value).map(e => e.id);
 ok('8 · «Usar las cantidades» llena solo el «hay» de las filas de conteo que traía (nada de puestas, estados ni %)',
-   /Usar los totales/.test(a8) && conValor.length === 1 && conValor[0] === 'pr_hito_acc_electricos_0' && pct('hito_acabados_1') === '—',
+   /Empezar desde otro apartamento|Usar los totales/.test(a8) && conValor.length === 1 && conValor[0] === 'pr_hito_acc_electricos_0' && pct('hito_acabados_1') === '—',
    conValor.join(','));
 
 // ── 9. Torre: trae cantidades con su unidad (ml/kg) y el % escrito ──

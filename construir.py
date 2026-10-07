@@ -8776,7 +8776,8 @@ s = sustituir(s, "  .tbl-wrap td.n{",
 # maestro (comun/maestros.py), la tabla TORRES la tenía y el desplegable no, y en
 # obra no se podía elegir. Se vio el 7-oct. Desde aquí las opciones salen del
 # mismo maestro, en el mismo orden (D-, J-, T-), y no pueden volver a discrepar.
-_TORRES_MAESTRO = sorted(set(re.findall(r"\{t:'([^']+)'", maestros.TORRES_JS)))
+_TORRES_MAESTRO = sorted(set(re.findall(r"\{t:'([^']+)'", maestros.TORRES_JS)),
+                         key=lambda t: (t.split('-')[0], int(re.sub(r'\D', '', t) or 0)))   # QC de UX 7-oct: por letra y número, como en los otros tres
 _m = re.search(r'        <option value="">— Seleccione —</option>\n((?:        <option>[A-Z]-\d+</option>\n)+)        <option value="NO_REG"', s)
 assert _m, "el bloque fijo de torres de la plantilla"
 _TORRES_PLANTILLA = re.findall(r"<option>([^<]+)</option>", _m.group(1))
@@ -8830,6 +8831,201 @@ if LISTA_V2:
      ".copiar-panel .sector:disabled{opacity:.6}\n"
      ".copiar-panel .cerrar{",
      "173b· el botón de buscar en el sector")
+
+# ── 175. QC de UX del 7-oct-2026 (qc/UX-2026-10-07.md): lo que tropieza a quien entra por primera vez ──
+# 175a · «Enviar» comprueba lo obligatorio ANTES de abrir el cuadro de la clave, y lleva al primer campo que falta.
+s = sustituir(s,
+ "function openSend() {\n  refrescarEstadoClave();\n  document.getElementById('overlay').classList.add('open');\n}",
+ "function openSend() {\n"
+ "  const falta = camposFaltantes();\n"
+ "  if (falta.length) {\n"
+ "    alert(_avisarFaltantes(falta) + '\\n\\nEl número del informe se arma con estos datos, así que sin ellos quedaría mal archivado.\\n\\nLo llevo al primero que falta.');\n"
+ "    _irAlPrimerFaltante(falta); return;\n"
+ "  }\n"
+ "  refrescarEstadoClave();\n"
+ "  document.getElementById('overlay').classList.add('open');\n"
+ "}\n"
+ "// Dónde vive cada dato obligatorio en la pantalla, para llevar al inspector hasta él y marcarlo unos segundos.\n"
+ "function _irAlPrimerFaltante(falta){\n"
+ "  const donde = { 'Sector': '#convenio', 'Torre': '#torre', 'Nombre de la torre': '#torre-manual', 'Fecha de inspección': '#fecha',\n"
+ "                  'Empresa ejecutora': '#empresa', 'Piso': '#piso', 'N° de apartamento': '#apto', 'Ingeniero residente': '#residentes-container',\n"
+ "                  'Ingeniero inspector': '#inspectores-container', 'Estatus de la obra': '#estatus' };\n"
+ "  const sel = donde[falta[0]]; const el = sel && document.querySelector(sel); if (!el) return;\n"
+ "  const caja = el.closest('.field') || el;\n"
+ "  caja.scrollIntoView({ block: 'center', behavior: 'smooth' });\n"
+ "  caja.classList.add('falta-aqui'); setTimeout(function(){ caja.classList.remove('falta-aqui'); }, 4000);\n"
+ "  const foco = el.matches('input,select') ? el : el.querySelector('input,select'); if (foco) try { foco.focus({ preventScroll: true }); } catch (e) {}\n"
+ "}",
+ "175a· Enviar comprueba antes de pedir la clave y lleva al campo que falta")
+
+# 175b · Los hitos: el primero abierto de entrada; la cabecera dice «Abrir» / «Cerrar»; «No inspeccionado» se lee como
+# acción y solo aparece con el hito abierto (o cuando ya está marcado).
+s = sustituir(s,
+ "  document.querySelectorAll('.partida').forEach(function(p){ p.classList.add('collapsed'); });\n",
+ "  document.querySelectorAll('.partida').forEach(function(p){ p.classList.add('collapsed'); });\n"
+ "  setTimeout(_abrirPrimerHito, 0);   // 175b: el primero a la vista queda abierto, para que se vea qué hay dentro\n",
+ "175b1· el primer hito abierto")
+s = sustituir(s,
+ "function toggleP(id){document.getElementById('p_'+id).classList.toggle('collapsed');}",
+ "function toggleP(id){document.getElementById('p_'+id).classList.toggle('collapsed');}\n"
+ "function _abrirPrimerHito(){\n"
+ "  const v = Array.prototype.slice.call(document.querySelectorAll('.partida')).find(function(p){ return p.offsetParent !== null; });\n"
+ "  if (v) v.classList.remove('collapsed');\n"
+ "}",
+ "175b2· _abrirPrimerHito")
+s = sustituir(s,
+ """            <div class="pct-bdg" id="badge_${p.id}">—</div>
+            <span class="arrow">▼</span>""",
+ """            <div class="pct-bdg" id="badge_${p.id}">—</div>
+            <span class="abrir-txt"></span><span class="arrow">▼</span>""",
+ "175b3· «Abrir» / «Cerrar» junto a la flecha")
+s = sustituir(s,
+ """                  title="Marcar el hito completo como no inspeccionado en esta visita">⊘ No inspeccionado</span>""",
+ """                  title="Marcar el hito completo como no inspeccionado en esta visita">⊘ Marcar no inspeccionado</span>""",
+ "175b4· el rótulo dice qué hace")
+s = sustituir(s,
+ "  if(tgl)    tgl.classList.toggle('on', activo);\n",
+ "  if(tgl)  { tgl.classList.toggle('on', activo); tgl.textContent = activo ? '⊘ No inspeccionado · tocar para quitar' : '⊘ Marcar no inspeccionado'; }\n",
+ "175b5· marcado, dice cómo se quita")
+
+# 175c · La lista «Informes»: en llano, de usted, lo peligroso al final y en gris, y «Enviar todos» apagado si no hay qué enviar.
+s = sustituir(s,
+ """    <h3>📁 Informes Guardados Localmente</h3>
+    <p>Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo.</p>
+    <button type="button" class="s-btn s-btn-del" style="width:100%;margin-bottom:10px"
+            onclick="borrarEnviados()">🧹 Borrar los que ya se enviaron</button>
+    
+    <div class="saved-list-container" id="savedListContent"></div>
+
+    <div class="m-btns">
+      <button class="m-btn m-cancel" onclick="closeSavedModal()">Cerrar</button>
+      <button class="m-btn m-confirm" onclick="enviarPendientes()">📤 Enviar todos los pendientes</button>""",
+ """    <h3>📁 Informes en este teléfono</h3>
+    <p>Toque uno para abrirlo, corregirlo o enviarlo. Hasta que se envían, viven solo en este teléfono.</p>
+
+    <div class="saved-list-container" id="savedListContent"></div>
+    <button type="button" class="s-btn s-btn-del" id="btn-borrar-enviados" style="width:100%;margin:10px 0 0;background:#f1f5f9;color:#475569;border-color:#cbd5e1;display:none"
+            onclick="borrarEnviados()">🧹 Borrar de este teléfono los que ya se enviaron</button>
+
+    <div class="m-btns">
+      <button class="m-btn m-cancel" onclick="closeSavedModal()">Cerrar</button>
+      <button class="m-btn m-confirm" id="btn-enviar-todos" onclick="enviarPendientes()">📤 Enviar todos los pendientes</button>""",
+ "175c1· la lista en llano, Borrar al final")
+s = sustituir(s,
+ "  pintar('cnt-pendientes', pendientes);\n  pintar('cnt-guardados', lista.length);\n",
+ "  pintar('cnt-pendientes', pendientes);\n  pintar('cnt-guardados', lista.length);\n"
+ "  // 175c: «Enviar todos» solo cuando hay pendientes; «Borrar los enviados» solo cuando hay enviados.\n"
+ "  const bt = document.getElementById('btn-enviar-todos'); if (bt) { bt.disabled = !pendientes; bt.textContent = pendientes ? '📤 Enviar todos los pendientes (' + pendientes + ')' : '📤 Nada pendiente de enviar'; }\n"
+ "  const bb = document.getElementById('btn-borrar-enviados'); if (bb) bb.style.display = lista.some(function(b){ return b && b.enviado; }) ? 'block' : 'none';\n",
+ "175c2· los dos botones según lo que hay")
+s = sustituir(s,
+ "No hay informes almacenados localmente.",
+ "No hay informes guardados aquí. Los que guarde aparecen en esta lista.",
+ "175c3· vacío en llano")
+
+# 175d · El número a medio armar no se muestra como si fuera un error: hasta que está completo, dice cómo se arma.
+s = sustituir(s,
+ """      <span class="hint-formato" style="font-size:10px;color:#5f6b7a;margin-top:2px;display:block">Formato: Sector-Torre-Piso/Apto-Fecha-Inspector</span>""",
+ """      <div id="nro-hint" style="display:none;font-size:12px;color:#475569;padding:7px 10px;border-radius:7px;background:#f8fafc;border:1.5px dashed #cbd5e1">Se arma solo al completar sector, torre, piso, apartamento e inspector.</div>""",
+ "175d1· la pista en vez del «Formato:»")
+s = sustituir(s,
+ "  const el    = document.getElementById('nro-display');\n  if (el) el.textContent = nro;\n  const docNum = document.getElementById('doc-num');\n  if (docNum) docNum.textContent = 'Informe N°: ' + nro;\n",
+ "  const el    = document.getElementById('nro-display');\n  if (el) el.textContent = nro;\n"
+ "  // 175d: a medias (sector XX, torre T---, piso/apto --, fecha ------ o inspector ---) se muestra la pista, no el número.\n"
+ "  const aMedias = /(^|-)XX-|-T---(-|$)|P--|A--|------|---$/.test(nro);\n"
+ "  if (el) el.style.display = aMedias ? 'none' : '';\n"
+ "  const hint = document.getElementById('nro-hint'); if (hint) hint.style.display = aMedias ? 'block' : 'none';\n"
+ "  const docNum = document.getElementById('doc-num');\n  if (docNum) docNum.textContent = 'Informe N°: ' + (aMedias ? '(se arma al completar la cabecera)' : nro);\n",
+ "175d2· updateNroInforme muestra la pista")
+s = sustituir(s,
+ """      <span class="field-note">Se vincula automáticamente a la empresa o permite ingreso manual persistente</span>""",
+ """      <span class="field-note">Se llena solo al elegir la torre. Si no aparece, escríbalo: se recuerda para la próxima.</span>""",
+ "175d3· la nota del residente en llano")
+
+# 175e · La escala B / R / M / N/A, plegable: una línea que se abre, y se recuerda si la cerró.
+s = sustituir(s,
+ """  <div id="escala-brm" style="background:#f5f7ff;border:1px solid #e0e4ff;border-radius:8px;padding:8px 12px;margin:0 0 12px;font-size:11px;color:#444;line-height:1.6">
+    <strong style="color:#1a237e">Escala de evaluación:</strong>""",
+ """  <div id="escala-brm" style="background:#f5f7ff;border:1px solid #e0e4ff;border-radius:8px;padding:8px 12px;margin:0 0 12px;font-size:11px;color:#444;line-height:1.6">
+    <button type="button" class="escala-tgl" onclick="_plegarEscala()" aria-expanded="true">ⓘ ¿Qué significan B, R, M y N/A? <span class="escala-flecha">▾</span></button>
+    <div class="escala-texto">
+    <strong style="color:#1a237e">Escala de evaluación:</strong>""",
+ "175e1· la escala, con su botón")
+s = sustituir(s,
+ """    <b>N/A</b> = no aplica o no se pudo verificar — <em>no cuenta para el promedio</em>
+  </div>""",
+ """    <b>N/A</b> = no aplica o no se pudo verificar — <em>no cuenta para el promedio</em>
+    </div>
+  </div>""",
+ "175e2· cierre del texto plegable")
+s = sustituir(s,
+ "function toggleP(id){",
+ "function _plegarEscala(forzar){\n"
+ "  const c = document.getElementById('escala-brm'); if (!c) return;\n"
+ "  const cerrada = (forzar === undefined) ? !c.classList.contains('cerrada') : !!forzar;\n"
+ "  c.classList.toggle('cerrada', cerrada); c.querySelector('.escala-tgl').setAttribute('aria-expanded', String(!cerrada));\n"
+ "  try { localStorage.setItem('garmel_escala_brm', cerrada ? '1' : ''); } catch (e) {}\n"
+ "}\n"
+ "try { if (localStorage.getItem('garmel_escala_brm') === '1') document.addEventListener('DOMContentLoaded', function(){ _plegarEscala(true); }); } catch (e) {}\n"
+ "function toggleP(id){",
+ "175e3· _plegarEscala")
+
+# 175f · Los bloques que el inspector de campo casi no usa, plegados bajo un solo título.
+_ini = s.index("<!-- SERVICIOS PÚBLICOS -->")
+_mem = s.index("<!-- MEMORIA TÉCNICA POR TORRE -->", _ini)
+_fin = s.index("\n</div>\n</div>\n\n<!-- RESUMEN + TOTAL -->", _mem) + len("\n</div>\n</div>\n")
+s = (s[:_ini]
+     + '<div class="content" id="otros-datos">\n'
+       '  <button type="button" class="otros-tgl" onclick="_plegarOtros()" aria-expanded="false">▸ Otros datos, si hacen falta: organismos de servicios públicos y consolidado por torre</button>\n'
+       '  <div id="otros-datos-cuerpo" hidden>\n'
+     + s[_ini:_fin]
+     + '  </div>\n</div>\n'
+     + s[_fin:])
+cambios.append("175f1· agentes y memoria bajo «Otros datos»")
+s = sustituir(s,
+ "function toggleP(id){",
+ "function _plegarOtros(){\n"
+ "  const c = document.getElementById('otros-datos-cuerpo'), b = document.querySelector('#otros-datos .otros-tgl'); if (!c) return;\n"
+ "  c.hidden = !c.hidden; b.setAttribute('aria-expanded', String(!c.hidden)); b.textContent = (c.hidden ? '▸' : '▾') + b.textContent.slice(1);\n"
+ "}\n"
+ "function toggleP(id){",
+ "175f2· _plegarOtros")
+
+# 175g · «Guardar y siguiente» dice siguiente qué.
+s = sustituir(s,
+ "➡️ <span>Guardar y siguiente</span>",
+ "➡️ <span id=\"lbl-siguiente\">Guardar y otro apto</span>",
+ "175g1· el rótulo")
+s = sustituir(s,
+ "if ('serviceWorker' in navigator) {",
+ "// 175g · El botón de la izquierda dice a qué pasa: otro apartamento, u otra torre.\n"
+ "function _rotularSiguiente(){ const l = document.getElementById('lbl-siguiente'); if (l) l.textContent = (typeof ambito !== 'undefined' && ambito === 'torre') ? 'Guardar y otra torre' : 'Guardar y otro apto'; }\n"
+ "if (typeof setAmbito === 'function') { const _setAmbitoBase175 = setAmbito; setAmbito = function(){ const r = _setAmbitoBase175.apply(this, arguments); _rotularSiguiente(); return r; }; }\n"
+ "document.addEventListener('DOMContentLoaded', _rotularSiguiente);\n"
+ "if ('serviceWorker' in navigator) {",
+ "175g2· cambia con el ámbito")
+
+# 175h · El estilo de todo lo anterior, la letra de los cuadros de texto, el «✕» sin nada que quitar y el toast sobre la barra.
+s = sustituir(s, "</style>",
+ "/* 175 · QC de UX del 7-oct-2026 */\n"
+ ".falta-aqui{outline:3px solid #c62828;outline-offset:3px;border-radius:8px;transition:outline-color .3s}\n"
+ ".abrir-txt{font-size:11px;font-weight:700;color:#fff;opacity:.9;margin-right:2px}\n"
+ ".partida.collapsed .abrir-txt::before{content:'Abrir'}\n"
+ ".partida:not(.collapsed) .abrir-txt::before{content:'Cerrar'}\n"
+ ".partida.collapsed .no-insp-tgl:not(.on){display:none!important}\n"
+ "textarea{font-family:inherit}\n"
+ ".multi-input-row:only-child .btn-remove-item{display:none}\n"
+ ".escala-tgl{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;border:none;background:none;color:#1a237e;font-weight:800;font-size:13px;text-align:left;padding:0;cursor:pointer}\n"
+ ".escala-tgl .escala-flecha{margin-left:auto}\n"
+ "#escala-brm.cerrada .escala-texto{display:none}\n"
+ "#escala-brm.cerrada .escala-flecha{transform:rotate(-90deg)}\n"
+ ".otros-tgl{display:block;width:100%;min-height:44px;border:1.5px dashed #cbd5e1;border-radius:10px;background:#f8fafc;color:#475569;font-weight:700;font-size:13px;text-align:left;padding:8px 12px;cursor:pointer}\n"
+ "#otros-datos-cuerpo{margin-top:10px}\n"
+ "#otros-datos-cuerpo .content{padding-left:0;padding-right:0}\n"
+ "@media print{.otros-tgl{display:none}#otros-datos-cuerpo[hidden]{display:block!important}.abrir-txt{display:none}}\n"
+ "@media screen and (max-width:700px), screen and (pointer:coarse){ .toast{bottom:124px} }\n"
+ "</style>",
+ "175h· estilos")
 
 open(SALIDA, "w", encoding="utf-8").write(s)
 

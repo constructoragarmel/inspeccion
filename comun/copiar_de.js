@@ -122,8 +122,20 @@ function _copiarPintarBoton(){
   if (!caja) return;
   if (!_copiarPuede()) { caja.innerHTML = ''; return; }
   if (caja.querySelector('.copiar-panel')) return;   // ya está abierto el panel
-  caja.innerHTML = '<div class="copiar-boton"><button type="button" id="btn-copiar-de">📋 Copiar de otro ' +
-    (ambito === 'torre' ? 'informe de torre' : 'apartamento') + '…</button></div>';
+  const rotulo = '📋 Copiar de otro ' + (ambito === 'torre' ? 'informe de torre' : 'apartamento') + '…';
+  // QC de UX del 7-oct-2026: si la tarjeta de la visita anterior está a la vista, el botón va dentro de ella (una sola
+  // oferta con sus opciones), y aquí no se pinta nada.
+  const avisoBotones = document.querySelector('#aviso-anterior .aviso-anterior .b');
+  if (avisoBotones) {
+    caja.innerHTML = '';
+    if (!avisoBotones.querySelector('#btn-copiar-de')) {
+      const b = document.createElement('button'); b.type = 'button'; b.id = 'btn-copiar-de'; b.className = 'copiar'; b.textContent = rotulo;
+      b.onclick = function(){ const ant = document.getElementById('aviso-anterior'); if (ant) { ant.innerHTML = ''; ant.dataset.clave = ''; } _copiarAbrirPanel(); };
+      avisoBotones.appendChild(b);
+    }
+    return;
+  }
+  caja.innerHTML = '<div class="copiar-boton"><button type="button" id="btn-copiar-de">' + rotulo + '</button></div>';
   caja.querySelector('button').onclick = _copiarAbrirPanel;
 }
 

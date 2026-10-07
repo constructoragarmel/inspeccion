@@ -888,6 +888,23 @@ tr.heredada td.desc{background:#fff8e1}
 .heredada-tag .sigue-igual{border:1.5px solid #8f4b00;background:#fff;color:#8f4b00;border-radius:10px;padding:3px 9px;font-size:11px;font-weight:800;min-height:28px}
 .editado-tras{color:#8f4b00!important;font-weight:700}
 @media print{.heredada-tag{display:none!important}tr.heredada td.desc{background:none}}
+/* 175 · QC de UX del 7-oct-2026 */
+.falta-aqui{outline:3px solid #c62828;outline-offset:3px;border-radius:8px;transition:outline-color .3s}
+.abrir-txt{font-size:11px;font-weight:700;color:#fff;opacity:.9;margin-right:2px}
+.partida.collapsed .abrir-txt::before{content:'Abrir'}
+.partida:not(.collapsed) .abrir-txt::before{content:'Cerrar'}
+.partida.collapsed .no-insp-tgl:not(.on){display:none!important}
+textarea{font-family:inherit}
+.multi-input-row:only-child .btn-remove-item{display:none}
+.escala-tgl{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;border:none;background:none;color:#1a237e;font-weight:800;font-size:13px;text-align:left;padding:0;cursor:pointer}
+.escala-tgl .escala-flecha{margin-left:auto}
+#escala-brm.cerrada .escala-texto{display:none}
+#escala-brm.cerrada .escala-flecha{transform:rotate(-90deg)}
+.otros-tgl{display:block;width:100%;min-height:44px;border:1.5px dashed #cbd5e1;border-radius:10px;background:#f8fafc;color:#475569;font-weight:700;font-size:13px;text-align:left;padding:8px 12px;cursor:pointer}
+#otros-datos-cuerpo{margin-top:10px}
+#otros-datos-cuerpo .content{padding-left:0;padding-right:0}
+@media print{.otros-tgl{display:none}#otros-datos-cuerpo[hidden]{display:block!important}.abrir-txt{display:none}}
+@media screen and (max-width:700px), screen and (pointer:coarse){ .toast{bottom:124px} }
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a237e">
@@ -970,7 +987,7 @@ tr.heredada td.desc{background:#fff8e1}
             padding:10px 16px;border-bottom:1px solid rgba(0,0,0,.15)">
   ⟳ Hay una versión nueva — tocar para actualizar
 </div>
-    <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Guarda este informe y prepara el del siguiente apartamento, conservando torre, empresa y personal">➡️ <span>Guardar y siguiente</span></button>
+    <button class="hbtn hbtn-nuevo" onclick="siguienteApartamento()" title="Guarda este informe y prepara el del siguiente apartamento, conservando torre, empresa y personal">➡️ <span id="lbl-siguiente">Guardar y otro apto</span></button>
     <button class="hbtn hbtn-saved-list" onclick="openSavedModal()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 <span>Informes</span><b id="cnt-guardados" style="display:none;margin-left:5px"></b></button>
     <button class="hbtn hbtn-send" onclick="openSend()" title="Manda los informes a Drive. Hasta que se envían, viven solo en este teléfono">📤 <span>Enviar</span><b id="cnt-pendientes" style="display:none;margin-left:5px"></b></button>
     <button class="hbtn hbtn-mas" id="btn-mas" onclick="toggleMasAcciones()" title="Resto de las acciones">⋯ <span>Más</span></button>
@@ -1102,7 +1119,7 @@ tr.heredada td.desc{background:#fff8e1}
     <div class="field">
       <label>N° de Informe <span class="solo-pantalla" style="color:#1b5e20;font-size:9px">● Auto-generado</span></label>
       <div id="nro-display" style="padding:7px 10px;border-radius:7px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:1.5px solid #a5d6a7;font-size:12px;font-weight:800;color:#1b5e20;font-family:monospace;letter-spacing:.4px">XX-T---P--A---------</div>
-      <span class="hint-formato" style="font-size:10px;color:#5f6b7a;margin-top:2px;display:block">Formato: Sector-Torre-Piso/Apto-Fecha-Inspector</span>
+      <div id="nro-hint" style="display:none;font-size:12px;color:#475569;padding:7px 10px;border-radius:7px;background:#f8fafc;border:1.5px dashed #cbd5e1">Se arma solo al completar sector, torre, piso, apartamento e inspector.</div>
     </div>
   </div>
 
@@ -1147,7 +1164,7 @@ tr.heredada td.desc{background:#fff8e1}
       <label>Ingeniero(s) residente(s) *</label>
       <div id="residentes-container"></div>
       <button type="button" class="btn-add-item" onclick="addResidenteField()">＋ Agregar Residente</button>
-      <span class="field-note">Se vincula automáticamente a la empresa o permite ingreso manual persistente</span>
+      <span class="field-note">Se llena solo al elegir la torre. Si no aparece, escríbalo: se recuerda para la próxima.</span>
     </div>
     <div class="field">
       <label>Ingeniero(s) inspector(es) *</label>
@@ -1157,11 +1174,14 @@ tr.heredada td.desc{background:#fff8e1}
   </div>
 
   <div id="escala-brm" style="background:#f5f7ff;border:1px solid #e0e4ff;border-radius:8px;padding:8px 12px;margin:0 0 12px;font-size:11px;color:#444;line-height:1.6">
+    <button type="button" class="escala-tgl" onclick="_plegarEscala()" aria-expanded="true">ⓘ ¿Qué significan B, R, M y N/A? <span class="escala-flecha">▾</span></button>
+    <div class="escala-texto">
     <strong style="color:#1a237e">Escala de evaluación:</strong>
     <b>B</b> = ejecutado conforme, sin observaciones ·
     <b>R</b> = ejecutado con defectos subsanables, requiere corrección ·
     <b>M</b> = mal ejecutado o inservible, requiere rehacer ·
     <b>N/A</b> = no aplica o no se pudo verificar — <em>no cuenta para el promedio</em>
+    </div>
   </div>
   <div class="sec-lbl">Ubicación</div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px">
@@ -1224,6 +1244,9 @@ tr.heredada td.desc{background:#fff8e1}
 <div class="sec-div">EVALUACIÓN DE AVANCE POR HITOS Y SUBPARTIDAS<span id="aviso-ambito" style="display:block;text-transform:none;letter-spacing:0;font-weight:600;font-size:11.5px;color:#1a237e;margin-top:5px"></span></div>
 <div class="content" id="main-content"></div>
 
+<div class="content" id="otros-datos">
+  <button type="button" class="otros-tgl" onclick="_plegarOtros()" aria-expanded="false">▸ Otros datos, si hacen falta: organismos de servicios públicos y consolidado por torre</button>
+  <div id="otros-datos-cuerpo" hidden>
 <!-- SERVICIOS PÚBLICOS -->
 <div class="content">
 <div class="sp-card">
@@ -1265,6 +1288,8 @@ tr.heredada td.desc{background:#fff8e1}
   <button type="button" class="btn-add-item" onclick="agregarApartamentoAMemoria()">＋ Registrar Avance de este Apto a la Torre</button>
   <div style="margin-top:12px;font-weight:800;font-size:13px;color:var(--blue)" id="memoria-global-txt">Avance Global de la Torre: —</div>
 </div>
+</div>
+  </div>
 </div>
 
 <!-- RESUMEN + TOTAL -->
@@ -1310,16 +1335,16 @@ tr.heredada td.desc{background:#fff8e1}
 <!-- MODAL INFORMES GUARDADOS LOCALMENTE -->
 <div class="overlay" id="savedOverlay">
   <div class="modal">
-    <h3>📁 Informes Guardados Localmente</h3>
-    <p>Lista de borradores almacenados en este teléfono. Selecciona uno para cargarlo, modificarlo o enviarlo.</p>
-    <button type="button" class="s-btn s-btn-del" style="width:100%;margin-bottom:10px"
-            onclick="borrarEnviados()">🧹 Borrar los que ya se enviaron</button>
-    
+    <h3>📁 Informes en este teléfono</h3>
+    <p>Toque uno para abrirlo, corregirlo o enviarlo. Hasta que se envían, viven solo en este teléfono.</p>
+
     <div class="saved-list-container" id="savedListContent"></div>
+    <button type="button" class="s-btn s-btn-del" id="btn-borrar-enviados" style="width:100%;margin:10px 0 0;background:#f1f5f9;color:#475569;border-color:#cbd5e1;display:none"
+            onclick="borrarEnviados()">🧹 Borrar de este teléfono los que ya se enviaron</button>
 
     <div class="m-btns">
       <button class="m-btn m-cancel" onclick="closeSavedModal()">Cerrar</button>
-      <button class="m-btn m-confirm" onclick="enviarPendientes()">📤 Enviar todos los pendientes</button>
+      <button class="m-btn m-confirm" id="btn-enviar-todos" onclick="enviarPendientes()">📤 Enviar todos los pendientes</button>
     </div>
   </div>
 </div>
@@ -1489,10 +1514,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v142';
+    el.textContent = '● en línea · v143';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v142 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v143 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2300,8 +2325,12 @@ function updateNroInforme() {
                  [sector, torre, bloque, fecha, inic].filter(Boolean).join('-');
   const el    = document.getElementById('nro-display');
   if (el) el.textContent = nro;
+  // 175d: a medias (sector XX, torre T---, piso/apto --, fecha ------ o inspector ---) se muestra la pista, no el número.
+  const aMedias = /(^|-)XX-|-T---(-|$)|P--|A--|------|---$/.test(nro);
+  if (el) el.style.display = aMedias ? 'none' : '';
+  const hint = document.getElementById('nro-hint'); if (hint) hint.style.display = aMedias ? 'block' : 'none';
   const docNum = document.getElementById('doc-num');
-  if (docNum) docNum.textContent = 'Informe N°: ' + nro;
+  if (docNum) docNum.textContent = 'Informe N°: ' + (aMedias ? '(se arma al completar la cabecera)' : nro);
   const docTorre = document.getElementById('doc-torre');
   if (docTorre) docTorre.textContent = [torre, document.getElementById('piso')?.value, apto].filter(Boolean).join(' · ') || '—';
 }
@@ -2847,9 +2876,9 @@ function initAppContent() {
           <div style="display:flex;align-items:center;gap:9px">
             <span class="no-insp-tgl" id="noinsp_${p.id}"
                   onclick="event.stopPropagation();toggleNoInspeccionado('${p.id}')"
-                  title="Marcar el hito completo como no inspeccionado en esta visita">⊘ No inspeccionado</span>
+                  title="Marcar el hito completo como no inspeccionado en esta visita">⊘ Marcar no inspeccionado</span>
             <div class="pct-bdg" id="badge_${p.id}">—</div>
-            <span class="arrow">▼</span>
+            <span class="abrir-txt"></span><span class="arrow">▼</span>
           </div>
         </div>
         <div class="p-body">
@@ -2917,6 +2946,7 @@ function initAppContent() {
   // En una pantalla estrecha se abre la lista plegada. El encabezado de cada
   // hito ya dice su nombre y su porcentaje, así que sigue informando.
   document.querySelectorAll('.partida').forEach(function(p){ p.classList.add('collapsed'); });
+  setTimeout(_abrirPrimerHito, 0);   // 175b: el primero a la vista queda abierto, para que se vea qué hay dentro
 
   if(document.getElementById('inspectores-container').children.length === 0) addInspectorField();
   if(document.getElementById('residentes-container').children.length === 0) addResidenteField();
@@ -3243,7 +3273,7 @@ function _pintarNoInspeccionado(pid){
   const bloque = document.getElementById('p_' + pid);
   const tgl    = document.getElementById('noinsp_' + pid);
   if(bloque) bloque.classList.toggle('no-inspeccionada', activo);
-  if(tgl)    tgl.classList.toggle('on', activo);
+  if(tgl)  { tgl.classList.toggle('on', activo); tgl.textContent = activo ? '⊘ No inspeccionado · tocar para quitar' : '⊘ Marcar no inspeccionado'; }
   ['badge_','fpct_','rpct_'].forEach(function(pfx){
     const el = document.getElementById(pfx + pid);
     if(el && activo) el.textContent = '—';
@@ -3283,7 +3313,22 @@ function recalcTotal(){
   }
 }
 
+function _plegarEscala(forzar){
+  const c = document.getElementById('escala-brm'); if (!c) return;
+  const cerrada = (forzar === undefined) ? !c.classList.contains('cerrada') : !!forzar;
+  c.classList.toggle('cerrada', cerrada); c.querySelector('.escala-tgl').setAttribute('aria-expanded', String(!cerrada));
+  try { localStorage.setItem('garmel_escala_brm', cerrada ? '1' : ''); } catch (e) {}
+}
+try { if (localStorage.getItem('garmel_escala_brm') === '1') document.addEventListener('DOMContentLoaded', function(){ _plegarEscala(true); }); } catch (e) {}
+function _plegarOtros(){
+  const c = document.getElementById('otros-datos-cuerpo'), b = document.querySelector('#otros-datos .otros-tgl'); if (!c) return;
+  c.hidden = !c.hidden; b.setAttribute('aria-expanded', String(!c.hidden)); b.textContent = (c.hidden ? '▸' : '▾') + b.textContent.slice(1);
+}
 function toggleP(id){document.getElementById('p_'+id).classList.toggle('collapsed');}
+function _abrirPrimerHito(){
+  const v = Array.prototype.slice.call(document.querySelectorAll('.partida')).find(function(p){ return p.offsetParent !== null; });
+  if (v) v.classList.remove('collapsed');
+}
 
 function setEv(btn){
   const rid=btn.dataset.rid;
@@ -3661,6 +3706,9 @@ function actualizarContadores(){
   };
   pintar('cnt-pendientes', pendientes);
   pintar('cnt-guardados', lista.length);
+  // 175c: «Enviar todos» solo cuando hay pendientes; «Borrar los enviados» solo cuando hay enviados.
+  const bt = document.getElementById('btn-enviar-todos'); if (bt) { bt.disabled = !pendientes; bt.textContent = pendientes ? '📤 Enviar todos los pendientes (' + pendientes + ')' : '📤 Nada pendiente de enviar'; }
+  const bb = document.getElementById('btn-borrar-enviados'); if (bb) bb.style.display = lista.some(function(b){ return b && b.enviado; }) ? 'block' : 'none';
 }
 
 function openSavedModal() {
@@ -3704,7 +3752,7 @@ function renderSavedList() {
   const container = document.getElementById('savedListContent');
   const list = getSavedReports();
   if (list.length === 0) {
-    container.innerHTML = '<div style="padding:20px;text-align:center;color:#5a6672;font-size:12px">No hay informes almacenados localmente.</div>';
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:#5a6672;font-size:12px">No hay informes guardados aquí. Los que guarde aparecen en esta lista.</div>';
     return;
   }
 
@@ -4073,9 +4121,9 @@ async function _ofrecerAnterior(){
       'Traer mediciones', function(){ _traerMediciones(mismo.partidas, false); });
   } else if (deLaTorre && ambito !== 'torre') {
     const cual = [deLaTorre.piso, deLaTorre.apto ? 'apto ' + deLaTorre.apto : ''].filter(Boolean).join(' · ');
-    _pintarAvisoAnterior(caja, '¿Usar los totales de otro apartamento de esta torre?',
-      'Del ' + (cual || 'último informe') + ' (' + (deLaTorre.fecha || 'sin fecha') + '). Los apartamentos se repiten: ' +
-      'así solo cuenta las puestas. Revise las que no coincidan.',
+    _pintarAvisoAnterior(caja, '¿Empezar desde otro apartamento de esta torre?',
+      'Del ' + (cual || 'último informe') + ' (' + (deLaTorre.fecha || 'sin fecha') + '). «Usar las cantidades» trae solo los totales ' +
+      '(cuántas hay de cada cosa), para que usted cuente las puestas. Revise las que no coincidan.',
       'Usar las cantidades', function(){ _traerMediciones(deLaTorre.partidas, true); });
   }
 }
@@ -4094,7 +4142,10 @@ function _pintarAvisoAnterior(caja, titulo, texto, boton, alAceptar){
     if (caja.dataset.clave !== _claveAnterior() || _hayMediciones()) { caja.innerHTML = ''; return; }
     caja.innerHTML = ''; alAceptar();
   };
-  caja.querySelector('.no').onclick = function(){ caja.innerHTML = ''; };
+  caja.querySelector('.no').onclick = function(){ caja.innerHTML = ''; if (typeof _copiarProgramar === 'function') _copiarProgramar(); };
+  // QC de UX del 7-oct-2026: una sola tarjeta. Si se puede copiar de otro informe (172), el botón va aquí dentro,
+  // no suelto más abajo como una segunda oferta.
+  if (typeof _copiarProgramar === 'function') _copiarProgramar();
 }
 
 // Vuelca las mediciones de otro informe de la lista v2. soloHay: solo la
@@ -4344,8 +4395,24 @@ window.addEventListener('beforeprint', function(){
 });
 
 function openSend() {
+  const falta = camposFaltantes();
+  if (falta.length) {
+    alert(_avisarFaltantes(falta) + '\n\nEl número del informe se arma con estos datos, así que sin ellos quedaría mal archivado.\n\nLo llevo al primero que falta.');
+    _irAlPrimerFaltante(falta); return;
+  }
   refrescarEstadoClave();
   document.getElementById('overlay').classList.add('open');
+}
+// Dónde vive cada dato obligatorio en la pantalla, para llevar al inspector hasta él y marcarlo unos segundos.
+function _irAlPrimerFaltante(falta){
+  const donde = { 'Sector': '#convenio', 'Torre': '#torre', 'Nombre de la torre': '#torre-manual', 'Fecha de inspección': '#fecha',
+                  'Empresa ejecutora': '#empresa', 'Piso': '#piso', 'N° de apartamento': '#apto', 'Ingeniero residente': '#residentes-container',
+                  'Ingeniero inspector': '#inspectores-container', 'Estatus de la obra': '#estatus' };
+  const sel = donde[falta[0]]; const el = sel && document.querySelector(sel); if (!el) return;
+  const caja = el.closest('.field') || el;
+  caja.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  caja.classList.add('falta-aqui'); setTimeout(function(){ caja.classList.remove('falta-aqui'); }, 4000);
+  const foco = el.matches('input,select') ? el : el.querySelector('input,select'); if (foco) try { foco.focus({ preventScroll: true }); } catch (e) {}
 }
 
 function refrescarEstadoClave(){
@@ -5461,8 +5528,20 @@ function _copiarPintarBoton(){
   if (!caja) return;
   if (!_copiarPuede()) { caja.innerHTML = ''; return; }
   if (caja.querySelector('.copiar-panel')) return;   // ya está abierto el panel
-  caja.innerHTML = '<div class="copiar-boton"><button type="button" id="btn-copiar-de">📋 Copiar de otro ' +
-    (ambito === 'torre' ? 'informe de torre' : 'apartamento') + '…</button></div>';
+  const rotulo = '📋 Copiar de otro ' + (ambito === 'torre' ? 'informe de torre' : 'apartamento') + '…';
+  // QC de UX del 7-oct-2026: si la tarjeta de la visita anterior está a la vista, el botón va dentro de ella (una sola
+  // oferta con sus opciones), y aquí no se pinta nada.
+  const avisoBotones = document.querySelector('#aviso-anterior .aviso-anterior .b');
+  if (avisoBotones) {
+    caja.innerHTML = '';
+    if (!avisoBotones.querySelector('#btn-copiar-de')) {
+      const b = document.createElement('button'); b.type = 'button'; b.id = 'btn-copiar-de'; b.className = 'copiar'; b.textContent = rotulo;
+      b.onclick = function(){ const ant = document.getElementById('aviso-anterior'); if (ant) { ant.innerHTML = ''; ant.dataset.clave = ''; } _copiarAbrirPanel(); };
+      avisoBotones.appendChild(b);
+    }
+    return;
+  }
+  caja.innerHTML = '<div class="copiar-boton"><button type="button" id="btn-copiar-de">' + rotulo + '</button></div>';
   caja.querySelector('button').onclick = _copiarAbrirPanel;
 }
 
@@ -5698,6 +5777,10 @@ enviarAlRelevo = async function(){
 const _nuevoFormularioBase173 = nuevoFormulario;
 nuevoFormulario = function(){ _cerrandoDefinitiva = false; return _nuevoFormularioBase173.apply(this, arguments); };
 
+// 175g · El botón de la izquierda dice a qué pasa: otro apartamento, u otra torre.
+function _rotularSiguiente(){ const l = document.getElementById('lbl-siguiente'); if (l) l.textContent = (typeof ambito !== 'undefined' && ambito === 'torre') ? 'Guardar y otra torre' : 'Guardar y otro apto'; }
+if (typeof setAmbito === 'function') { const _setAmbitoBase175 = setAmbito; setAmbito = function(){ const r = _setAmbitoBase175.apply(this, arguments); _rotularSiguiente(); return r; }; }
+document.addEventListener('DOMContentLoaded', _rotularSiguiente);
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });

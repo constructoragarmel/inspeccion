@@ -16,6 +16,7 @@ const na = rid => setEv(document.querySelector(`.ev-btn.NA[data-rid="${rid}"]`))
 const nota = rid => (document.getElementById('pct_' + rid)?.closest('tr')?.querySelector('.na-nota')?.textContent || '');
 const abrirTodo = () => [...document.querySelectorAll('[id^=badge_]')].forEach(bd => {
   const tr = document.getElementById('pct_' + bd.id.slice(6) + '_0')?.closest('tr'); if (!tr || tr.offsetParent) return;
+  if (!bd.closest('.partida') || !bd.closest('.partida').classList.contains('collapsed')) return;   // ya abierto (desde el QC de UX el primero viene abierto)
   let el = bd; for (let k = 0; k < 5 && el; k++) { if (el.getAttribute && el.getAttribute('onclick')) { el.click(); break; } el = el.parentElement; } });
 const cabecera = () => {
   sel('fecha', '2026-10-01'); sel('convenio', 'Convenio Bielorrusos'); sel('torre', 'T-07');

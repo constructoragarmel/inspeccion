@@ -543,3 +543,12 @@ que abrir uno solo para verlo lo dejaba con «🔁 Reenviar» y fuera de «Borra
 (`_huellaInforme`, claves ordenadas, sin hora de guardado ni marcas de envío) y no toca el informe si es igual (`t73`, 5
 comprobaciones en servicios, SHA y urbanismo). No se replican a los otros tres el modo oficina ni «copiar mediciones»: son
 decisiones de alcance, no detalles.
+
+**v143 (7-oct-2026): las quince mejoras del QC de UX** (`qc/UX-2026-10-07.md`, sección «Hecho en la v143»). Regresión completa:
+sin ventana a 500 px las 26 tandas de inspección más `t72`, 5 de servicios, 5 de SHA y 7 de urbanismo, y a 1280 px `t72`, `t64` y
+`t67`; en navegador a 375 px `t66`, `t69`, `t71`, `t62`, `t24`, `t32`, `t33` (obra), `t12`, `t54`, `t61`, `t38` (SHA), `t11`,
+`t59`, `t61`, `t37` (urbanismo), `t61` y `t36` (servicios). Tandas ajustadas por lo que cambió a propósito: el orden de los
+sectores (`t6`, `t12`, `t17`, `t18`, `t61` eligen el sector por valor), el título de la tarjeta de la visita anterior (`t26`, `t28`,
+`t35`) y el primer hito abierto (`t49`, `t50` solo abren lo que está cerrado; la fila 0 de cerramientos es de torre y en
+apartamento no se ve, por eso antes «abrir» tocaba la cabecera). `t2` de urbanismo y `t6` de SHA son tandas viejas con
+comprobaciones atrasadas y dependientes del estado: contra la v142 original dan 24/36 y 26/30, contra la v143 25/36 y 28/30.

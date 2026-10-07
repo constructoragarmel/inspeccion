@@ -65,10 +65,10 @@ H = sustituir(H, "<h1>INSPECCIÓN DE SERVICIOS PÚBLICOS</h1>",
 # la inspección, y eso va al cierre. El <select id="estatus"> se conserva —el
 # motor y el relevo lo leen— pero vive en la tarjeta de cierre.
 H = sustituir(H, """      <div class="campo">
-        <label for="estatus">Estatus de obra</label>
+        <label for="estatus">Estatus de la obra</label>
         <select id="estatus">
           <option value="">—</option><option>Iniciada</option>
-          <option>En progreso</option><option>Culminada</option><option>Paralizada</option>
+          <option>En progreso</option><option>Finalizada</option><option>Paralizada</option>
         </select>
       </div>
     </div>
@@ -122,8 +122,7 @@ H = sustituir(H, """  <div class="tarjeta">
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún recaudo ni hallazgo..."></textarea>
     <div class="tarjeta" style="margin:8px 0 0"><label style="font-weight:600;font-size:13px;color:#475569">Fotografías generales de la visita (máx. @@MAXFOTOS@@)</label>
       <label class="btn-camara">📷 Tomar foto<input type="file" accept="image/*" capture="environment" onchange="tomarFotos(event,'fotos-general')"></label>
-      <div class="o-galeria">o elija fotos que ya tomó:</div>
-      <input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-general')">
+      <label class="btn-camara btn-galeria">🖼️ Elegir de la galería<input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-general')"></label>
       <div class="fotos" id="fotos-general"></div></div>
   </div>""", "5· cierre")
 

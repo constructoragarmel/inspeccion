@@ -2,7 +2,7 @@
 Object.keys(localStorage).filter(k => /garmel_srv_/.test(k)).forEach(k => localStorage.removeItem(k));
 nuevoInforme(); Q.elegir($('#torre'), 'T-05'); await esperar(150);
 if ($('#aviso-historial .no')) $('#aviso-historial .no').click();
-if ($('#convenio').options.length > 2) Q.elegir($('#convenio'), $('#convenio').options[1].value);
+if ($('#convenio').options.length > 2) Q.elegir($('#convenio'), 'Convenio Bielorrusos')   /* QC de UX 7-oct: el orden de los sectores cambió; se elige por valor */;
 Q.elegir($('#inspectores select'), INSPECTORES_DB[0]);
 const sid = GENERAL[0].id;
 Q.ponerFotos($('#srv-' + sid + ' input[type=file]'), [await Q.foto(800,600,140), await Q.foto(800,600,141)]);

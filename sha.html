@@ -78,6 +78,12 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
   border-radius:22px;background:#fff;color:var(--azul);font-size:14px;font-weight:700;cursor:pointer}
 .btn-camara input{display:none}
 .o-galeria{font-size:12px;color:#64748b;margin:0 0 4px}
+/* QC de UX del 7-oct-2026 */
+.btn-galeria{border-style:dashed;margin-top:0}
+.titulo-srv .abrir-txt{font-size:11px;font-weight:700;opacity:.9;margin-left:6px}
+header .nro-hint{font-size:12px;opacity:.85;margin-top:3px}
+#inspectores .cab:only-child > .quitar{display:none}
+.srv.plegado:not(.no-inspeccionado) .no-insp{display:none}
 .btn-add{min-height:44px;width:100%;border:1px dashed var(--azul);background:var(--azul-cl);
       color:var(--azul);font-weight:700;border-radius:8px;margin-bottom:10px}
 .fila-apto{border:1px solid var(--borde);border-radius:8px;padding:10px;margin-bottom:8px;background:#fff}
@@ -211,6 +217,7 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
 <header>
   <h1>INSPECCIÓN SHA · SEGURIDAD, HIGIENE Y AMBIENTE</h1>
   <div class="nro" id="nro">—</div>
+  <div class="nro-hint" id="nro-hint" hidden>El número del informe se arma solo al elegir sector, torre e inspector.</div>
   <!-- Skarlet (21-sep): un botón para salir del formulario y volver a la página
        principal. Guarda antes de irse: lo escrito en los últimos 2 s no se pierde. -->
   <a class="inicio" href="./index.html" onclick="irAlMenu(event)" title="Guarda el informe y vuelve a la página principal">🏠 Inicio</a>
@@ -267,8 +274,7 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
     <label style="font-weight:600;font-size:13px;color:#475569">Minutas de campo (máx. 6)</label>
     <div class="act-pista">Si en la visita se firmó una minuta, fotografíela aquí, hoja por hoja. Queda archivada con el informe y sale como anexo del PDF.</div>
     <label class="btn-camara">📷 Fotografiar minuta<input type="file" accept="image/*" capture="environment" onchange="tomarFotos(event,'fotos-minutas')"></label>
-    <div class="o-galeria">o elija fotos que ya tomó:</div>
-    <input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-minutas')">
+    <label class="btn-camara btn-galeria">🖼️ Elegir de la galería<input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-minutas')"></label>
     <div class="fotos" id="fotos-minutas"></div>
   </div>
   <div class="tarjeta" id="cierre">
@@ -290,12 +296,11 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún recaudo ni hallazgo..."></textarea>
     <div class="tarjeta" style="margin:8px 0 0"><label style="font-weight:600;font-size:13px;color:#475569">Fotografías generales de la visita (máx. 3)</label>
       <label class="btn-camara">📷 Tomar foto<input type="file" accept="image/*" capture="environment" onchange="tomarFotos(event,'fotos-general')"></label>
-      <div class="o-galeria">o elija fotos que ya tomó:</div>
-      <input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-general')">
+      <label class="btn-camara btn-galeria">🖼️ Elegir de la galería<input type="file" accept="image/*" multiple onchange="tomarFotos(event,'fotos-general')"></label>
       <div class="fotos" id="fotos-general"></div></div>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v142</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v143</div>
 </div>
 
 <div class="acciones">
@@ -531,6 +536,12 @@ function actualizarNro(){
   const fec = f ? f.slice(2).replace(/-/g,'') : '------';
   document.getElementById('nro').textContent =
     (TEST_MODE ? 'PRUEBA-' : '') + 'SHA-' + sec + '-' + (limpiar(t) || '---') + '-' + fec + '-' + iniciales();
+  // QC de UX del 7-oct-2026: a medias se muestra la pista, no un número lleno de guiones. La torre solo cuenta si
+  // su desplegable está a la vista (en «varias torres» y «toda la zona» no hay una).
+  const tEl = document.getElementById('torre');
+  const aMedias = sec === 'XX' || !f || iniciales() === '--' || (tEl && tEl.offsetParent !== null && !limpiar(t));
+  document.getElementById('nro').hidden = aMedias;
+  const hint = document.getElementById('nro-hint'); if (hint) hint.hidden = !aMedias;
 }
 function numeroInforme(){ return document.getElementById('nro').textContent; }
 
@@ -598,15 +609,15 @@ function pintarGeneral(){
   cont.innerHTML = '';
   GENERAL.forEach(srv => {
     const bloque = document.createElement('div');
-    bloque.className = 'srv'; bloque.id = 'srv-' + srv.id;
+    bloque.className = 'srv plegado'; bloque.id = 'srv-' + srv.id;   // «plegado»: con la sección cerrada no se ofrece «marcar no inspeccionado» (QC de UX 7-oct)
     // Plegado de entrada, como los hitos en el teléfono: siete servicios con
     // 26 ítems no caben en una pantalla, y plegados se ve de un vistazo qué
     // falta. Se abre tocando el TÍTULO —no la cabecera entera— para que la
     // pastilla de no inspeccionado no quede en el camino del dedo.
     let html = '<div class="titulo-srv"><button type="button" class="abrir" onclick="plegar(\'' + srv.id + '\')">' +
-      '<span class="flecha">▸</span> ' + srv.nombre + ' <span class="cuenta" id="cuenta-' + srv.id + '"></span></button>' +
-      '<button type="button" class="no-insp" onclick="toggleNoInsp(\'' + srv.id + '\')">NO INSPECCIONADO</button></div>' +
-      '<div class="nota-ni">Este servicio está marcado como NO INSPECCIONADO. Para llenarlo, toque otra vez el botón de la cabecera.</div>' +
+      '<span class="flecha">▸</span> ' + srv.nombre + ' <span class="cuenta" id="cuenta-' + srv.id + '"></span><span class="abrir-txt">· Abrir</span></button>' +
+      '<button type="button" class="no-insp" onclick="toggleNoInsp(\'' + srv.id + '\')">MARCAR NO INSPECCIONADO</button></div>' +
+      '<div class="nota-ni">Este servicio está marcado como NO INSPECCIONADO: no cuenta y no se llena. Para llenarlo, toque «No inspeccionado · quitar».</div>' +
       '<div class="cuerpo" hidden>';
     if (!srv.items.length){
       html += '<div class="vacio">Este bloque todavía no tiene lista de recaudos.<br>' +
@@ -633,6 +644,9 @@ function pintarGeneral(){
     const nota = bloque.querySelector('.vacio');
     if (nota && rec.length) nota.hidden = true;
   });
+  // QC de UX del 7-oct-2026: el primero abierto de entrada, para que se vea qué hay dentro (como en obra).
+  const primero = GENERAL.find(srv => { const el = document.getElementById('srv-' + srv.id); return el && !el.classList.contains('no-inspeccionado'); });
+  if (primero) plegar(primero.id, true);
 }
 
 // «Agregar ítem» desde el botón: el nombre se escribe en el acto. El teclado
@@ -741,8 +755,7 @@ function bloqueFotos(gridId, titulo){
   return '<div class="tarjeta" style="margin:8px 0 0"><label style="font-weight:600;font-size:13px;color:#475569">' +
     titulo + ' (máx. ' + MAX_FOTOS_SECCION + ')</label>' +
     '<label class="btn-camara">📷 Tomar foto<input type="file" accept="image/*" capture="environment" onchange="tomarFotos(event,\'' + gridId + '\')"></label>' +
-    '<div class="o-galeria">o elija fotos que ya tomó:</div>' +
-    '<input type="file" accept="image/*" multiple onchange="tomarFotos(event,\'' + gridId + '\')">' +
+    '<label class="btn-camara btn-galeria">🖼️ Elegir de la galería<input type="file" accept="image/*" multiple onchange="tomarFotos(event,\'' + gridId + '\')"></label>' +
     '<div class="fotos" id="' + gridId + '"></div></div>';
 }
 
@@ -751,6 +764,8 @@ function plegar(sid, abrir){
   const c = b.querySelector('.cuerpo');
   c.hidden = (abrir === undefined) ? !c.hidden : !abrir;
   b.querySelector('.flecha').textContent = c.hidden ? '▸' : '▾';
+  const at = b.querySelector('.abrir-txt'); if (at) at.textContent = c.hidden ? '· Abrir' : '· Cerrar';
+  b.classList.toggle('plegado', c.hidden);
 }
 
 // «4/6»: cuántos ítems tienen respuesta —sí, no o no aplica— de los que hay.
@@ -773,8 +788,10 @@ function actualizarCuentas(){
 function toggleNoInsp(sid){
   const b = document.getElementById('srv-' + sid);
   b.classList.toggle('no-inspeccionado');
-  b.querySelector('.no-insp').classList.toggle('on', b.classList.contains('no-inspeccionado'));
-  if (b.classList.contains('no-inspeccionado')) plegar(sid, false);
+  const on = b.classList.contains('no-inspeccionado');
+  b.querySelector('.no-insp').classList.toggle('on', on);
+  b.querySelector('.no-insp').textContent = on ? 'NO INSPECCIONADO · QUITAR' : 'MARCAR NO INSPECCIONADO';
+  if (on) plegar(sid, false);
   marcar();
 }
 
@@ -2223,7 +2240,10 @@ function _opcionesSector(){
   if (!_SECTOR_PRIMERO) return;
   const conv = document.getElementById('convenio');
   const v = _sectorElegido || conv.value;
-  conv.innerHTML = '<option value="">— Seleccione sector —</option>' + Object.keys(SECTOR_POR_CONVENIO).map(function(c){
+  // QC de UX del 7-oct-2026: el mismo orden que en el formulario de obra (Simón Bolívar, Simón Rodríguez, Ezequiel Zamora).
+  const ordenSectores = ['Convenio Chinos', 'Convenio Rusos', 'Convenio Bielorrusos'];
+  const claves = Object.keys(SECTOR_POR_CONVENIO).sort(function(a, b){ const i = ordenSectores.indexOf(a), j = ordenSectores.indexOf(b); return (i < 0 ? 99 : i) - (j < 0 ? 99 : j); });
+  conv.innerHTML = '<option value="">— Seleccione sector —</option>' + claves.map(function(c){
     return '<option value="' + escapar(c) + '">' + escapar(_nombreZona(c)) + '</option>'; }).join('');
   if (v && SECTOR_POR_CONVENIO[v]) conv.value = v;
 }
@@ -2507,11 +2527,20 @@ if ('serviceWorker' in navigator) {
 // ── Arranque ──────────────────────────────────────────────────────────────
 (function(){
   const sel = document.getElementById('torre');
-  torresUnicas().forEach(t => {
+  // QC de UX del 7-oct-2026: el mismo orden que en obra (por letra y número: D-08, J-07…, T-01…T-58).
+  const natural = t => [t.replace(/-.*/, ''), parseInt(t.replace(/^[^0-9]*/, ''), 10) || 0];
+  torresUnicas().sort((a, b) => { const x = natural(a), y = natural(b); return x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : x[1] - y[1]; }).forEach(t => {
     const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
   });
   sel.onchange = alElegirTorre;
   document.getElementById('convenio').onchange = alElegirConvenio;
+  // Y los sectores en el orden del formulario de obra: Simón Bolívar, Simón Rodríguez, Ezequiel Zamora.
+  (function(){
+    const c = document.getElementById('convenio'), orden = ['Simón Bolívar', 'Simón Rodríguez', 'Ezequiel Zamora'];
+    const ops = Array.from(c.options).filter(o => o.value);
+    ops.sort((a, b) => { const i = orden.indexOf(a.textContent.trim()), j = orden.indexOf(b.textContent.trim()); return (i < 0 ? 99 : i) - (j < 0 ? 99 : j); });
+    ops.forEach(o => c.appendChild(o));
+  })();
   // `valueAsDate` y `toISOString()` dan la fecha UTC. Venezuela es UTC−4, así
   // que a partir de las 8 de la noche el formulario abriría con el día
   // siguiente — y esa fecha entra en el número del informe y en el nombre del

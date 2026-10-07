@@ -3,7 +3,7 @@ const REC = '#items-sha_recaudos .item';
 const incs = () => $$('#filas-inc .fila-inc');
 const esperarEnvio = async () => { await esperar(300); return hasta(() => !_tandaEnCurso && !$('#cartel-envio'), 60000); };
 await Q.relevo({ borrar: true, tipos: ['inspeccion', 'servicios', 'sha', 'urbanismo'], caido: false, fallar: [] });
-const cabecera = async (t) => { Q.elegir($('#torre'), t); await esperar(100); if ($('#aviso-historial .no')) $('#aviso-historial .no').click(); if ($('#convenio').options.length > 2) Q.elegir($('#convenio'), $('#convenio').options[1].value); if (!inspectoresElegidos().length) Q.elegir($('#inspectores select'), INSPECTORES_DB[0]); };
+const cabecera = async (t) => { Q.elegir($('#torre'), t); await esperar(100); if ($('#aviso-historial .no')) $('#aviso-historial .no').click(); if ($('#convenio').options.length > 2) Q.elegir($('#convenio'), 'Convenio Bielorrusos')   /* QC de UX 7-oct: el orden de los sectores cambió; se elige por valor */; if (!inspectoresElegidos().length) Q.elegir($('#inspectores select'), INSPECTORES_DB[0]); };
 const inc = (fecha, tipo, notas, acc, estado) => { addIncidencia(); const f = incs().pop(); if (fecha) Q.escribir(f.querySelector('.inc-fecha'), fecha); if (tipo !== undefined){ const sel = f.querySelector('.inc-tipo-sel'); if ([...sel.options].some(o => o.value === tipo)) Q.elegir(sel, tipo); else { Q.elegir(sel, '__otro'); Q.escribir(f.querySelector('.inc-tipo'), tipo); } } if (notas) Q.escribir(f.querySelector('.inc-notas'), notas); if (acc) Q.escribir(f.querySelector('.inc-acciones'), acc); if (estado) [...f.querySelectorAll('.sem button')].find(b => b.dataset.estado === estado).click(); return f; };
 
 // 1. pestaña y fila nueva

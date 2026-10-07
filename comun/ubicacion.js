@@ -93,7 +93,10 @@ function _opcionesSector(){
   if (!_SECTOR_PRIMERO) return;
   const conv = document.getElementById('convenio');
   const v = _sectorElegido || conv.value;
-  conv.innerHTML = '<option value="">— Seleccione sector —</option>' + Object.keys(SECTOR_POR_CONVENIO).map(function(c){
+  // QC de UX del 7-oct-2026: el mismo orden que en el formulario de obra (Simón Bolívar, Simón Rodríguez, Ezequiel Zamora).
+  const ordenSectores = ['Convenio Chinos', 'Convenio Rusos', 'Convenio Bielorrusos'];
+  const claves = Object.keys(SECTOR_POR_CONVENIO).sort(function(a, b){ const i = ordenSectores.indexOf(a), j = ordenSectores.indexOf(b); return (i < 0 ? 99 : i) - (j < 0 ? 99 : j); });
+  conv.innerHTML = '<option value="">— Seleccione sector —</option>' + claves.map(function(c){
     return '<option value="' + escapar(c) + '">' + escapar(_nombreZona(c)) + '</option>'; }).join('');
   if (v && SECTOR_POR_CONVENIO[v]) conv.value = v;
 }
