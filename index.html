@@ -40,6 +40,15 @@ a.tarjeta:active{background:#eef2ff}
 .prueba{background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px;
      font-size:13px;font-weight:700;margin-bottom:12px}
 .pie{text-align:center;font-size:12px;color:#64748b;padding:10px 16px 24px}
+.instalar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#eef2ff;border:1px solid #9fa8da;
+     border-radius:12px;padding:14px 16px;margin-top:16px}
+.instalar .txt{flex:1 1 200px;font-size:14px;color:#1e293b}
+.instalar .txt b{color:var(--azul)}
+.instalar button{min-height:44px;padding:0 18px;font-size:15px;font-weight:700;border:none;border-radius:8px;
+     background:var(--azul);color:#fff;flex:0 0 auto}
+.instalar button:disabled{opacity:.6}
+.instalar.ios{display:block}
+.instalar[hidden]{display:none}
 a.tarjeta:focus-visible,div.tarjeta:focus-visible{outline:3px solid #1565c0;outline-offset:2px}
 @media (max-width:700px),(max-height:520px),(pointer:coarse){
   body{font-size:16px}
@@ -59,7 +68,11 @@ a.tarjeta:focus-visible,div.tarjeta:focus-visible{outline:3px solid #1565c0;outl
     <h2>Mapa de la obra</h2>
     <div class="sub">Para consultar: sectores, torres y contratistas · quién hace qué · cómo viaja un informe</div>
   </a>
-  <div class="pie">● <span id="conexion">en línea</span> · v137</div>
+  <div class="instalar" id="instalar" hidden>
+    <div class="txt"><b>Tener la app en el teléfono</b><br>Queda con su ícono en la pantalla de inicio y abre sin señal. Es lo mismo que buscar «Instalar aplicación» en el menú de Chrome.</div>
+    <button type="button" id="btn-instalar" onclick="instalarApp()">Instalar en el teléfono</button>
+  </div>
+  <div class="pie">● <span id="conexion">en línea</span> · v138</div>
 </main>
 
 <script>
@@ -244,6 +257,46 @@ pintar(); con();
 comprobarClaveDelEnlace();
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+
+// ── Instalar desde la propia página (7-oct-2026) ──────────────────────────
+// A una inspectora no le salía «Instalar aplicación» en el menú de Chrome y
+// nadie supo decir por qué. Chrome deja que la página ofrezca la instalación
+// ella misma: avisa con `beforeinstallprompt` cuando puede instalar en ESTE
+// teléfono, y entonces se muestra el botón. Si no avisa, el botón no aparece:
+// eso ya dice que es Chrome o el teléfono quien no deja, no una opción
+// escondida. Si la app ya está instalada (abre a pantalla completa) tampoco
+// se ofrece. En iPhone no existe el aviso: se explica el camino de Safari.
+let _instalarEvt = null;
+const _enApp = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _instalarEvt = e;
+  if (!_enApp()) document.getElementById('instalar').hidden = false;
+});
+addEventListener('appinstalled', function(){
+  _instalarEvt = null;
+  const c = document.getElementById('instalar');
+  c.innerHTML = '<div class="txt"><b>Lista.</b> La app ya está en la pantalla de inicio de este teléfono: búsquela como «Campo GARMEL».</div>';
+});
+async function instalarApp(){
+  if (!_instalarEvt) return;
+  const b = document.getElementById('btn-instalar'); b.disabled = true;
+  try {
+    _instalarEvt.prompt();
+    const r = await _instalarEvt.userChoice;
+    if (r && r.outcome === 'accepted') { _instalarEvt = null; return; }
+  } catch(e) {}
+  b.disabled = false;
+}
+(function(){
+  const esIphone = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (esIphone && !_enApp()) {
+    const c = document.getElementById('instalar');
+    c.className = 'instalar ios';
+    c.innerHTML = '<div class="txt"><b>Tener la app en el teléfono</b><br>En iPhone: abra esta página en Safari, toque el botón de compartir (el cuadrado con la flecha hacia arriba) y luego «Agregar a pantalla de inicio».</div>';
+    c.hidden = false;
+  }
+})();
 </script>
 </body>
 </html>
