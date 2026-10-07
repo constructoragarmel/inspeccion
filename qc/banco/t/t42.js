@@ -59,6 +59,7 @@ ok('3 · Ascensor: «compra del equipo» y «equipo en obra» son Sí / No (Sí 
 // ── 4. Un borrador de antes ──
 await limpiar(); setAmbito('torre'); await esperar(200); cabecera();
 currentEditingIndex = null; _idEnEdicion = null; saveDraft(true); await esperar(300);
+{ const _l = JSON.parse(localStorage.getItem('garmel_reports_list') || '[]'); if (!_l.length) { _l.unshift(getFormData()); localStorage.setItem('garmel_reports_list', JSON.stringify(_l)); } }   /* 176: un informe en blanco ya no se guarda solo; la tanda siembra el borrador viejo a mano */
 const lst = JSON.parse(localStorage.getItem('garmel_reports_list') || '[]');
 lst[0].partidas = lst[0].partidas || {};
 lst[0].partidas.hito_contra_incendio = viejo12();

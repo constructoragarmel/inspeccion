@@ -1341,6 +1341,8 @@ textarea{font-family:inherit}
     <div class="saved-list-container" id="savedListContent"></div>
     <button type="button" class="s-btn s-btn-del" id="btn-borrar-enviados" style="width:100%;margin:10px 0 0;background:#f1f5f9;color:#475569;border-color:#cbd5e1;display:none"
             onclick="borrarEnviados()">🧹 Borrar de este teléfono los que ya se enviaron</button>
+    <button type="button" class="s-btn s-btn-del" id="btn-quitar-blancos" style="width:100%;margin:10px 0 0;background:#f1f5f9;color:#475569;border-color:#cbd5e1;display:none"
+            onclick="quitarBorradoresEnBlanco()">🧹 Quitar los borradores en blanco</button>
 
     <div class="m-btns">
       <button class="m-btn m-cancel" onclick="closeSavedModal()">Cerrar</button>
@@ -1446,6 +1448,7 @@ function autoguardar(){
     if(typeof getTorreActual !== 'function') return;
     const t = getTorreActual();
     if(!t || t === '—') return;            // todavía no hay nada que valga la pena
+    if(currentEditingIndex === null && !_tieneContenido(getFormData())) return;   // 176: la cabecera sola no es un informe
     _separarSiCambioElInforme();
     saveDraft(true);
     // El autoguardado también avisa. En obra no se pulsa «Guardar»: se llena y
@@ -1514,10 +1517,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v143';
+    el.textContent = '● en línea · v144';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v143 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v144 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -3324,6 +3327,19 @@ function _plegarOtros(){
   const c = document.getElementById('otros-datos-cuerpo'), b = document.querySelector('#otros-datos .otros-tgl'); if (!c) return;
   c.hidden = !c.hidden; b.setAttribute('aria-expanded', String(!c.hidden)); b.textContent = (c.hidden ? '▸' : '▾') + b.textContent.slice(1);
 }
+// 176: los borradores sin nada medido ni escrito, sin enviar, se quitan de una vez. Lo que tiene contenido no se toca.
+function quitarBorradoresEnBlanco(){
+  const lista = getSavedReports();
+  const blancos = lista.filter(function(b){ return b && !b.enviado && !_tieneContenido(b); });
+  if (!blancos.length) { showToast('No hay borradores en blanco', 'ok'); return; }
+  if (!confirm('Se van a quitar ' + blancos.length + ' borrador(es) en blanco: solo tienen la cabecera, nada medido ni escrito.\n\nLos informes con contenido y los enviados no se tocan.')) return;
+  const quedan = lista.filter(function(b){ return !(b && !b.enviado && !_tieneContenido(b)); });
+  localStorage.setItem('garmel_reports_list', JSON.stringify(quedan));
+  if (_idEnEdicion && blancos.some(function(b){ return b.id === _idEnEdicion; })) { currentEditingIndex = null; _idEnEdicion = null; }
+  else if (_idEnEdicion) { currentEditingIndex = quedan.findIndex(function(b){ return b && b.id === _idEnEdicion; }); if (currentEditingIndex < 0) currentEditingIndex = null; }
+  renderSavedList(); actualizarContadores();
+  showToast('🧹 ' + blancos.length + ' borrador(es) en blanco quitados', 'ok');
+}
 function toggleP(id){document.getElementById('p_'+id).classList.toggle('collapsed');}
 function _abrirPrimerHito(){
   const v = Array.prototype.slice.call(document.querySelectorAll('.partida')).find(function(p){ return p.offsetParent !== null; });
@@ -3620,6 +3636,10 @@ function getSavedReports() {
 function saveDraft(silencioso){
   try{
     if(!silencioso) _separarSiCambioElInforme();
+    if(currentEditingIndex === null && !_tieneContenido(getFormData())) {   // 176: tampoco a mano
+      if(!silencioso) showToast('Todavía no hay nada que guardar: el informe está en blanco. La cabecera se guarda junto con lo que mida.', 'err');
+      return false;
+    }
     const data = getFormData();
     const list = getSavedReports();
     // Se busca por id porque la lista pudo moverse desde otra pestaña.
@@ -3709,6 +3729,8 @@ function actualizarContadores(){
   // 175c: «Enviar todos» solo cuando hay pendientes; «Borrar los enviados» solo cuando hay enviados.
   const bt = document.getElementById('btn-enviar-todos'); if (bt) { bt.disabled = !pendientes; bt.textContent = pendientes ? '📤 Enviar todos los pendientes (' + pendientes + ')' : '📤 Nada pendiente de enviar'; }
   const bb = document.getElementById('btn-borrar-enviados'); if (bb) bb.style.display = lista.some(function(b){ return b && b.enviado; }) ? 'block' : 'none';
+  const blancos = lista.filter(function(b){ return b && !b.enviado && !_tieneContenido(b); }).length;
+  const bq = document.getElementById('btn-quitar-blancos'); if (bq) { bq.style.display = blancos ? 'block' : 'none'; bq.textContent = '🧹 Quitar los ' + blancos + ' borrador(es) en blanco'; }
 }
 
 function openSavedModal() {
@@ -5781,6 +5803,8 @@ nuevoFormulario = function(){ _cerrandoDefinitiva = false; return _nuevoFormular
 function _rotularSiguiente(){ const l = document.getElementById('lbl-siguiente'); if (l) l.textContent = (typeof ambito !== 'undefined' && ambito === 'torre') ? 'Guardar y otra torre' : 'Guardar y otro apto'; }
 if (typeof setAmbito === 'function') { const _setAmbitoBase175 = setAmbito; setAmbito = function(){ const r = _setAmbitoBase175.apply(this, arguments); _rotularSiguiente(); return r; }; }
 document.addEventListener('DOMContentLoaded', _rotularSiguiente);
+// 176f · Al pintar la lista de «Informes» se recalculan los botones de abajo (Enviar todos, Borrar enviados, Quitar en blanco).
+{ const _renderSavedListBase176 = renderSavedList; renderSavedList = function(){ const r = _renderSavedListBase176.apply(this, arguments); try { actualizarContadores(); } catch (e) {} return r; }; }
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){
     navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });

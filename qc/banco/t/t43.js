@@ -77,6 +77,7 @@ ok('5 · De apartamento a torre: el piso de cemento sigue en 75 %; la carpinter�
 // ── 6. Un borrador de antes de la v100 ──
 await limpiar(); setAmbito('torre'); await esperar(200); cabecera();
 currentEditingIndex = null; _idEnEdicion = null; saveDraft(true); await esperar(300);
+{ const _l = JSON.parse(localStorage.getItem('garmel_reports_list') || '[]'); if (!_l.length) { _l.unshift(getFormData()); localStorage.setItem('garmel_reports_list', JSON.stringify(_l)); } }   /* 176: un informe en blanco ya no se guarda solo; la tanda siembra el borrador viejo a mano */
 const lst = JSON.parse(localStorage.getItem('garmel_reports_list') || '[]');
 const E = v => ({ pr: '100', ej: String(v), ev: '', ud: 'estado', sn: '', pct: '' });
 lst[0].partidas.hito_ascensor = [E(25), E(50), E(75), E(100)];      // la v99 tenía 4 filas

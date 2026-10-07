@@ -139,6 +139,39 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
 header .nro-hint{font-size:12px;opacity:.85;margin-top:3px}
 #inspectores .cab:only-child > .quitar{display:none}
 .srv.plegado:not(.no-inspeccionado) .no-insp{display:none}
+/* Modo oficina y copiar de otra torre (v144): los mismos estilos que en obra (169b y 172c). */
+.oficina{margin:0 0 14px;border:2px solid #c5cae9;border-radius:12px;background:#f5f6fc;padding:12px 14px}
+.ofi-cab{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:13px;color:#1b2235;line-height:1.35}
+.ofi-btn{min-height:40px;padding:8px 14px;border-radius:10px;border:2px solid var(--azul);background:var(--azul);color:#fff;font-weight:700;cursor:pointer;font-size:13px}
+.ofi-btn.sec{background:#fff;color:var(--azul)}
+.ofi-btn.ok{background:#2e7d32;border-color:#2e7d32}
+.ofi-btn:disabled{opacity:.5;cursor:default}
+.ofi-lista table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px;background:#fff}
+.ofi-lista th,.ofi-lista td{padding:6px 8px;border-bottom:1px solid #e0e3f0;text-align:left;vertical-align:middle}
+.ofi-lista th{background:#e8eaf6;color:var(--azul);font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+.ofi-aviso{margin:10px 0 0;font-size:13px;color:#444}
+.ofi-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap}
+.ofi-tag.pre{background:#fff3e0;color:#8f4b00}
+.ofi-tag.def{background:#e8f5e9;color:#1b5e20}
+.ofi-estado{margin-top:10px;padding:10px 12px;border-radius:10px;background:#e8f5e9;border:1.5px solid #a5d6a7;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:13px;line-height:1.35}
+@media print{.oficina{display:none!important}}
+.copiar-boton{margin:8px 0 12px}
+.copiar-boton button{width:100%;min-height:44px;border:1.5px dashed #8f4b00;border-radius:10px;background:#fff8e1;color:#8f4b00;font-weight:700;font-size:14px;cursor:pointer}
+.historial .b .copiar{flex:1 1 100%;background:#fff8e1;color:#8f4b00;border:1.5px dashed #8f4b00!important}
+.copiar-panel{margin:8px 0 12px;padding:12px;border:1.5px solid #8f4b00;border-radius:10px;background:#fff8e1}
+.copiar-panel .t{font-weight:800;font-size:14px;color:#8f4b00;margin-bottom:4px}
+.copiar-panel .s{font-size:13px;color:#475569;margin-bottom:8px;line-height:1.4}
+.copiar-panel .g{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#8f4b00;margin:8px 0 4px}
+.copiar-panel .f{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #f0d58a;flex-wrap:wrap}
+.copiar-panel .f .d{flex:1 1 180px;font-size:13px;color:#1e293b;font-weight:700}
+.copiar-panel .f .d small{display:block;color:#64748b;font-weight:400}
+.copiar-panel .f button{min-height:44px;border:none;border-radius:8px;background:#8f4b00;color:#fff;font-weight:700;padding:0 16px;font-size:14px;cursor:pointer}
+.copiar-panel .sector{display:block;width:100%;margin-top:8px;min-height:44px;border:1.5px solid #8f4b00;border-radius:8px;background:#fff;color:#8f4b00;font-weight:700;padding:0 12px;font-size:13px;cursor:pointer}
+.copiar-panel .sector:disabled{opacity:.6}
+.copiar-panel .cerrar{margin-top:8px;min-height:44px;border:none;border-radius:8px;background:#e2e8f0;color:#334155;font-weight:700;padding:0 16px;font-size:14px;cursor:pointer}
+.item.copiada,.fila-apto.copiada{border-left-color:#8f4b00}
+.item.copiada .etq-her,.fila-apto.copiada .etq-her{background:#fff3e0;color:#8f4b00;cursor:pointer;min-height:28px;display:inline-flex;align-items:center}
+@media print{#copiar-de{display:none!important}}
 .btn-add{min-height:44px;width:100%;border:1px dashed var(--azul);background:var(--azul-cl);
       color:var(--azul);font-weight:700;border-radius:8px;margin-bottom:10px}
 .fila-apto{border:1px solid var(--borde);border-radius:8px;padding:10px;margin-bottom:8px;background:#fff}
@@ -2039,6 +2072,13 @@ _ANCLA_SW = "if ('serviceWorker' in navigator) {"
 if JS.count(_ANCLA_SW) != 1:
     sys.exit("✗ No encontré (una vez) el ancla del service worker para ubicacion.js")
 JS = JS.replace(_ANCLA_SW, UBICACION_JS + "\n" + _ANCLA_SW)
+
+# ── Modo oficina y copiar de otra torre (v144, 7-oct-2026) ───────────────────
+# Lo que obra tiene desde la v133 y la v139, para los tres formularios del motor. El código vive en
+# comun/oficina_copiar_motor.js; entra después de ubicacion.js y antes del service worker, y envuelve
+# funciones del motor, así SHA y urbanismo lo heredan con sus propias reglas de «traer lo anterior».
+OFICINA_COPIAR_JS = open(os.path.join(RAIZ, "comun", "oficina_copiar_motor.js"), encoding="utf-8").read()
+JS = JS.replace(_ANCLA_SW, OFICINA_COPIAR_JS + "\n" + _ANCLA_SW)
 
 
 # ══════════════════════════════════════════════════════════════════════════

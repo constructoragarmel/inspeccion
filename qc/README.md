@@ -552,3 +552,29 @@ sectores (`t6`, `t12`, `t17`, `t18`, `t61` eligen el sector por valor), el títu
 `t35`) y el primer hito abierto (`t49`, `t50` solo abren lo que está cerrado; la fila 0 de cerramientos es de torre y en
 apartamento no se ve, por eso antes «abrir» tocaba la cabecera). `t2` de urbanismo y `t6` de SHA son tandas viejas con
 comprobaciones atrasadas y dependientes del estado: contra la v142 original dan 24/36 y 26/30, contra la v143 25/36 y 28/30.
+
+**`t74`, `t75` y `t76` (7-oct-2026, v144 y relevo r50): el modo oficina y «copiar de otra torre» en servicios, SHA y
+urbanismo; y un informe en blanco ya no se guarda en obra.** Pedido de Francisco: lo que obra tiene desde la v133 y la
+v139, en los otros tres. El código vive en `comun/oficina_copiar_motor.js` y entra al final del motor de servicios: envuelve
+funciones del motor (datosDelFormulario, guardar, cargarInforme, vaciarFormulario, enviar, enviarSolo, tocado, marcar,
+ofrecerHistorial) y reutiliza `traerHistorial` para volcar la fuente —se inyecta como estado de esta torre, se trae y se
+restaura—, así SHA y urbanismo lo heredan con sus propios campos. El relevo r50 atiende `oficina-lista`, `oficina-abrir`,
+`copiar-fuentes` y `copiar-abrir` por `tipo` y echa el tipo de vuelta; el formulario lo comprueba y, contra un relevo viejo,
+dice que hace falta el r50 en vez de mezclar informes de obra. Los tres PDF dicen «Versión».
+
+- `t74` (10, en los tres, con `?oficina=1` o a 1280 px): el panel; un informe de campo con foto enviado al relevo falso;
+  la lista lo trae como Preliminar; abrirlo carga número, respuesta, observación y foto, marcado como abierto desde el
+  archivo; en la lista local queda enviado, con la marca de oficina y sin «editado después»; cerrar la definitiva deja
+  {por, fecha, desde}, reenvía la revisión 2 con la observación limpia y la lista lo muestra como Definitiva; un informe
+  nuevo no es definitivo. El relevo falso contesta por tipo.
+- `t75` (10, en los tres, a 375 px): el botón con la torre elegida y nada contestado; el panel lista la fuente de este
+  teléfono; copiar marca «≈ copiado de T-01 · tocar para confirmar»; el dato lleva copiadoDe y cada respuesta el número de
+  origen; no se envía con copiadas sin confirmar; guardar y reabrir conserva las marcas; tocar la etiqueta confirma; con
+  todas confirmadas envía; la otra contratista solo al pedir «las demás torres del sector» (en urbanismo, las manzanas del
+  sector); con algo contestado no se ofrece.
+- `t76` (6, en `inspeccion.html`, sin ventana): cambiar de torre cuatro veces con el autoguardado no deja ningún borrador
+  (lo vio la coordinación desde la laptop: un borrador en blanco por torre, uno cada 2-3 s); «Guardar» a mano avisa; con
+  algo medido sí guarda; un borrador que ya existía y se vació se conserva; «Informes» ofrece «Quitar los N borradores en
+  blanco». `t42` y `t43` siembran a mano el borrador viejo que antes creaban guardando en blanco.
+- Lado del relevo: `t70relevo` acepta r50; `t54relevo`, `t57relevo` y `t65relevo` se corren con `Oficina.gs` cargado
+  (desde el r47 `_versionDelInforme` vive ahí). Los cuatro en verde contra el r50.

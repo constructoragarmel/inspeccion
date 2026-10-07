@@ -39,6 +39,27 @@ class H(http.server.BaseHTTPRequestHandler):
             todos=[c for c in ['%d.%02d'%(h,i) for h,n in enumerate([6,3,21,13,9,2,9,9,6,9,4],1) for i in range(1,n+1)] if c not in ('7.06','7.07')]+['12.02','12.03']   # v134: 7.06 y 7.07 retiradas (CP y TR pasaron a 3.20 y 3.21)
             fuera={'8.03','8.04','4.10','4.11','5.04','5.05'}
             return self._ok({"ok":True,"contratista":"Alnavic (falso)","codigos":[c for c in todos if c not in fuera]})
+        if p.get('accion')=='copiar-fuentes' and p.get('tipo') in ('servicios','sha','urbanismo'):
+            # Como el relevo r50: para los otros tres tipos, los informes de esas torres con respuestas, y el tipo de vuelta.
+            torres=p.get('torres') or [p.get('torre')]
+            def resp(d): return sum(1 for g in (d.get('general') or []) for it in (g.get('items') or []) if it and any(str(it.get(k) or '').strip() for k in ('sn','obs','cant','cantidad','calidad','cal')))+len(d.get('apartamentos') or [])
+            l=[{"nro":k,"torre":v['datos'].get('torre'),"fecha":v['datos'].get('fecha',''),"filas":resp(v['datos']),"revision":v['rev']}
+               for k,v in H.oficina.items() if v.get('tipo')==p.get('tipo') and v['datos'].get('torre') in torres and (k.startswith('PRUEBA-')==bool(p.get('prueba')))]
+            l=[x for x in l if x['filas']>0]; l.sort(key=lambda x:(x['fecha'],x['nro']),reverse=True)
+            return self._ok({"ok":True,"tipo":p.get('tipo'),"fuentes":l})
+        if p.get('accion')=='copiar-abrir' and p.get('tipo') in ('servicios','sha','urbanismo'):
+            v=H.oficina.get(p.get('numero'))
+            if not v or v.get('tipo')!=p.get('tipo'): return self._ok({"ok":False,"error":"No hay un informe archivado con el número "+str(p.get('numero'))})
+            return self._ok({"ok":True,"tipo":p.get('tipo'),"nro":p.get('numero'),"torre":v['datos'].get('torre'),"fecha":v['datos'].get('fecha',''),"revision":v['rev'],"datos":v['datos']})
+        if p.get('accion')=='oficina-lista' and p.get('tipo') in ('servicios','sha','urbanismo'):
+            l=[{"numero":k,"revision":v['rev'],"fecha":v['datos'].get('fecha',''),"lugar":v['datos'].get('torre',''),"inspectores":v['datos'].get('inspectores',[]),"definitiva":v['datos'].get('definitiva')}
+               for k,v in H.oficina.items() if v.get('tipo')==p.get('tipo') and v['datos'].get('torre')==p.get('torre')]
+            l.sort(key=lambda x:(x['fecha'],x['numero']),reverse=True)
+            return self._ok({"ok":True,"tipo":p.get('tipo'),"torre":p.get('torre'),"dias":p.get('dias',14),"informes":l})
+        if p.get('accion')=='oficina-abrir' and p.get('tipo') in ('servicios','sha','urbanismo'):
+            v=H.oficina.get(p.get('numero'))
+            if not v or v.get('tipo')!=p.get('tipo'): return self._ok({"ok":False,"error":"No hay un informe archivado con el número "+str(p.get('numero'))})
+            return self._ok({"ok":True,"tipo":p.get('tipo'),"numero":p.get('numero'),"revision":v['rev'],"datos":v['datos'],"fotos":v['fotos']})
         if p.get('accion')=='copiar-fuentes':
             # Como el relevo r49 (Copiar.gs): informes de la lista v2 del mismo ámbito en esas torres, con filas medidas.
             torres=p.get('torres') or [p.get('torre')]; amb='torre' if p.get('ambito')=='torre' else 'apartamento'

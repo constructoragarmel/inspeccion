@@ -9027,6 +9027,63 @@ s = sustituir(s, "</style>",
  "</style>",
  "175h· estilos")
 
+# ── 176. Un informe en blanco no se guarda (7-oct-2026) ─────────────────────
+# Desde la laptop de la coordinación, solo cambiando de torre para mirar, obra dejó un borrador en blanco por cada torre
+# (EZ-T02/T03/T04-P--A---261005-CC, uno cada 2-3 s): el autoguardado guardaba en cuanto había torre, y cada cambio de
+# torre cambia el número y abre ficha nueva. La regla del motor de servicios desde el 17-sep: un informe en blanco no se
+# guarda; si ya estaba guardado con contenido y hoy se vació, se conserva. Y en «Informes», un botón para quitar de una
+# vez los borradores en blanco que ya quedaron.
+s = sustituir(s,
+ "    if(!t || t === '—') return;            // todavía no hay nada que valga la pena\n    _separarSiCambioElInforme();\n",
+ "    if(!t || t === '—') return;            // todavía no hay nada que valga la pena\n"
+ "    if(currentEditingIndex === null && !_tieneContenido(getFormData())) return;   // 176: la cabecera sola no es un informe\n"
+ "    _separarSiCambioElInforme();\n",
+ "176a· el autoguardado no guarda un informe en blanco")
+s = sustituir(s,
+ "function saveDraft(silencioso){\n  try{\n    if(!silencioso) _separarSiCambioElInforme();\n",
+ "function saveDraft(silencioso){\n  try{\n    if(!silencioso) _separarSiCambioElInforme();\n"
+ "    if(currentEditingIndex === null && !_tieneContenido(getFormData())) {   // 176: tampoco a mano\n"
+ "      if(!silencioso) showToast('Todavía no hay nada que guardar: el informe está en blanco. La cabecera se guarda junto con lo que mida.', 'err');\n"
+ "      return false;\n"
+ "    }\n",
+ "176b· ni «Guardar» a mano")
+s = sustituir(s,
+ """            onclick="borrarEnviados()">🧹 Borrar de este teléfono los que ya se enviaron</button>""",
+ """            onclick="borrarEnviados()">🧹 Borrar de este teléfono los que ya se enviaron</button>
+    <button type="button" class="s-btn s-btn-del" id="btn-quitar-blancos" style="width:100%;margin:10px 0 0;background:#f1f5f9;color:#475569;border-color:#cbd5e1;display:none"
+            onclick="quitarBorradoresEnBlanco()">🧹 Quitar los borradores en blanco</button>""",
+ "176c· el botón en «Informes»")
+s = sustituir(s,
+ "  const bb = document.getElementById('btn-borrar-enviados'); if (bb) bb.style.display = lista.some(function(b){ return b && b.enviado; }) ? 'block' : 'none';\n",
+ "  const bb = document.getElementById('btn-borrar-enviados'); if (bb) bb.style.display = lista.some(function(b){ return b && b.enviado; }) ? 'block' : 'none';\n"
+ "  const blancos = lista.filter(function(b){ return b && !b.enviado && !_tieneContenido(b); }).length;\n"
+ "  const bq = document.getElementById('btn-quitar-blancos'); if (bq) { bq.style.display = blancos ? 'block' : 'none'; bq.textContent = '🧹 Quitar los ' + blancos + ' borrador(es) en blanco'; }\n",
+ "176d· se ofrece solo cuando hay")
+s = sustituir(s,
+ "function toggleP(id){",
+ "// 176: los borradores sin nada medido ni escrito, sin enviar, se quitan de una vez. Lo que tiene contenido no se toca.\n"
+ "function quitarBorradoresEnBlanco(){\n"
+ "  const lista = getSavedReports();\n"
+ "  const blancos = lista.filter(function(b){ return b && !b.enviado && !_tieneContenido(b); });\n"
+ "  if (!blancos.length) { showToast('No hay borradores en blanco', 'ok'); return; }\n"
+ "  if (!confirm('Se van a quitar ' + blancos.length + ' borrador(es) en blanco: solo tienen la cabecera, nada medido ni escrito.\\n\\nLos informes con contenido y los enviados no se tocan.')) return;\n"
+ "  const quedan = lista.filter(function(b){ return !(b && !b.enviado && !_tieneContenido(b)); });\n"
+ "  localStorage.setItem('garmel_reports_list', JSON.stringify(quedan));\n"
+ "  if (_idEnEdicion && blancos.some(function(b){ return b.id === _idEnEdicion; })) { currentEditingIndex = null; _idEnEdicion = null; }\n"
+ "  else if (_idEnEdicion) { currentEditingIndex = quedan.findIndex(function(b){ return b && b.id === _idEnEdicion; }); if (currentEditingIndex < 0) currentEditingIndex = null; }\n"
+ "  renderSavedList(); actualizarContadores();\n"
+ "  showToast('🧹 ' + blancos.length + ' borrador(es) en blanco quitados', 'ok');\n"
+ "}\n"
+ "function toggleP(id){",
+ "176e· quitarBorradoresEnBlanco")
+
+s = sustituir(s,
+ "if ('serviceWorker' in navigator) {",
+ "// 176f · Al pintar la lista de «Informes» se recalculan los botones de abajo (Enviar todos, Borrar enviados, Quitar en blanco).\n"
+ "{ const _renderSavedListBase176 = renderSavedList; renderSavedList = function(){ const r = _renderSavedListBase176.apply(this, arguments); try { actualizarContadores(); } catch (e) {} return r; }; }\n"
+ "if ('serviceWorker' in navigator) {",
+ "176f· la lista recalcula sus botones")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
