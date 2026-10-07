@@ -8768,6 +8768,20 @@ s = sustituir(s, "  .tbl-wrap td.n{",
  "  .tbl-wrap td.n{",
  "170c· y en el teléfono, como una franja")
 
+# ── 171. El desplegable de torre se escribe desde el maestro ────────────────
+# La plantilla de agosto trae las 43 torres escritas una a una en el <select>, y
+# nada las actualizaba: cuando el 4-oct-2026 entró la T-43 de Simón Rodríguez al
+# maestro (comun/maestros.py), la tabla TORRES la tenía y el desplegable no, y en
+# obra no se podía elegir. Se vio el 7-oct. Desde aquí las opciones salen del
+# mismo maestro, en el mismo orden (D-, J-, T-), y no pueden volver a discrepar.
+_TORRES_MAESTRO = sorted(set(re.findall(r"\{t:'([^']+)'", maestros.TORRES_JS)))
+_m = re.search(r'        <option value="">— Seleccione —</option>\n((?:        <option>[A-Z]-\d+</option>\n)+)        <option value="NO_REG"', s)
+assert _m, "el bloque fijo de torres de la plantilla"
+_TORRES_PLANTILLA = re.findall(r"<option>([^<]+)</option>", _m.group(1))
+assert set(_TORRES_PLANTILLA) <= set(_TORRES_MAESTRO) and 'T-43' in _TORRES_MAESTRO, (_TORRES_PLANTILLA, _TORRES_MAESTRO)
+s = sustituir(s, _m.group(1), "".join("        <option>%s</option>\n" % t for t in _TORRES_MAESTRO),
+ "171 · el desplegable de torre sale del maestro: %d torres (la plantilla traía %d)" % (len(_TORRES_MAESTRO), len(_TORRES_PLANTILLA)))
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

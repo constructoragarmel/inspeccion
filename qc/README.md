@@ -477,6 +477,13 @@ marca de oficina y las fotos aparte (no vacías); «Cerrar versión definitiva»
 siempre; el reenvío dice que es la definitiva y la lista lo muestra como Definitiva, revisión 2, una sola vez; el relevo
 guardó la revisión 2 con la observación limpia y la misma foto; un informe nuevo no es definitivo.
 
+**`t68` (7-oct-2026, v137): el desplegable de torre sale del maestro, no de la plantilla.** Seis comprobaciones en
+`inspeccion.html`. Lo vio Diego el 7-oct: la T-43 de Simón Rodríguez entró al maestro (`comun/maestros.py`) el 4-oct y la tabla
+`TORRES` la tenía, pero el `<select>` de torre venía escrito a mano desde la plantilla de agosto y nadie lo actualizaba, así que
+no se podía elegir. Servicios y SHA no tenían el problema: ahí las opciones se arman desde `TORRES_DATA`. Comprueba que las
+opciones son exactamente las torres del maestro, que la T-43 está, que con el sector Simón Rodríguez se ve (y la T-45 no), que
+elegirla llena la empresa y el número de informe, y que con Ezequiel Zamora se esconde y la torre se suelta.
+
 **`t67` (6-oct-2026, v135): el orden en pantalla del apartamento sigue la secuencia de obra (PA-121).** Siete comprobaciones en
 `inspeccion.html`: en apartamento los bloques visibles van tabiquería → instalaciones → accesorios sanitarios → accesorios
 eléctricos → puertas → ventanas → acabados → pruebas; «Instalación de servicios» agrupa por disciplina con rótulo (Sanitarias:
