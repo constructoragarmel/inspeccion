@@ -1389,7 +1389,7 @@ async function enviarSolo(id){
   _tandaEnCurso = true;
   try { cartel('📤 Enviando ' + d.nro + '…\\n\\nNo cierre esta pantalla ni vuelva a pulsar.');
         const r = await enviarUno(d, clave);
-        alert(r.ok ? '✓ ' + d.nro + ' enviado a Drive.' : '✗ ' + d.nro + ': ' + explicar(r.error)); }
+        alert(r.ok ? '✓ ' + d.nro + ' enviado. Quedó en Drive › Inspección › ' + _rutaDrive(d) + '.' : '✗ ' + d.nro + ': ' + explicar(r.error)); }
   finally { cartel(''); _tandaEnCurso = false; }
   actualizarContador();
 }
@@ -1742,6 +1742,13 @@ function confirmarSinRevisar(lista){
 
 // Al inspector se le dice qué hacer, no qué falló por dentro. El detalle
 // técnico queda en la consola, que es donde sirve para diagnosticar.
+// v131 (6-oct-2026): al enviar, decir en qué carpeta de Drive quedó el informe. Mismo árbol que arma el relevo:
+// Inspección › sector › Torres › torre › Servicios|SHA, y urbanismo en Inspección › sector › Urbanismo › manzana.
+function _rutaDrive(d){
+  const sec = (typeof _ZONA_NOMBRE !== 'undefined' && _ZONA_NOMBRE[d.convenio]) || 'sector';
+  if (d.tipo === 'urbanismo') return [sec, 'Urbanismo', d.torre || 'manzana'].join(' › ');
+  return [sec, 'Torres', d.torre || 'torre', ({ servicios: 'Servicios', sha: 'SHA' })[d.tipo] || 'Informe'].join(' › ');
+}
 function explicar(err){
   if (/clave/i.test(err))  return 'La clave de este teléfono no es válida. Abra otra vez el enlace de configuración.';
   if (/sector/i.test(err)) return 'El informe no tiene convenio, y sin convenio no sabe a qué sector va.';

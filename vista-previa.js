@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: 153d86e8cb
+// Huella de la fuente: 9fa4f1d81b
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -450,6 +450,7 @@ function _pdfHtml(p) {
       _pdfAvancePresupuesto(av, d, HS) +
       (huboAlgunPct ? '' : _pdfAvisoSinProyectada()) +
       cuerpo +
+      _pdfObservacionesPorHito(d, HS, noInsp) +
       _pdfObservacionGeneral(d) +
       _pdfFirmas(p, d) +
       _pdfMinutas(p) +
@@ -489,7 +490,6 @@ function _pdfIdentificacion(p, d) {
     ['Torre', p.torre],
     ['Piso', d.piso],
     ['Apartamento', d.apto],
-    ['Convenio', d.convenio],
     ['Empresa ejecutora', d.empresa],
     ['Ingeniero(s) residente(s)', (d.residentes || []).join(' \u00b7 ')],
     ['Ingeniero(s) inspector(es)', (d.inspectores || []).join(' \u00b7 ')],
@@ -605,6 +605,18 @@ function _pdfFilaSubpartida(num, nombre, r, pct, esExtra, peso) {
     (peso === null || peso === undefined ? '' : '<td align="right" style="color:#555">' + peso + '</td>') +
     '<td align="center">' + _pdfEsc(r.ev || '') + '</td>' +
   '</tr>';
+}
+function _pdfObservacionesPorHito(d, HS, noInsp) {
+  var filas = '';
+  (HS || []).forEach(function (h) {
+    if (noInsp && noInsp[h.id]) return;
+    var t = String(((d || {}).fotobs || {})[h.id] || '').trim();
+    if (!t) return;
+    filas += '<tr><td width="24%" bgcolor="#eef0f7" style="font-weight:bold">' + _pdfEsc(h.nombre) + '</td><td>' + _pdfTexto(t) + '</td></tr>';
+  });
+  if (!filas) return '';
+  return '<table width="100%" border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;border-color:#bbb;margin:10px 0">' +
+    '<tr><td colspan="2" style="font-weight:bold;color:#1a237e;font-size:11px">OBSERVACIONES POR HITO</td></tr>' + filas + '</table>';
 }
 function _pdfObsHito(obs) {
   if (!String(obs || '').trim()) return '';
@@ -912,7 +924,6 @@ function _pdfIdentificacionServicios(p, d) {
     ['Fecha de inspecci\u00f3n', d.fecha],
     ['Sector', sector],
     [_pdfEtiquetaLugar(p, 'Torre'), _pdfLugar(p)],
-    ['Convenio', d.convenio],
     ['Empresa ejecutora', d.empresa],
     ['Ingeniero(s) residente(s)', (d.residentes || []).join(' \u00b7 ')],
     ['Ingeniero(s) inspector(es)', (d.inspectores || []).join(' \u00b7 ')],
@@ -1065,7 +1076,6 @@ function _pdfIdentificacionSha(p, d) {
     ['Fecha de inspecci\u00f3n', d.fecha],
     ['Sector', sector],
     [_pdfEtiquetaLugar(p, 'Torre'), _pdfLugar(p)],
-    ['Convenio', d.convenio],
     ['Empresa ejecutora', d.empresa],
     ['Ingeniero(s) residente(s)', (d.residentes || []).join(' \u00b7 ')],
     ['Inspector(es) SHA', (d.inspectores || []).join(' \u00b7 ')],
@@ -1238,7 +1248,7 @@ function _pdfCamionesUrbanismo(it) {
            '<b>Camiones:</b> ' + lista + '<br>' + cuenta + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: '153d86e8cb',
+    huella: '9fa4f1d81b',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];

@@ -1,5 +1,5 @@
 // TANDA 52 · V110 (2-oct-2026): «qué incluye» cada subpartida, al tocar el «?» de la fila. En inspeccion.html.
-// 1 las 89 subpartidas tienen su línea · 2 cada fila a la vista trae su «?» y la ayuda cerrada · 3 tocar abre, tocar otra vez cierra
+// 1 las 91 subpartidas tienen su línea · 2 cada fila a la vista trae su «?» y la ayuda cerrada · 3 tocar abre, tocar otra vez cierra
 // 4 el texto es el de su código · 5 no viaja en los datos ni cambia el avance · 6 las filas agregadas no llevan «?»
 // 7 el «?» queda dentro de la pantalla hasta en los nombres largos · 8 con varias ayudas abiertas nada se sale · 9 no sale en el PDF
 // 10 un borrador reabre con las ayudas cerradas
@@ -21,8 +21,8 @@ const ridDe = cod => { for (const h of PARTIDAS) { const i = (CODIGOS_SUB[h.id] 
 // ── 1 ──
 const codigos = [].concat(...PARTIDAS.map(h => CODIGOS_SUB[h.id]));
 const sin = codigos.filter(c => !AYUDA_SUB[c] || AYUDA_SUB[c].length < 20), largas = codigos.filter(c => (AYUDA_SUB[c] || '').length > 190);
-ok('1 · Las 89 subpartidas tienen su línea de «qué incluye», ninguna vacía ni de más de 190 caracteres, y ninguna con montos',
-   codigos.length === 89 && sin.length === 0 && largas.length === 0 && !Object.values(AYUDA_SUB).some(t => /\$|Bs\b|USD/.test(t)), codigos.length + ' códigos · sin línea: ' + (sin.join(',') || 'ninguna'));
+ok('1 · Las 91 subpartidas tienen su línea de «qué incluye», ninguna vacía ni de más de 190 caracteres, y ninguna con montos',
+   codigos.length === 91 && sin.length === 0 && largas.length === 0 && !Object.values(AYUDA_SUB).some(t => /\$|Bs\b|USD/.test(t)), codigos.length + ' códigos · sin línea: ' + (sin.join(',') || 'ninguna'));
 
 // ── 2 ──
 await limpiar(); setAmbito('apartamento'); await esperar(200);
@@ -30,7 +30,7 @@ sel('fecha', '2026-10-02'); sel('convenio', 'Convenio Bielorrusos'); sel('torre'
 const ap = delAmbito(), malAp = ap.filter(r => !btn(r) || !caja(r) || !caja(r).hidden || getComputedStyle(caja(r)).display !== 'none');
 setAmbito('torre'); await esperar(200); abrirTodo(); await esperar(300);
 const to = delAmbito(), malTo = to.filter(r => !btn(r) || !caja(r) || !caja(r).hidden);
-ok('2 · Cada fila a la vista, en apartamento y en torre, trae su «?» con la ayuda cerrada', ap.length === 50 && malAp.length === 0 && to.length > 30 && malTo.length === 0,
+ok('2 · Cada fila a la vista, en apartamento y en torre, trae su «?» con la ayuda cerrada', ap.length === 51 && malAp.length === 0 && to.length > 30 && malTo.length === 0,
    'apartamento ' + ap.length + ' filas, mal ' + malAp.length + ' · torre ' + to.length + ' filas, mal ' + malTo.length);
 
 // ── 3 y 4 ──
@@ -41,7 +41,8 @@ const abierta = !caja(R).hidden && caja(R).offsetParent !== null && btn(R).getAt
 btn(R).click(); await esperar(50);
 ok('3 · Tocar el «?» abre la línea debajo del nombre; tocarlo otra vez la cierra', abierta && caja(R).hidden && btn(R).getAttribute('aria-expanded') === 'false', 'abierta ' + abierta + ' · después cerrada ' + caja(R).hidden);
 ok('4 · La línea es la de su código: «Canalizaciones» dice la tubería embutida con sus cajas y cajetines', /^Qué incluye: La tubería eléctrica embutida \(EMT o PVC\) con sus cajas y cajetines\.$/.test(texto) &&
-   ap.every(r => { const m = r.match(/^(.*)_(\d+)$/); return caja(r).textContent === 'Qué incluye: ' + AYUDA_SUB[CODIGOS_SUB[m[1]][+m[2]]]; }), texto);
+   // v131: las filas «Ambos» con redacción propia para torre llevan las dos en la página (.ay-apto / .ay-torre); aquí vale la de apartamento.
+   ap.every(r => { const m = r.match(/^(.*)_(\d+)$/); const sp = caja(r).querySelector('.ay-apto'); const txt = sp ? 'Qué incluye: ' + sp.textContent : caja(r).textContent; return txt === 'Qué incluye: ' + AYUDA_SUB[CODIGOS_SUB[m[1]][+m[2]]]; }), texto);
 
 // ── 5 ──
 const E = ridDe('4.01');

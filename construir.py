@@ -8410,6 +8410,141 @@ s = sustituir(s, "'Los que todavía no se han enviado NO se tocan.')) return;\n 
               "  const quedan = lista.filter(function(b){ return !(b && b.enviado && !b.editadoTras); });",
               "167b· y se quedan en la lista")
 
+
+# ═══ 168. Lo que pidió la Coordinación de inspección de Simón Bolívar el 6-oct-2026 (PA-121 a PA-124) ═══
+# Cuatro cosas de pantalla, ninguna toca el dato que viaja al relevo ni a Smartsheet:
+#   a) una casilla para escribir el % exacto en las filas de estado, al lado de los cinco botones;
+#   b) «Sector» en vez de «Convenio», con los nombres de los sectores, como en los otros tres formularios;
+#   c) la línea de «qué incluye» redactada para la torre en las filas «Ambos» que hablaban del apartamento;
+#   d) al enviar, la app dice en qué carpeta de Drive quedó el informe.
+
+# 168a · La casilla. Mismo dato que los botones: 100 proyectada y el % ejecutado. La casilla siempre refleja el %
+# vigente (también cuando se toca un botón), y vaciarla devuelve la fila a «sin marcar».
+s = sustituir(s,
+ """<i class="est-p">${e.v}%</i></button>`).join('')}
+          </div><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}">""",
+ """<i class="est-p">${e.v}%</i></button>`).join('') + `
+            <input type="number" class="num est-pct solo-pantalla" id="ep_${rid}" data-rid="${rid}" data-p="${p.id}" min="0" max="100" inputmode="numeric" placeholder="%" title="Otro porcentaje: escríbalo aquí" aria-label="Porcentaje exacto" oninput="setEstadoPct(this)">`}
+          </div><input type="hidden" id="ej_${rid}" data-rid="${rid}" data-p="${p.id}">""",
+ "168a· casilla de % en las filas de estado (solo en las de cinco estados, no en las de Sí / No)")
+s = sustituir(s,
+ "function recalcRow(inp){\n",
+ "// 168a · Un porcentaje escrito a mano en una fila de estado: el mismo dato que los botones.\n"
+ "function setEstadoPct(inp){\n"
+ "  const rid = inp.dataset.rid;\n"
+ "  const pr = document.getElementById('pr_' + rid), ej = document.getElementById('ej_' + rid);\n"
+ "  if(!pr || !ej) return;\n"
+ "  const t = String(inp.value || '').trim().replace(',', '.');\n"
+ "  if(t === ''){ pr.value = ''; ej.value = ''; }\n"
+ "  else {\n"
+ "    let n = Math.round(parseFloat(t));\n"
+ "    if(isNaN(n)) return;\n"
+ "    n = Math.min(100, Math.max(0, n));\n"
+ "    if(String(n) !== t) inp.value = String(n);\n"
+ "    pr.value = '100'; ej.value = String(n);\n"
+ "  }\n"
+ "  recalcRow(pr);\n"
+ "  if(typeof _marcarCambio === 'function') _marcarCambio();\n"
+ "}\n"
+ "\n"
+ "function recalcRow(inp){\n",
+ "168b· setEstadoPct")
+s = sustituir(s,
+ """                                            : (v !== '' && v !== undefined && String(Number(v)) === b.dataset.v));
+    });
+  }""",
+ """                                            : (v !== '' && v !== undefined && String(Number(v)) === b.dataset.v));
+    });
+    const ep = document.getElementById('ep_'+rid);
+    if(ep && document.activeElement !== ep) ep.value = (v === '' || v === undefined) ? '' : String(Number(v));
+  }""",
+ "168c· la casilla se pinta desde el dato, como los botones")
+s = sustituir(s,
+ ".est-btn.e100.on{background:#1a237e}",
+ ".est-btn.e100.on{background:#1a237e}\n"
+ ".est-pct{width:58px!important;min-height:26px;padding:3px 4px;border:2px solid #90a4ae;border-radius:11px;"
+ "font-size:11px;font-weight:800;color:#263238;background:#fff}\n"
+ ".est-pct:focus{border-color:#1a237e;outline:none}\n"
+ ".est-pct::placeholder{color:#90a4ae;font-weight:800}",
+ "168d· estilo de la casilla")
+s = sustituir(s,
+ "  .tbl-wrap .est-btn .est-p{ display:block; font-size:10px; opacity:.75; }",
+ "  .tbl-wrap .est-btn .est-p{ display:block; font-size:10px; opacity:.75; }\n"
+ "  .tbl-wrap .est-pct{ flex:1 1 29%; width:auto!important; min-height:44px; font-size:14px; }",
+ "168e· en el teléfono, del mismo tamaño que los botones")
+
+# 168b · «Sector». El valor que viaja sigue siendo «Convenio …» (es la llave del maestro, de Smartsheet y de las
+# carpetas de Drive); lo que cambia es lo que lee el inspector.
+s = sustituir(s,
+ "function _opcionesDeConvenio(permitidas){",
+ "// 168 · El nombre del sector que se muestra por cada llave del maestro.\n"
+ "const NOMBRE_SECTOR = {\n"
+ "  'Convenio Bielorrusos': 'Ezequiel Zamora', 'Convenio Bielorusos': 'Ezequiel Zamora',\n"
+ "  'Convenio Rusos': 'Simón Rodríguez',\n"
+ "  'Convenio Chinos': 'Simón Bolívar'\n"
+ "};\n"
+ "function _nombreSector(c){ return NOMBRE_SECTOR[c] || c || ''; }\n"
+ "// Dónde queda el informe en la unidad compartida de Inspección, para decirlo al enviar.\n"
+ "function _rutaDrive(){\n"
+ "  const c = (document.getElementById('convenio') || {}).value || '';\n"
+ "  const t = (document.getElementById('torre') || {}).value || '';\n"
+ "  return [_nombreSector(c) || 'sector', 'Torres', t || 'torre', 'Informe'].join(' › ');\n"
+ "}\n"
+ "function _opcionesDeConvenio(permitidas){",
+ "168f· NOMBRE_SECTOR y _rutaDrive")
+s = sustituir(s, "    o.value = c; o.textContent = c;\n", "    o.value = c; o.textContent = _nombreSector(c);\n", "168g· las opciones dicen el sector")
+s = sustituir(s, "      <label>Convenio *</label>\n", "      <label>Sector *</label>\n", "168h· el rótulo")
+s = sustituir(s,
+ '        <option>Convenio Chinos</option>\n        <option>Convenio Rusos</option>\n        <option>Convenio Bielorrusos</option>\n',
+ '        <option value="Convenio Chinos">Simón Bolívar</option>\n        <option value="Convenio Rusos">Simón Rodríguez</option>\n        <option value="Convenio Bielorrusos">Ezequiel Zamora</option>\n',
+ "168i· las opciones iniciales")
+s = sustituir(s,
+ "      'Al cambiar de convenio se vacían torre, empresa y residente, pero las ' +",
+ "      'Al cambiar de sector se vacían torre, empresa y residente, pero las ' +",
+ "168j· el aviso habla de sector")
+s = sustituir(s, "      '«' + nuevo + '» y mediciones tomadas en otra torre.\\n\\n' +", "      '«' + _nombreSector(nuevo) + '» y mediciones tomadas en otra torre.\\n\\n' +", "168k· y nombra el sector")
+s = sustituir(s,
+ "figura en dos zonas del maestro. Elija cuál y se llenan empresa y residente.';",
+ "figura en dos sectores del maestro. Elija cuál y se llenan empresa y residente.';",
+ "168l· el aviso de dos zonas dice sectores")
+
+# 168c · La ayuda por ámbito: las dos redacciones van en la página y el cuerpo dice cuál se ve.
+s = sustituir(s,
+ "\nfunction _ayudaDe(pid, i){",
+ "\n" + lista_v2.AYUDA_TORRE_JS + "\n"
+ "function _ayudaTorreDe(pid, i){ const c = (CODIGOS_SUB[pid] || [])[i]; return (c && typeof AYUDA_SUB_TORRE !== 'undefined' && AYUDA_SUB_TORRE[c]) || ''; }\n"
+ "function _ayudaDe(pid, i){",
+ "168m· la redacción de torre")
+s = sustituir(s,
+ "  const t = _ayudaDe(pid, i);\n"
+ "  if (!t) return '';\n",
+ "  const t = _ayudaDe(pid, i), tt = _ayudaTorreDe(pid, i);\n"
+ "  if (!t) return '';\n"
+ "  const esc = x => x.replace(/&/g, '&amp;').replace(/</g, '&lt;');\n"
+ "  if (tt) return '<button type=\"button\" class=\"ayuda-btn solo-pantalla\" aria-label=\"Qué incluye esta subpartida\" aria-expanded=\"false\" onclick=\"verAyuda(this)\">?</button>' +\n"
+ "         '<div class=\"ayuda-sub solo-pantalla\" hidden><b>Qué incluye:</b> <span class=\"ay-apto\">' + esc(t) + '</span><span class=\"ay-torre\">' + esc(tt) + '</span></div>';\n",
+ "168n· las dos redacciones en la página")
+s = sustituir(s,
+ ".ayuda-sub[hidden]{display:none}\n",
+ ".ayuda-sub[hidden]{display:none}\n"
+ "body.amb-torre .ay-apto{display:none}\n"
+ "body:not(.amb-torre) .ay-torre{display:none}\n",
+ "168o· el cuerpo elige la redacción")
+s = sustituir(s,
+ "  const esTorre = (ambito === 'torre');\n",
+ "  const esTorre = (ambito === 'torre');\n"
+ "  document.body.classList.toggle('amb-torre', esTorre);\n",
+ "168p· setAmbito marca el cuerpo")
+
+# 168d · Al enviar, dónde quedó.
+s = sustituir(s,
+ "      logEl.textContent += '✅ Archivado en Drive\\n' + (res.archivos || []).join('\\n');\n"
+ "      showToast('✅ Informe enviado y archivado', 'ok');",
+ "      logEl.textContent += '✅ Archivado en Drive › Inspección › ' + _rutaDrive() + '\\n' + (res.archivos || []).join('\\n');\n"
+ "      showToast('✅ Enviado. Quedó en Drive › ' + _rutaDrive(), 'ok');",
+ "168q· al enviar, la carpeta de Drive")
+
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
