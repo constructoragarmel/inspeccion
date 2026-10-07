@@ -578,3 +578,14 @@ dice que hace falta el r50 en vez de mezclar informes de obra. Los tres PDF dice
   blanco». `t42` y `t43` siembran a mano el borrador viejo que antes creaban guardando en blanco.
 - Lado del relevo: `t70relevo` acepta r50; `t54relevo`, `t57relevo` y `t65relevo` se corren con `Oficina.gs` cargado
   (desde el r47 `_versionDelInforme` vive ahí). Los cuatro en verde contra el r50.
+
+**Envío real del 7-oct-2026 (v145, relevo r50 desplegado como Versión 33).** Desde el Chrome del usuario, con la clave
+de producción y `?prueba=1`, en los tres formularios: un informe PRUEBA- con una respuesta, una observación y una foto se
+envió y el relevo contestó la carpeta de Drive (`… › T-01 › Servicios`, `… › T-01 › SHA`, `… › Urbanismo › M-1 L1`); el
+panel de oficina lo listó como Preliminar junto a los informes reales de la torre, lo abrió con su foto y su observación,
+y «Cerrar versión definitiva» lo reenvió como revisión 2 (la lista lo mostró «Definitiva · Prueba QC rev. 2»); y desde la
+torre o manzana vecina «Copiar de otra…» lo encontró en el archivo (`copiar-fuentes`) y volcó la respuesta marcada
+(`copiar-abrir`). Quedan en Drive y en el registro `PRUEBA-SRV-EZ-T01-261007-HE`, `PRUEBA-SHA-EZ-T01-261007-AS` y
+`PRUEBA-URB-EZ-M1L1-261007-GB`, con dos revisiones cada uno: se limpian con `enviarPruebasAPapelera` y
+`borrarPruebasSmartsheet` desde el editor de Apps Script. Nota de tiempos: contra el relevo real, abrir con foto y cerrar
+la definitiva tarda más de 45 s en urbanismo, así que esa prueba va en pasos cortos.
