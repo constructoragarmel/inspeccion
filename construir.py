@@ -8545,6 +8545,159 @@ s = sustituir(s,
  "168q· al enviar, la carpeta de Drive")
 
 
+
+# ═══ 169. Modo oficina (6-oct-2026): abrir un informe enviado desde la computadora y cerrarlo como versión definitiva ═══
+# PA-124. La Coordinación de inspección de Simón Bolívar pidió que el informe se llene «sucio» en campo (PRELIMINAR) y se
+# termine en la oficina, con teclado, como versión DEFINITIVA; Diego Orta (6-oct): «que cualquiera pueda editar y quede un
+# historial». En pantalla ancha con puntero fino (o con ?oficina=1) aparece el panel: lista los informes de la torre que
+# el relevo tiene archivados (accion 'oficina-lista'), abre uno completo con sus fotos ('oficina-abrir') como un informe
+# más de este equipo, y «Cerrar versión definitiva» lo reenvía con `datos.definitiva = {por, fecha, desde}`. El relevo
+# r47 guarda la revisión nueva sin tocar la de campo, Smartsheet escribe «Versión» y el PDF lo dice.
+OFICINA_HTML = """  <div id="oficina" class="oficina solo-pantalla" style="display:none">
+    <div class="ofi-cab">
+      <div><b>🖥️ Modo oficina</b> · abra un informe ya enviado desde campo, complételo con teclado y ciérrelo como <b>versión definitiva</b>. La versión de campo se conserva.</div>
+      <button type="button" class="ofi-btn" id="ofi-buscar" onclick="oficinaBuscar()">Buscar los informes de esta torre</button>
+    </div>
+    <div id="ofi-lista" class="ofi-lista"></div>
+    <div id="ofi-estado" class="ofi-estado" style="display:none"></div>
+  </div>
+"""
+s = sustituir(s, '  <div class="sec-lbl">Identificación del Proyecto</div>\n',
+              OFICINA_HTML + '  <div class="sec-lbl">Identificación del Proyecto</div>\n', "169a· el panel de oficina")
+s = sustituir(s, ".ayuda-sub[hidden]{display:none}\n",
+ ".ayuda-sub[hidden]{display:none}\n"
+ ".oficina{margin:0 0 14px;border:2px solid #c5cae9;border-radius:12px;background:#f5f6fc;padding:12px 14px}\n"
+ ".ofi-cab{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:13px;color:#1b2235;line-height:1.35}\n"
+ ".ofi-btn{min-height:40px;padding:8px 14px;border-radius:10px;border:2px solid #1a237e;background:#1a237e;color:#fff;font-weight:700;cursor:pointer;font-size:13px}\n"
+ ".ofi-btn.sec{background:#fff;color:#1a237e}\n"
+ ".ofi-btn.ok{background:#2e7d32;border-color:#2e7d32}\n"
+ ".ofi-btn:disabled{opacity:.5;cursor:default}\n"
+ ".ofi-lista table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px;background:#fff}\n"
+ ".ofi-lista th,.ofi-lista td{padding:6px 8px;border-bottom:1px solid #e0e3f0;text-align:left;vertical-align:middle}\n"
+ ".ofi-lista th{background:#e8eaf6;color:#1a237e;font-size:11px;text-transform:uppercase;letter-spacing:.3px}\n"
+ ".ofi-aviso{margin:10px 0 0;font-size:13px;color:#444}\n"
+ ".ofi-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap}\n"
+ ".ofi-tag.pre{background:#fff3e0;color:#8f4b00}\n"
+ ".ofi-tag.def{background:#e8f5e9;color:#1b5e20}\n"
+ ".ofi-estado{margin-top:10px;padding:10px 12px;border-radius:10px;background:#e8f5e9;border:1.5px solid #a5d6a7;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:13px;line-height:1.35}\n",
+ "169b· estilos")
+s = sustituir(s, "const NOMBRE_SECTOR = {\n",
+ "// ── 169 · Modo oficina ─────────────────────────────────────────────────────\n"
+ "let _ES_OFICINA = /[?&]oficina=1/.test(location.search) ||\n"
+ "  (!!window.matchMedia && matchMedia('(min-width: 1000px)').matches && !matchMedia('(pointer: coarse)').matches);\n"
+ "let _definitiva = null;   // {por, fecha, desde} cuando este informe se cierra como versión definitiva\n"
+ "let _oficinaDe = null;    // {numero, revision, abierto} si el informe abierto vino del archivo del relevo\n"
+ "function _ofiEsc(x){ return String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\"/g, '&quot;'); }\n"
+ "function _oficinaMostrar(){ const o = document.getElementById('oficina'); if (o) o.style.display = _ES_OFICINA ? '' : 'none'; _oficinaEstado(); }\n"
+ "async function _oficinaPedir(cuerpo){\n"
+ "  const clave = localStorage.getItem('garmel_clave_envio') || '';\n"
+ "  if (!clave) throw new Error('Esta computadora no tiene la clave de envío. Configúrela desde la página de inicio.');\n"
+ "  const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },\n"
+ "                                      body: JSON.stringify(Object.assign({ clave: clave }, cuerpo)) });\n"
+ "  const j = await r.json();\n"
+ "  if (!j || !j.ok) throw new Error((j && j.error) || 'El relevo no respondió');\n"
+ "  return j;\n"
+ "}\n"
+ "async function oficinaBuscar(){\n"
+ "  const torre = getTorreActual(), sector = getSectorActual(), caja = document.getElementById('ofi-lista'), btn = document.getElementById('ofi-buscar');\n"
+ "  if (!torre) { caja.innerHTML = '<p class=\"ofi-aviso\">Elija primero la torre, arriba en «Identificación del proyecto».</p>'; return; }\n"
+ "  caja.innerHTML = '<p class=\"ofi-aviso\">⏳ Buscando los informes de ' + _ofiEsc(torre) + ' de los últimos 14 días…</p>';\n"
+ "  if (btn) btn.disabled = true;\n"
+ "  try {\n"
+ "    const r = await _oficinaPedir({ accion: 'oficina-lista', sector: sector, torre: torre, dias: 14, pruebas: !!TEST_MODE });\n"
+ "    _oficinaPintar(r.informes || [], torre);\n"
+ "  } catch (e) { caja.innerHTML = '<p class=\"ofi-aviso\">❌ No se pudo: ' + _ofiEsc(e.message) + '</p>'; }\n"
+ "  finally { if (btn) btn.disabled = false; }\n"
+ "}\n"
+ "function _oficinaPintar(lista, torre){\n"
+ "  const caja = document.getElementById('ofi-lista');\n"
+ "  if (!lista.length) { caja.innerHTML = '<p class=\"ofi-aviso\">La torre ' + _ofiEsc(torre) + ' no tiene informes enviados en los últimos 14 días.</p>'; return; }\n"
+ "  const filas = lista.map(function(x){\n"
+ "    const def = x.definitiva && x.definitiva.por;\n"
+ "    const lugar = x.ambito === 'torre' ? 'Torre completa' : [x.piso, x.apto ? 'Apto. ' + x.apto : ''].filter(Boolean).join(' · ');\n"
+ "    return '<tr><td>' + _ofiEsc(x.fecha) + '</td><td>' + _ofiEsc(lugar) + '</td><td>' + _ofiEsc((x.inspectores || []).join(' · ')) + '</td>' +\n"
+ "      '<td>' + (def ? '<span class=\"ofi-tag def\">Definitiva · ' + _ofiEsc(x.definitiva.por) + '</span>' : '<span class=\"ofi-tag pre\">Preliminar</span>') +\n"
+ "      (x.revision > 1 ? ' <small>rev. ' + x.revision + '</small>' : '') + '</td>' +\n"
+ "      '<td style=\"font-family:monospace;font-size:11px\">' + _ofiEsc(x.numero) + '</td>' +\n"
+ "      '<td><button type=\"button\" class=\"ofi-btn sec\" onclick=\"oficinaAbrir(this.dataset.n)\" data-n=\"' + _ofiEsc(x.numero) + '\">Abrir</button></td></tr>';\n"
+ "  }).join('');\n"
+ "  caja.innerHTML = '<table><tr><th>Fecha</th><th>Dónde</th><th>Inspector(es)</th><th>Versión</th><th>N° de informe</th><th></th></tr>' + filas + '</table>' +\n"
+ "    '<p class=\"ofi-aviso\">Al abrir uno, queda en la lista de «Informes» de esta computadora con todo lo que trajo de campo. Lo que cambie aquí no borra nada: al cerrarlo se guarda como una revisión nueva.</p>';\n"
+ "}\n"
+ "async function oficinaAbrir(numero){\n"
+ "  const caja = document.getElementById('ofi-lista');\n"
+ "  const aviso = document.createElement('p'); aviso.className = 'ofi-aviso'; aviso.textContent = '⏳ Abriendo ' + numero + ' con sus fotografías…'; caja.appendChild(aviso);\n"
+ "  try {\n"
+ "    const r = await _oficinaPedir({ accion: 'oficina-abrir', sector: getSectorActual(), torre: getTorreActual(), numero: numero });\n"
+ "    const d = r.datos || {};\n"
+ "    const fotos = {};\n"
+ "    (r.fotos || []).forEach(function(f){\n"
+ "      const m = String(f.nombre || '').match(/^(.*)-(\\d+)$/); if (!m || !f.dato) return;\n"
+ "      fotos[m[1]] = fotos[m[1]] || ['', '', '', '', '', '']; fotos[m[1]][Math.max(0, +m[2] - 1)] = f.dato;\n"
+ "    });\n"
+ "    const b = Object.assign({}, d, { id: 'oficina-' + numero, fotos: fotos, timestamp: new Date().toLocaleString(),\n"
+ "      enviado: d.timestamp || ('archivado, revisión ' + r.revision), oficina: { numero: numero, revision: r.revision || 1, abierto: new Date().toLocaleString() } });\n"
+ "    delete b.editadoTras; delete b.fotosEnIdb;\n"
+ "    const list = getSavedReports();\n"
+ "    let pos = list.findIndex(function(x){ return x && (x.id === b.id || x.nro === numero); });\n"
+ "    _fotosSucias = true; _fotosGuardadasDe = null;\n"
+ "    const g = _fotosAIdb(b, null);\n"
+ "    if (pos >= 0) list[pos] = g; else { list.unshift(g); pos = 0; }\n"
+ "    localStorage.setItem('garmel_reports_list', JSON.stringify(list));\n"
+ "    loadDraftData(pos);\n"
+ "    _oficinaDe = b.oficina; _definitiva = d.definitiva || null;\n"
+ "    _oficinaEstado();\n"
+ "    aviso.textContent = '✅ ' + numero + ' abierto: ' + (r.fotos || []).length + ' fotografía(s). Revise, complete y cierre la versión definitiva.';\n"
+ "    document.getElementById('ofi-estado').scrollIntoView({ block: 'center', behavior: 'smooth' });\n"
+ "  } catch (e) { aviso.textContent = '❌ No se pudo abrir ' + numero + ': ' + e.message; }\n"
+ "}\n"
+ "function _oficinaEstado(){\n"
+ "  const e = document.getElementById('ofi-estado'); if (!e) return;\n"
+ "  if (!_ES_OFICINA || (!_oficinaDe && !_definitiva)) { e.style.display = 'none'; e.innerHTML = ''; return; }\n"
+ "  const de = _oficinaDe ? 'Abierto desde el archivo: <b>' + _ofiEsc(_oficinaDe.numero) + '</b>' + (_oficinaDe.revision > 1 ? ' (revisión ' + _oficinaDe.revision + ')' : '') : 'Informe de esta computadora';\n"
+ "  const est = _definitiva && _definitiva.por ? ' · <span class=\"ofi-tag def\">Definitiva · ' + _ofiEsc(_definitiva.por) + (_definitiva.fecha ? ' · ' + _ofiEsc(_definitiva.fecha) : '') + '</span>' : ' · <span class=\"ofi-tag pre\">Preliminar</span>';\n"
+ "  e.innerHTML = '<div>' + de + est + '</div><button type=\"button\" class=\"ofi-btn ok\" onclick=\"cerrarDefinitiva()\">' + (_definitiva && _definitiva.por ? '✅ Reenviar la versión definitiva' : '✅ Cerrar versión definitiva') + '</button>';\n"
+ "  e.style.display = '';\n"
+ "}\n"
+ "// Cierra el informe abierto como versión definitiva: pide quién lo cierra, lo deja escrito y abre el envío de siempre.\n"
+ "function cerrarDefinitiva(por){\n"
+ "  const insp = (typeof getInspectoresValues === 'function' ? getInspectoresValues() : []).filter(Boolean);\n"
+ "  if (por === undefined) por = prompt('¿Quién cierra la versión definitiva?\\n\\nQueda escrito en el informe, en el PDF y en Smartsheet. Escriba su nombre como en el padrón.', (_definitiva && _definitiva.por) || insp[0] || '');\n"
+ "  if (por === null) return false;\n"
+ "  por = String(por).trim();\n"
+ "  if (!por) { alert('Hace falta el nombre de quien cierra la versión definitiva.'); return false; }\n"
+ "  _definitiva = { por: por, fecha: new Date().toISOString().slice(0, 10),\n"
+ "                  desde: _oficinaDe ? _oficinaDe.numero + (_oficinaDe.revision > 1 ? '-r' + _oficinaDe.revision : '') : '' };\n"
+ "  try { saveDraft(true); } catch(e) {}\n"
+ "  _oficinaEstado();\n"
+ "  if (typeof openSend === 'function') openSend();\n"
+ "  return true;\n"
+ "}\n"
+ "function _oficinaTrasEnvio(){ if (_ES_OFICINA && document.getElementById('ofi-lista').querySelector('table')) oficinaBuscar(); }\n"
+ "if (document.readyState !== 'loading') setTimeout(_oficinaMostrar, 0); else document.addEventListener('DOMContentLoaded', _oficinaMostrar);\n"
+ "\n"
+ "const NOMBRE_SECTOR = {\n",
+ "169c· el modo oficina")
+# La versión viaja con el informe y vuelve al abrir el borrador.
+s = sustituir(s, "    partidas:{}, extraRows: extraRows,\n    fotos:{}, fotobs:{}\n  };",
+ "    partidas:{}, extraRows: extraRows,\n    fotos:{}, fotobs:{},\n"
+ "    definitiva: (typeof _definitiva !== 'undefined' && _definitiva) ? _definitiva : undefined,   // 169: versión definitiva cerrada en oficina\n"
+ "    oficina: (typeof _oficinaDe !== 'undefined' && _oficinaDe) ? _oficinaDe : undefined\n  };", "169d· la versión viaja en los datos")
+s = sustituir(s, "  _idEnEdicion = d.id || null;\n  _abiertoParaEditar = true;\n",
+ "  _idEnEdicion = d.id || null;\n  _abiertoParaEditar = true;\n"
+ "  if (typeof _oficinaEstado === 'function') { _definitiva = d.definitiva || null; _oficinaDe = d.oficina || null; _oficinaEstado(); }\n", "169e· y vuelve al abrir")
+s = sustituir(s, "  currentEditingIndex = null;\n  _idEnEdicion = null;\n",
+ "  currentEditingIndex = null;\n  _idEnEdicion = null;\n"
+ "  if (typeof _oficinaEstado === 'function') { _definitiva = null; _oficinaDe = null; _oficinaEstado(); }\n", "169f· un informe nuevo no es definitivo")
+# Un informe abierto desde la oficina conserva sus fotos aunque ya esté enviado: se está trabajando en él.
+s = sustituir(s, "  if (d.enviado && !d.editadoTras) {\n    const m = Object.assign({}, d, { fotos: {} }); delete m.fotosEnIdb;",
+ "  if (d.enviado && !d.editadoTras && !d.oficina) {\n    const m = Object.assign({}, d, { fotos: {} }); delete m.fotosEnIdb;", "169g· el abierto en oficina conserva sus fotos")
+s = sustituir(s, "  logEl.textContent = 'Enviando ' + datos.nro + '…\\n' +\n                      fotos.length + ' fotografía(s)\\n';",
+ "  logEl.textContent = 'Enviando ' + datos.nro + '…\\n' +\n                      fotos.length + ' fotografía(s)\\n' +\n"
+ "                      (datos.definitiva && datos.definitiva.por ? 'VERSIÓN DEFINITIVA · cerrada por ' + datos.definitiva.por + '\\n' : '');", "169h· el envío dice si es la definitiva")
+s = sustituir(s, "      _marcarComoEnviado(datos.nro, datos.id);\n",
+ "      _marcarComoEnviado(datos.nro, datos.id);\n      if (typeof _oficinaTrasEnvio === 'function') _oficinaTrasEnvio();\n", "169i· tras enviar, la lista de la oficina se refresca")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

@@ -36,5 +36,12 @@
   var s1 = '', e3 = ''; try { s1 = _conSeccion(p1, 1, null); } catch (x) { e3 = x.message; }
   ok('R8 · La sección del apartamento en el consolidado también junta las observaciones por hito', !e3 && /OBSERVACIONES POR HITO/.test(s1) && /Friso del baño/.test(s1) && !/ESTO NO SALE/.test(s1.slice(s1.indexOf('OBSERVACIONES POR HITO'))), e3);
   ok('R9 · La lista v2 tiene 91 subpartidas vivas, con 5.09 y 10.09, y Pesos.gs trae 10.09 en la T-01', HITOS_V2.reduce(function (a, h) { return a + h.items.length; }, 0) === 91 && HITOS_V2.some(function (h) { return h.codigos.indexOf('5.09') >= 0; }) && pesos['10.09'] > 0 && pesos['10.03'] > 0, '10.09=' + pesos['10.09']);
+  // ── 4. r47: la versión del informe ──
+  var pDef = obra('3', 'Piso 01', {}, [], 'Cerrado en oficina.'); pDef.datos.definitiva = { por: 'Ing. Coordinadora de ejemplo', fecha: '2026-10-07', desde: pDef.numero };
+  var hDef = _pdfHtml(pDef), hPre = _pdfHtml(obra('4', 'Piso 01', {}, [], 'De campo.'));
+  ok('R10 · El PDF dice la versión: «Definitiva · cerrada en oficina por …» o «Preliminar (campo)»', />Versi\u00f3n</.test(hDef) && /Definitiva \u00b7 cerrada en oficina por Ing\. Coordinadora de ejemplo el 2026-10-07/.test(hDef) && /Preliminar \(campo\)/.test(hPre) && !/Definitiva/.test(hPre), '');
+  var sDef = _conSeccion(pDef, 1, null);
+  ok('R11 · En el consolidado, la sección del apartamento dice la versión junto al número', /Definitiva \u00b7 cerrada en oficina/.test(sDef) && /Preliminar \(campo\)/.test(_conSeccion(obra('4', 'Piso 01', {}, [], ''), 1, null)), '');
+  ok('R12 · Oficina.gs está cargado: _versionDelInforme y las dos consultas existen', typeof _oficinaLista === 'function' && typeof _oficinaAbrir === 'function' && _versionDelInforme({}) === 'Preliminar (campo)', '');
   return R.join('\n');
 })();

@@ -458,3 +458,22 @@ también el informe «editado después de enviarlo», cuya corrección vive solo
 pregunta en los cuatro, deja ese informe en la lista y lo dice. Se corre en los cuatro: 5 comprobaciones en inspección
 y 6 en los demás, en verde con `headless.py`.
 
+**`t64` (6-oct-2026, v132): lo que pidió la Coordinación de inspección de Simón Bolívar.** Once comprobaciones en
+`inspeccion.html`: la casilla de % exacto solo en las filas de cinco estados (no en las de Sí / No); escribir 60 da 60 % con
+el mismo dato que los botones (100 proyectada, 60 ejecutada) y ningún botón encendido; tocar un botón pone su número en la
+casilla; vaciarla deja la fila sin marcar; 150 se recorta a 100; el rótulo dice «Sector» y las opciones nombran los
+sectores; en torre la ayuda de «Cerámica en paredes» no habla de la cocina y en apartamento sí (`body.amb-torre`);
+`_rutaDrive()` dice sector › Torres › torre › Informe; la casilla es solo de pantalla. **La lista v2.1** (ADR-0043) sube
+las cuentas: 91 subpartidas (`t52`), 51 filas de apartamento (`t31`, `t42`, `t47`), 57 de torre (`t47`), 9 en puertas (`t42`);
+el relevo falso (`relevo-falso.py`) devuelve la lista de 91. `t65relevo` (nueve comprobaciones) cubre el relevo r46:
+observaciones por hito, avance por piso, sin fila de convenio.
+
+**`t66` (6-oct-2026, v133): el modo oficina (PA-124, ADR-0044).** Diez comprobaciones en `inspeccion.html` con el relevo
+falso, que desde esta versión contesta `oficina-lista` y `oficina-abrir` con lo que recibió: en el teléfono (500 px) el panel
+no se ve y forzando `_ES_OFICINA` sí; un informe enviado «desde campo» aparece en la lista de la torre como Preliminar con su
+número; abrirlo carga el mismo número, el 50 % de frisos, la observación del hito, la general y la foto (que vuelve de
+IndexedDB, por eso se espera con `hasta`), marcado como abierto desde el archivo; en la lista local queda enviado, con la
+marca de oficina y las fotos aparte (no vacías); «Cerrar versión definitiva» deja `{por, fecha, desde}` y abre el envío de
+siempre; el reenvío dice que es la definitiva y la lista lo muestra como Definitiva, revisión 2, una sola vez; el relevo
+guardó la revisión 2 con la observación limpia y la misma foto; un informe nuevo no es definitivo.
+

@@ -5,6 +5,7 @@ class H(http.server.BaseHTTPRequestHandler):
     historial={}
     obra={}
     obraApto={}
+    oficina={}   # v133: lo archivado por número, con revisión, datos y fotos (modo oficina)
     def _ok(self,obj,code=200):
         b=json.dumps(obj,ensure_ascii=False).encode()
         self.send_response(code); self.send_header('Content-Type','application/json'); self.send_header('Access-Control-Allow-Origin','*')
@@ -20,7 +21,7 @@ class H(http.server.BaseHTTPRequestHandler):
         n=int(self.headers.get('Content-Length',0)); raw=self.rfile.read(n)
         if self.path.startswith('/control'):
             ESTADO.update(json.loads(raw or b'{}'))
-            if ESTADO.get('borrar'): H.historial.clear(); H.obra.clear(); H.obraApto.clear(); open(S+'/envios.jsonl','w').close(); ESTADO['borrar']=False
+            if ESTADO.get('borrar'): H.historial.clear(); H.obra.clear(); H.obraApto.clear(); H.oficina.clear(); open(S+'/envios.jsonl','w').close(); ESTADO['borrar']=False
             return self._ok({'ok':True,'estado':ESTADO})
         if ESTADO['caido']:
             self.close_connection=True; return
@@ -38,6 +39,18 @@ class H(http.server.BaseHTTPRequestHandler):
             todos=['%d.%02d'%(h,i) for h,n in enumerate([6,3,19,13,9,2,9,9,6,9,4],1) for i in range(1,n+1)]+['12.02','12.03']
             fuera={'8.03','8.04','4.10','4.11','5.04','5.05'}
             return self._ok({"ok":True,"contratista":"Alnavic (falso)","codigos":[c for c in todos if c not in fuera]})
+        if p.get('accion')=='oficina-lista':
+            # Como el relevo r47 (Oficina.gs): la última revisión de cada número de la torre.
+            l=[{"numero":k,"revision":v['rev'],"fecha":v['datos'].get('fecha',''),"piso":v['datos'].get('piso',''),"apto":v['datos'].get('apto',''),
+                "ambito":v['datos'].get('ambito',''),"inspectores":v['datos'].get('inspectores',[]),"estatus":v['datos'].get('estatus',[]),
+                "definitiva":v['datos'].get('definitiva'),"conObservacion":bool((v['datos'].get('obs_general') or '').strip()),"lista":v['datos'].get('lista','')}
+               for k,v in H.oficina.items() if v['datos'].get('torre')==p.get('torre') and not v.get('tipo')]
+            l.sort(key=lambda x:(x['fecha'],x['numero']),reverse=True)
+            return self._ok({"ok":True,"torre":p.get('torre'),"dias":p.get('dias',14),"informes":l})
+        if p.get('accion')=='oficina-abrir':
+            v=H.oficina.get(p.get('numero'))
+            if not v: return self._ok({"ok":False,"error":"No hay un informe archivado con el número "+str(p.get('numero'))})
+            return self._ok({"ok":True,"numero":p.get('numero'),"revision":v['rev'],"datos":v['datos'],"fotos":v['fotos']})
         if p.get('accion')=='historial' and p.get('tipo')=='obra':
             # Como el relevo r27: el último de ese apartamento (o de torre) y el último de un apartamento de la torre.
             b=(p.get('bloque') or 'TORRE').upper()
@@ -49,6 +62,9 @@ class H(http.server.BaseHTTPRequestHandler):
         if 'numero' not in p: return self._ok({"ok":True})
         if p['numero'] in ESTADO['fallar']: return self._ok({"ok":False,"error":"fallo simulado del relevo"})
         if p.get('datos'): H.historial[(p.get('tipo'),p['datos'].get('torre'))]=p['datos']
+        if p.get('datos'):
+            prev=H.oficina.get(p['numero']); rev=(prev['rev']+1) if prev else 1
+            H.oficina[p['numero']]={'rev':rev,'datos':p['datos'],'tipo':p.get('tipo'),'fotos':[{'nombre':x.get('nombre'),'dato':x.get('dato')} for x in (p.get('fotos') or []) if x and x.get('dato')]}
         d=p.get('datos') or {}
         if not p.get('tipo') and d.get('lista')=='v2':
             import re

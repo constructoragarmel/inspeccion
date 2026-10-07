@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: 9fa4f1d81b
+// Huella de la fuente: 6044087469
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -493,7 +493,8 @@ function _pdfIdentificacion(p, d) {
     ['Empresa ejecutora', d.empresa],
     ['Ingeniero(s) residente(s)', (d.residentes || []).join(' \u00b7 ')],
     ['Ingeniero(s) inspector(es)', (d.inspectores || []).join(' \u00b7 ')],
-    ['Estatus de la obra', (d.estatus || []).join(' \u00b7 ')]
+    ['Estatus de la obra', (d.estatus || []).join(' \u00b7 ')],
+    ['Versi\u00f3n', _versionDelInforme(d)]   // r47: preliminar (campo) o definitiva (cerrada en oficina)
   ];
   if (d.lista === 'v2') pares.push(['Medici\u00f3n', 'Lista v2: estado, S\u00ed/No, piezas y puntos contados, cantidades']);
   else if (d.medicion === 'propuesta') pares.push(['Medici\u00f3n', 'S\u00ed/No y % por subpartida, escritos por el inspector']);
@@ -1248,7 +1249,7 @@ function _pdfCamionesUrbanismo(it) {
            '<b>Camiones:</b> ' + lista + '<br>' + cuenta + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: '9fa4f1d81b',
+    huella: '6044087469',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];
