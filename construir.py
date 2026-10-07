@@ -8698,6 +8698,73 @@ s = sustituir(s, "  logEl.textContent = 'Enviando ' + datos.nro + '…\\n' +\n  
 s = sustituir(s, "      _marcarComoEnviado(datos.nro, datos.id);\n",
  "      _marcarComoEnviado(datos.nro, datos.id);\n      if (typeof _oficinaTrasEnvio === 'function') _oficinaTrasEnvio();\n", "169i· tras enviar, la lista de la oficina se refresca")
 
+
+# ═══ 170. El orden en pantalla del apartamento sigue la secuencia de obra (6-oct-2026, Coordinación SB) ═══
+# PA-121. Lo que mandó Diego Rosales y confirmó Diego Orta: que al inspeccionar no haya que buscar hitos y partidas. Es
+# SOLO pantalla, y solo en el informe de apartamento: los bloques de hito se colocan en la secuencia de obra (tabiquería →
+# instalaciones → accesorios sanitarios → accesorios eléctricos → puertas → ventanas → acabados → pruebas) y, dentro de
+# «Instalación de servicios» y de «Accesorios eléctricos», las filas se agrupan por disciplina con un rótulo (Sanitarias ·
+# Eléctricas · Gas · Voz y data). Los códigos, el dato que viaja, el PDF del relevo, Smartsheet y los pesos no cambian: las
+# filas se mueven en el DOM y conservan su id. En el informe de torre todo queda en el orden de la lista.
+s = sustituir(s, "const NOMBRE_SECTOR = {\n",
+ "// ── 170 · El orden en pantalla del apartamento (secuencia de obra) ──────────\n"
+ "const ORDEN_HITOS_APTO = ['hito_cerramientos', 'hito_servicios', 'hito_acc_sanitarios', 'hito_acc_electricos',\n"
+ "                          'hito_puertas', 'hito_ventanas', 'hito_acabados', 'hito_pruebas'];\n"
+ "// Dentro de un hito, las filas del apartamento por disciplina, con su rótulo. Lo que no esté aquí va después, en su orden.\n"
+ "const GRUPOS_PANTALLA = {\n"
+ "  hito_servicios: [['Sanitarias', ['3.01', '3.02', '3.20', '3.21']], ['Eléctricas', ['3.04', '3.07', '3.08', '3.03']], ['Gas', ['3.16', '3.17']]],\n"
+ "  hito_acc_electricos: [['Eléctricos', ['8.01', '8.02', '8.03', '8.06', '8.07', '8.09']], ['Voz y data', ['8.05', '8.04']]]\n"
+ "};\n"
+ "function _ordenarPantalla(){\n"
+ "  if (typeof PARTIDAS === 'undefined' || typeof CODIGOS_SUB === 'undefined') return;\n"
+ "  const main = document.getElementById('main-content'); if (!main) return;\n"
+ "  const esApto = (typeof ambito !== 'undefined' && ambito !== 'torre');\n"
+ "  // 1. Los bloques: en apartamento, la secuencia de obra; en torre, el orden de la lista.\n"
+ "  const orden = esApto ? ORDEN_HITOS_APTO.concat(PARTIDAS.map(p => p.id).filter(id => ORDEN_HITOS_APTO.indexOf(id) < 0)) : PARTIDAS.map(p => p.id);\n"
+ "  orden.forEach(function(id){ const b = document.getElementById('p_' + id); if (b && b.parentElement === main) main.appendChild(b); });\n"
+ "  // 2. Las filas, por disciplina, con su rótulo.\n"
+ "  PARTIDAS.forEach(function(p){\n"
+ "    const tb = document.getElementById('tbody_' + p.id); if (!tb) return;\n"
+ "    tb.querySelectorAll('tr.subgrupo').forEach(tr => tr.remove());\n"
+ "    const filaDe = i => document.getElementById('pr_' + p.id + '_' + i)?.closest('tr');\n"
+ "    const grupos = esApto ? GRUPOS_PANTALLA[p.id] : null;\n"
+ "    if (grupos) {\n"
+ "      const codigos = CODIGOS_SUB[p.id] || [], puestas = {};\n"
+ "      grupos.forEach(function(g){\n"
+ "        const filas = g[1].map(c => codigos.indexOf(c)).filter(i => i >= 0 && filaDe(i) && _aplica(p.id, i));\n"
+ "        if (!filas.length) return;\n"
+ "        const tr = document.createElement('tr'); tr.className = 'subgrupo';\n"
+ "        tr.innerHTML = '<td colspan=\"9\">' + g[0] + '</td>';\n"
+ "        tb.appendChild(tr);\n"
+ "        filas.forEach(function(i){ tb.appendChild(filaDe(i)); puestas[i] = true; });\n"
+ "      });\n"
+ "      p.items.forEach(function(_, i){ if (!puestas[i]) { const tr = filaDe(i); if (tr) tb.appendChild(tr); } });\n"
+ "    } else {\n"
+ "      p.items.forEach(function(_, i){ const tr = filaDe(i); if (tr) tb.appendChild(tr); });\n"
+ "    }\n"
+ "    // 3. Se numeran como se ven.\n"
+ "    let n = 0;\n"
+ "    tb.querySelectorAll('tr:not(.subgrupo)').forEach(function(tr){ const num = tr.querySelector('td.n'); if (num && tr.style.display !== 'none') num.textContent = String(++n); });\n"
+ "  });\n"
+ "}\n"
+ "const _setAmbitoBase170 = setAmbito;\n"
+ "setAmbito = function(){ const r = _setAmbitoBase170.apply(this, arguments); try { _ordenarPantalla(); } catch(e) { console.warn('orden en pantalla', e); } return r; };\n"
+ "const _initAppContentBase170 = initAppContent;\n"
+ "initAppContent = function(){ const r = _initAppContentBase170.apply(this, arguments); try { _ordenarPantalla(); } catch(e) { console.warn('orden en pantalla', e); } return r; };\n"
+ "\n"
+ "const NOMBRE_SECTOR = {\n",
+ "170a· el orden en pantalla")
+s = sustituir(s, ".ayuda-sub[hidden]{display:none}\n",
+ ".ayuda-sub[hidden]{display:none}\n"
+ "tr.subgrupo td{background:#eef0fb;color:#1a237e;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:6px 10px;border-top:2px solid #c5cae9;border-bottom:1px solid #c5cae9}\n",
+ "170b· el rótulo de disciplina")
+s = sustituir(s, "  .tbl-wrap td.n{",
+ "  .tbl-wrap tr.subgrupo{ margin:14px 0 6px!important; padding:0!important; border:none!important; box-shadow:none!important; background:transparent!important; }\n"
+ "  .tbl-wrap tr.subgrupo td{ display:block; padding:7px 12px!important; border-radius:8px; border:none!important; font-size:12px; }\n"
+ "  .tbl-wrap tr.subgrupo td::before{ content:none!important; }\n"
+ "  .tbl-wrap td.n{",
+ "170c· y en el teléfono, como una franja")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

@@ -423,6 +423,9 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   }
   .tbl-wrap td{ border:none!important; padding:0!important; text-align:left!important; }
   /* El número de la subpartida, como distintivo en la esquina. */
+  .tbl-wrap tr.subgrupo{ margin:14px 0 6px!important; padding:0!important; border:none!important; box-shadow:none!important; background:transparent!important; }
+  .tbl-wrap tr.subgrupo td{ display:block; padding:7px 12px!important; border-radius:8px; border:none!important; font-size:12px; }
+  .tbl-wrap tr.subgrupo td::before{ content:none!important; }
   .tbl-wrap td.n{
     position:absolute; top:9px; right:11px; width:auto!important;
     font-size:11px; color:#8a93a3; font-weight:800;
@@ -829,6 +832,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 .ayuda-btn.on{background:#1a237e;border-color:#1a237e;color:#fff}
 .ayuda-sub{margin-top:6px;padding:7px 10px;border-left:4px solid #9fa8da;background:#eef0fb;border-radius:4px;font-size:12.5px;line-height:1.35;font-weight:400;color:#1b2235;white-space:normal;text-align:left}
 .ayuda-sub[hidden]{display:none}
+tr.subgrupo td{background:#eef0fb;color:#1a237e;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:6px 10px;border-top:2px solid #c5cae9;border-bottom:1px solid #c5cae9}
 .oficina{margin:0 0 14px;border:2px solid #c5cae9;border-radius:12px;background:#f5f6fc;padding:12px 14px}
 .ofi-cab{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:13px;color:#1b2235;line-height:1.35}
 .ofi-btn{min-height:40px;padding:8px 14px;border-radius:10px;border:2px solid #1a237e;background:#1a237e;color:#fff;font-weight:700;cursor:pointer;font-size:13px}
@@ -1466,10 +1470,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v134';
+    el.textContent = '● en línea · v135';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v134 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v135 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2563,6 +2567,51 @@ function cerrarDefinitiva(por){
 }
 function _oficinaTrasEnvio(){ if (_ES_OFICINA && document.getElementById('ofi-lista').querySelector('table')) oficinaBuscar(); }
 if (document.readyState !== 'loading') setTimeout(_oficinaMostrar, 0); else document.addEventListener('DOMContentLoaded', _oficinaMostrar);
+
+// ── 170 · El orden en pantalla del apartamento (secuencia de obra) ──────────
+const ORDEN_HITOS_APTO = ['hito_cerramientos', 'hito_servicios', 'hito_acc_sanitarios', 'hito_acc_electricos',
+                          'hito_puertas', 'hito_ventanas', 'hito_acabados', 'hito_pruebas'];
+// Dentro de un hito, las filas del apartamento por disciplina, con su rótulo. Lo que no esté aquí va después, en su orden.
+const GRUPOS_PANTALLA = {
+  hito_servicios: [['Sanitarias', ['3.01', '3.02', '3.20', '3.21']], ['Eléctricas', ['3.04', '3.07', '3.08', '3.03']], ['Gas', ['3.16', '3.17']]],
+  hito_acc_electricos: [['Eléctricos', ['8.01', '8.02', '8.03', '8.06', '8.07', '8.09']], ['Voz y data', ['8.05', '8.04']]]
+};
+function _ordenarPantalla(){
+  if (typeof PARTIDAS === 'undefined' || typeof CODIGOS_SUB === 'undefined') return;
+  const main = document.getElementById('main-content'); if (!main) return;
+  const esApto = (typeof ambito !== 'undefined' && ambito !== 'torre');
+  // 1. Los bloques: en apartamento, la secuencia de obra; en torre, el orden de la lista.
+  const orden = esApto ? ORDEN_HITOS_APTO.concat(PARTIDAS.map(p => p.id).filter(id => ORDEN_HITOS_APTO.indexOf(id) < 0)) : PARTIDAS.map(p => p.id);
+  orden.forEach(function(id){ const b = document.getElementById('p_' + id); if (b && b.parentElement === main) main.appendChild(b); });
+  // 2. Las filas, por disciplina, con su rótulo.
+  PARTIDAS.forEach(function(p){
+    const tb = document.getElementById('tbody_' + p.id); if (!tb) return;
+    tb.querySelectorAll('tr.subgrupo').forEach(tr => tr.remove());
+    const filaDe = i => document.getElementById('pr_' + p.id + '_' + i)?.closest('tr');
+    const grupos = esApto ? GRUPOS_PANTALLA[p.id] : null;
+    if (grupos) {
+      const codigos = CODIGOS_SUB[p.id] || [], puestas = {};
+      grupos.forEach(function(g){
+        const filas = g[1].map(c => codigos.indexOf(c)).filter(i => i >= 0 && filaDe(i) && _aplica(p.id, i));
+        if (!filas.length) return;
+        const tr = document.createElement('tr'); tr.className = 'subgrupo';
+        tr.innerHTML = '<td colspan="9">' + g[0] + '</td>';
+        tb.appendChild(tr);
+        filas.forEach(function(i){ tb.appendChild(filaDe(i)); puestas[i] = true; });
+      });
+      p.items.forEach(function(_, i){ if (!puestas[i]) { const tr = filaDe(i); if (tr) tb.appendChild(tr); } });
+    } else {
+      p.items.forEach(function(_, i){ const tr = filaDe(i); if (tr) tb.appendChild(tr); });
+    }
+    // 3. Se numeran como se ven.
+    let n = 0;
+    tb.querySelectorAll('tr:not(.subgrupo)').forEach(function(tr){ const num = tr.querySelector('td.n'); if (num && tr.style.display !== 'none') num.textContent = String(++n); });
+  });
+}
+const _setAmbitoBase170 = setAmbito;
+setAmbito = function(){ const r = _setAmbitoBase170.apply(this, arguments); try { _ordenarPantalla(); } catch(e) { console.warn('orden en pantalla', e); } return r; };
+const _initAppContentBase170 = initAppContent;
+initAppContent = function(){ const r = _initAppContentBase170.apply(this, arguments); try { _ordenarPantalla(); } catch(e) { console.warn('orden en pantalla', e); } return r; };
 
 const NOMBRE_SECTOR = {
   'Convenio Bielorrusos': 'Ezequiel Zamora', 'Convenio Bielorusos': 'Ezequiel Zamora',

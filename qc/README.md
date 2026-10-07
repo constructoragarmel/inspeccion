@@ -477,3 +477,10 @@ marca de oficina y las fotos aparte (no vacías); «Cerrar versión definitiva»
 siempre; el reenvío dice que es la definitiva y la lista lo muestra como Definitiva, revisión 2, una sola vez; el relevo
 guardó la revisión 2 con la observación limpia y la misma foto; un informe nuevo no es definitivo.
 
+**`t67` (6-oct-2026, v135): el orden en pantalla del apartamento sigue la secuencia de obra (PA-121).** Siete comprobaciones en
+`inspeccion.html`: en apartamento los bloques visibles van tabiquería → instalaciones → accesorios sanitarios → accesorios
+eléctricos → puertas → ventanas → acabados → pruebas; «Instalación de servicios» agrupa por disciplina con rótulo (Sanitarias:
+aguas blancas, desagüe, CP, TR · Eléctricas · Gas) y los accesorios eléctricos separan Voz y data; la numeración sigue lo que se
+ve; lo marcado en el centro de piso se guarda en el índice de 3.20 (el dato no se mueve); en torre vuelve el orden de la lista sin
+rótulos; al abrir un borrador de apartamento vuelve la secuencia con el dato en su fila.
+
