@@ -295,7 +295,7 @@ body.ley-na-cerrada .ley-chip{display:inline-block}
       <div class="fotos" id="fotos-general"></div></div>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v141</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v142</div>
 </div>
 
 <div class="acciones">
@@ -1135,6 +1135,16 @@ function informeVacio(d){
          !(d.noInspeccionados || []).length && !(d.obs_general || '').trim() && !(d.actividades || '').trim() && !d.estatus;
 }
 
+// La huella de un informe: todo menos lo que cambia solo (la hora de guardado, las marcas de envío y las
+// imágenes, que viven en IndexedDB). Las claves van ordenadas: las fotos ya en Drive se guardan como
+// {pie, enDrive} y se leen como {enDrive, pie}.
+function _huellaInforme(x){
+  const ord = v => Array.isArray(v) ? v.map(ord)
+              : (v && typeof v === 'object') ? Object.keys(v).sort().reduce((o, k) => (o[k] = ord(v[k]), o), {})
+              : v;
+  const c = Object.assign({}, x); delete c.guardado; delete c.enviado; delete c.editadoTras; delete c.fotosDB;
+  return JSON.stringify(ord(c));
+}
 function guardar(avisar){
   const d = datosDelFormulario();
   idActual = d.id;
@@ -1157,6 +1167,13 @@ function guardar(avisar){
     // siguiente tanda lo reenviaba callada —sin fotos, que ya se soltaron— y
     // duplicaba su fila en Smartsheet.
     if (i >= 0 && lista[i].enviado){
+      // Si se abrió solo para verlo y no cambió nada, no se toca: ni «editado después», ni «Reenviar»,
+      // ni se queda fuera de «Borrar los enviados». Lo mismo que en inspección (v140, cambio 173).
+      if (_huellaInforme(lista[i]) === _huellaInforme(d)){
+        sucio = false;
+        if (avisar) alert('Este informe ya se envió y no cambió nada desde entonces: no hay nada que guardar.');
+        return true;
+      }
       d.enviado = lista[i].enviado;
       d.editadoTras = new Date().toLocaleString();
       // las fotos ya soltadas siguen soltadas: lo que se guarda es lo que hay

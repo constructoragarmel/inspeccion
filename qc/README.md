@@ -533,3 +533,13 @@ abre la revisión 2 y la cierra como definitiva con la fecha local.
   Tocarla no hacía nada (ya hay mediciones), pero confundía. `_copiarAplicar` la retira; `t69` suma la 3b (12 en total).
 - Las tandas viejas del botón «Inicio» (`t7a`, `t7c`, `t7d`) no corren sin ventana: son de navegador, en la página que
   dice cada una.
+
+**`t72` y `t73` (7-oct-2026, v142): coherencia entre los cuatro formularios.** Francisco vio que en la computadora el
+formulario de obra no tenía «🏠 Inicio» (los otros tres sí): `.hdr-inicio` estaba en `display:none` y solo lo encendía el
+media query del teléfono. Ahora sale siempre, a la derecha del título (`t72`, 3 comprobaciones, a 1280 y a 500 px). Y lo que
+la v140 hizo en inspección (reenviar sin cambios avisa) tenía su equivalente pendiente en el motor de servicios: `guardar`
+marcaba «editado después» a todo informe enviado que se guardara, aunque no cambiara nada, e «Inicio» guarda al salir; así
+que abrir uno solo para verlo lo dejaba con «🔁 Reenviar» y fuera de «Borrar los enviados». Ahora `guardar` compara la huella
+(`_huellaInforme`, claves ordenadas, sin hora de guardado ni marcas de envío) y no toca el informe si es igual (`t73`, 5
+comprobaciones en servicios, SHA y urbanismo). No se replican a los otros tres el modo oficina ni «copiar mediciones»: son
+decisiones de alcance, no detalles.

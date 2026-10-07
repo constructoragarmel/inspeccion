@@ -8367,7 +8367,9 @@ _css_165 = """
      Limpiar todo quedaban sin forma de llegar (5-oct-2026). El botón sale siempre que el grupo se esconde. */
   .hdr-btns .hbtn-mas{display:flex!important}
 }
-.hdr-inicio{display:none;align-items:center;gap:5px;min-height:44px;padding:0 12px;margin-left:auto;border:1.5px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-weight:700;white-space:nowrap}
+/* 174 · «Inicio» también en escritorio (7-oct-2026): estaba en display:none y solo lo encendía el media query del
+   teléfono; en la computadora el formulario de obra no tenía cómo volver al menú (los otros tres sí). */
+.hdr-inicio{display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:0 12px;margin-left:auto;border:1.5px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-weight:700;white-space:nowrap;cursor:pointer}
 @media print{.hdr-inicio{display:none!important}}
 </style>
 """.replace("@@CHICOS@@", ",\n  ".join(_chicos_165))
@@ -8388,7 +8390,7 @@ s = s.replace(_enviar_166, _lista_166.replace("      <button", "    <button", 1)
 s = s.replace(_inicio_166, _limpiar_166.replace("    <button", "      <button", 1), 1)
 cambios.append("166a· la barra: Guardar y siguiente · Informes · Enviar · Más")
 s = sustituir(s, '<div><h1 id="hdr-title">',
-              '<div style="display:flex;align-items:center;gap:10px"><button type="button" class="hdr-inicio solo-pantalla" onclick="irAlMenu()" '
+              '<div style="display:flex;align-items:center;gap:10px;flex:1 1 auto"><button type="button" class="hdr-inicio solo-pantalla" onclick="irAlMenu()" '
               'title="Guarda el informe y vuelve a la página que elige formulario" style="order:2">🏠 Inicio</button><div style="min-width:0"><h1 id="hdr-title">',
               "166b· «Inicio» arriba, a la vista")
 s = sustituir(s, '<p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>',
