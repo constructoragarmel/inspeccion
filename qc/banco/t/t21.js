@@ -96,8 +96,8 @@ await enviarAlRelevo();
 await esperar(800); await hasta(() => !/enviando/i.test(document.getElementById('sendLog').textContent), 20000);
 const env = (await Q.envios()).slice(-1)[0];
 const pd = env && env.datos && env.datos.partidas || {};
-ok('5 · Envío de torre: lista v2, 19 filas en servicios, obras preliminares al 50 %, contra incendio con 2 filas y las de apartamento fuera de ámbito',
-   env && env.datos.lista === 'v2' && env.datos.ambito === 'torre' && (pd.hito_servicios || []).length === 19 &&
+ok('5 · Envío de torre: lista v2, 21 filas en servicios (v134: con 3.20 y 3.21), obras preliminares al 50 %, contra incendio con 2 filas y las de apartamento fuera de ámbito',
+   env && env.datos.lista === 'v2' && env.datos.ambito === 'torre' && (pd.hito_servicios || []).length === 21 &&
    pd.hito_estructura && pd.hito_estructura[3].ej === '50' && (pd.hito_contra_incendio || []).length === 2 &&
    pd.hito_servicios[0].fueraDeAmbito === true &&
    !pd.hito_servicios[4].fueraDeAmbito,

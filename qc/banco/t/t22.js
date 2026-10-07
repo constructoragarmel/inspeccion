@@ -1,7 +1,8 @@
 // LISTA V2 · tanda 1 de 4 — PARTIDAS Y CÁLCULO (29-sep-2026), en inspeccion.html a 375×812.
 // Las cifras esperadas salen de comun/lista_v2.py calculadas aparte en Python, no del formulario:
 // apartamento 50 filas en 8 hitos (1 cantidad, 33 conteo, 13 estado, 3 sí/no);
-// torre 56 filas en 11 hitos (8 cantidad, 7 conteo, 35 estado, 6 sí/no).
+// torre 58 filas en 11 hitos (8 cantidad, 8 conteo, 36 estado, 6 sí/no).
+// (v134, 6-oct: el hito 3 suma 3.20 y 3.21 (centro de piso y tapón de registro); 7.06 y 7.07 retiradas.)
 // (v100, 30-sep: +4 de apartamento y +11 de torre, menos las 3 retiradas del hito 12.)
 localStorage.setItem('garmel_rol', 'inspector');
 const put = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -10,7 +11,7 @@ const visible = el => { if (!el) return false; for (let x = el; x && x !== docum
 const abrirTodo = () => document.querySelectorAll('.partida.collapsed').forEach(p => p.classList.remove('collapsed'));
 const tipo = (p, i) => _esSiNo(p, i) ? 'sino' : _esEstado(p, i) ? 'estado' : _esConteo(p, i) ? 'conteo' : 'cantidad';
 const esperado = { apartamento: { filas: 50, hitos: 8, cantidad: 1, conteo: 33, estado: 13, sino: 3 },
-                   torre:       { filas: 56, hitos: 11, cantidad: 8, conteo: 7, estado: 35, sino: 6 } };
+                   torre:       { filas: 58, hitos: 11, cantidad: 8, conteo: 8, estado: 36, sino: 6 } };
 
 // ── 1. Cada ámbito muestra exactamente sus filas ──
 let r1 = [], ok1 = true;
@@ -25,7 +26,7 @@ for (const amb of ['apartamento', 'torre']) {
   ok1 = ok1 && bien;
   r1.push(amb + ': ' + filas.length + ' filas/' + hitos + ' hitos ' + JSON.stringify(cuenta));
 }
-ok('1 · Cada ámbito muestra exactamente sus filas y tipos (50 en apartamento, 56 en torre)', ok1, r1.join(' | '));
+ok('1 · Cada ámbito muestra exactamente sus filas y tipos (50 en apartamento, 58 en torre)', ok1, r1.join(' | '));
 
 // ── 2. Cada tipo de fila tiene sus controles y no otros ──
 setAmbito('apartamento'); await esperar(200); abrirTodo();

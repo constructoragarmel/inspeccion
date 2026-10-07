@@ -1487,10 +1487,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v140';
+    el.textContent = '● en línea · v141';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v140 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v141 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -5556,6 +5556,9 @@ function _copiarAplicar(f, partidas){
   _copiaDe = { nro: f.nro, torre: f.torre, piso: f.piso || '', apto: f.apto || '', fecha: f.fecha || '' };
   if (typeof _uso !== 'undefined') _uso.anterior = 'copiado de ' + f.nro;
   if (caja) caja.innerHTML = '';
+  // QC del 7-oct (v141): la oferta de la visita anterior («¿Usar los totales de otro apartamento?») seguía en
+  // pantalla encima de las filas recién copiadas. Ya no corresponde: tocarla no haría nada (hay mediciones).
+  const ant = document.getElementById('aviso-anterior'); if (ant) { ant.innerHTML = ''; ant.dataset.clave = ''; }
   if (typeof _marcarCambio === 'function') _marcarCambio();
 }
 

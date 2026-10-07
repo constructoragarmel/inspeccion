@@ -219,6 +219,9 @@ function _copiarAplicar(f, partidas){
   _copiaDe = { nro: f.nro, torre: f.torre, piso: f.piso || '', apto: f.apto || '', fecha: f.fecha || '' };
   if (typeof _uso !== 'undefined') _uso.anterior = 'copiado de ' + f.nro;
   if (caja) caja.innerHTML = '';
+  // QC del 7-oct (v141): la oferta de la visita anterior («¿Usar los totales de otro apartamento?») seguía en
+  // pantalla encima de las filas recién copiadas. Ya no corresponde: tocarla no haría nada (hay mediciones).
+  const ant = document.getElementById('aviso-anterior'); if (ant) { ant.innerHTML = ''; ant.dataset.clave = ''; }
   if (typeof _marcarCambio === 'function') _marcarCambio();
 }
 

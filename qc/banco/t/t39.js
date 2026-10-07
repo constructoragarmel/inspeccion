@@ -44,8 +44,8 @@ const s56 = conv.value;
 await limpiar();
 sel('torre', 'T-07'); await esperar(150);
 const avisoZ = document.getElementById('aviso-zona');
-ok('4 · Sin sector: la T-56 pone Ezequiel Zamora; la T-07 avisa que está en dos sectores y deja elegir',
-   s56 === 'Convenio Bielorrusos' && avisoZ.style.display !== 'none' && /dos zonas/.test(avisoZ.textContent) && conv.value === '',
+ok('4 · Sin sector: la T-56 pone Convenio Bielorrusos; la T-07 avisa que está en dos sectores y deja elegir',
+   s56 === 'Convenio Bielorrusos' && avisoZ.style.display !== 'none' && /dos (zonas|sectores)/.test(avisoZ.textContent) && conv.value === '',   // v132: «zona» pasó a «sector»
    s56 + ' · ' + avisoZ.textContent.slice(0, 60));
 
 // ── 5. Un borrador de la T-07 de Simón Rodríguez se abre bien aunque en pantalla esté Ezequiel Zamora ──

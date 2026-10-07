@@ -509,3 +509,27 @@ rótulos; al abrir un borrador de apartamento vuelve la secuencia con el dato en
 virtual) la tanda no termina. En el navegador de prueba del 6-oct dio 9/10 a 1024 px (el «rojo» es la comprobación 1, que
 espera 500 px: ahí el panel se ve, que es lo correcto). Las otras nueve en verde, foto incluida.
 
+
+**QC end to end del 7-oct-2026 sobre la v140 → v141.** Lo que cambió entre el 6 y el 7-oct (v132 a v140) se recorrió a
+mano en el navegador integrado a 375 px y a 1280 px, y se corrió la regresión completa: sin ventana a 500 px, 25 tandas
+de inspección (`t21` a `t31`, `t35`, `t39`, `t42`, `t43`, `t47`, `t49`, `t50`, `t52`, `t56`, `t63`, `t64`, `t67`, `t68`,
+`t71`), 4 de servicios, 4 de SHA y 6 de urbanismo; en navegador, las que necesitan ventana (`t66`, `t69`, `t71`, `t62`,
+`t24`, `t32`, `t33` en obra; `t49b`, `t59`, `t61`, `t37` en urbanismo; `t54`, `t61`, `t38`, `t12` en SHA; `t61`, `t36` en
+servicios). Lo visto a mano: el botón «Instalar en el teléfono» del menú solo sale cuando llega `beforeinstallprompt`;
+«Sector» con los tres nombres y la T-43 en el desplegable; el orden de obra del apartamento con los rótulos Sanitarias ·
+Eléctricas · Gas · Voz y data; 3.20 y 3.21 debajo del desagüe y «Puertas de servicios» solo en torre; la casilla de %
+exacto en 13 filas de estado y en ninguna de Sí / No; copiar de otro apartamento (de este teléfono y del archivo), el
+bloqueo del envío sin confirmar, el toast «Quedó en Drive › sector › Torres › torre › Informe», el aviso del reenvío sin
+cambios con Cancelar; y el modo oficina: pide la torre, con el relevo caído dice que no hay conexión con la oficina,
+abre la revisión 2 y la cierra como definitiva con la fecha local.
+
+- **Cuatro rojos eran tandas atrasadas, no el formulario**: `t21` 5 y `t22` 1 contaban 19 y 56 filas (desde la v134 el
+  hito 3 tiene 21 y la torre 58); `t39` 4 buscaba «dos zonas» (desde la v132 el aviso dice «dos sectores»); y `t35` 18
+  escribía el 150 % en la primera casilla `.pct-man` del DOM, que en apartamento es una fila oculta de torre, y esa fila
+  quedaba en el borrador como `fueraDeAmbito` y la 18 la contaba como traíble. Las cuatro se ajustaron. `t49b` 3 de
+  urbanismo falló sin ventana por tiempos de la foto y pasó en navegador.
+- **Un detalle de verdad, arreglado en la v141**: al copiar las mediciones de otro apartamento, la oferta de la visita
+  anterior («¿Usar los totales de otro apartamento de esta torre?») seguía en pantalla encima de las filas copiadas.
+  Tocarla no hacía nada (ya hay mediciones), pero confundía. `_copiarAplicar` la retira; `t69` suma la 3b (12 en total).
+- Las tandas viejas del botón «Inicio» (`t7a`, `t7c`, `t7d`) no corren sin ventana: son de navegador, en la página que
+  dice cada una.

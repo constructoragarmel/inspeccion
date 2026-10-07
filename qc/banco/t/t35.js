@@ -34,7 +34,7 @@ ok('16 · Coma decimal: «12,5» → 12.5 y «6,25» → 6.25 (50 %); «1.2.3» 
 await limpiar(); setAmbito('apartamento'); cabecera('D1'); await esperar(900); document.querySelector('#aviso-anterior .no')?.click();
 const ej = document.getElementById('ej_hito_acc_electricos_0'), pr = document.getElementById('pr_hito_acc_electricos_0');
 teclear('pr_hito_acc_electricos_0', '8'); teclear('ej_hito_acc_electricos_0', '4');
-const pmMan = document.querySelector('input[id^="pm_hito_acabados"]') || document.querySelector('input.pct-man');
+const pmMan = [...document.querySelectorAll('input.pct-man')].find(e => e.offsetParent !== null);   // una casilla a la vista en apartamento (una oculta de torre sembraba una fila fuera de ámbito que la 18 contaba de más)
 const pmId = pmMan && pmMan.id; if (pmId) teclear(pmId, '150');
 const td = ej.closest('td'), desb = td.scrollWidth > td.clientWidth + 1;
 ok('17 · Conteo: «text» con teclado numérico, 4 de 8 = 50 %; un % escrito de 150 cuenta 100 %; la celda no se desborda',

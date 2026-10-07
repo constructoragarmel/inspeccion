@@ -1,6 +1,6 @@
 // TANDA 69 · V139 (7-oct-2026): copiar las mediciones de otro apartamento o de otra torre parecida. En inspeccion.html, contra el relevo falso.
 // 1 con torre, piso y apto y sin medir aparece el botón · 2 el panel lista el apartamento guardado en este teléfono · 3 copiar llena las filas y las marca «≈ Copiado de»
-// 4 el dato lleva copiadoDe y cada fila copiada también · 5 no se puede enviar con filas sin confirmar · 6 guardar y reabrir conserva las marcas
+// 3b al copiar se retira «¿Usar los totales…?» (v141) · 4 el dato lleva copiadoDe y cada fila copiada también · 5 no se puede enviar con filas sin confirmar · 6 guardar y reabrir conserva las marcas
 // 7 «Confirmado en sitio» quita la marca · 8 con todas confirmadas sí envía · 9 en torre, el panel ofrece la torre de la misma contratista · 11 las demás torres del sector solo al pedirlas · 10 un informe con mediciones no ofrece copiar
 localStorage.setItem('garmel_rol', 'inspector'); localStorage.setItem('garmel_clave_envio', 'qc'); localStorage.removeItem('garmel_reports_list');
 const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); e.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -27,6 +27,7 @@ ok('2 · El panel lista el apartamento guardado en este teléfono (T-01 · Piso 
 items[0].querySelector('button').click(); await esperar(600);
 const copiadas = document.querySelectorAll('tr.heredada.copiada').length, tag = document.querySelector('tr.heredada.copiada .heredada-tag');
 ok('3 · Copiar llena las tres filas y las marca «≈ Copiado de T-01 · Piso 02 apto A1» con «Confirmado en sitio»', copiadas === 3 && document.getElementById('pr_' + fila('hito_servicios', '3.01')).value === '6' && tag && /Copiado de T-01 · Piso 02 apto A1/.test(tag.textContent) && /Confirmado en sitio/.test(tag.querySelector('button').textContent), copiadas + ' · ' + (tag ? tag.textContent.trim() : ''));
+ok('3b · Al copiar se retira la oferta de la visita anterior («¿Usar los totales de otro apartamento?»), que ya no corresponde (v141)', !document.querySelector('#aviso-anterior .si'), (document.getElementById('aviso-anterior') || {}).innerText || 'vacía');
 const d4 = getFormData();
 ok('4 · El dato dice de dónde se copió, y cada fila copiada lleva el número de origen', d4.copiadoDe && /EZ-T01-P02AA1-261006/.test(d4.copiadoDe.nro) && d4.partidas.hito_servicios[CODIGOS_SUB.hito_servicios.indexOf('3.01')].copiadoDe === d4.copiadoDe.nro && d4.partidas.hito_servicios[CODIGOS_SUB.hito_servicios.indexOf('3.01')].heredado === true, JSON.stringify(d4.copiadoDe));
 completar(); Q.dialogos.length = 0; const antes5 = envios; await enviarAlRelevo(); await esperar(400); const al5 = Q.dialogos.filter(m => /no se han confirmado/.test(m));
