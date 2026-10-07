@@ -483,7 +483,13 @@ medido; el panel lista el apartamento guardado en el teléfono; copiar llena las
 con «Confirmado en sitio»; el dato lleva `copiadoDe` y cada fila copiada el número de origen; **no se puede enviar con filas
 copiadas sin confirmar** (avisa y no manda nada); guardar y reabrir conserva las marcas; confirmar quita la marca y la fila sigue
 contando como copiada; con todas confirmadas sí envía; en torre, el panel ofrece la torre de la misma contratista; con algo medido el
-botón no se ofrece. En el relevo, `t70relevo` (6) prueba la fila «Mediciones a partir de» del PDF y `Copiar.gs`.
+botón no se ofrece; y (v140, comprobación 11) las torres de otra contratista solo aparecen al tocar «Buscar también en las
+demás torres del sector», bajo su propio rótulo. En el relevo, `t70relevo` (6) prueba la fila «Mediciones a partir de» del PDF y `Copiar.gs`.
+
+**`t71` (7-oct-2026, v140): reenviar un informe ya enviado sin cambios avisa.** Tres comprobaciones en `inspeccion.html`: un informe
+nuevo se envía sin preguntar por cambios; reabierto sin tocar nada, Enviar avisa «no cambió nada desde entonces … revisión idéntica» y
+con Cancelar no manda nada; con un cambio no pregunta eso y envía la revisión. Lo pidió Diego en la reunión del 7-oct al abrir un
+informe en la computadora solo para verlo.
 
 **`t68` (7-oct-2026, v137): el desplegable de torre sale del maestro, no de la plantilla.** Seis comprobaciones en
 `inspeccion.html`. Lo vio Diego el 7-oct: la T-43 de Simón Rodríguez entró al maestro (`comun/maestros.py`) el 4-oct y la tabla

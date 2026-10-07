@@ -8814,6 +8814,21 @@ if LISTA_V2:
      "@media print{#copiar-de{display:none!important}}\n",
      "172c· estilo del botón, del panel y de la fila copiada")
 
+# ── 173. Reenviar sin cambios avisa ────────────────────────────────────────
+# Reunión del 7-oct-2026 (Diego Orta: «si me salgo de esta hoja, ¿queda registrado como una revisión?»).
+# El código vive en comun/reenvio_sin_cambios.js; va después del modo oficina (169) y de robustez (153).
+if LISTA_V2:
+    REENVIO_JS = open(os.path.join(RAIZ, "comun", "reenvio_sin_cambios.js"), encoding="utf-8").read()
+    s = sustituir(s,
+     "if ('serviceWorker' in navigator) {",
+     REENVIO_JS + "\nif ('serviceWorker' in navigator) {",
+     "173 · reenviar un informe abierto sin cambios avisa y ofrece no enviar")
+    s = sustituir(s, ".copiar-panel .cerrar{",
+     ".copiar-panel .sector{display:block;width:100%;margin-top:8px;min-height:44px;border:1.5px solid #8f4b00;border-radius:8px;background:#fff;color:#8f4b00;font-weight:700;padding:0 12px;font-size:13px;cursor:pointer}\n"
+     ".copiar-panel .sector:disabled{opacity:.6}\n"
+     ".copiar-panel .cerrar{",
+     "173b· el botón de buscar en el sector")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

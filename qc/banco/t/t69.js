@@ -1,7 +1,7 @@
 // TANDA 69 · V139 (7-oct-2026): copiar las mediciones de otro apartamento o de otra torre parecida. En inspeccion.html, contra el relevo falso.
 // 1 con torre, piso y apto y sin medir aparece el botón · 2 el panel lista el apartamento guardado en este teléfono · 3 copiar llena las filas y las marca «≈ Copiado de»
 // 4 el dato lleva copiadoDe y cada fila copiada también · 5 no se puede enviar con filas sin confirmar · 6 guardar y reabrir conserva las marcas
-// 7 «Confirmado en sitio» quita la marca · 8 con todas confirmadas sí envía · 9 en torre, el panel ofrece la torre de la misma contratista · 10 un informe con mediciones no ofrece copiar
+// 7 «Confirmado en sitio» quita la marca · 8 con todas confirmadas sí envía · 9 en torre, el panel ofrece la torre de la misma contratista · 11 las demás torres del sector solo al pedirlas · 10 un informe con mediciones no ofrece copiar
 localStorage.setItem('garmel_rol', 'inspector'); localStorage.setItem('garmel_clave_envio', 'qc'); localStorage.removeItem('garmel_reports_list');
 const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); e.dispatchEvent(new Event('input', { bubbles: true })); };
 const put = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -49,6 +49,20 @@ sel('fecha', '2026-10-07'); sel('convenio', 'Convenio Bielorrusos'); sel('torre'
 const btn9 = document.getElementById('btn-copiar-de'); if (btn9) { btn9.click(); await esperar(1500); }
 const grupos = [...document.querySelectorAll('#copiar-de .g')].map(g => g.textContent), items9 = [...document.querySelectorAll('#copiar-de .f')];
 ok('9 · En torre, el panel ofrece el informe de la T-02 bajo «torres de la misma contratista»', !!btn9 && grupos.some(g => /misma contratista.*T-02/.test(g)) && items9.some(x => /T-02 · torre/.test(x.textContent)), grupos.join(' | ') + ' · ' + items9.map(x => x.textContent.trim().slice(0, 40)).join(' | '));
+// Otra contratista del mismo sector: la T-07 (Alnavic). Un informe de torre de T-07 solo aparece al pedir «las demás torres del sector».
+const bsec = document.querySelector('#copiar-de .sector');
+const antes11 = [...document.querySelectorAll('#copiar-de .f')].some(x => /T-07/.test(x.textContent));
+document.querySelector('#copiar-de .cerrar').click(); await esperar(200);
+nuevoFormulario(); await esperar(300); setAmbito('torre'); await esperar(200);
+sel('fecha', '2026-10-06'); sel('convenio', 'Convenio Bielorrusos'); sel('torre', 'T-07'); await esperar(1200); if (cajaAnt) cajaAnt.innerHTML = '';
+mide(fila('hito_estructura', '1.01'), '500', '100'); saveDraft(true); await esperar(300);
+nuevoFormulario(); await esperar(300); setAmbito('torre'); await esperar(200);
+sel('fecha', '2026-10-07'); sel('convenio', 'Convenio Bielorrusos'); sel('torre', 'T-01'); await esperar(1400);
+document.getElementById('btn-copiar-de').click(); await esperar(1500);
+const sinSector = [...document.querySelectorAll('#copiar-de .f')].some(x => /T-07/.test(x.textContent));
+const bs11 = document.querySelector('#copiar-de .sector'), txt11 = bs11 ? bs11.textContent : ''; if (bs11) { bs11.click(); await esperar(2500); }
+const grupos11 = [...document.querySelectorAll('#copiar-de .g')].map(g => g.textContent), conSector = [...document.querySelectorAll('#copiar-de .f')].some(x => /T-07 · torre/.test(x.textContent));
+ok('11 · La T-07 (otra contratista) no sale de entrada; con «Buscar también en las demás torres del sector» aparece bajo «otras torres del sector»', !!bsec && !antes11 && !sinSector && !!bs11 && /demás torres del sector \(\d+\)/.test(txt11) && grupos11.some(g => /otras torres del sector/.test(g)) && conSector, txt11 + ' · antes ' + sinSector + ' · después ' + conSector + ' · ' + grupos11.join(' | '));
 document.querySelector('#copiar-de .cerrar').click(); await esperar(200);
 mide(fila('hito_estructura', '1.01'), '900', '100'); await esperar(1000);
 ok('10 · Con algo medido el botón no se ofrece', !document.getElementById('btn-copiar-de'), document.getElementById('copiar-de').innerHTML.slice(0, 60));

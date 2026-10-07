@@ -35,6 +35,27 @@ function _copiarTorresCandidatas(){
   return out;
 }
 
+// Todas las torres del mismo sector (convenio), para la búsqueda ampliada (Diego, 7-oct: «en Ezequiel Zamora son
+// todas prácticamente la misma»). Se pide aparte porque recorre muchas carpetas del archivo.
+function _copiarTorresDelSector(){
+  const conv = (document.getElementById('convenio') || {}).value || '', out = [];
+  TORRES.forEach(function(x){ if (_copiarClaveTexto(x.c) === _copiarClaveTexto(conv) && out.indexOf(x.t) < 0) out.push(x.t); });
+  return out;
+}
+
+// Al archivo se le piden las torres de seis en seis, en paralelo: una sola consulta con 33 torres tardaría más de lo que
+// espera el teléfono.
+async function _copiarPedirFuentes(torres){
+  const grupos = [];
+  for (let i = 0; i < torres.length; i += 6) grupos.push(torres.slice(i, i + 6));
+  const rs = await Promise.all(grupos.map(function(g){
+    return _copiarPedir({ accion: 'copiar-fuentes', torres: g, ambito: ambito, vista: (typeof vista !== 'undefined') ? (vista || '') : '', dias: 14 });
+  }));
+  const fuentes = []; let error = '';
+  rs.forEach(function(r){ if (r.ok) (r.fuentes || []).forEach(function(f){ fuentes.push(f); }); else if (!error) error = r.error; });
+  return { ok: !error || fuentes.length > 0, error: error, fuentes: fuentes };
+}
+
 function _copiarFilasMedidas(partidas){
   let n = 0;
   Object.keys(partidas || {}).forEach(function(pid){
@@ -119,12 +140,9 @@ async function _copiarAbrirPanel(){
   caja.querySelector('.cerrar').onclick = function(){ caja.innerHTML = ''; _copiarPintarBoton(); };
 
   const locales = _copiarFuentesLocales(torres);
-  const r = await _copiarPedir({ accion: 'copiar-fuentes', torres: torres, ambito: ambito, vista: (typeof vista !== 'undefined') ? (vista || '') : '', dias: 14 });
+  const r = await _copiarPedirFuentes(torres);
   if (!caja.querySelector('.copiar-panel')) return;   // se cerró mientras buscaba
-  const vistos = {}; const fuentes = [];
-  locales.forEach(function(f){ vistos[f.nro] = true; fuentes.push(f); });
-  ((r.ok && r.fuentes) || []).forEach(function(f){ if (!vistos[f.nro]) { f.origen = 'archivo'; fuentes.push(f); } });
-  fuentes.sort(function(a, b){ return a.fecha < b.fecha ? 1 : (a.fecha > b.fecha ? -1 : 0); });
+  const fuentes = _copiarJuntar(locales, r.fuentes);
 
   const lista = caja.querySelector('.lista');
   lista.innerHTML = '';
@@ -134,22 +152,49 @@ async function _copiarAbrirPanel(){
     p.textContent = 'No hay informes de ' + (ambito === 'torre' ? 'torre' : 'apartamento') + ' de los últimos 14 días en ' +
       (torres.length > 1 ? torres.join(', ') : t) + '.';
     lista.appendChild(p);
-    return;
   }
-  const grupos = [['De esta torre (' + t + ')', fuentes.filter(function(f){ return f.torre === t; })],
-                  ['De torres de la misma contratista (' + torres.slice(1).join(', ') + ')', fuentes.filter(function(f){ return f.torre !== t; })]];
-  grupos.forEach(function(g){
-    if (!g[1].length) return;
-    const h = document.createElement('div'); h.className = 'g'; h.textContent = g[0]; lista.appendChild(h);
-    g[1].forEach(function(f){
-      const fila = document.createElement('div'); fila.className = 'f';
-      const d = document.createElement('div'); d.className = 'd';
-      d.textContent = _copiarEtiqueta(f);
-      const s = document.createElement('small'); s.textContent = (f.fecha || 'sin fecha') + ' · ' + f.filas + ' filas medidas · ' + (f.origen || 'archivo'); d.appendChild(s);
-      const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Copiar';
-      b.onclick = function(){ _copiarElegir(f, b); };
-      fila.appendChild(d); fila.appendChild(b); lista.appendChild(fila);
-    });
+  _copiarPintarGrupo(lista, 'De esta torre (' + t + ')', fuentes.filter(function(f){ return f.torre === t; }));
+  _copiarPintarGrupo(lista, 'De torres de la misma contratista (' + torres.slice(1).join(', ') + ')', fuentes.filter(function(f){ return f.torre !== t; }));
+
+  // Las demás torres del sector, solo si se piden: son muchas carpetas.
+  const resto = _copiarTorresDelSector().filter(function(x){ return torres.indexOf(x) < 0; });
+  if (resto.length) {
+    const bs = document.createElement('button'); bs.type = 'button'; bs.className = 'sector';
+    bs.textContent = 'Buscar también en las demás torres del sector (' + resto.length + ')';
+    bs.onclick = async function(){
+      bs.disabled = true; bs.textContent = '⏳ Buscando en ' + resto.length + ' torres…';
+      const loc2 = _copiarFuentesLocales(resto);
+      const r2 = await _copiarPedirFuentes(resto);
+      if (!caja.querySelector('.copiar-panel')) return;
+      const f2 = _copiarJuntar(loc2, r2.fuentes);
+      bs.remove();
+      if (!r2.ok) { const p = document.createElement('p'); p.className = 's'; p.textContent = '⚠️ ' + r2.error; lista.appendChild(p); }
+      if (!f2.length) { const p = document.createElement('p'); p.className = 's'; p.textContent = 'En las demás torres del sector no hay informes de ' + (ambito === 'torre' ? 'torre' : 'apartamento') + ' de los últimos 14 días.'; lista.appendChild(p); return; }
+      _copiarPintarGrupo(lista, 'De otras torres del sector', f2);
+    };
+    lista.appendChild(bs);
+  }
+}
+
+function _copiarJuntar(locales, delArchivo){
+  const vistos = {}; const fuentes = [];
+  (locales || []).forEach(function(f){ vistos[f.nro] = true; fuentes.push(f); });
+  (delArchivo || []).forEach(function(f){ if (!vistos[f.nro]) { f.origen = 'archivo'; vistos[f.nro] = true; fuentes.push(f); } });
+  fuentes.sort(function(a, b){ return a.fecha < b.fecha ? 1 : (a.fecha > b.fecha ? -1 : 0); });
+  return fuentes;
+}
+
+function _copiarPintarGrupo(lista, titulo, fuentes){
+  if (!fuentes.length) return;
+  const h = document.createElement('div'); h.className = 'g'; h.textContent = titulo; lista.appendChild(h);
+  fuentes.forEach(function(f){
+    const fila = document.createElement('div'); fila.className = 'f';
+    const d = document.createElement('div'); d.className = 'd';
+    d.textContent = _copiarEtiqueta(f);
+    const s = document.createElement('small'); s.textContent = (f.fecha || 'sin fecha') + ' · ' + f.filas + ' filas medidas · ' + (f.origen || 'archivo'); d.appendChild(s);
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Copiar';
+    b.onclick = function(){ _copiarElegir(f, b); };
+    fila.appendChild(d); fila.appendChild(b); lista.appendChild(fila);
   });
 }
 
