@@ -33,10 +33,10 @@ class H(http.server.BaseHTTPRequestHandler):
             if p.get('torre')=='T-56':
                 # v100 (30-sep): la lista con las 13 nuevas y el hito 12 con 12.02 y 12.03; como un presupuesto
                 # sin calentadores ni preliminares (t43).
-                todos=['%d.%02d'%(h,i) for h,n in enumerate([6,3,19,13,9,2,9,9,6,9,4],1) for i in range(1,n+1)]+['12.02','12.03']
+                todos=[c for c in ['%d.%02d'%(h,i) for h,n in enumerate([6,3,21,13,9,2,9,9,6,9,4],1) for i in range(1,n+1)] if c not in ('7.06','7.07')]+['12.02','12.03']   # v134: 7.06 y 7.07 retiradas (CP y TR pasaron a 3.20 y 3.21)
                 return self._ok({"ok":True,"contratista":"Tepuy (falso)","codigos":[c for c in todos if c not in ('1.04','7.08','7.09')]})
-            # La lista de la v131 (6-oct-2026): 91 vivas, con 5.09 y 10.09. Antes, la de la v100 (89) y la de 79.
-            todos=['%d.%02d'%(h,i) for h,n in enumerate([6,3,19,13,9,2,9,9,6,9,4],1) for i in range(1,n+1)]+['12.02','12.03']
+            # La lista de la v134 (6-oct-2026): 91 vivas, con 5.09, 10.09 y CP/TR en el hito 3 (3.20, 3.21). Antes, la de la v100 (89) y la de 79.
+            todos=[c for c in ['%d.%02d'%(h,i) for h,n in enumerate([6,3,21,13,9,2,9,9,6,9,4],1) for i in range(1,n+1)] if c not in ('7.06','7.07')]+['12.02','12.03']   # v134: 7.06 y 7.07 retiradas (CP y TR pasaron a 3.20 y 3.21)
             fuera={'8.03','8.04','4.10','4.11','5.04','5.05'}
             return self._ok({"ok":True,"contratista":"Alnavic (falso)","codigos":[c for c in todos if c not in fuera]})
         if p.get('accion')=='oficina-lista':

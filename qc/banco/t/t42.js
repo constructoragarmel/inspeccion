@@ -37,7 +37,7 @@ const doce = vT.filter(c => /^12\./.test(c));
 const nombres12 = (PARTIDAS.find(p => p.id === 'hito_contra_incendio') || {}).items || [];
 ok('1 · Torre: las 11 nuevas a la vista, las de solo apartamento no, y el hito 12 con gabinetes y extintores (12.02 y 12.03)',
    nuevasT.every(c => vT.indexOf(c) >= 0) && vT.indexOf('5.08') < 0 && vT.indexOf('7.09') < 0 &&
-   doce.join(',') === '12.02,12.03' && nombres12.join('|') === 'Gabinetes de manguera|Extintores' && vT.length === 57,
+   doce.join(',') === '12.02,12.03' && nombres12.join('|') === 'Gabinetes de manguera|Extintores' && vT.length === 58,
    vT.length + ' filas · nuevas que faltan: ' + nuevasT.filter(c => vT.indexOf(c) < 0).join(',') + ' · hito 12: ' + doce.join(',') + ' (' + nombres12.join(', ') + ')');
 
 // ── 2. Apartamento ──
@@ -45,7 +45,7 @@ setAmbito('apartamento'); await esperar(200);
 const vA = visibles();
 ok('2 · Apartamento: piso de cemento, carpintería metálica, instalación de calentadores y de extractores; nada de lo de torre',
    ['4.13', '5.08', '7.09', '8.09'].every(c => vA.indexOf(c) >= 0) && ['1.04', '5.07', '7.08', '9.05', '10.08'].every(c => vA.indexOf(c) < 0) &&
-   vA.length === 51, vA.length + ' filas · ' + ['4.13', '5.08', '7.09', '8.09'].map(c => c + (vA.indexOf(c) >= 0 ? '✓' : '✗')).join(' '));
+   vA.length === 50, vA.length + ' filas · ' + ['4.13', '5.08', '7.09', '8.09'].map(c => c + (vA.indexOf(c) >= 0 ? '✓' : '✗')).join(' '));
 
 // ── 3. Ascensor ──
 setAmbito('torre'); await esperar(200);

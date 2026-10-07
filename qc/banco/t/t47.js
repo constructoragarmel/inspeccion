@@ -55,8 +55,8 @@ ok('4 · Obras preliminares 100 % y escaleras (suministro) 50 %: el hito da 75 %
 setAmbito('torre'); await esperar(200);
 const v5 = visibles(), n5 = nro(), p5 = pct('hito_estructura_4');
 setAmbito('estructura'); await esperar(200);
-ok('5 · «Torre completa» sigue igual: 57 filas con estructura adentro, sin ESTR en el número y con lo medido; al volver a «Estructura» sigue ahí',
-   v5.length === 57 && v5.indexOf('1.02') >= 0 && n5 === 'PRUEBA-EZ-T07-261001-CJ' && p5 === '50%' && marcado('btnAmbEstr') &&
+ok('5 · «Torre completa» sigue igual: 58 filas con estructura adentro, sin ESTR en el número y con lo medido; al volver a «Estructura» sigue ahí',
+   v5.length === 58 && v5.indexOf('1.02') >= 0 && n5 === 'PRUEBA-EZ-T07-261001-CJ' && p5 === '50%' && marcado('btnAmbEstr') &&
    visibles().length === 6 && pct('hito_estructura_4') === '50%', v5.length + ' filas · ' + n5 + ' · escaleras ' + p5);
 
 // ── 6. A apartamento y de vuelta ──
@@ -65,8 +65,8 @@ const n6 = nro(), v6 = visibles().length;
 setAmbito('estructura'); await esperar(200);
 const n6b = nro();
 setAmbito('apartamento'); await esperar(200);
-ok('6 · De apartamento a estructura y de vuelta: 51 filas de apartamento, el piso y el apartamento se conservan',
-   v6 === 51 && /-P03AA-/.test(n6) && /-ESTR-/.test(n6b) && document.getElementById('piso').value === 'Piso 03' && document.getElementById('apto').value === 'A' && /-P03AA-/.test(nro()),
+ok('6 · De apartamento a estructura y de vuelta: 50 filas de apartamento, el piso y el apartamento se conservan',
+   v6 === 50 && /-P03AA-/.test(n6) && /-ESTR-/.test(n6b) && document.getElementById('piso').value === 'Piso 03' && document.getElementById('apto').value === 'A' && /-P03AA-/.test(nro()),
    v6 + ' filas · ' + n6 + ' → ' + n6b + ' → ' + nro());
 
 // ── 7. El borrador ──
@@ -78,7 +78,7 @@ setAmbito('apartamento'); await esperar(200);
 const limpio = visibles().length;
 loadDraftData(0); await esperar(500);
 ok('7 · El borrador guarda la vista y reabre en «Estructura» aunque el formulario esté en otro ámbito; un formulario nuevo se queda en «Estructura»',
-   guardado.vista === 'estructura' && guardado.ambito === 'torre' && sigue && limpio === 51 && marcado('btnAmbEstr') && visibles().length === 6 &&
+   guardado.vista === 'estructura' && guardado.ambito === 'torre' && sigue && limpio === 50 && marcado('btnAmbEstr') && visibles().length === 6 &&
    /-ESTR-/.test(nro()) && pct('hito_estructura_3') === '100%', 'guardado: ' + guardado.ambito + '/' + guardado.vista + ' · reabierto ' + visibles().length + ' filas · ' + nro());
 
 // ── 8. El envío ──

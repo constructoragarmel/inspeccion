@@ -30,7 +30,7 @@ sel('fecha', '2026-10-02'); sel('convenio', 'Convenio Bielorrusos'); sel('torre'
 const ap = delAmbito(), malAp = ap.filter(r => !btn(r) || !caja(r) || !caja(r).hidden || getComputedStyle(caja(r)).display !== 'none');
 setAmbito('torre'); await esperar(200); abrirTodo(); await esperar(300);
 const to = delAmbito(), malTo = to.filter(r => !btn(r) || !caja(r) || !caja(r).hidden);
-ok('2 · Cada fila a la vista, en apartamento y en torre, trae su «?» con la ayuda cerrada', ap.length === 51 && malAp.length === 0 && to.length > 30 && malTo.length === 0,
+ok('2 · Cada fila a la vista, en apartamento y en torre, trae su «?» con la ayuda cerrada', ap.length === 50 && malAp.length === 0 && to.length > 30 && malTo.length === 0,
    'apartamento ' + ap.length + ' filas, mal ' + malAp.length + ' · torre ' + to.length + ' filas, mal ' + malTo.length);
 
 // ── 3 y 4 ──
