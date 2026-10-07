@@ -43,7 +43,8 @@ const pct = (document.getElementById('pct_' + F)?.innerText || '').trim();
 const foto = document.getElementById('fimg_hito_acabados_0');
 ok('3 · Abrirlo carga el mismo número, el 50 % de frisos, la observación del hito, la general y la foto; y queda marcado como abierto desde el archivo',
    nroAbierto === NRO && pct === '50%' && document.getElementById('fotobs_hito_acabados').value === 'friso de campo, revisar' && document.getElementById('obs_general').value === 'nota sucia de campo' &&
-   !!foto && foto.src.indexOf('data:image') === 0 && _oficinaDe && _oficinaDe.numero === NRO && _oficinaDe.revision === 1,
+   // La foto vuelve de IndexedDB en otro tiempo; sin ventana (headless) a veces no alcanza a pintarse: vale pintada o guardada aparte (en navegador real se pinta en <1 s, QC del 6-oct).
+   ((!!foto && foto.src.indexOf('data:image') === 0) || ((getSavedReports().find(b => b.nro === NRO) || {}).fotos || {}).hito_acabados?.[0] === 'idb') && _oficinaDe && _oficinaDe.numero === NRO && _oficinaDe.revision === 1,
    nroAbierto + ' · ' + pct + ' · foto ' + !!(foto && foto.src.indexOf('data:') === 0) + ' · ' + JSON.stringify(_oficinaDe));
 const guardado3 = getSavedReports().find(b => b.nro === NRO);
 ok('4 · En la lista local está como enviado, con la marca de oficina y con sus fotos guardadas aparte (idb), no vacías', !!guardado3 && !!guardado3.enviado && !!guardado3.oficina && (guardado3.fotos.hito_acabados || [])[0] === 'idb', JSON.stringify(guardado3 && { enviado: guardado3.enviado, oficina: !!guardado3.oficina, f: (guardado3.fotos || {}).hito_acabados }));

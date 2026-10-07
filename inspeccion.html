@@ -1470,10 +1470,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v135';
+    el.textContent = '● en línea · v136';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v135 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v136 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2487,18 +2487,20 @@ async function _oficinaPedir(cuerpo){
   const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                                       body: JSON.stringify(Object.assign({ clave: clave }, cuerpo)) });
   const j = await r.json();
-  if (!j || !j.ok) throw new Error((j && j.error) || 'El relevo no respondió');
+  if (!j || !j.ok) throw new Error((j && j.error) || 'La oficina (relevo) no respondió');
   return j;
 }
+// Un fallo de red llega como «Failed to fetch»: se dice en cristiano y con qué hacer.
+function _ofiMensaje(e){ const m = String((e && e.message) || e || ''); return /fetch|network|NetworkError|Load failed/i.test(m) ? 'No hay conexión con la oficina (relevo). Revise la señal o el internet e intente de nuevo.' : m; }
 async function oficinaBuscar(){
   const torre = getTorreActual(), sector = getSectorActual(), caja = document.getElementById('ofi-lista'), btn = document.getElementById('ofi-buscar');
-  if (!torre) { caja.innerHTML = '<p class="ofi-aviso">Elija primero la torre, arriba en «Identificación del proyecto».</p>'; return; }
+  if (!torre || torre === '—' || torre === '-') { caja.innerHTML = '<p class="ofi-aviso">Elija primero la torre, abajo en «Identificación del proyecto», y vuelva a buscar.</p>'; return; }
   caja.innerHTML = '<p class="ofi-aviso">⏳ Buscando los informes de ' + _ofiEsc(torre) + ' de los últimos 14 días…</p>';
   if (btn) btn.disabled = true;
   try {
     const r = await _oficinaPedir({ accion: 'oficina-lista', sector: sector, torre: torre, dias: 14, pruebas: !!TEST_MODE });
     _oficinaPintar(r.informes || [], torre);
-  } catch (e) { caja.innerHTML = '<p class="ofi-aviso">❌ No se pudo: ' + _ofiEsc(e.message) + '</p>'; }
+  } catch (e) { caja.innerHTML = '<p class="ofi-aviso">❌ No se pudo: ' + _ofiEsc(_ofiMensaje(e)) + '</p>'; }
   finally { if (btn) btn.disabled = false; }
 }
 function _oficinaPintar(lista, torre){
@@ -2541,7 +2543,7 @@ async function oficinaAbrir(numero){
     _oficinaEstado();
     aviso.textContent = '✅ ' + numero + ' abierto: ' + (r.fotos || []).length + ' fotografía(s). Revise, complete y cierre la versión definitiva.';
     document.getElementById('ofi-estado').scrollIntoView({ block: 'center', behavior: 'smooth' });
-  } catch (e) { aviso.textContent = '❌ No se pudo abrir ' + numero + ': ' + e.message; }
+  } catch (e) { aviso.textContent = '❌ No se pudo abrir ' + numero + ': ' + _ofiMensaje(e); }
 }
 function _oficinaEstado(){
   const e = document.getElementById('ofi-estado'); if (!e) return;
@@ -2558,7 +2560,8 @@ function cerrarDefinitiva(por){
   if (por === null) return false;
   por = String(por).trim();
   if (!por) { alert('Hace falta el nombre de quien cierra la versión definitiva.'); return false; }
-  _definitiva = { por: por, fecha: new Date().toISOString().slice(0, 10),
+  const _hoy = new Date(); const _f = _hoy.getFullYear() + '-' + String(_hoy.getMonth() + 1).padStart(2, '0') + '-' + String(_hoy.getDate()).padStart(2, '0');   // fecha local, no UTC
+  _definitiva = { por: por, fecha: _f,
                   desde: _oficinaDe ? _oficinaDe.numero + (_oficinaDe.revision > 1 ? '-r' + _oficinaDe.revision : '') : '' };
   try { saveDraft(true); } catch(e) {}
   _oficinaEstado();

@@ -484,3 +484,7 @@ aguas blancas, desagüe, CP, TR · Eléctricas · Gas) y los accesorios eléctri
 ve; lo marcado en el centro de piso se guarda en el índice de 3.20 (el dato no se mueve); en torre vuelve el orden de la lista sin
 rótulos; al abrir un borrador de apartamento vuelve la secuencia con el dato en su fila.
 
+**`t66` se corre en navegador real**, como `t59` #9, `t61` y `t62` #6: las fotos vuelven de IndexedDB y sin ventana (tiempo
+virtual) la tanda no termina. En el navegador de prueba del 6-oct dio 9/10 a 1024 px (el «rojo» es la comprobación 1, que
+espera 500 px: ahí el panel se ve, que es lo correcto). Las otras nueve en verde, foto incluida.
+
