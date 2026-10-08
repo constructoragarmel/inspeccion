@@ -1,6 +1,8 @@
 // QC del r51 (8-oct-2026): el recuadro del PDF trae dos totales con nombre, avance físico y avance del contrato. Se corre con headless-relevo.py y "Particion.gs,Copiar.gs,Oficina.gs".
+// Desde el r52 (ADR-0048) ese recuadro está APAGADO con PDF_SIN_CUENTAS: esta tanda lo enciende para probar el código dormido y lo vuelve a apagar. Lo que se ve hoy lo prueba t77relevo.
 (function () {
   var R = [], ok = function (n, c, d) { R.push((c ? '✅ ' : '❌ ') + n + ' — ' + d); };
+  var _sinCuentasAntes = (typeof PDF_SIN_CUENTAS !== 'undefined') ? PDF_SIN_CUENTAS : undefined; if (_sinCuentasAntes !== undefined) PDF_SIN_CUENTAS = false;
   window.Logger = { log: function () {} };
   var fila = function (pr, ej, ev) { return { pr: pr, ej: ej, ev: ev || '' }; };
   var base = function (torre, ambito, partidas, noInsp) {
@@ -28,5 +30,6 @@
   var p4 = base('J-07', 'torre', { hito_estructura: [fila('10', '5')] });
   var h4 = _pdfHtml(p4);
   ok('R6 · Sin presupuesto: el físico sale (50 %) y el del contrato dice «—» con «llega con el presupuesto»', /Avance físico de la torre<\/div><div[^>]*>50 %/.test(h4) && /no tiene presupuesto cargado: este número llega con el presupuesto/.test(h4), (h4.match(/Avance físico de la torre<\/div><div[^>]*>([^<]*)/) || [])[1] || '');
+  if (_sinCuentasAntes !== undefined) PDF_SIN_CUENTAS = _sinCuentasAntes;
   return R.join('\n');
 })();

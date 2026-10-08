@@ -9084,6 +9084,33 @@ s = sustituir(s,
  "if ('serviceWorker' in navigator) {",
  "176f· la lista recalcula sus botones")
 
+# ── 177. Sin cuentas en pantalla (8-oct-2026) ──────────────────────────────
+# Reunión de Stephanie con la Gerencia Técnica (Ing. Omar González e Ing. Beatriz Sevilla), 8-oct-2026, ADR-0048:
+# mientras los presupuestos de las contratistas se actualizan, ni el teléfono ni el PDF hacen cuentas. Se esconden
+# el total «% AVANCE GENERAL», el resumen por hito y el «% Avance Hito» de cada hito; queda lo que el inspector pone
+# fila por fila (estado, Sí/No, puestas de hay). Los elementos siguen en el DOM —la lógica del borrador, del envío
+# y del «hay evaluación» los lee—, solo dejan de verse. Se vuelve a mostrar quitando estas reglas.
+s = sustituir(s,
+ ".copiar-panel .sector{display:block",
+ "/* 177 · sin cuentas en pantalla (8-oct-2026) */\n"
+ "#resumen-content{display:none!important}\n"
+ ".pct-bdg{display:none!important}\n"
+ ".p-foot{display:none!important}\n"
+ ".copiar-panel .sector{display:block",
+ "177a· se esconden el total, el resumen y el % por hito")
+s = sustituir(s,
+ 'title="No aplica o no se pudo verificar — no cuenta para el promedio">N/A</button>',
+ 'title="No aplica o no se pudo verificar">N/A</button>',
+ "177b· el N/A ya no habla de promedio")
+s = sustituir(s,
+ "<b>N/A</b> = no aplica o no se pudo verificar — <em>no cuenta para el promedio</em>",
+ "<b>N/A</b> = no aplica o no se pudo verificar",
+ "177c· tampoco la leyenda", n=3)
+s = sustituir(s,
+ "márquelo como «hito no inspeccionado»: no cuenta para el promedio, que no es lo mismo que ponerle cero.",
+ "márquelo como «hito no inspeccionado»: queda registrado como no verificado, que no es lo mismo que ponerle cero.",
+ "177d· ni el aviso de ámbito", n=3)
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

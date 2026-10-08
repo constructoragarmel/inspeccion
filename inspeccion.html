@@ -842,6 +842,10 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 .copiar-panel .f .d{flex:1 1 180px;font-size:13px;color:#1e293b;font-weight:700}
 .copiar-panel .f .d small{display:block;color:#64748b;font-weight:400}
 .copiar-panel .f button{min-height:44px;border:none;border-radius:8px;background:#8f4b00;color:#fff;font-weight:700;padding:0 16px;font-size:14px;cursor:pointer}
+/* 177 · sin cuentas en pantalla (8-oct-2026) */
+#resumen-content{display:none!important}
+.pct-bdg{display:none!important}
+.p-foot{display:none!important}
 .copiar-panel .sector{display:block;width:100%;margin-top:8px;min-height:44px;border:1.5px solid #8f4b00;border-radius:8px;background:#fff;color:#8f4b00;font-weight:700;padding:0 12px;font-size:13px;cursor:pointer}
 .copiar-panel .sector:disabled{opacity:.6}
 .copiar-panel .cerrar{margin-top:8px;min-height:44px;border:none;border-radius:8px;background:#e2e8f0;color:#334155;font-weight:700;padding:0 16px;font-size:14px;cursor:pointer}
@@ -1180,7 +1184,7 @@ textarea{font-family:inherit}
     <b>B</b> = ejecutado conforme, sin observaciones ·
     <b>R</b> = ejecutado con defectos subsanables, requiere corrección ·
     <b>M</b> = mal ejecutado o inservible, requiere rehacer ·
-    <b>N/A</b> = no aplica o no se pudo verificar — <em>no cuenta para el promedio</em>
+    <b>N/A</b> = no aplica o no se pudo verificar
     </div>
   </div>
   <div class="sec-lbl">Ubicación</div>
@@ -1517,10 +1521,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v147';
+    el.textContent = '● en línea · v148';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v147 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v148 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -1655,7 +1659,7 @@ function setAmbito(a){
     aviso.textContent = 'Se muestran ' + propios + ' de ' + PARTIDAS.length + ' hitos, con las subpartidas '
       + (esTorre ? 'de la torre' : 'del apartamento')
       + (fuera.length ? '. Quedan fuera: ' + fuera.join(', ') + '.' : '.')
-      + ' El que no aplique, márquelo como «hito no inspeccionado»: no cuenta para el promedio, que no es lo mismo que ponerle cero.';
+      + ' El que no aplique, márquelo como «hito no inspeccionado»: queda registrado como no verificado, que no es lo mismo que ponerle cero.';
     // En «Estructura» la lista de once hitos que quedan fuera es ruido: se dice dónde se miden.
     if (vista) aviso.textContent = 'Solo se muestra el hito de estructura. Los demás hitos de la torre se miden en «Torre completa».';
   }
@@ -2862,7 +2866,7 @@ function initAppContent() {
             <button class="ev-btn B" data-rid="${rid}" onclick="setEv(this)">B</button>
             <button class="ev-btn R" data-rid="${rid}" onclick="setEv(this)">R</button>
             <button class="ev-btn M" data-rid="${rid}" onclick="setEv(this)">M</button>
-            <button class="ev-btn NA" data-rid="${rid}" onclick="setEv(this)" title="No aplica o no se pudo verificar — no cuenta para el promedio">N/A</button>
+            <button class="ev-btn NA" data-rid="${rid}" onclick="setEv(this)" title="No aplica o no se pudo verificar">N/A</button>
           </div></td>
           <td class="falt-cell" id="flt_${rid}" style="color:#5f6b7a">—</td>
           <td class="pct-cell" id="pct_${rid}"><span style="color:#ccc">—</span></td>

@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: ac06aff313
+// Huella de la fuente: 8e7fdf56dc
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -425,6 +425,7 @@ function pdfDelInforme(p) {
                   .getAs(MimeType.PDF)
                   .setName(p.numero + '.pdf');
 }
+var PDF_SIN_CUENTAS = true;
 function _pdfHtml(p) {
   var d = p.datos || {};
   var fotos = _pdfFotosPorHito(p);
@@ -434,7 +435,7 @@ function _pdfHtml(p) {
   var huboAlgunPct = false;
   var HS = _hitosDe(d);
   var av = null;
-  try { av = _avancePonderado(p); } catch (eAv) { av = null; }
+  try { av = PDF_SIN_CUENTAS ? null : _avancePonderado(p); } catch (eAv) { av = null; }
   for (var i = 0; i < HS.length; i++) {
     var h = HS[i];
     if ((d.partidas || {})[h.id] === undefined && !fotos[h.id]) continue;
@@ -447,7 +448,7 @@ function _pdfHtml(p) {
     '<body style="font-family:Arial,Helvetica,sans-serif;color:#000;font-size:10px">' +
       _pdfMembrete(p, d) +
       _pdfIdentificacion(p, d) +
-      _pdfAvancePresupuesto(av, d, HS) +
+      (PDF_SIN_CUENTAS ? _pdfNotaSinCuentas() : _pdfAvancePresupuesto(av, d, HS)) +
       (huboAlgunPct ? '' : _pdfAvisoSinProyectada()) +
       cuerpo +
       _pdfObservacionesPorHito(d, HS, noInsp) +
@@ -530,7 +531,7 @@ function _pdfHito(h, d, fotosDelHito, noInspeccionado, av) {
   var filas = (d.partidas || {})[h.id];
   var extras = (d.partidas || {})[h.id + '_extra'] || [];
   var obs = (d.fotobs || {})[h.id] || '';
-  var prom = noInspeccionado ? null : _pdfPromedioHito(filas, extras);
+  var prom = (noInspeccionado || PDF_SIN_CUENTAS) ? null : _pdfPromedioHito(filas, extras);   // r52: sin cuentas, sin promedio
   var declarado = null;
   if (!noInspeccionado && d.hitoPct && d.hitoPct[h.id] !== undefined && String(d.hitoPct[h.id]).trim() !== '') {
     var vm = parseFloat(String(d.hitoPct[h.id]).replace(',', '.'));
@@ -736,6 +737,9 @@ function _pdfLeyenda(p) {
     ? 'Recaudos: S\u00cd = presentado \u00b7 NO = no presentado \u00b7 N/A = no aplica a esta contratista. ' +
       'Hallazgos: Pendiente \u00b7 En proceso \u00b7 Corregido, seg\u00fan lo visto en esta visita. ' +
       'Incidencias: Abierta \u00b7 En seguimiento \u00b7 Cerrada; una incidencia sin cerrar vuelve en la visita siguiente.'
+    : PDF_SIN_CUENTAS
+    ? 'Evaluaci\u00f3n: B = bueno \u00b7 R = regular \u00b7 M = malo \u00b7 N/A = no aplica o no verificable. ' +
+      'NO INSPECCIONADO: el hito no se verific\u00f3 en esta visita \u2014 no es un cero.'
     : 'Evaluaci\u00f3n: B = bueno \u00b7 R = regular \u00b7 M = malo \u00b7 N/A = no aplica o no verificable (no entra en el promedio). ' +
       'NO INSPECCIONADO: el hito no se verific\u00f3. No se le atribuye avance y no entra en ning\u00fan promedio \u2014 no es un cero.';
   if (_pdfCuentaHeredados(p.datos || {})) {
@@ -756,6 +760,15 @@ function _pdfPeso(w) {
   if (!(w > 0)) return '\u2014';
   var x = Math.round(w * 1000) / 10;
   return (x < 0.1 ? '<0,1' : String(x).replace('.', ',')) + ' %';
+}
+function _pdfNotaSinCuentas() {
+  return '<table width="100%" border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;border-color:#bbb;margin-bottom:10px">' +
+    '<tr><td bgcolor="#eef0f7" style="font-size:9px">' +
+      '<b>REGISTRO DE LO OBSERVADO.</b> Este informe recoge lo que la inspecci\u00f3n midi\u00f3 y anot\u00f3 fila por fila. ' +
+      'Por decisi\u00f3n de la Gerencia T\u00e9cnica del 8-oct-2026, mientras los presupuestos de las contratistas se actualizan, ' +
+      '<b>no incluye promedios por hito ni avance ponderado por presupuesto</b>; esa medici\u00f3n se retoma con los presupuestos aprobados. ' +
+      'No es el avance financiero (lo valuado).' +
+    '</td></tr></table>';
 }
 function _pdfAvancePresupuesto(av, d, HS) {
   if (!av) return '';
@@ -853,7 +866,7 @@ function _pdfPromedioHito(filas, extras) {
     var pct = _pdfPctFila(todas[i]);
     if (pct !== null) { suma += pct; n++; }
   }
-  return n > 0 ? Math.round(suma / n) : null;
+  return n > 0 ? Math.floor(suma / n) : null;
 }
 function _pdfClaveArea(v) {
   return String(v == null ? '' : v).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -1282,7 +1295,7 @@ function _pdfCamionesUrbanismo(it) {
            '<b>Camiones:</b> ' + lista + '<br>' + cuenta + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: 'ac06aff313',
+    huella: '8e7fdf56dc',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];

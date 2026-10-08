@@ -589,3 +589,13 @@ torre o manzana vecina «Copiar de otra…» lo encontró en el archivo (`copiar
 `PRUEBA-URB-EZ-M1L1-261007-GB`, con dos revisiones cada uno: se limpian con `enviarPruebasAPapelera` y
 `borrarPruebasSmartsheet` desde el editor de Apps Script. Nota de tiempos: contra el relevo real, abrir con foto y cerrar
 la definitiva tarda más de 45 s en urbanismo, así que esa prueba va en pasos cortos.
+
+**v148 (8-oct-2026, cambio 177 y relevo r52): sin cuentas mientras los presupuestos se actualizan.** Decisión de la
+Gerencia Técnica en la reunión del 8-oct (ADR-0048 del repositorio Garmel): ni el teléfono ni el PDF hacen cuentas
+hasta tener los presupuestos aprobados. En pantalla se esconden el total «% AVANCE GENERAL», el resumen por hito y el
+«% Avance Hito» de cada hito (siguen en el DOM: la lógica los lee; `t22` pasó a leerlos con `textContent`, porque
+`innerText` de un elemento oculto devuelve vacío). En el PDF, `PDF_SIN_CUENTAS = true` apaga el recuadro de totales,
+el promedio de cada hito y la columna «Peso», y pone en su lugar la nota «REGISTRO DE LO OBSERVADO». Queda lo que el
+inspector pone fila por fila, y el % escrito a mano del modo por hitos («Avance declarado»). `t77relevo` (9) prueba
+lo que se ve hoy, incluido que con la variable en `false` vuelven los dos totales del r51; `t72relevo` enciende la
+variable para probar ese código dormido. Smartsheet sigue recibiendo el ponderado: el retroactivo no pierde nada.

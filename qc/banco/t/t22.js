@@ -59,6 +59,7 @@ ok('3 · Bordes: 7 de 5 = 100 %, de 0 = —, «-2» queda 2 (50 %), 1 de 3 = 33 
    a === '100%' && b === '—' && d === '50%' && document.getElementById('ej_' + c).value !== '-2' && e3 === '33%' && f1 === '50%' && f2 === '—' && g1 === '100%' && g2 === '—',
    [a, b, d, e3, f1, f2, g1, g2].join(' '));
 
+// (v148, cambio 177: el total y los % por hito están ocultos en pantalla; la cuenta sigue viva por dentro y se lee con textContent, que innerText de un elemento oculto devuelve vacío.)
 // ── 4. El % del hito y el total son el promedio simple de lo que se ve ──
 const vals = [0, 25, 50, 75, 100];
 let n = 0;
@@ -73,20 +74,20 @@ const malos4 = []; let sumT = 0, cntT = 0;
 _hitosDelAmbito().forEach(p => {
   let s = 0, k = 0;
   p.items.forEach((_, i) => { if (!_aplica(p.id, i)) return; const v = pct(p.id + '_' + i); if (/%$/.test(v)) { s += parseInt(v); k++; } });
-  const esp = k ? Math.floor(s / k) + '%' : '—', vis = document.getElementById('badge_' + p.id).innerText.trim();
+  const esp = k ? Math.floor(s / k) + '%' : '—', vis = document.getElementById('badge_' + p.id).textContent.trim();
   if (esp !== vis) malos4.push(p.id + ' ' + esp + '≠' + vis);
   if (k) { sumT += Math.floor(s / k); cntT++; }
 });
-const totEsp = Math.floor(sumT / cntT) + '%', totVis = document.getElementById('total-num').innerText.trim();
+const totEsp = Math.floor(sumT / cntT) + '%', totVis = document.getElementById('total-num').textContent.trim();
 ok('4 · % de cada hito = promedio de sus filas visibles, y el total = promedio de hitos', malos4.length === 0 && totEsp === totVis, malos4.join(' · ') + ' total ' + totEsp + ' vs ' + totVis);
 
 // ── 5. N/A y «no inspeccionado» salen del cálculo ──
-const antesH = document.getElementById('badge_hito_acc_electricos').innerText.trim();
+const antesH = document.getElementById('badge_hito_acc_electricos').textContent.trim();
 const rNA = 'hito_acc_electricos_1';
 const pNA = pct(rNA);
 setEv(document.querySelector(`.ev-btn.NA[data-rid="${rNA}"]`));
 let s5 = 0, k5 = 0; PARTIDAS.find(p => p.id === 'hito_acc_electricos').items.forEach((_, i) => { const rid = 'hito_acc_electricos_' + i; if (rid === rNA) return; const v = pct(rid); if (/%$/.test(v)) { s5 += parseInt(v); k5++; } });
-const conNA = document.getElementById('badge_hito_acc_electricos').innerText.trim();
+const conNA = document.getElementById('badge_hito_acc_electricos').textContent.trim();
 toggleNoInspeccionado('hito_acabados'); await esperar(100);
 const acab = document.getElementById('badge_hito_acabados').innerText.trim();
 const d5 = getFormData();
