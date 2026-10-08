@@ -27,6 +27,6 @@
   // 5. Copiar.gs cargado: las dos consultas y el texto
   ok('R5 · Copiar.gs está cargado: _copiarFuentes, _copiarAbrir, _copiadoDeTexto y _copiarFilasMedidas existen', typeof _copiarFuentes === 'function' && typeof _copiarAbrir === 'function' && typeof _copiadoDeTexto === 'function' && _copiarFilasMedidas({ a: [fila('1', ''), fila('', ''), { pr: '', ej: '', sn: 'SI' }], b_extra: [fila('1', '1')] }) === 2, String(_copiarFilasMedidas({ a: [fila('1', ''), fila('', ''), { pr: '', ej: '', sn: 'SI' }] })));
   // 6. La versión del relevo
-  ok('R6 · RELEVO_VERSION es r49 o r50', /^r(49|50)-/.test(typeof RELEVO_VERSION !== 'undefined' ? RELEVO_VERSION : ''), typeof RELEVO_VERSION !== 'undefined' ? RELEVO_VERSION : 'sin RELEVO_VERSION');
+  ok('R6 · RELEVO_VERSION es r49 o posterior', /^r(49|5[0-9])-/.test(typeof RELEVO_VERSION !== 'undefined' ? RELEVO_VERSION : ''), typeof RELEVO_VERSION !== 'undefined' ? RELEVO_VERSION : 'sin RELEVO_VERSION');
   return R.join('\n');
 })();
