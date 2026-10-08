@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: e2f6adeb79
+// Huella de la fuente: ac06aff313
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -759,43 +759,72 @@ function _pdfPeso(w) {
 }
 function _pdfAvancePresupuesto(av, d, HS) {
   if (!av) return '';
+  var dondeAmbito = (d.ambito === 'torre') ? 'de la torre' : 'del apartamento';
+  var fisico = _pdfPromedioSimpleInforme(d, HS);
+  var celda = function (titulo, valor, nota) {
+    return '<td width="50%" valign="top" style="padding:6px 8px">' +
+      '<div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.3px">' + titulo + '</div>' +
+      '<div style="font-size:18px;font-weight:bold;color:#1a237e;margin:2px 0">' + valor + '</div>' +
+      '<div style="font-size:8px;color:#555">' + nota + '</div></td>';
+  };
   var tabla = '<table width="100%" border="1" cellpadding="4" cellspacing="0" ' +
               'style="border-collapse:collapse;border-color:#1a237e;margin-bottom:12px">';
-  var titulo = '<tr><td colspan="4" style="font-weight:bold;color:#1a237e;font-size:11px">' +
-               'AVANCE SEG\u00daN EL PRESUPUESTO' + (av.contratista ? ' \u2014 ' + _pdfEsc(av.contratista).toUpperCase() : '') +
-               '</td></tr>';
+  var titulo = '<tr><td colspan="4" style="font-weight:bold;color:#1a237e;font-size:11px">AVANCE ' +
+               (d.ambito === 'torre' ? 'DE LA TORRE' : 'DEL APARTAMENTO') +
+               (av.contratista ? ' — ' + _pdfEsc(av.contratista).toUpperCase() : '') + '</td></tr>';
+  var cFisico = celda('Avance físico ' + dondeAmbito,
+    fisico === null ? '—' : fisico + ' %',
+    'Promedio simple de los hitos inspeccionados: todos pesan igual. Es el número que muestra el teléfono.');
+  var explica = '<tr><td colspan="4" style="font-size:8px;color:#555">El <b>físico</b> dice cuánto está construido, ' +
+    'contando por igual cada hito. El <b>del contrato</b> pesa cada subpartida por lo que cuesta en el presupuesto de la ' +
+    'contratista, sin obras preliminares, y solo cuenta lo medido: lo que no se midió no es un cero. Lo que no está en el ' +
+    'presupuesto cuenta en el físico y no en el del contrato. Ninguno de los dos es el avance financiero (lo valuado).';
   if (av.sinPresupuesto) {
-    return tabla + titulo + '<tr><td colspan="4" style="color:#555">La torre ' + _pdfEsc(av.torre) +
-           ' no tiene presupuesto cargado, as\u00ed que el avance no se pondera. Cada hito lleva su promedio.</td></tr></table>';
+    var cSin = celda('Avance del contrato', '—',
+      'La torre ' + _pdfEsc(av.torre) + ' no tiene presupuesto cargado: este número llega con el presupuesto. Mientras, cada hito lleva su promedio.');
+    return tabla + titulo + '<tr>' + cFisico + cSin + '</tr>' + explica + '</td></tr></table>';
   }
-  var dondeAmbito = (d.ambito === 'torre') ? 'de la torre' : 'de este apartamento';
   var filas = '';
   HS.forEach(function (h) {
     var x = av.hitos[h.id];
     if (!x || !(x.pesoAmbito > 0)) return;
     var cob = _pdfCobertura(x.pesoMedido, x.pesoAmbito);
     filas += '<tr>' +
-      '<td>' + _pdfEsc(String(h.nombre).replace(/^HITO (\d+): /, '$1 \u00b7 ')) + '</td>' +
-      '<td align="right">' + (x.avance === null ? '\u2014' : x.avance + ' %') + '</td>' +
+      '<td>' + _pdfEsc(String(h.nombre).replace(/^HITO (\d+): /, '$1 · ')) + '</td>' +
+      '<td align="right">' + (x.avance === null ? '—' : x.avance + ' %') + '</td>' +
       '<td align="right">' + _pdfPeso(x.pesoAmbito) + '</td>' +
       '<td align="right">' + cob + '</td>' +
     '</tr>';
   });
-  var total = av.avance === null
-    ? '<span style="color:#555">Todav\u00eda no hay nada medido con peso en el presupuesto.</span>'
-    : '<span style="font-size:16px;font-weight:bold;color:#1a237e">' + av.avance + ' %</span>' +
-      ' de avance en lo medido \u00b7 lo medido es el <b>' + _pdfCobertura(av.pesoMedido, av.pesoAmbito) + '</b> del peso ' + dondeAmbito;
+  var cContrato = celda('Avance del contrato' + (av.contratista ? ' (' + _pdfEsc(av.contratista) + ')' : ''),
+    av.avance === null ? '—' : av.avance + ' %',
+    av.avance === null
+      ? 'Todavía no hay nada medido con peso en el presupuesto.'
+      : 'Según el presupuesto, sobre lo medido · lo medido es el <b>' + _pdfCobertura(av.pesoMedido, av.pesoAmbito) + '</b> del peso ' + dondeAmbito +
+        (av.provisional ? ' · pesos provisionales (' + _pdfEsc(av.generado || '') + ')' : ''));
   return tabla + titulo +
-    '<tr><td colspan="4">' + total + '</td></tr>' +
-    '<tr>' + _pdfTh('', 'Hito', 'left') + _pdfTh('18%', 'Avance seg\u00fan presupuesto', 'right') +
+    '<tr>' + cFisico + cContrato + '</tr>' +
+    explica + '</td></tr>' +
+    '<tr>' + _pdfTh('', 'Avance del contrato por hito', 'left') + _pdfTh('18%', 'Avance', 'right') +
              _pdfTh('22%', 'Peso en el presupuesto', 'right') + _pdfTh('16%', 'Medido', 'right') + '</tr>' +
     filas +
-    '<tr><td colspan="4" style="font-size:8px;color:#555">Cada subpartida pesa lo que cuestan sus partidas en el ' +
-      'presupuesto de la torre, sin obras preliminares. Solo cuenta lo medido: lo que no se midi\u00f3 no es un cero, ' +
-      'por eso va la columna \u00abMedido\u00bb. En cada hito, m\u00e1s abajo, va tambi\u00e9n el promedio simple de sus filas, ' +
-      'que es el que muestra el tel\u00e9fono.' +
-      (av.provisional ? ' <b>Pesos provisionales</b> (' + _pdfEsc(av.generado || '') + '), hasta que Gerencia T\u00e9cnica los ratifique.' : '') +
+    '<tr><td colspan="4" style="font-size:8px;color:#555">En cada hito, más abajo, va el promedio simple de sus filas.' +
+      (av.provisional ? ' <b>Pesos provisionales</b> hasta que Gerencia Técnica los ratifique.' : '') +
     '</td></tr></table>';
+}
+function _pdfPromedioSimpleInforme(d, HS) {
+  var noInsp = {};
+  (d.noInspeccionados || []).forEach(function (h) { noInsp[h] = true; });
+  var suma = 0, n = 0;
+  HS.forEach(function (h) {
+    if (noInsp[h.id]) return;
+    var filas = (d.partidas || {})[h.id], extras = (d.partidas || {})[h.id + '_extra'] || [];
+    if (!_pdfEsLista(filas)) return;
+    var vivas = filas.filter(function (r) { return r && !r.fueraDeAmbito; });
+    var prom = _pdfPromedioHito(vivas, extras);
+    if (prom !== null) { suma += prom; n++; }
+  });
+  return n > 0 ? Math.floor(suma / n) : null;
 }
 function _ceroEscrito(r) {
   var t = String((r && r.ej !== undefined && r.ej !== null) ? r.ej : '').trim().replace(',', '.');
@@ -1253,7 +1282,7 @@ function _pdfCamionesUrbanismo(it) {
            '<b>Camiones:</b> ' + lista + '<br>' + cuenta + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: 'e2f6adeb79',
+    huella: 'ac06aff313',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];
