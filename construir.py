@@ -9096,8 +9096,9 @@ s = sustituir(s,
  "#resumen-content{display:none!important}\n"
  ".pct-bdg{display:none!important}\n"
  ".p-foot{display:none!important}\n"
+ "#memoria-global-txt{display:none!important}\n"
  ".copiar-panel .sector{display:block",
- "177a· se esconden el total, el resumen y el % por hito")
+ "177a· se esconden el total, el resumen, el % por hito y el «Avance Global de la Torre» de la memoria técnica")
 s = sustituir(s,
  'title="No aplica o no se pudo verificar — no cuenta para el promedio">N/A</button>',
  'title="No aplica o no se pudo verificar">N/A</button>',

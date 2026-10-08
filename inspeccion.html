@@ -846,6 +846,7 @@ textarea:focus-visible,.ck-lbl:focus-visible,.ev-btn:focus-visible{
 #resumen-content{display:none!important}
 .pct-bdg{display:none!important}
 .p-foot{display:none!important}
+#memoria-global-txt{display:none!important}
 .copiar-panel .sector{display:block;width:100%;margin-top:8px;min-height:44px;border:1.5px solid #8f4b00;border-radius:8px;background:#fff;color:#8f4b00;font-weight:700;padding:0 12px;font-size:13px;cursor:pointer}
 .copiar-panel .sector:disabled{opacity:.6}
 .copiar-panel .cerrar{margin-top:8px;min-height:44px;border:none;border-radius:8px;background:#e2e8f0;color:#334155;font-weight:700;padding:0 16px;font-size:14px;cursor:pointer}
@@ -1521,10 +1522,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v148';
+    el.textContent = '● en línea · v149';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v148 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v149 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
