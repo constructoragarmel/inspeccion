@@ -139,6 +139,9 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # Garmel; dicho por Stephanie, y la hoja ya la pasa al maestro). CIV 306.358 dado por Stephanie el 30-sep. El cuadro de
 # la Gerencia Técnica del 2-oct le da SR T-04 y EZ T-13 y T-14. Sus iniciales, GM, no chocan con Génesis Cordobés (GC)
 # ni con Gabriel Barrios (GB). El padrón queda en 28.
+# v150 (12-oct-2026): entra Gabriel Antonio Jelenkovic Alaña, ingeniero inspector de obra con ingreso el 8-oct
+# (Stephanie, 12-oct). CIV 215.739, del carnet y del sello del título. Sus iniciales, GJ, no chocan con Gabriel Barrios
+# (GB). El padrón queda en 29.
 INSPECTORES_JS = """const INSPECTORES_DB = [
   "Alejandro Bastidas (CIV-67.316)",
   "Ángel Sánchez (CIV-NC)",
@@ -152,6 +155,7 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Edenil Narváez (CIV-150.422)",
   "Eduardo Rivero (CIV-169.435)",
   "Gabriel Barrios (CIV-NC)",
+  "Gabriel Jelenkovic (CIV-215.739)",
   "Génesis Cordobés (CIV-307.057)",
   "Génesis Márquez (CIV-306.358)",
   "Girlenys Lacruz (CIV-288.041)",
