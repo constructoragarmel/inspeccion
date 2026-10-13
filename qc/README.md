@@ -608,3 +608,12 @@ torres filtradas, el jueves anterior por defecto, sin clave, clave mala), lo que
 texto archiva con quién valida y borra el borrador local; la segunda vez «actualiza»), una torre sin informe de torre y
 que ningún control baje de 44 px. Se corre como `compilado:t78`; `preparar.py` copia también `compilado.html`.
 
+**t79, t79b y t80 (13-oct-2026, v153): lo que podía fallar en el proceso del compilado**, pedido por Stephanie antes de avisar
+al grupo. `t79` (compilado): el texto del miércoles sigue el jueves (el borrador va por la semana, `desde`, y no por el día del
+envío: con `hasta` se perdía), emojis, comillas y saltos de línea intactos en el envío, el archivo nombrado por la semana y con
+PRUEBA en modo de prueba, el relevo caído al generar y al enviar (aviso, botón habilitado, lo escrito se conserva), fechas al revés.
+`t79b` (tras recargar, en un navegador de verdad): un nombre recordado que ya no está en la lista deja «— Seleccione —». `t80`
+(index, inspeccion, servicios, sha, urbanismo): la tarjeta y los botones «Compilado» llevan a `compilado.html` con el modo de
+prueba y guardan antes. Lo que no se pudo probar con datos reales: dos informes del mismo apartamento en la misma semana (ninguna
+torre lo tiene todavía); la regla es la fecha del número y luego la revisión.
+

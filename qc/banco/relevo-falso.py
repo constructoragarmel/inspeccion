@@ -61,7 +61,7 @@ class H(http.server.BaseHTTPRequestHandler):
             if not (p.get('coordinadora') or '').strip(): return self._ok({"ok":False,"error":"Falta quién valida"})
             with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":"COMPILADO-"+str(p.get('torre')),"tipo":"compilado","ambito":"torre","fotos":[],"datos":{"textos":t,"coordinadora":p.get('coordinadora'),"desde":p.get('desde'),"hasta":p.get('hasta'),"nInformes":(p.get('semana') or {}).get('nInformes')}}, ensure_ascii=False)+"\n")
             H.compilados=getattr(H,'compilados',{}); k=(p.get('sector'),p.get('torre'),p.get('hasta')); antes=k in H.compilados; H.compilados[k]=t
-            return self._ok({"ok":True,"numero":str(p.get('sector'))+"-"+str(p.get('torre')).replace('-','')+"-SEM-261013","archivo":"x.json","url":"http://127.0.0.1:8777/compilado.json","reemplazado":antes,"guardado":"2026-10-13 10:05"})
+            return self._ok({"ok":True,"numero":("PRUEBA-" if p.get('prueba') else "")+str(p.get('sector'))+"-"+str(p.get('torre')).replace('-','')+"-SEM-"+str(p.get('desde') or '')[2:].replace('-',''),"archivo":"x.json","url":"http://127.0.0.1:8777/compilado.json","pdf":"http://127.0.0.1:8777/compilado.pdf","reemplazado":antes,"guardado":"2026-10-13 10:05"})
         if p.get('accion')=='aplica':
             # Como el relevo r28: qué subpartidas están en el presupuesto de la torre (solo códigos).
             if p.get('torre') in ('T-17','T-18'): return self._ok({"ok":True,"sinPresupuesto":True,"codigos":None})

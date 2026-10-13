@@ -20,11 +20,11 @@ ok('10 · La nota de los porcentajes dice que no son el físico ni el financiero
 ok('11 · El membrete dice cuántos informes, quién inspeccionó y quién valida', /4 \(3 apartamentos y la torre\)/.test($('#membrete').textContent) && $('#membrete').textContent.indexOf(QUIEN) >= 0, $('#membrete').textContent.slice(0, 200));
 await enviar(); ok('12 · Enviar sin ningún cuadro escrito avisa y no manda', /al menos uno/.test($('#estado-envio').textContent), $('#estado-envio').textContent);
 Q.escribir($('#t-hitos'), 'Hitos de prueba'); Q.escribir($('#t-dificultades'), 'Dificultad de prueba');
-const kb = 'garmel_compilado_EZ_T-01_' + $('#hasta').value;
+const kb = 'garmel_compilado_EZ_T-01_' + $('#desde').value;
 ok('13 · Lo escrito queda como borrador en el equipo mientras se escribe', JSON.parse(localStorage.getItem(kb) || '{}').hitos === 'Hitos de prueba', localStorage.getItem(kb));
 const antes = (await Q.envios()).length; await enviar(); await hasta(() => /archivado|actualizado|No se pudo/.test($('#estado-envio').textContent), 5000);
 const env = await Q.envios(), ult = env[env.length - 1] || {};
-ok('14 · Enviar archiva el compilado con los textos y quién valida, y lo confirma con el enlace', /archivado/.test($('#estado-envio').textContent) && !!$('#estado-envio').querySelector('a') && env.length === antes + 1 && (ult.datos || {}).coordinadora === QUIEN && ((ult.datos || {}).textos || {}).dificultades === 'Dificultad de prueba', $('#estado-envio').textContent);
+ok('14 · Enviar archiva el compilado con los textos y quién valida, y lo confirma con el enlace', /archivado/.test($('#estado-envio').textContent) && $$('#estado-envio a').length === 2 && env.length === antes + 1 && (ult.datos || {}).coordinadora === QUIEN && ((ult.datos || {}).textos || {}).dificultades === 'Dificultad de prueba', $('#estado-envio').textContent);
 ok('15 · Tras enviar, el borrador local se borra', !localStorage.getItem(kb));
 await enviar(); await hasta(() => /actualizado/.test($('#estado-envio').textContent), 5000);
 ok('16 · Enviarlo otra vez la misma semana lo actualiza (mismo archivo), no duplica', /actualizado/.test($('#estado-envio').textContent), $('#estado-envio').textContent);

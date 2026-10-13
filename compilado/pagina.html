@@ -161,7 +161,7 @@ if (ESPRUEBA) { $('prueba').hidden = false; $('volver').href = 'index.html?prueb
   const j = new Date(hoy); j.setDate(j.getDate() - 1);
   while (j.getDay() !== 4) j.setDate(j.getDate() - 1);   // el jueves anterior (hoy jueves cuenta como la semana que termina: se toma el de hace 7 días)
   $('desde').value = iso(j); $('hasta').value = iso(hoy);
-  try { const u = JSON.parse(localStorage.getItem('garmel_compilado_ultimo') || 'null'); if (u) { $('sector').value = u.sector || ''; llenarTorres(); $('torre').value = u.torre || ''; $('quien').value = u.quien || ''; } } catch (e) {}
+  try { const u = JSON.parse(localStorage.getItem('garmel_compilado_ultimo') || 'null'); if (u) { $('sector').value = u.sector || ''; llenarTorres(); $('torre').value = u.torre || ''; $('quien').value = u.quien || ''; if ($('quien').selectedIndex < 0) $('quien').selectedIndex = 0; } } catch (e) {}
   if (!navigator.onLine) $('conexion').textContent = 'sin conexión';
   window.addEventListener('online', () => $('conexion').textContent = 'en línea');
   window.addEventListener('offline', () => $('conexion').textContent = 'sin conexión');
@@ -189,8 +189,8 @@ async function generar() {
   if (!navigator.onLine) return estado('Sin conexión: el compilado se arma con los informes archivados en Drive y hace falta internet.', 'mal');
   try { localStorage.setItem('garmel_compilado_ultimo', JSON.stringify({ sector, torre, quien })); } catch (e) {}
   $('btn-generar').disabled = true; $('resultado').hidden = true;
-  estado('⏳ Leyendo los informes de la ' + esc(torre) + ' del ' + fecha(desde) + ' al ' + fecha(hasta) + '… Con muchos apartamentos puede tardar hasta un minuto.', 'espera');
-  const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 180000);
+  estado('⏳ Leyendo los informes de la ' + esc(torre) + ' del ' + fecha(desde) + ' al ' + fecha(hasta) + '… Cada apartamento tarda un par de segundos: una torre con 60 puede pasar de dos minutos. No cierre la página.', 'espera');
+  const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 240000);
   try {
     const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ clave, accion: 'compilado-semana', sector, torre, desde, hasta }), signal: corte.signal });
@@ -257,7 +257,7 @@ function pintar() {
 
 // ── Lo que escribe la coordinación ──
 const CAMPOS = ['hitos', 'exitos', 'dificultades', 'otros'];
-function claveBorrador() { return DATA ? 'garmel_compilado_' + DATA.sector + '_' + DATA.torre + '_' + DATA.hasta : ''; }
+function claveBorrador() { return DATA ? 'garmel_compilado_' + DATA.sector + '_' + DATA.torre + '_' + DATA.desde : ''; }   // por semana (su inicio), no por «hasta»: el jueves cambia la fecha final y el texto del miércoles se perdía
 function textos() { const o = {}; CAMPOS.forEach(k => o[k] = $('t-' + k).value.trim()); return o; }
 function cargarBorrador() {
   let b = null; try { b = JSON.parse(localStorage.getItem(claveBorrador()) || 'null'); } catch (e) {}
@@ -281,7 +281,7 @@ async function enviar() {
         coordinadora: DATA.quien, textos: t, semana: DATA, prueba: ESPRUEBA }), signal: corte.signal });
     const res = await r.json();
     if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
-    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + ' en la carpeta de la torre' + (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '') + '. Planificación lo toma de ahí para el informe semanal.', 'bien');
+    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + ' en la carpeta de la torre' + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal.', 'bien');
     try { localStorage.removeItem(claveBorrador()); } catch (e) {}
   } catch (e) {
     const m = String(e && e.message || e);
@@ -291,7 +291,18 @@ async function enviar() {
 function mostrarEnvio(txt, clase) { const e = $('estado-envio'); e.hidden = false; e.className = 'estado ' + clase; e.innerHTML = txt; e.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
 function otraVez() { $('resultado').hidden = true; DATA = null; window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (!e.data || e.data.garmel !== 'version-nueva') return;
+    if (!DATA) { location.reload(); return; }   // nada en pantalla: se actualiza sola
+    const b = document.createElement('div');
+    b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;background:#fef3c7;border-top:1px solid #f59e0b;padding:12px 14px;font-size:14px;font-weight:700;text-align:center;z-index:39;cursor:pointer';
+    b.textContent = 'Hay una versión nueva. Lo escrito está guardado: toque aquí para actualizar.';
+    b.onclick = () => location.reload();
+    document.body.appendChild(b);
+  });
+}
 </script>
 </body>
 </html>
