@@ -1525,10 +1525,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v158';
+    el.textContent = '● en línea · v159';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v158 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v159 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2309,7 +2309,15 @@ function _digitosFinales(v, ancho){
 const APARTAMENTOS_POR_SECTOR = {
   EZ: ['A1', 'A2', 'B1', 'B2']    // Ezequiel Zamora, Planificación 13-oct-2026
 };
-function _aptosDeSector(){ const z = getSectorActual(); return (typeof APARTAMENTOS_POR_SECTOR !== 'undefined' && APARTAMENTOS_POR_SECTOR[z]) || null; }
+const APARTAMENTOS_POR_TORRE = {
+  'SB|J-09': ['E11', 'E12', 'D11', 'D12', 'A1', 'A2', 'C1', 'C2'],   // Simón Bolívar, Planificación 13-oct-2026
+  'SB|J-10': ['E11', 'E12', 'D11', 'D12', 'A1', 'A2', 'C1', 'C2'],
+  'SB|J-11': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2'],
+  'SB|J-12': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2']
+};
+function _aptosDeSector(){ const z = getSectorActual(), t = (document.getElementById('torre') || {}).value || '';
+  if (typeof APARTAMENTOS_POR_TORRE !== 'undefined' && APARTAMENTOS_POR_TORRE[z + '|' + t]) return APARTAMENTOS_POR_TORRE[z + '|' + t];
+  return (typeof APARTAMENTOS_POR_SECTOR !== 'undefined' && APARTAMENTOS_POR_SECTOR[z]) || null; }
 function _aplicarListaApto(){
   const inp = document.getElementById('apto'), sel = document.getElementById('apto-sel');
   if (!inp || !sel) return;

@@ -9165,7 +9165,8 @@ s = sustituir(s,
 
 # ── 181. El apartamento como desplegable donde hay nomenclatura (13-oct-2026) ─
 # Planificación pidió que el apartamento se elija de una lista como el piso, y mandó la de Ezequiel Zamora: A1, A2, B1 y
-# B2 por piso (`APARTAMENTOS_POR_SECTOR` en comun/maestros.py). Donde el sector tiene lista, el campo de texto se esconde y
+# B2 por piso (`APARTAMENTOS_POR_SECTOR` en comun/maestros.py) y la de Simón Bolívar, que va por par de torres
+# (`APARTAMENTOS_POR_TORRE`). Donde la torre o el sector tienen lista, el campo de texto se esconde y
 # aparece un desplegable que escribe en el mismo campo; donde no la hay, o el borrador trae un apartamento que no está en
 # la lista, sigue el campo libre. Nada más cambia: el número, el relevo y Smartsheet leen `apto` como siempre.
 s = sustituir(s,
@@ -9176,7 +9177,9 @@ s = sustituir(s,
 s = sustituir(s,
  "function getSectorActual(){\n",
  maestros.APARTAMENTOS_JS + "\n"
- "function _aptosDeSector(){ const z = getSectorActual(); return (typeof APARTAMENTOS_POR_SECTOR !== 'undefined' && APARTAMENTOS_POR_SECTOR[z]) || null; }\n"
+ "function _aptosDeSector(){ const z = getSectorActual(), t = (document.getElementById('torre') || {}).value || '';\n"
+ "  if (typeof APARTAMENTOS_POR_TORRE !== 'undefined' && APARTAMENTOS_POR_TORRE[z + '|' + t]) return APARTAMENTOS_POR_TORRE[z + '|' + t];\n"
+ "  return (typeof APARTAMENTOS_POR_SECTOR !== 'undefined' && APARTAMENTOS_POR_SECTOR[z]) || null; }\n"
  "function _aplicarListaApto(){\n"
  "  const inp = document.getElementById('apto'), sel = document.getElementById('apto-sel');\n"
  "  if (!inp || !sel) return;\n"

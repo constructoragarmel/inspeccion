@@ -255,7 +255,16 @@ COORDINADORES_JS = """const COORDINADORES = [
 # Planificación mandó la nomenclatura de Ezequiel Zamora el 13-oct (por Stephanie): cuatro por piso, A1, A2, B1 y B2. Los
 # otros sectores siguen con el campo libre hasta que llegue la suya. Si una torre tuviera otra nomenclatura, se agrega
 # aquí por torre, no se fuerza: un apartamento escrito que no esté en la lista vuelve al campo libre.
+# Simón Bolívar (Planificación, 13-oct-2026): la nomenclatura es por par de torres, no por sector; las demás torres del
+# sector (D-08, J-07, J-08) y Simón Rodríguez siguen con el campo libre. Los informes de la J-12 anteriores al 13-oct traen
+# «D2» y «E2»: se abren con el campo libre, no se tocan.
 APARTAMENTOS_JS = """const APARTAMENTOS_POR_SECTOR = {
   EZ: ['A1', 'A2', 'B1', 'B2']    // Ezequiel Zamora, Planificación 13-oct-2026
+};
+const APARTAMENTOS_POR_TORRE = {
+  'SB|J-09': ['E11', 'E12', 'D11', 'D12', 'A1', 'A2', 'C1', 'C2'],   // Simón Bolívar, Planificación 13-oct-2026
+  'SB|J-10': ['E11', 'E12', 'D11', 'D12', 'A1', 'A2', 'C1', 'C2'],
+  'SB|J-11': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2'],
+  'SB|J-12': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2']
 };"""
 
