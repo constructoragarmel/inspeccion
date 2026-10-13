@@ -640,3 +640,10 @@ entró por `doPost`, el compilado lo mostró junto con el informe de torre real 
 el camino (r57): un compilado validado después de que el borrador del jueves ya se armó no lo rehacía; ahora la fecha de la hoja de
 compilados entra en la huella de la semana.
 
+**t81 (13-oct-2026, v157): lo que vio la coordinación de Ezequiel Zamora en obra.** «Copias» del apartamento ya hecho al salir
+a WhatsApp y volver, y el apartamento escrito «A-2» que no casa con «A2». La tanda recarga la página entre fases, como el teléfono
+que descarga la pestaña: el apartamento se normaliza al salir del campo (179), salir y volver sin recargar no duplica, recargar
+recupera el informe y sigue siendo uno, seguir llenando guarda en el mismo, perder el hilo del borrador y guardar el mismo contenido
+no crea copia (180: mismo número y misma huella, sin enviar, es el mismo borrador), y cambiar de apartamento sí crea su ficha. El
+camino exacto que produjo las copias en obra no se encontró leyendo; la defensa 180 cubre cualquiera.
+

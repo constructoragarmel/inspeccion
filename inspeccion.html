@@ -1231,7 +1231,7 @@ textarea{font-family:inherit}
     </div>
     <div class="field">
       <label>N° Apartamento *</label>
-      <input type="text" id="apto" placeholder="Ej: 4B" oninput="updateDocInfo()">
+      <input type="text" id="apto" placeholder="Ej: 4B" oninput="updateDocInfo()" onchange="_normalizarApto(this)" autocapitalize="characters">
     </div>
     <div id="aviso-anterior" role="status" aria-live="polite" style="grid-column:1/-1"></div>
     <div id="copiar-de" style="grid-column:1/-1"></div>
@@ -1524,10 +1524,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v156';
+    el.textContent = '● en línea · v157';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v156 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v157 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2285,6 +2285,7 @@ const SECTOR_POR_CONVENIO = {
   'Convenio Chinos':     'SB'    // Simón Bolívar
 };
 
+function _normalizarApto(el){ const v = _limpiar(el.value); if (v !== el.value) { el.value = v; updateDocInfo(); } }
 function _limpiar(v){
   // Primero se convierten los acentos y la eñe a su letra base; si se borraran,
   // «Ñ2» y «2» darían el mismo identificador, y las iniciales de un nombre
@@ -3668,8 +3669,9 @@ function saveDraft(silencioso){
       list[pos] = data;
       currentEditingIndex = pos;
     } else {
-      list.unshift(data);
-      currentEditingIndex = 0;
+      const _gemelo = list.findIndex(function(b){ return b && !b.enviado && b.id !== data.id && b.nro === data.nro && _huellaInforme(b) === _huellaInforme(data); });
+      if(_gemelo >= 0){ data.id = list[_gemelo].id; list[_gemelo] = data; currentEditingIndex = _gemelo; }
+      else { list.unshift(data); currentEditingIndex = 0; }
     }
     _idEnEdicion = data.id || null;
     // El aviso va DESPUÉS de escribir: si esto revienta por falta de espacio,

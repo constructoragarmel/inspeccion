@@ -9134,6 +9134,35 @@ s = sustituir(s,
  ".hbtn-nuevo2{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}\n.hbtn-compilado{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}",
  "178c\u00b7 su estilo, como «Limpiar todo»")
 
+# ── 179. El apartamento se normaliza al escribirlo (13-oct-2026) ─────────────
+# Planificación, con la coordinación de Ezequiel Zamora en obra: «si lo escriben con guion o sin el guion no va a
+# haber match». El número del informe ya lo limpiaba («A-2» → «A2»), pero el campo guardaba lo escrito tal cual y lo
+# que viaja en `apto` no casaba con el bloque del número. Ahora, al salir del campo, queda como en el número: mayúsculas
+# y solo letras y dígitos. Pedían un desplegable; no hay maestro de apartamentos por torre, y esto resuelve el casar.
+s = sustituir(s,
+ '      <input type="text" id="apto" placeholder="Ej: 4B" oninput="updateDocInfo()">\n',
+ '      <input type="text" id="apto" placeholder="Ej: 4B" oninput="updateDocInfo()" onchange="_normalizarApto(this)" autocapitalize="characters">\n',
+ "179a\u00b7 el apartamento se limpia al salir del campo")
+s = sustituir(s,
+ "function _limpiar(v){\n",
+ "function _normalizarApto(el){ const v = _limpiar(el.value); if (v !== el.value) { el.value = v; updateDocInfo(); } }\n"
+ "function _limpiar(v){\n",
+ "179b\u00b7 con la misma limpieza del n\u00famero")
+
+# ── 180. Dos borradores sin enviar con el mismo número y el mismo contenido son uno (13-oct-2026) ──
+# La coordinación de Ezequiel Zamora vio «copias» del apartamento que ya había hecho al salir a WhatsApp y volver.
+# No se pudo reproducir el camino exacto (recargar y «Guardar y otro apto» dejan un solo borrador), así que el guardado
+# se defiende solo: si va a crear una ficha nueva y ya hay una sin enviar con el mismo número y la misma huella, escribe
+# sobre esa. Cambiar de apartamento sigue creando su ficha, porque el número cambia.
+s = sustituir(s,
+ "    } else {\n      list.unshift(data);\n      currentEditingIndex = 0;\n    }\n    _idEnEdicion = data.id || null;\n",
+ "    } else {\n"
+ "      const _gemelo = list.findIndex(function(b){ return b && !b.enviado && b.id !== data.id && b.nro === data.nro && _huellaInforme(b) === _huellaInforme(data); });\n"
+ "      if(_gemelo >= 0){ data.id = list[_gemelo].id; list[_gemelo] = data; currentEditingIndex = _gemelo; }\n"
+ "      else { list.unshift(data); currentEditingIndex = 0; }\n"
+ "    }\n    _idEnEdicion = data.id || null;\n",
+ "180\u00b7 el mismo informe no se guarda dos veces como dos borradores")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
