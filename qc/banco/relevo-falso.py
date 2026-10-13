@@ -27,6 +27,41 @@ class H(http.server.BaseHTTPRequestHandler):
             self.close_connection=True; return
         if ESTADO['lento']: time.sleep(ESTADO['lento'])
         p=json.loads(raw or b'{}')
+        if p.get('accion')=='compilado-semana':
+            # v151: la semana de una torre como la arma el relevo r53 (Compilado.gs). Sin clave buena, 'Clave incorrecta'.
+            if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
+            if not p.get('sector') or not p.get('torre'): return self._ok({"ok":False,"error":"Faltan sector o torre"})
+            hitos=[{"id":"hito_cerramientos","numero":"2","nombre":"HITO 2: CERRAMIENTOS","corto":"Albañilería","torre":True,"apto":True},
+                   {"id":"hito_servicios","numero":"3","nombre":"HITO 3: INSTALACIÓN DE SERVICIOS","corto":"Servicios","torre":True,"apto":True},
+                   {"id":"hito_acabados","numero":"4","nombre":"HITO 4: ACABADOS","corto":"Acabados","torre":True,"apto":True},
+                   {"id":"hito_ascensor","numero":"9","nombre":"HITO 9: ASCENSOR","corto":"Ascensor","torre":True,"apto":False}]
+            apto=lambda b,piso,ap,pc,ni: {"numero":"QC-"+b,"numeroRev":"QC-"+b,"bloque":b,"fecha":"2026-10-08","piso":piso,"apto":ap,"lugar":piso+" · Apto. "+ap,
+                   "inspectores":["Inspector de prueba"],"pdf":"http://127.0.0.1:8777/qc-"+b+".pdf","pcts":pc,"declarados":{},"noInsp":ni,"version":"Preliminar (campo)","copiadoDe":""}
+            aptos=[apto("P01AA1","Piso 01","A1",{"hito_cerramientos":100,"hito_servicios":45,"hito_acabados":None,"hito_ascensor":None},["hito_acabados"]),
+                   apto("P01AB1","Piso 01","B1",{"hito_cerramientos":80,"hito_servicios":None,"hito_acabados":12,"hito_ascensor":None},[]),
+                   apto("P02AA1","Piso 02","A1",{"hito_cerramientos":50,"hito_servicios":0,"hito_acabados":None,"hito_ascensor":None},[])]
+            notas=[{"numero":a["numero"],"numeroRev":a["numeroRev"],"fecha":a["fecha"],"lugar":a["lugar"],"ambito":"apartamento","inspectores":a["inspectores"],
+                    "actividades":"","actividadesHeredada":False,"obs":[{"hito":"hito_servicios","nombre":"HITO 3: INSTALACIÓN DE SERVICIOS","texto":"Observación de prueba del hito 3 en "+a["apto"]}],
+                    "obsGeneral":"","obsSp":"","foto":None,"pdf":a["pdf"],"copiadoDe":""} for a in aptos]
+            torre=None
+            if p.get('torre')!='T-02':
+                torre={"numero":"QC-TORRE","numeroRev":"QC-TORRE-r2","bloque":"","fecha":"2026-10-09","piso":"","apto":"","lugar":"Torre completa","inspectores":["Inspector de prueba","Otra inspectora"],
+                       "pdf":"http://127.0.0.1:8777/qc-torre.pdf","pcts":{"hito_cerramientos":100,"hito_servicios":30,"hito_acabados":20,"hito_ascensor":0},"declarados":{"hito_acabados":True},"noInsp":[],"version":"Preliminar (campo)","copiadoDe":""}
+                notas.insert(0,{"numero":"QC-TORRE","numeroRev":"QC-TORRE-r2","fecha":"2026-10-09","lugar":"Torre completa","ambito":"torre","inspectores":torre["inspectores"],
+                    "actividades":"Vaciado de losa del piso 3","actividadesHeredada":False,"obs":[],"obsGeneral":"Observación general de prueba de la torre","obsSp":"",
+                    "foto":{"id":"x","url":"http://127.0.0.1:8777/qc-foto.jpg","miniatura":"http://127.0.0.1:8777/icon-192.png","hito":"hito_cerramientos"},"pdf":torre["pdf"],"copiadoDe":""})
+            return self._ok({"ok":True,"sector":p['sector'],"sectorNombre":{"EZ":"Ezequiel Zamora","SB":"Simón Bolívar","SR":"Simón Rodríguez"}.get(p['sector'],p['sector']),
+                "torre":p['torre'],"empresa":"EMPRESA DE PRUEBA, C.A.","convenio":"","desde":p.get('desde'),"hasta":p.get('hasta') or '2026-10-13',
+                "hitos":hitos,"torreInforme":torre,"apartamentos":aptos,"notas":notas,"inspectores":["Inspector de prueba","Otra inspectora"],
+                "nInformes":len(notas),"carpeta":"http://127.0.0.1:8777/carpeta","generado":"2026-10-13 10:00"})
+        if p.get('accion')=='compilado-guardar':
+            if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
+            t=p.get('textos') or {}
+            if not any((t.get(k) or '').strip() for k in ('hitos','exitos','dificultades','otros')): return self._ok({"ok":False,"error":"El compilado va sin ningún comentario de la coordinación"})
+            if not (p.get('coordinadora') or '').strip(): return self._ok({"ok":False,"error":"Falta quién valida"})
+            with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":"COMPILADO-"+str(p.get('torre')),"tipo":"compilado","ambito":"torre","fotos":[],"datos":{"textos":t,"coordinadora":p.get('coordinadora'),"desde":p.get('desde'),"hasta":p.get('hasta'),"nInformes":(p.get('semana') or {}).get('nInformes')}}, ensure_ascii=False)+"\n")
+            H.compilados=getattr(H,'compilados',{}); k=(p.get('sector'),p.get('torre'),p.get('hasta')); antes=k in H.compilados; H.compilados[k]=t
+            return self._ok({"ok":True,"numero":str(p.get('sector'))+"-"+str(p.get('torre')).replace('-','')+"-SEM-261013","archivo":"x.json","url":"http://127.0.0.1:8777/compilado.json","reemplazado":antes,"guardado":"2026-10-13 10:05"})
         if p.get('accion')=='aplica':
             # Como el relevo r28: qué subpartidas están en el presupuesto de la torre (solo códigos).
             if p.get('torre') in ('T-17','T-18'): return self._ok({"ok":True,"sinPresupuesto":True,"codigos":None})

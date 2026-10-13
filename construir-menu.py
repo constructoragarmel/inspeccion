@@ -80,6 +80,8 @@ a.tarjeta,div.tarjeta{display:block;background:#fff;border:1px solid var(--borde
 a.tarjeta:active{background:#eef2ff}
 .tarjeta.apagada{opacity:.55;background:#f8fafc}
 .tarjeta.mapa{border-style:dashed;border-color:#9fa8da;background:#f8f9ff;margin-top:20px}
+.tarjeta.compilado{border-style:solid;border-color:#1565c0;background:#eef2ff}
+.tarjeta.mapa+.tarjeta.mapa{margin-top:0}
 .tarjeta h2{margin:0;font-size:16px;font-weight:700;color:var(--azul)}
 .tarjeta .sub{margin-top:4px;font-size:13px;color:#64748b}
 .pend{display:inline-block;margin-top:10px;font-size:13px;font-weight:700;
@@ -123,6 +125,10 @@ a.tarjeta:focus-visible,div.tarjeta:focus-visible{outline:3px solid #1565c0;outl
   <div id="prueba"></div>
   <div class="estado" id="estado">Comprobando este teléfono…</div>
   <div id="lista"></div>
+  <a class="tarjeta mapa compilado" id="tarjeta-compilado" href="compilado.html">
+    <h2>Compilado de la semana</h2>
+    <div class="sub">Para la coordinación: la semana de una torre ya armada con los informes de la app, para revisarla, escribir la validación y enviarla</div>
+  </a>
   <a class="tarjeta mapa" id="tarjeta-mapa" href="mapa.html">
     <h2>Mapa de la obra</h2>
     <div class="sub">Para consultar: sectores, torres y contratistas · quién hace qué · cómo viaja un informe</div>
@@ -253,6 +259,7 @@ function pintar(){
       '<div id="clave-msg" class="clave-msg"></div>';
 
   document.getElementById('tarjeta-mapa').href = 'mapa.html' + QUERY;
+  document.getElementById('tarjeta-compilado').href = 'compilado.html' + QUERY;
   const cont = document.getElementById('lista');
   cont.innerHTML = '';
   FORMULARIOS.forEach(f => {

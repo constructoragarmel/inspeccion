@@ -376,6 +376,7 @@ HTML = """<!DOCTYPE html>
     <button type="button" class="b1" onclick="vistaPrevia()" title="Muestra el informe como saldrá en el PDF, sin enviarlo">👁 Vista previa</button>
     <button type="button" class="b1" onclick="guardar(true)" title="Guarda en este teléfono. Se guarda solo a los 2 segundos y cada 30">💾 Guardar</button>
     <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
+    <button type="button" class="b1" onclick="guardar(true);location.href='./compilado.html'+(TEST_MODE?'?prueba=1':'')" title="La semana de una torre ya armada con los informes de la app, para que la coordinación la valide">📋 Compilado</button>
   </div>
   <div class="fila-principal">
     <button type="button" class="b1" onclick="siguienteTorre()" title="Guarda este informe y prepara el de la siguiente torre, conservando inspector, fecha y estatus">➡️ Sig. torre</button>

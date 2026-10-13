@@ -146,6 +146,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#eef0f5;color:#222;f
 .hbtn-send{background:#e8f5e9;color:#1b5e20;border-color:#66bb6a}
 .hbtn-send:hover,.hbtn-send:active{background:#2e7d32;color:#fff;border-color:#2e7d32}
 .hbtn-nuevo2{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}
+.hbtn-compilado{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}
 .hbtn-saved-list{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}
 .hbtn-pdf{background:#eceff1;color:#37474f;border-color:#cfd8dc}
 .hbtn-mas{background:transparent;color:#fff;border-color:rgba(255,255,255,.55)}
@@ -1003,6 +1004,7 @@ textarea{font-family:inherit}
       <button class="hbtn hbtn-save" onclick="saveDraft()" title="Guarda el informe en este teléfono. Se guarda solo a los 2 segundos de la última tecla y cada 30 segundos">💾 <span>Guardar</span></button>
       <button class="hbtn hbtn-test" id="btn-test" onclick="toggleTestMode()" style="display:none" title="Activar modo de prueba — los informes quedan marcados como PRUEBA">🧪 <span>Prueba</span></button>
       <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Borra todo lo escrito en este informe y deja el formulario en blanco. Los informes ya guardados no se tocan">🧹 <span>Limpiar todo</span></button>
+    <button class="hbtn hbtn-compilado" onclick="irAlCompilado()" title="La semana de una torre ya armada con los informes de la app, para que la coordinación la valide">📋 <span>Compilado</span></button>
     </div>
     <!-- «Finalizar» retirado: hacía lo mismo que «Guardar y siguiente» pero sin guardar. -->
   </div>
@@ -1522,10 +1524,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v150';
+    el.textContent = '● en línea · v151';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v150 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v151 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2239,6 +2241,10 @@ function toggleMasAcciones(){
   if(btn) btn.querySelector('span').textContent = abierto ? 'Menos' : 'Más';
 }
 
+function irAlCompilado(){
+  try { if (typeof autoguardar === 'function') autoguardar(); } catch(e){}
+  location.href = './compilado.html' + (TEST_MODE ? '?prueba=1' : '');
+}
 function irAlMenu(){
   try { if (typeof autoguardar === 'function') autoguardar(); } catch(e){}
   location.href = './index.html' + (TEST_MODE ? '?prueba=1' : '');

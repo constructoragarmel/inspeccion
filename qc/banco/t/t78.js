@@ -1,0 +1,34 @@
+// TANDA 78 · V151 (13-oct-2026): la página «Compilado de la semana» (compilado.html), con el relevo falso contestando
+// la semana de una torre como el relevo r53. En compilado.html?prueba=1.
+localStorage.removeItem('garmel_clave_envio'); localStorage.removeItem('garmel_compilado_ultimo');
+const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); };
+await generar(); ok('1 · Sin sector ni torre avisa', /sector/i.test($('#estado').textContent), $('#estado').textContent);
+sel('sector', 'EZ');
+ok('2 · Elegido el sector, la lista de torres trae solo las suyas', [...$('#torre').options].some(o => o.value === 'T-01') && ![...$('#torre').options].some(o => o.value === 'J-12'), $('#torre').options.length + ' opciones');
+sel('torre', 'T-01'); document.getElementById('quien').value = 'Coordinación de prueba';
+ok('3 · Por defecto «desde» es un jueves anterior a hoy y «hasta» es hoy', new Date($('#desde').value + 'T12:00:00').getDay() === 4 && $('#desde').value < $('#hasta').value, $('#desde').value + ' → ' + $('#hasta').value);
+await generar(); ok('4 · Sin clave guardada manda a Inicio', /clave/i.test($('#estado').textContent) && !!$('#estado').querySelector('a'), $('#estado').textContent);
+localStorage.setItem('garmel_clave_envio', 'mala'); await generar();
+ok('5 · Con clave equivocada lo dice', /clave/i.test($('#estado').textContent) && $('#resultado').hidden, $('#estado').textContent);
+localStorage.setItem('garmel_clave_envio', 'qc'); await generar(); await hasta(() => !$('#resultado').hidden, 5000);
+ok('6 · Con la clave buena arma el compilado: título con sector, torre y empresa', !$('#resultado').hidden && /Ezequiel Zamora · T-01 · EMPRESA DE PRUEBA/.test($('#titulo').textContent), $('#titulo').textContent);
+ok('7 · La matriz trae los 3 apartamentos en 2 pisos, con n/i, — y % y el enlace de cada informe', $$('#matriz td.piso').length === 2 && $$('#matriz td.ni').length === 1 && $$('#matriz td.sin').length >= 1 && /45%/.test($('#matriz').textContent) && $$('#matriz a.doc').length === 3, $$('#matriz tr').length + ' filas');
+ok('8 · Áreas comunes: el informe de torre con su enlace y el avance declarado marcado', $$('#torre-bloque a.doc').length === 1 && $$('#torre-bloque td.decl').length === 1, $('#torre-bloque').textContent.slice(0, 120));
+ok('9 · Las notas: 4 informes, una con foto y con las actividades del día', $$('#notas .nota').length === 4 && $$('#notas .nota.confoto').length === 1 && /Vaciado de losa/.test($('#notas').textContent), $$('#notas .nota').length + ' notas');
+ok('10 · La nota de los porcentajes dice que no son el físico ni el financiero', /No son el avance físico ni el financiero/.test($('#nota-pct').textContent));
+ok('11 · El membrete dice cuántos informes, quién inspeccionó y quién valida', /4 \(3 apartamentos y la torre\)/.test($('#membrete').textContent) && /Coordinación de prueba/.test($('#membrete').textContent), $('#membrete').textContent.slice(0, 200));
+await enviar(); ok('12 · Enviar sin ningún cuadro escrito avisa y no manda', /al menos uno/.test($('#estado-envio').textContent), $('#estado-envio').textContent);
+Q.escribir($('#t-hitos'), 'Hitos de prueba'); Q.escribir($('#t-dificultades'), 'Dificultad de prueba');
+const kb = 'garmel_compilado_EZ_T-01_' + $('#hasta').value;
+ok('13 · Lo escrito queda como borrador en el equipo mientras se escribe', JSON.parse(localStorage.getItem(kb) || '{}').hitos === 'Hitos de prueba', localStorage.getItem(kb));
+const antes = (await Q.envios()).length; await enviar(); await hasta(() => /archivado|actualizado|No se pudo/.test($('#estado-envio').textContent), 5000);
+const env = await Q.envios(), ult = env[env.length - 1] || {};
+ok('14 · Enviar archiva el compilado con los textos y quién valida, y lo confirma con el enlace', /archivado/.test($('#estado-envio').textContent) && !!$('#estado-envio').querySelector('a') && env.length === antes + 1 && (ult.datos || {}).coordinadora === 'Coordinación de prueba' && ((ult.datos || {}).textos || {}).dificultades === 'Dificultad de prueba', $('#estado-envio').textContent);
+ok('15 · Tras enviar, el borrador local se borra', !localStorage.getItem(kb));
+await enviar(); await hasta(() => /actualizado/.test($('#estado-envio').textContent), 5000);
+ok('16 · Enviarlo otra vez la misma semana lo actualiza (mismo archivo), no duplica', /actualizado/.test($('#estado-envio').textContent), $('#estado-envio').textContent);
+sel('torre', 'T-02'); await generar(); await hasta(() => /T-02/.test($('#titulo').textContent), 5000);
+ok('17 · Una torre sin informe de torre lo dice en áreas comunes y las notas siguen', /No hubo informe de torre/.test($('#torre-bloque').textContent) && $$('#notas .nota').length === 3, $('#torre-bloque').textContent);
+ok('18 · «Otra torre o semana» esconde el resultado y vuelve arriba', (otraVez(), $('#resultado').hidden));
+ok('19 · Ningún control por debajo de 44 px', Q.chicos().length === 0, Q.chicos().join(' '));
+localStorage.removeItem('garmel_clave_envio'); localStorage.removeItem('garmel_compilado_ultimo');

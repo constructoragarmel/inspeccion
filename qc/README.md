@@ -599,3 +599,12 @@ el promedio de cada hito y la columna «Peso», y pone en su lugar la nota «REG
 inspector pone fila por fila, y el % escrito a mano del modo por hitos («Avance declarado»). `t77relevo` (9) prueba
 lo que se ve hoy, incluido que con la variable en `false` vuelven los dos totales del r51; `t72relevo` enciende la
 variable para probar ese código dormido. Smartsheet sigue recibiendo el ponderado: el retroactivo no pierde nada.
+
+**t78 (13-oct-2026, v151): la página «Compilado de la semana» (`compilado.html`).** El relevo falso contesta
+`compilado-semana` con una semana de prueba (tres apartamentos en dos pisos, un informe de torre con un avance declarado,
+cuatro notas, una con foto) y `compilado-guardar` anota el envío en `envios.jsonl`. La tanda prueba el pedido (sector,
+torres filtradas, el jueves anterior por defecto, sin clave, clave mala), lo que se pinta (título, matriz con n/i, — y %,
+áreas comunes con el declarado marcado, notas, la nota de los porcentajes, el membrete), el envío (sin texto no manda; con
+texto archiva con quién valida y borra el borrador local; la segunda vez «actualiza»), una torre sin informe de torre y
+que ningún control baje de 44 px. Se corre como `compilado:t78`; `preparar.py` copia también `compilado.html`.
+

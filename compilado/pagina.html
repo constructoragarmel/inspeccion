@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a237e">
+<link rel="manifest" href="manifest.json">
+<title>Compilado de la semana — GARMEL</title>
+<style>
+:root{--azul:#1a237e;--borde:#cbd5e1;--fondo:#f1f5f9;--gris:#64748b}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--fondo);color:#1e293b;margin:0;padding:0;font-size:15px;line-height:1.45}
+header{background:var(--azul);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header .t{flex:1 1 200px}
+header h1{margin:0;font-size:17px;font-weight:700}
+header p{margin:4px 0 0;font-size:13px;opacity:.85}
+header a.inicio{color:#fff;text-decoration:none;font-weight:700;font-size:14px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:10px 14px;min-height:44px;display:inline-flex;align-items:center}
+main{max-width:980px;margin:0 auto;padding:16px}
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:16px;margin-bottom:14px}
+.tarjeta h2{margin:0 0 10px;font-size:16px;font-weight:700;color:var(--azul)}
+.tarjeta .sub{font-size:13px;color:var(--gris);margin:-6px 0 10px}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.campo label{display:block;font-size:12px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+.campo input,.campo select,.campo textarea{width:100%;min-height:44px;font-size:16px;padding:8px 10px;border:1.5px solid var(--borde);border-radius:8px;background:#fff;color:inherit;font-family:inherit}
+.campo textarea{min-height:110px;line-height:1.4;resize:vertical}
+.campo .ayuda{font-size:12.5px;color:var(--gris);margin-top:4px}
+.acciones{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button.b1,button.b2{min-height:48px;padding:0 18px;font-size:15px;font-weight:700;border-radius:8px;border:1.5px solid var(--borde);background:#fff;color:var(--azul);cursor:pointer;font-family:inherit}
+button.b2{background:var(--azul);color:#fff;border-color:var(--azul)}
+button:disabled{opacity:.55;cursor:default}
+.estado{background:#fff;border:1px solid var(--borde);border-radius:10px;padding:12px;font-size:14px;margin-bottom:14px}
+.estado.mal{background:#fdecea;border-color:#c62828;color:#7f1d1d;font-weight:600}
+.estado.bien{background:#ecfdf5;border-color:#059669;color:#065f46;font-weight:600}
+.estado.espera{background:#eef2ff;border-color:#9fa8da}
+.prueba{background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px;font-size:13px;font-weight:700;margin-bottom:12px}
+.membrete{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 18px;font-size:14px}
+.membrete b{color:var(--azul)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff}
+th,td{padding:6px 8px;border-bottom:1px solid #e0e3f0;text-align:left;white-space:nowrap;vertical-align:top}
+th{background:#e8eaf6;color:var(--azul);font-size:11px;text-transform:uppercase;position:sticky;top:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+td.piso{background:#f8f9ff;font-weight:700;color:var(--azul)}
+td.sin{color:#94a3b8}
+td.ni{color:#b45309;font-size:11px}
+td.decl::after{content:' \00b0';color:#1565c0}
+a.doc{color:#1565c0;text-decoration:none;font-weight:700}
+a.doc:hover{text-decoration:underline}
+.nota{border:1px solid var(--borde);border-radius:10px;padding:12px;margin-bottom:10px;display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:640px){.nota.confoto{grid-template-columns:200px 1fr}}
+.nota .cab{font-weight:700;color:var(--azul);font-size:14px;margin-bottom:6px}
+.nota .cab small{font-weight:400;color:var(--gris)}
+.nota .obs{margin:4px 0;font-size:14px}
+.nota .obs b{color:#334155}
+.nota img{width:100%;max-width:200px;border-radius:8px;border:1px solid var(--borde);display:block}
+.nota .foto a{font-size:12.5px}
+.aviso{background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px;font-size:13.5px;margin:10px 0}
+.pie{text-align:center;font-size:12px;color:var(--gris);padding:10px 16px 24px}
+.leyenda{font-size:12.5px;color:var(--gris);margin-top:8px}
+.resumen-val{white-space:pre-wrap;font-size:14px;background:#f8fafc;border:1px solid var(--borde);border-radius:8px;padding:10px;min-height:2em}
+[hidden]{display:none!important}
+@media (max-width:700px),(pointer:coarse){body{font-size:16px} table{font-size:13px}}
+@media print{
+  header,.acciones,#pedido,.estado,.prueba,.pie,.noprint{display:none!important}
+  body{background:#fff;font-size:11pt} main{max-width:none;padding:0}
+  .tarjeta{border:none;padding:0;margin-bottom:12pt;break-inside:avoid-page}
+  .scroll{overflow:visible;margin:0;padding:0} table{font-size:9pt} th{position:static}
+  .campo textarea{display:none} .resumen-val{display:block!important;border:1px solid #999}
+  .nota{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="t"><h1>Compilado de la semana</h1>
+  <p>Ciudad Tiuna · lo que la inspección registró en la torre, para que la coordinación lo revise y lo valide</p></div>
+  <a class="inicio" id="volver" href="index.html">🏠 Inicio</a>
+</header>
+<main>
+<div id="prueba" hidden class="prueba">🧪 Modo de prueba: habla con el relevo de pruebas y lo que se envía queda marcado como PRUEBA.</div>
+
+<div class="tarjeta" id="pedido">
+  <h2>1 · Qué torre y qué semana</h2>
+  <div class="sub">Se traen todos los informes de obra de esa torre entre las dos fechas: el último de cada apartamento, el último de la torre y las notas de todos.</div>
+  <div class="rejilla">
+    <div class="campo"><label for="sector">Sector</label>
+      <select id="sector"><option value="">— Seleccione sector —</option><option value="EZ">Ezequiel Zamora</option><option value="SR">Simón Rodríguez</option><option value="SB">Simón Bolívar</option></select></div>
+    <div class="campo"><label for="torre">Torre</label><select id="torre"><option value="">— Elija primero el sector —</option></select></div>
+    <div class="campo"><label for="desde">Desde (inicio del corte)</label><input type="date" id="desde"><div class="ayuda">Por defecto, el jueves anterior: la semana va de jueves a jueves.</div></div>
+    <div class="campo"><label for="hasta">Hasta</label><input type="date" id="hasta"></div>
+    <div class="campo"><label for="quien">Quién valida (coordinación)</label><input id="quien" list="padron" autocomplete="off" placeholder="Nombre de quien revisa y valida"><datalist id="padron"></datalist></div>
+  </div>
+  <div class="acciones"><button type="button" class="b2" id="btn-generar" onclick="generar()">📋 Generar el compilado</button></div>
+</div>
+<div class="estado" id="estado" hidden></div>
+
+<div id="resultado" hidden>
+  <div class="tarjeta">
+    <h2 id="titulo">Torre</h2>
+    <div class="membrete" id="membrete"></div>
+  </div>
+
+  <div class="tarjeta" id="validacion">
+    <h2>2 · Validación de la coordinación</h2>
+    <div class="sub">Tres cuadros que preguntan algo concreto y uno libre. Esto es lo que va al informe semanal; las tablas de abajo son el sustento.</div>
+    <div class="campo"><label for="t-hitos">Hitos y avances de la semana</label><textarea id="t-hitos" placeholder="Qué se terminó, qué arrancó, qué se movió en la torre esta semana"></textarea><div class="resumen-val" id="r-hitos" hidden></div></div>
+    <div class="campo" style="margin-top:10px"><label for="t-exitos">Éxitos de la semana</label><textarea id="t-exitos" placeholder="Lo que salió bien y conviene decir"></textarea><div class="resumen-val" id="r-exitos" hidden></div></div>
+    <div class="campo" style="margin-top:10px"><label for="t-dificultades">Dificultades, mitigación operativa y acciones</label><textarea id="t-dificultades" placeholder="Qué frena la obra, qué se está haciendo al respecto y qué se le pidió a la contratista"></textarea><div class="resumen-val" id="r-dificultades" hidden></div></div>
+    <div class="campo" style="margin-top:10px"><label for="t-otros">Otros comentarios</label><textarea id="t-otros" placeholder="Inspecciones patológicas, informes que se esperan, llamadas y comunicados enviados: lo que se pierde en la semana si no se anota"></textarea><div class="resumen-val" id="r-otros" hidden></div></div>
+    <div class="leyenda noprint">Se guarda solo en este equipo mientras escribe; se archiva al tocar «Enviar el compilado».</div>
+  </div>
+
+  <div class="tarjeta">
+    <h2>3 · Áreas comunes (informe de torre)</h2>
+    <div id="torre-bloque"></div>
+  </div>
+
+  <div class="tarjeta">
+    <h2>4 · Apartamentos</h2>
+    <div class="sub" id="apto-sub"></div>
+    <div class="scroll"><table id="matriz"></table></div>
+    <div class="leyenda">— sin medir · n/i no inspeccionado · ° avance declarado por el inspector</div>
+  </div>
+
+  <div class="tarjeta">
+    <h2>5 · Notas de la semana</h2>
+    <div class="sub">Lo que escribió cada inspector en cada informe, tal cual, con su primera foto.</div>
+    <div id="notas"></div>
+  </div>
+
+  <div class="aviso" id="nota-pct">Los porcentajes son el promedio simple de lo que el inspector marcó fila por fila en cada hito. <b>No son el avance físico ni el financiero</b> del informe al Ministerio: mientras los presupuestos se actualizan, la app no hace esas cuentas (decisión del 8-oct-2026).</div>
+
+  <div class="acciones noprint">
+    <button type="button" class="b2" id="btn-enviar" onclick="enviar()">📤 Enviar el compilado</button>
+    <button type="button" class="b1" onclick="window.print()">🖨 Imprimir o guardar en PDF</button>
+    <button type="button" class="b1" onclick="otraVez()">↩ Otra torre o semana</button>
+  </div>
+  <div class="estado" id="estado-envio" hidden></div>
+</div>
+
+<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · @@VERSION@@</div>
+</main>
+
+<script>
+@@TORRES@@
+@@SECTOR_POR_CONVENIO@@
+@@INSPECTORES@@
+const RELEVO_URL = '@@RELEVO@@';
+const ESPRUEBA = new URLSearchParams(location.search).get('prueba') === '1';
+const QUERY = ESPRUEBA ? '?prueba=1' : '';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fecha = s => { const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? m[3] + '-' + m[2] + '-' + m[1] : (s || '—'); };
+let DATA = null;
+
+// ── Arranque ──
+if (ESPRUEBA) { $('prueba').hidden = false; $('volver').href = 'index.html?prueba=1'; }
+(function () {
+  const dl = $('padron'); INSPECTORES_DB.forEach(n => { const o = document.createElement('option'); o.value = n; dl.appendChild(o); });
+  const hoy = new Date(); hoy.setHours(12, 0, 0, 0);
+  const j = new Date(hoy); j.setDate(j.getDate() - 1);
+  while (j.getDay() !== 4) j.setDate(j.getDate() - 1);   // el jueves anterior (hoy jueves cuenta como la semana que termina: se toma el de hace 7 días)
+  $('desde').value = iso(j); $('hasta').value = iso(hoy);
+  try { const u = JSON.parse(localStorage.getItem('garmel_compilado_ultimo') || 'null'); if (u) { $('sector').value = u.sector || ''; llenarTorres(); $('torre').value = u.torre || ''; $('quien').value = u.quien || ''; } } catch (e) {}
+  if (!navigator.onLine) $('conexion').textContent = 'sin conexión';
+  window.addEventListener('online', () => $('conexion').textContent = 'en línea');
+  window.addEventListener('offline', () => $('conexion').textContent = 'sin conexión');
+})();
+function iso(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+function llenarTorres() {
+  const s = $('sector').value, sel = $('torre'), antes = sel.value;
+  sel.innerHTML = '<option value="">' + (s ? '— Seleccione torre —' : '— Elija primero el sector —') + '</option>';
+  TORRES.filter(t => SECTOR_POR_CONVENIO[t.c] === s).forEach(t => { const o = document.createElement('option'); o.value = t.t; o.textContent = t.t + (t.e ? ' · ' + t.e : ''); sel.appendChild(o); });
+  if ([...sel.options].some(o => o.value === antes)) sel.value = antes;
+}
+$('sector').addEventListener('change', llenarTorres);
+
+function estado(txt, clase) { const e = $('estado'); e.hidden = !txt; e.className = 'estado' + (clase ? ' ' + clase : ''); e.innerHTML = txt || ''; }
+function claveGuardada() { try { return localStorage.getItem('garmel_clave_envio') || ''; } catch (e) { return ''; } }
+
+// ── Pedir la semana al relevo ──
+async function generar() {
+  const sector = $('sector').value, torre = $('torre').value, desde = $('desde').value, hasta = $('hasta').value, quien = $('quien').value.trim();
+  if (!sector || !torre) return estado('Elija el sector y la torre.', 'mal');
+  if (!desde || !hasta || hasta < desde) return estado('Revise las fechas: la final no puede ser anterior a la de inicio.', 'mal');
+  if (!quien) return estado('Escriba quién valida este compilado.', 'mal');
+  const clave = claveGuardada();
+  if (!clave) return estado('Este equipo no tiene la clave de envío. Configúrela en <a href="index.html' + QUERY + '">Inicio</a> y vuelva.', 'mal');
+  if (!navigator.onLine) return estado('Sin conexión: el compilado se arma con los informes archivados en Drive y hace falta internet.', 'mal');
+  try { localStorage.setItem('garmel_compilado_ultimo', JSON.stringify({ sector, torre, quien })); } catch (e) {}
+  $('btn-generar').disabled = true; $('resultado').hidden = true;
+  estado('⏳ Leyendo los informes de la ' + esc(torre) + ' del ' + fecha(desde) + ' al ' + fecha(hasta) + '… Con muchos apartamentos puede tardar hasta un minuto.', 'espera');
+  const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 180000);
+  try {
+    const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave, accion: 'compilado-semana', sector, torre, desde, hasta }), signal: corte.signal });
+    const res = await r.json();
+    if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
+    DATA = res; DATA.quien = quien;
+    pintar(); estado('');
+  } catch (e) {
+    const m = String(e && e.message || e);
+    estado(m === 'Clave incorrecta' ? 'La clave guardada en este equipo no es la del relevo. Configúrela otra vez en Inicio.' :
+      (/abort/i.test(m) ? 'El relevo tardó demasiado. Pruebe con menos días o vuelva a intentar.' : 'No se pudo armar el compilado: ' + esc(m)), 'mal');
+  } finally { clearTimeout(reloj); $('btn-generar').disabled = false; }
+}
+
+// ── Pintar ──
+function pct(v, noInsp, hid, decl) {
+  if (noInsp && noInsp.indexOf(hid) >= 0) return '<td class="n ni" title="No inspeccionado">n/i</td>';
+  if (v === null || v === undefined) return '<td class="n sin">—</td>';
+  return '<td class="n' + (decl && decl[hid] ? ' decl' : '') + '">' + v + '%</td>';
+}
+function enlace(url, txt) { return url ? '<a class="doc" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(txt) + '</a>' : '<span class="sin" title="El PDF de este informe no está en la carpeta">' + esc(txt) + '</span>'; }
+function pintar() {
+  const d = DATA, hA = d.hitos.filter(h => h.apto), hT = d.hitos.filter(h => h.torre);
+  $('titulo').textContent = d.sectorNombre + ' · ' + d.torre + (d.empresa ? ' · ' + d.empresa : '');
+  $('membrete').innerHTML =
+    '<div><b>Semana:</b> del ' + fecha(d.desde) + ' al ' + fecha(d.hasta) + '</div>' +
+    '<div><b>Informes de la semana:</b> ' + d.nInformes + ' (' + d.apartamentos.length + ' apartamento' + (d.apartamentos.length === 1 ? '' : 's') + (d.torreInforme ? ' y la torre' : '') + ')</div>' +
+    '<div><b>Inspección:</b> ' + (d.inspectores.length ? esc(d.inspectores.join(' · ')) : '—') + '</div>' +
+    '<div><b>Valida:</b> ' + esc(d.quien) + '</div>' +
+    (d.carpeta ? '<div><b>Carpeta de la torre:</b> ' + enlace(d.carpeta, 'abrir en Drive') + '</div>' : '') +
+    '<div><b>Generado:</b> ' + esc(d.generado || '') + '</div>';
+  // Áreas comunes
+  const t = d.torreInforme;
+  $('torre-bloque').innerHTML = !t ? '<div class="sin" style="color:#94a3b8">No hubo informe de torre completa en estas fechas.</div>' :
+    '<div style="font-size:14px;margin-bottom:8px">Informe ' + enlace(t.pdf, t.numeroRev) + ' del ' + fecha(t.fecha) + ' · ' + esc(t.inspectores.join(' · ')) + ' · ' + esc(t.version) + '</div>' +
+    '<div class="scroll"><table><tr><th>Hito</th><th class="n">%</th></tr>' +
+    hT.map(h => '<tr><td>' + esc(h.numero + ' · ' + h.corto) + '</td>' + pct(t.pcts[h.id], t.noInsp, h.id, t.declarados) + '</tr>').join('') + '</table></div>';
+  // Matriz
+  $('apto-sub').textContent = d.apartamentos.length ? 'El último informe de cada apartamento en la semana; el enlace abre el PDF.' : 'No hubo informes de apartamento en estas fechas.';
+  let html = '<tr><th>Apto</th>' + hA.map(h => '<th class="n" title="' + esc(h.nombre) + '">H' + esc(h.numero) + ' ' + esc(h.corto) + '</th>').join('') + '<th>Inspector</th><th>Informe</th></tr>';
+  let piso = null;
+  d.apartamentos.forEach(a => {
+    if (a.piso !== piso) { piso = a.piso; html += '<tr><td class="piso" colspan="' + (hA.length + 3) + '">' + esc(piso || 'Sin piso') + '</td></tr>'; }
+    html += '<tr><td><b>' + esc(a.apto || a.bloque) + '</b>' + (a.copiadoDe ? ' <small title="Mediciones a partir de ' + esc(a.copiadoDe) + '">≈</small>' : '') + '</td>' +
+      hA.map(h => pct(a.pcts[h.id], a.noInsp, h.id, a.declarados)).join('') +
+      '<td>' + esc(a.inspectores.join(', ')) + '</td><td>' + enlace(a.pdf, a.numeroRev) + ' <small>' + fecha(a.fecha) + '</small></td></tr>';
+  });
+  $('matriz').innerHTML = html;
+  // Notas
+  $('notas').innerHTML = d.notas.length ? d.notas.map(n => {
+    const txt = [];
+    if (n.actividades && !n.actividadesHeredada) txt.push('<div class="obs"><b>Actividades en ejecución:</b> ' + esc(n.actividades) + '</div>');
+    n.obs.forEach(o => txt.push('<div class="obs"><b>' + esc(o.nombre.replace(/^HITO\s+\d+:\s*/i, '')) + ':</b> ' + esc(o.texto) + '</div>'));
+    if (n.obsGeneral) txt.push('<div class="obs"><b>Observación general:</b> ' + esc(n.obsGeneral) + '</div>');
+    if (n.obsSp) txt.push('<div class="obs"><b>Servicios públicos:</b> ' + esc(n.obsSp) + '</div>');
+    if (!txt.length) txt.push('<div class="obs" style="color:#94a3b8">Sin observaciones escritas en este informe.</div>');
+    const foto = n.foto ? '<div class="foto"><a href="' + esc(n.foto.url) + '" target="_blank" rel="noopener"><img src="' + esc(n.foto.miniatura) + '" alt="Primera foto del informe" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.insertAdjacentHTML(\'beforeend\',\'📷 Ver la foto en Drive\')"></a></div>' : '';
+    return '<div class="nota' + (foto ? ' confoto' : '') + '">' + foto + '<div><div class="cab">' + esc(n.lugar) + ' <small>· ' + fecha(n.fecha) + ' · ' + esc(n.inspectores.join(', ')) + ' · ' + enlace(n.pdf, n.numeroRev) + '</small></div>' + txt.join('') + '</div></div>';
+  }).join('') : '<div style="color:#94a3b8">Sin informes en estas fechas.</div>';
+  cargarBorrador();
+  $('resultado').hidden = false; $('estado-envio').hidden = true;
+  $('validacion').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── Lo que escribe la coordinación ──
+const CAMPOS = ['hitos', 'exitos', 'dificultades', 'otros'];
+function claveBorrador() { return DATA ? 'garmel_compilado_' + DATA.sector + '_' + DATA.torre + '_' + DATA.hasta : ''; }
+function textos() { const o = {}; CAMPOS.forEach(k => o[k] = $('t-' + k).value.trim()); return o; }
+function cargarBorrador() {
+  let b = null; try { b = JSON.parse(localStorage.getItem(claveBorrador()) || 'null'); } catch (e) {}
+  CAMPOS.forEach(k => { $('t-' + k).value = (b && b[k]) || ''; });
+  refrescarResumen();
+}
+function refrescarResumen() { CAMPOS.forEach(k => { const v = $('t-' + k).value.trim(); $('r-' + k).textContent = v || '(sin texto)'; }); }
+CAMPOS.forEach(k => $('t-' + k).addEventListener('input', () => { try { localStorage.setItem(claveBorrador(), JSON.stringify(textos())); } catch (e) {} refrescarResumen(); }));
+
+async function enviar() {
+  if (!DATA) return;
+  const t = textos();
+  if (!CAMPOS.some(k => t[k])) { mostrarEnvio('Escriba al menos uno de los cuadros de la validación antes de enviar.', 'mal'); return; }
+  const clave = claveGuardada();
+  if (!clave) return mostrarEnvio('Este equipo no tiene la clave de envío. Configúrela en Inicio.', 'mal');
+  $('btn-enviar').disabled = true; mostrarEnvio('⏳ Archivando el compilado en la carpeta de la torre…', 'espera');
+  const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 90000);
+  try {
+    const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave, accion: 'compilado-guardar', sector: DATA.sector, torre: DATA.torre, desde: DATA.desde, hasta: DATA.hasta,
+        coordinadora: DATA.quien, textos: t, semana: DATA, prueba: ESPRUEBA }), signal: corte.signal });
+    const res = await r.json();
+    if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
+    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + ' en la carpeta de la torre' + (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '') + '. Planificación lo toma de ahí para el informe semanal.', 'bien');
+    try { localStorage.removeItem(claveBorrador()); } catch (e) {}
+  } catch (e) {
+    const m = String(e && e.message || e);
+    mostrarEnvio(m === 'Clave incorrecta' ? 'La clave guardada no es la del relevo.' : 'No se pudo archivar: ' + esc(m) + '. Lo escrito sigue guardado en este equipo.', 'mal');
+  } finally { clearTimeout(reloj); $('btn-enviar').disabled = false; }
+}
+function mostrarEnvio(txt, clase) { const e = $('estado-envio'); e.hidden = false; e.className = 'estado ' + clase; e.innerHTML = txt; e.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+function otraVez() { $('resultado').hidden = true; DATA = null; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });
+</script>
+</body>
+</html>

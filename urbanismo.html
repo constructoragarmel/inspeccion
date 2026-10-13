@@ -352,7 +352,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v150</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v151</div>
 </div>
 
 <div class="acciones">
@@ -363,6 +363,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
     <button type="button" class="b1" onclick="guardar(true)" title="Guarda en este teléfono. Se guarda solo a los 2 segundos y cada 30">💾 Guardar</button>
     <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
     <button type="button" class="b1" onclick="alternarPlanificacion()" title="Muestra u oculta el campo de cantidad proyectada, que carga Planificación">📊 Proyectadas</button>
+    <button type="button" class="b1" onclick="guardar(true);location.href='./compilado.html'+(TEST_MODE?'?prueba=1':'')" title="La semana de una torre ya armada con los informes de la app, para que la coordinación la valide">📋 Compilado</button>
   </div>
   <div class="fila-principal">
     <button type="button" class="b1" onclick="siguienteTorre()" title="Guarda este informe y prepara el de la siguiente manzana, conservando inspector, fecha y estatus">➡️ Sig. manzana</button>

@@ -9112,6 +9112,28 @@ s = sustituir(s,
  "márquelo como «hito no inspeccionado»: queda registrado como no verificado, que no es lo mismo que ponerle cero.",
  "177d· ni el aviso de ámbito", n=3)
 
+# ── 178. «Compilado» en «Más» (13-oct-2026) ───────────────────────────────
+# La página «Compilado de la semana» (compilado.html) es con la que la coordinación valida la semana de una torre
+# (acordado con Planificación el 13-oct). Vive aparte, como el mapa, y desde aquí se llega con un toque: igual en
+# servicios, SHA y urbanismo (motor). Guarda antes de salir y conserva el modo de prueba.
+s = sustituir(s,
+ '    <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Borra todo lo escrito en este informe y deja el formulario en blanco. Los informes ya guardados no se tocan">\U0001f9f9 <span>Limpiar todo</span></button>\n',
+ '    <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Borra todo lo escrito en este informe y deja el formulario en blanco. Los informes ya guardados no se tocan">\U0001f9f9 <span>Limpiar todo</span></button>\n'
+ '    <button class="hbtn hbtn-compilado" onclick="irAlCompilado()" title="La semana de una torre ya armada con los informes de la app, para que la coordinaci\u00f3n la valide">\U0001f4cb <span>Compilado</span></button>\n',
+ "178a\u00b7 bot\u00f3n «Compilado» junto a «Limpiar todo»")
+s = sustituir(s,
+ "function irAlMenu(){\n",
+ "function irAlCompilado(){\n"
+ "  try { if (typeof autoguardar === 'function') autoguardar(); } catch(e){}\n"
+ "  location.href = './compilado.html' + (TEST_MODE ? '?prueba=1' : '');\n"
+ "}\n"
+ "function irAlMenu(){\n",
+ "178b\u00b7 guarda y va al compilado, con el modo de prueba en el enlace")
+s = sustituir(s,
+ ".hbtn-nuevo2{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}",
+ ".hbtn-nuevo2{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}\n.hbtn-compilado{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}",
+ "178c\u00b7 su estilo, como «Limpiar todo»")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

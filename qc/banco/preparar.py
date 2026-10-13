@@ -22,7 +22,7 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 AQUI = os.path.dirname(os.path.abspath(__file__))
 destino = sys.argv[1] if len(sys.argv) > 1 else os.path.join(RAIZ, 'qc', 'banco-local')
 os.makedirs(os.path.join(destino, 't'), exist_ok=True)
-for f in ['index.html', 'inspeccion.html', 'servicios.html', 'sha.html', 'urbanismo.html']:
+for f in ['index.html', 'inspeccion.html', 'servicios.html', 'sha.html', 'urbanismo.html', 'compilado.html']:
     s = open(os.path.join(RAIZ, f), encoding='utf-8').read()
     s = re.sub(r'https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec', 'http://127.0.0.1:8776/exec', s)
     s = s.replace("navigator.serviceWorker.register('./sw.js')", "void 0")

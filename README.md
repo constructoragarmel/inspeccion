@@ -422,6 +422,20 @@ ni cédulas.
 El contexto del proyecto —decisiones, contradicciones, montos, datos de personal— vive en un
 repositorio **privado aparte** y no debe mezclarse con este.
 
+## El compilado de la semana (`compilado.html`, v151)
+
+Tampoco es un formulario de inspección: es la página con la que **la coordinación valida la semana de una torre**, acordada
+con Planificación el 13-oct-2026. Lo genera `construir-compilado.py` desde `compilado/pagina.html` con los maestros de
+`comun/maestros.py`, y se llega desde una tarjeta en el menú y desde «⋯ Más» de los cuatro formularios. Pide sector,
+torre, fechas (por defecto desde el jueves anterior hasta hoy: la semana va de jueves a jueves) y quién valida; le pide al
+relevo la semana ya armada (`accion: 'compilado-semana'`, relevo r53): el último informe de la torre, el último de cada
+apartamento con su porcentaje por hito, las notas de todos los informes con su primera foto y el enlace al PDF de cada uno.
+La coordinación escribe su validación en tres cuadros (hitos y avances · éxitos · dificultades, mitigación y acciones) más
+uno libre, y la envía (`accion: 'compilado-guardar'`), que la archiva en la carpeta de la torre; enviarla otra vez la misma
+semana la reemplaza. Lo escrito queda como borrador en el equipo hasta enviarlo. Los porcentajes los calcula el relevo con
+las mismas funciones del PDF y la página los muestra con la nota de que no son el avance físico ni el financiero (ADR-0048,
+alcance del 13-oct). Nada de la semana queda en el teléfono; la misma clave de envío de siempre. Tanda `t78` (19).
+
 ## El mapa de la obra (`mapa.html`, v119)
 
 No es un formulario: se lee. Lo genera `construir-mapa.py` desde `mapa/pagina.html` y `mapa/referencia.json`, y está en el
