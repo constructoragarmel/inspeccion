@@ -156,7 +156,7 @@ a.doc:hover{text-decoration:underline}
   <div class="estado" id="estado-envio" hidden></div>
 </div>
 
-<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v160</div>
+<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v161</div>
 </main>
 
 <script>
@@ -460,7 +460,7 @@ async function enviar() {
   } finally { clearTimeout(reloj); $('btn-enviar').disabled = false; }
 }
 function mostrarEnvio(txt, clase) { const e = $('estado-envio'); e.hidden = false; e.className = 'estado ' + clase; e.innerHTML = txt; e.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
-function otraVez() { $('resultado').hidden = true; DATA = null; ENVIADO = false; $('btn-enviar').textContent = '📤 Enviar el compilado'; try { localStorage.removeItem('garmel_compilado_semana'); } catch (e) {} window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function otraVez() { $('resultado').hidden = true; DATA = null; ENVIADO = false; $('btn-enviar').textContent = '📤 Enviar el compilado'; $('guardado-txt').textContent = 'Se guarda solo en este equipo mientras escribe; se archiva al tocar «Enviar el compilado».'; try { localStorage.removeItem('garmel_compilado_semana'); } catch (e) {} window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
 // La última semana generada se repinta al abrir (recargar o volver no obliga a esperar otra vez), con aviso.
 try {
