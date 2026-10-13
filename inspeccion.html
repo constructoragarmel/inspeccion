@@ -1232,6 +1232,7 @@ textarea{font-family:inherit}
     <div class="field">
       <label>N° Apartamento *</label>
       <input type="text" id="apto" placeholder="Ej: 4B" oninput="updateDocInfo()" onchange="_normalizarApto(this)" autocapitalize="characters">
+      <select id="apto-sel" style="display:none" onchange="_aptoDesdeLista(this)" aria-label="Apartamento"></select>
     </div>
     <div id="aviso-anterior" role="status" aria-live="polite" style="grid-column:1/-1"></div>
     <div id="copiar-de" style="grid-column:1/-1"></div>
@@ -1524,10 +1525,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v157';
+    el.textContent = '● en línea · v158';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v157 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v158 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2305,6 +2306,26 @@ function _digitosFinales(v, ancho){
   return m ? m[1].padStart(ancho, '0') : '';
 }
 
+const APARTAMENTOS_POR_SECTOR = {
+  EZ: ['A1', 'A2', 'B1', 'B2']    // Ezequiel Zamora, Planificación 13-oct-2026
+};
+function _aptosDeSector(){ const z = getSectorActual(); return (typeof APARTAMENTOS_POR_SECTOR !== 'undefined' && APARTAMENTOS_POR_SECTOR[z]) || null; }
+function _aplicarListaApto(){
+  const inp = document.getElementById('apto'), sel = document.getElementById('apto-sel');
+  if (!inp || !sel) return;
+  const lista = (document.getElementById('torre') && document.getElementById('torre').value) ? _aptosDeSector() : null;
+  const v = String(inp.value || '').trim().toUpperCase();
+  if (!lista || (v && lista.indexOf(v) < 0)) { sel.style.display = 'none'; inp.style.display = ''; return; }
+  if (sel.options.length !== lista.length + 1 || Array.prototype.slice.call(sel.options, 1).some(function(o, i){ return o.value !== lista[i]; })) {
+    sel.innerHTML = '<option value="">— Seleccione apto —</option>' + lista.map(function(a){ return '<option value="' + a + '">' + a + '</option>'; }).join('');
+  }
+  sel.value = v; inp.style.display = 'none'; sel.style.display = '';
+}
+function _aptoDesdeLista(sel){ const inp = document.getElementById('apto'); inp.value = sel.value; inp.dispatchEvent(new Event('input', { bubbles: true })); updateDocInfo(); }
+document.addEventListener('change', function(e){ if (e.target && (e.target.id === 'convenio' || e.target.id === 'torre')) _aplicarListaApto(); });
+if (document.readyState !== 'loading') setTimeout(_aplicarListaApto, 0); else document.addEventListener('DOMContentLoaded', _aplicarListaApto);
+const _nuevoFormularioBase181 = nuevoFormulario;
+nuevoFormulario = function(){ const r = _nuevoFormularioBase181.apply(this, arguments); _aplicarListaApto(); return r; };
 function getSectorActual(){
   return SECTOR_POR_CONVENIO[document.getElementById('convenio')?.value] || 'XX';
 }
@@ -3855,6 +3876,7 @@ function loadDraftData(index) {
   });
   _actPoner(d.actividades || '', !!d.actividadesHeredada);
   if(d.convenio) filtrarPorConvenio();
+  _aplicarListaApto();
   if(d.empresa) document.getElementById('empresa').value = d.empresa;
   
   const resContainer = document.getElementById('residentes-container');
@@ -4038,6 +4060,7 @@ function siguienteApartamento(){
   _abiertoParaEditar = false;
 
   document.getElementById('apto').value = '';
+  _aplicarListaApto();
   document.getElementById('obs_general').value = '';
   document.getElementById('obs_sp').value = '';
   _actSiguiente();

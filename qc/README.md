@@ -647,3 +647,8 @@ recupera el informe y sigue siendo uno, seguir llenando guarda en el mismo, perd
 no crea copia (180: mismo número y misma huella, sin enviar, es el mismo borrador), y cambiar de apartamento sí crea su ficha. El
 camino exacto que produjo las copias en obra no se encontró leyendo; la defensa 180 cubre cualquiera.
 
+**t82 (13-oct-2026, v158): el apartamento como desplegable donde hay nomenclatura.** Planificación mandó la de Ezequiel Zamora
+(A1, A2, B1, B2 por piso; `APARTAMENTOS_POR_SECTOR` en comun/maestros.py). En ese sector el campo de texto se esconde y aparece
+el desplegable, que escribe en el mismo campo; «Guardar y otro apto» lo deja vacío; en un sector sin nomenclatura sigue el campo
+libre; un borrador con un apartamento fuera de la lista se abre con el campo libre y lo conserva; el desplegable mide 44 px.
+

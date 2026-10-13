@@ -249,3 +249,13 @@ COORDINADORES_JS = """const COORDINADORES = [
   {n: "Hern\u00e1n Escobar (CIV-151.021)",       a: "Servicios"}
 ];"""
 
+# ── Los apartamentos de cada piso, por sector ───────────────────────────────
+#
+# Para que el apartamento sea un desplegable y no un campo libre («A-2» y «A2» no casaban; Planificación, 13-oct-2026).
+# Planificación mandó la nomenclatura de Ezequiel Zamora el 13-oct (por Stephanie): cuatro por piso, A1, A2, B1 y B2. Los
+# otros sectores siguen con el campo libre hasta que llegue la suya. Si una torre tuviera otra nomenclatura, se agrega
+# aquí por torre, no se fuerza: un apartamento escrito que no esté en la lista vuelve al campo libre.
+APARTAMENTOS_JS = """const APARTAMENTOS_POR_SECTOR = {
+  EZ: ['A1', 'A2', 'B1', 'B2']    // Ezequiel Zamora, Planificación 13-oct-2026
+};"""
+

@@ -9163,6 +9163,47 @@ s = sustituir(s,
  "    }\n    _idEnEdicion = data.id || null;\n",
  "180\u00b7 el mismo informe no se guarda dos veces como dos borradores")
 
+# ── 181. El apartamento como desplegable donde hay nomenclatura (13-oct-2026) ─
+# Planificación pidió que el apartamento se elija de una lista como el piso, y mandó la de Ezequiel Zamora: A1, A2, B1 y
+# B2 por piso (`APARTAMENTOS_POR_SECTOR` en comun/maestros.py). Donde el sector tiene lista, el campo de texto se esconde y
+# aparece un desplegable que escribe en el mismo campo; donde no la hay, o el borrador trae un apartamento que no está en
+# la lista, sigue el campo libre. Nada más cambia: el número, el relevo y Smartsheet leen `apto` como siempre.
+s = sustituir(s,
+ '      <input type="text" id="apto" placeholder="Ej: 4B" oninput="updateDocInfo()" onchange="_normalizarApto(this)" autocapitalize="characters">\n',
+ '      <input type="text" id="apto" placeholder="Ej: 4B" oninput="updateDocInfo()" onchange="_normalizarApto(this)" autocapitalize="characters">\n'
+ '      <select id="apto-sel" style="display:none" onchange="_aptoDesdeLista(this)" aria-label="Apartamento"></select>\n',
+ "181a\u00b7 el desplegable junto al campo")
+s = sustituir(s,
+ "function getSectorActual(){\n",
+ maestros.APARTAMENTOS_JS + "\n"
+ "function _aptosDeSector(){ const z = getSectorActual(); return (typeof APARTAMENTOS_POR_SECTOR !== 'undefined' && APARTAMENTOS_POR_SECTOR[z]) || null; }\n"
+ "function _aplicarListaApto(){\n"
+ "  const inp = document.getElementById('apto'), sel = document.getElementById('apto-sel');\n"
+ "  if (!inp || !sel) return;\n"
+ "  const lista = (document.getElementById('torre') && document.getElementById('torre').value) ? _aptosDeSector() : null;\n"
+ "  const v = String(inp.value || '').trim().toUpperCase();\n"
+ "  if (!lista || (v && lista.indexOf(v) < 0)) { sel.style.display = 'none'; inp.style.display = ''; return; }\n"
+ "  if (sel.options.length !== lista.length + 1 || Array.prototype.slice.call(sel.options, 1).some(function(o, i){ return o.value !== lista[i]; })) {\n"
+ "    sel.innerHTML = '<option value=\"\">\u2014 Seleccione apto \u2014</option>' + lista.map(function(a){ return '<option value=\"' + a + '\">' + a + '</option>'; }).join('');\n"
+ "  }\n"
+ "  sel.value = v; inp.style.display = 'none'; sel.style.display = '';\n"
+ "}\n"
+ "function _aptoDesdeLista(sel){ const inp = document.getElementById('apto'); inp.value = sel.value; inp.dispatchEvent(new Event('input', { bubbles: true })); updateDocInfo(); }\n"
+ "document.addEventListener('change', function(e){ if (e.target && (e.target.id === 'convenio' || e.target.id === 'torre')) _aplicarListaApto(); });\n"
+ "if (document.readyState !== 'loading') setTimeout(_aplicarListaApto, 0); else document.addEventListener('DOMContentLoaded', _aplicarListaApto);\n"
+ "const _nuevoFormularioBase181 = nuevoFormulario;\n"
+ "nuevoFormulario = function(){ const r = _nuevoFormularioBase181.apply(this, arguments); _aplicarListaApto(); return r; };\n"
+ "function getSectorActual(){\n",
+ "181b\u00b7 la lista por sector y qui\u00e9n la muestra")
+s = sustituir(s,
+ "  document.getElementById('apto').value = '';\n  document.getElementById('obs_general').value = '';\n",
+ "  document.getElementById('apto').value = '';\n  _aplicarListaApto();\n  document.getElementById('obs_general').value = '';\n",
+ "181c\u00b7 «Guardar y otro apto» deja el desplegable listo")
+s = sustituir(s,
+ "  if(d.convenio) filtrarPorConvenio();\n  if(d.empresa) document.getElementById('empresa').value = d.empresa;\n",
+ "  if(d.convenio) filtrarPorConvenio();\n  _aplicarListaApto();\n  if(d.empresa) document.getElementById('empresa').value = d.empresa;\n",
+ "181d\u00b7 al abrir un borrador, lista o campo libre seg\u00fan traiga")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
