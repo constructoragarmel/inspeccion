@@ -204,7 +204,7 @@ async function generar() {
   const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 240000);
   try {
     const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ clave, accion: 'compilado-semana', sector, torre, desde, hasta }), signal: corte.signal });
+      body: JSON.stringify({ clave, accion: 'compilado-semana', sector, torre, desde, hasta, prueba: ESPRUEBA }), signal: corte.signal });
     const res = await r.json();
     if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
     DATA = res; DATA.quien = quien;
