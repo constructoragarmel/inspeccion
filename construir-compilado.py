@@ -11,7 +11,7 @@ servicios, urbanismo y SHA.
 
 DE DÓNDE SALE CADA COSA:
   · Sectores, torres y empresas   → `comun/maestros.py`, los mismos de los cuatro formularios.
-  · Quién valida                  → el padrón de `comun/maestros.py` como sugerencia; se puede escribir otro nombre.
+  · Quién valida                  → `COORDINADORES` de `comun/maestros.py`: solo los coordinadores de cada área.
   · Lo de la semana               → el relevo, cada vez; nada queda en el teléfono salvo lo que la coordinación escribe
                                     mientras lo escribe (borrador) y el último sector, torre y nombre elegidos.
   · Porcentajes                   → los calcula el relevo con las funciones del PDF; esta página solo los muestra, con la
@@ -34,7 +34,7 @@ def construir():
     p = (lee("compilado", "pagina.html")
          .replace("@@TORRES@@", maestros.TORRES_JS)
          .replace("@@SECTOR_POR_CONVENIO@@", maestros.SECTOR_POR_CONVENIO_JS)
-         .replace("@@INSPECTORES@@", maestros.INSPECTORES_JS)
+         .replace("@@COORDINADORES@@", maestros.COORDINADORES_JS)
          .replace("@@RELEVO@@", relevo)
          .replace("@@VERSION@@", version))
     if "@@" in p:

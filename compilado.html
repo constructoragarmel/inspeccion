@@ -88,7 +88,7 @@ a.doc:hover{text-decoration:underline}
     <div class="campo"><label for="torre">Torre</label><select id="torre"><option value="">— Elija primero el sector —</option></select></div>
     <div class="campo"><label for="desde">Desde (inicio del corte)</label><input type="date" id="desde"><div class="ayuda">Por defecto, el jueves anterior: la semana va de jueves a jueves.</div></div>
     <div class="campo"><label for="hasta">Hasta</label><input type="date" id="hasta"></div>
-    <div class="campo"><label for="quien">Quién valida (coordinación)</label><input id="quien" list="padron" autocomplete="off" placeholder="Nombre de quien revisa y valida"><datalist id="padron"></datalist></div>
+    <div class="campo"><label for="quien">Quién valida (coordinación)</label><select id="quien"><option value="">— Seleccione —</option></select></div>
   </div>
   <div class="acciones"><button type="button" class="b2" id="btn-generar" onclick="generar()">📋 Generar el compilado</button></div>
 </div>
@@ -138,7 +138,7 @@ a.doc:hover{text-decoration:underline}
   <div class="estado" id="estado-envio" hidden></div>
 </div>
 
-<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v151</div>
+<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v152</div>
 </main>
 
 <script>
@@ -196,36 +196,11 @@ const SECTOR_POR_CONVENIO = {
   'Convenio Rusos':      'SR',   // Simón Rodríguez
   'Convenio Chinos':     'SB'    // Simón Bolívar
 };
-const INSPECTORES_DB = [
-  "Alejandro Bastidas (CIV-67.316)",
-  "Ángel Sánchez (CIV-NC)",
-  "Birmania Rada (CIV-NC)",
-  "Carlos J. Colmenares (CIV-127.708)",
-  "Charbel Abdul (CIV-321.425)",
-  "Christian Fricke (CIV-184.558)",
-  "Cleidy Chacón (CIV-240.930)",
-  "Diego Orta (CIV-307.823)",
-  "Diego Rosales (CIV-296.226)",
-  "Edenil Narváez (CIV-150.422)",
-  "Eduardo Rivero (CIV-169.435)",
-  "Gabriel Barrios (CIV-NC)",
-  "Gabriel Jelenkovic (CIV-215.739)",
-  "Génesis Cordobés (CIV-307.057)",
-  "Génesis Márquez (CIV-306.358)",
-  "Girlenys Lacruz (CIV-288.041)",
-  "Hernán Escobar (CIV-151.021)",
-  "Katherine Correia (CIV-237.904)",
-  "Leidy Villamizar (CIV-258.266)",
-  "Lizeira Aragort (CIV-298.127)",
-  "Manuel Madrid (CIV-256.842)",
-  "Mariana Rojas (CIV-321.563)",
-  "Martha Azcarate (CIV-87.616)",
-  "Miguel E. Ávila (CIV-NC)",
-  "Oriana Plaza (CIV-321.434)",
-  "Selehidy Rivero (CIV-292.273)",
-  "Skarlet Gómez (CIV-317.442)",
-  "Víctor Mendoza (CIV-NC)",
-  "Yenddy Sierra (CIV-307.772)"
+const COORDINADORES = [
+  {n: "Leidy Villamizar (CIV-258.266)",     a: "Inspección de obra"},
+  {n: "Edenil Narváez (CIV-150.422)",       a: "Inspección de obra"},
+  {n: "Carlos J. Colmenares (CIV-127.708)", a: "Inspección de obra"},
+  {n: "Hernán Escobar (CIV-151.021)",       a: "Servicios"}
 ];
 const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbwWgYbgMkNcxwN2gAH89N4EVUe6LO_RXR2IzBBc6mFfgJJNjixd6omK_ElAOSiFH-EqYg/exec';
 const ESPRUEBA = new URLSearchParams(location.search).get('prueba') === '1';
@@ -238,7 +213,7 @@ let DATA = null;
 // ── Arranque ──
 if (ESPRUEBA) { $('prueba').hidden = false; $('volver').href = 'index.html?prueba=1'; }
 (function () {
-  const dl = $('padron'); INSPECTORES_DB.forEach(n => { const o = document.createElement('option'); o.value = n; dl.appendChild(o); });
+  const q = $('quien'); COORDINADORES.forEach(c => { const o = document.createElement('option'); o.value = c.n; o.textContent = c.n.replace(/\s*\(CIV[^)]*\)/, '') + ' · ' + c.a; q.appendChild(o); });
   const hoy = new Date(); hoy.setHours(12, 0, 0, 0);
   const j = new Date(hoy); j.setDate(j.getDate() - 1);
   while (j.getDay() !== 4) j.setDate(j.getDate() - 1);   // el jueves anterior (hoy jueves cuenta como la semana que termina: se toma el de hace 7 días)
@@ -265,7 +240,7 @@ async function generar() {
   const sector = $('sector').value, torre = $('torre').value, desde = $('desde').value, hasta = $('hasta').value, quien = $('quien').value.trim();
   if (!sector || !torre) return estado('Elija el sector y la torre.', 'mal');
   if (!desde || !hasta || hasta < desde) return estado('Revise las fechas: la final no puede ser anterior a la de inicio.', 'mal');
-  if (!quien) return estado('Escriba quién valida este compilado.', 'mal');
+  if (!quien) return estado('Elija quién valida este compilado.', 'mal');
   const clave = claveGuardada();
   if (!clave) return estado('Este equipo no tiene la clave de envío. Configúrela en <a href="index.html' + QUERY + '">Inicio</a> y vuelva.', 'mal');
   if (!navigator.onLine) return estado('Sin conexión: el compilado se arma con los informes archivados en Drive y hace falta internet.', 'mal');

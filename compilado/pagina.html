@@ -88,7 +88,7 @@ a.doc:hover{text-decoration:underline}
     <div class="campo"><label for="torre">Torre</label><select id="torre"><option value="">— Elija primero el sector —</option></select></div>
     <div class="campo"><label for="desde">Desde (inicio del corte)</label><input type="date" id="desde"><div class="ayuda">Por defecto, el jueves anterior: la semana va de jueves a jueves.</div></div>
     <div class="campo"><label for="hasta">Hasta</label><input type="date" id="hasta"></div>
-    <div class="campo"><label for="quien">Quién valida (coordinación)</label><input id="quien" list="padron" autocomplete="off" placeholder="Nombre de quien revisa y valida"><datalist id="padron"></datalist></div>
+    <div class="campo"><label for="quien">Quién valida (coordinación)</label><select id="quien"><option value="">— Seleccione —</option></select></div>
   </div>
   <div class="acciones"><button type="button" class="b2" id="btn-generar" onclick="generar()">📋 Generar el compilado</button></div>
 </div>
@@ -144,7 +144,7 @@ a.doc:hover{text-decoration:underline}
 <script>
 @@TORRES@@
 @@SECTOR_POR_CONVENIO@@
-@@INSPECTORES@@
+@@COORDINADORES@@
 const RELEVO_URL = '@@RELEVO@@';
 const ESPRUEBA = new URLSearchParams(location.search).get('prueba') === '1';
 const QUERY = ESPRUEBA ? '?prueba=1' : '';
@@ -156,7 +156,7 @@ let DATA = null;
 // ── Arranque ──
 if (ESPRUEBA) { $('prueba').hidden = false; $('volver').href = 'index.html?prueba=1'; }
 (function () {
-  const dl = $('padron'); INSPECTORES_DB.forEach(n => { const o = document.createElement('option'); o.value = n; dl.appendChild(o); });
+  const q = $('quien'); COORDINADORES.forEach(c => { const o = document.createElement('option'); o.value = c.n; o.textContent = c.n.replace(/\s*\(CIV[^)]*\)/, '') + ' · ' + c.a; q.appendChild(o); });
   const hoy = new Date(); hoy.setHours(12, 0, 0, 0);
   const j = new Date(hoy); j.setDate(j.getDate() - 1);
   while (j.getDay() !== 4) j.setDate(j.getDate() - 1);   // el jueves anterior (hoy jueves cuenta como la semana que termina: se toma el de hace 7 días)
@@ -183,7 +183,7 @@ async function generar() {
   const sector = $('sector').value, torre = $('torre').value, desde = $('desde').value, hasta = $('hasta').value, quien = $('quien').value.trim();
   if (!sector || !torre) return estado('Elija el sector y la torre.', 'mal');
   if (!desde || !hasta || hasta < desde) return estado('Revise las fechas: la final no puede ser anterior a la de inicio.', 'mal');
-  if (!quien) return estado('Escriba quién valida este compilado.', 'mal');
+  if (!quien) return estado('Elija quién valida este compilado.', 'mal');
   const clave = claveGuardada();
   if (!clave) return estado('Este equipo no tiene la clave de envío. Configúrela en <a href="index.html' + QUERY + '">Inicio</a> y vuelva.', 'mal');
   if (!navigator.onLine) return estado('Sin conexión: el compilado se arma con los informes archivados en Drive y hace falta internet.', 'mal');

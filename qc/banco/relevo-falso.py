@@ -21,7 +21,7 @@ class H(http.server.BaseHTTPRequestHandler):
         n=int(self.headers.get('Content-Length',0)); raw=self.rfile.read(n)
         if self.path.startswith('/control'):
             ESTADO.update(json.loads(raw or b'{}'))
-            if ESTADO.get('borrar'): H.historial.clear(); H.obra.clear(); H.obraApto.clear(); H.oficina.clear(); open(S+'/envios.jsonl','w').close(); ESTADO['borrar']=False
+            if ESTADO.get('borrar'): H.historial.clear(); H.obra.clear(); H.obraApto.clear(); H.oficina.clear(); getattr(H,'compilados',{}).clear(); open(S+'/envios.jsonl','w').close(); ESTADO['borrar']=False
             return self._ok({'ok':True,'estado':ESTADO})
         if ESTADO['caido']:
             self.close_connection=True; return

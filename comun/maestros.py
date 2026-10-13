@@ -235,3 +235,17 @@ CORRECCIONES_TEXTO = [
     ("ING. JOANNY TAPIA / ING. JHOANNY LOPEZ", "ING. JOANNY TAPIA \u00b7 ING. JHOANNY LOPEZ"),
     ("ING. JUAN COLMENARES ARQ EVER AVENDA\u00d1O", "ING. JUAN COLMENARES \u00b7 ARQ. EVER AVENDA\u00d1O"),
 ]
+
+# ── Los coordinadores de cada área ─────────────────────────────────────────
+#
+# Para «quién valida» del compilado de la semana (compilado.html, v152; pedido de Stephanie el 13-oct-2026: «solo
+# nombres de los coordinadores de cada área»). Las cadenas son las mismas del padrón de arriba. Inspección de obra: los
+# tres coordinadores de inspección (uno por sector); servicios: su coordinador. SHA y urbanismo todavía no tienen
+# coordinación propia en el padrón: cuando la tengan, entra aquí.
+COORDINADORES_JS = """const COORDINADORES = [
+  {n: "Leidy Villamizar (CIV-258.266)",     a: "Inspecci\u00f3n de obra"},
+  {n: "Edenil Narv\u00e1ez (CIV-150.422)",       a: "Inspecci\u00f3n de obra"},
+  {n: "Carlos J. Colmenares (CIV-127.708)", a: "Inspecci\u00f3n de obra"},
+  {n: "Hern\u00e1n Escobar (CIV-151.021)",       a: "Servicios"}
+];"""
+
