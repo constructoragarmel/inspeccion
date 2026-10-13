@@ -89,11 +89,13 @@ a.doc:hover{text-decoration:underline}
 
 <div class="tarjeta" id="pedido">
   <h2>1 · Qué torre y qué semana</h2>
-  <div class="sub">Se traen todos los informes de obra de esa torre entre las dos fechas: el último de cada apartamento, el último de la torre y las notas de todos.</div>
+  <div class="sub" id="sub-pedido">Se traen todos los informes de obra de esa torre entre las dos fechas: el último de cada apartamento, el último de la torre y las notas de todos.</div>
   <div class="rejilla">
+    <div class="campo"><label for="tipo">Qué se compila</label>
+      <select id="tipo"><option value="obra">Inspección de obra</option><option value="servicios">Servicios públicos</option><option value="urbanismo">Urbanismo</option><option value="sha">SHA</option></select></div>
     <div class="campo"><label for="sector">Sector</label>
       <select id="sector"><option value="">— Seleccione sector —</option><option value="EZ">Ezequiel Zamora</option><option value="SR">Simón Rodríguez</option><option value="SB">Simón Bolívar</option></select></div>
-    <div class="campo"><label for="torre">Torre</label><select id="torre"><option value="">— Elija primero el sector —</option></select></div>
+    <div class="campo"><label for="torre" id="lbl-torre">Torre</label><select id="torre"><option value="">— Elija primero el sector —</option></select></div>
     <div class="campo"><label for="desde">Desde (inicio del corte)</label><input type="date" id="desde"><div class="ayuda">Por defecto, el jueves anterior: la semana va de jueves a jueves.</div></div>
     <div class="campo"><label for="hasta">Hasta</label><input type="date" id="hasta"></div>
     <div class="campo"><label for="quien">Quién valida (coordinación)</label><select id="quien"><option value="">— Seleccione —</option></select></div>
@@ -119,12 +121,18 @@ a.doc:hover{text-decoration:underline}
     <div class="campo" style="margin-top:10px"><label for="t-otros">Otros comentarios</label><textarea id="t-otros" placeholder="Inspecciones patológicas, informes que se esperan, llamadas y comunicados enviados: lo que se pierde en la semana si no se anota"></textarea><div class="resumen-val" id="r-otros" hidden></div></div>
   </div>
 
-  <div class="tarjeta">
+  <div class="tarjeta" id="bloque-tipo" hidden>
+    <h2 id="tipo-titulo">3 · Último informe</h2>
+    <div class="sub" id="tipo-sub"></div>
+    <div class="scroll matriz"><table id="tipo-tabla"></table></div>
+    <div id="tipo-extra"></div>
+  </div>
+  <div class="tarjeta" id="bloque-torre">
     <h2>3 · Áreas comunes (informe de torre)</h2>
     <div id="torre-bloque"></div>
   </div>
 
-  <div class="tarjeta">
+  <div class="tarjeta" id="bloque-aptos">
     <h2>4 · Apartamentos</h2>
     <div class="sub" id="apto-sub"></div>
     <div class="pista" id="pista">Deslice la tabla hacia la derecha para ver todos los hitos; el apartamento queda fijo.</div>
@@ -133,7 +141,7 @@ a.doc:hover{text-decoration:underline}
   </div>
 
   <div class="tarjeta">
-    <h2>5 · Notas de la semana</h2>
+    <h2 id="notas-titulo">5 · Notas de la semana</h2>
     <div class="sub">Lo que escribió cada inspector en cada informe, tal cual, con su primera foto.</div>
     <div id="notas"></div>
   </div>
@@ -148,7 +156,7 @@ a.doc:hover{text-decoration:underline}
   <div class="estado" id="estado-envio" hidden></div>
 </div>
 
-<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v159</div>
+<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v160</div>
 </main>
 
 <script>
@@ -228,7 +236,7 @@ if (ESPRUEBA) { $('prueba').hidden = false; $('volver').href = 'index.html?prueb
   const j = new Date(hoy); j.setDate(j.getDate() - 1);
   while (j.getDay() !== 4) j.setDate(j.getDate() - 1);   // el jueves anterior (hoy jueves cuenta como la semana que termina: se toma el de hace 7 días)
   $('desde').value = iso(j); $('hasta').value = iso(hoy);
-  try { const u = JSON.parse(localStorage.getItem('garmel_compilado_ultimo') || 'null'); if (u) { $('sector').value = u.sector || ''; llenarTorres(); $('torre').value = u.torre || ''; $('quien').value = u.quien || ''; if ($('quien').selectedIndex < 0) $('quien').selectedIndex = 0; } } catch (e) {}
+  try { const u = JSON.parse(localStorage.getItem('garmel_compilado_ultimo') || 'null'); if (u) { if (u.tipo && TIPOS[u.tipo]) $('tipo').value = u.tipo; aplicarTipo(); $('sector').value = u.sector || ''; if (tipoActual() === 'urbanismo') { MANZANAS[u.sector] = MANZANAS[u.sector] || (u.torre ? [u.torre] : []); llenarManzanas(); } else llenarTorres(); $('torre').value = u.torre || ''; $('quien').value = u.quien || ''; if ($('quien').selectedIndex < 0) $('quien').selectedIndex = 0; } } catch (e) {}
   if (!navigator.onLine) $('conexion').textContent = 'sin conexión';
   window.addEventListener('online', () => $('conexion').textContent = 'en línea');
   window.addEventListener('offline', () => $('conexion').textContent = 'sin conexión');
@@ -241,30 +249,65 @@ function llenarTorres() {
   if ([...sel.options].some(o => o.value === antes)) sel.value = antes;
 }
 $('sector').addEventListener('change', llenarTorres);
+const TIPOS = {
+  obra: { lbl: 'Torre', nombre: 'obra', sub: 'Se traen todos los informes de obra de esa torre entre las dos fechas: el último de cada apartamento, el último de la torre y las notas de todos.' },
+  servicios: { lbl: 'Torre', nombre: 'servicios', sub: 'Se traen los informes de servicios de esa torre entre las dos fechas: el último, por ente, con lo listo y lo que falta, y las notas de todos.' },
+  urbanismo: { lbl: 'Manzana o lote', nombre: 'urbanismo', sub: 'Se traen los informes de urbanismo de esa manzana entre las dos fechas: el último, con sus cantidades y camiones, y las notas de todos.' },
+  sha: { lbl: 'Torre', nombre: 'SHA', sub: 'Se traen los informes de SHA de esa torre entre las dos fechas: el último, con recaudos, frentes e incidencias, y las notas de todos.' }
+};
+function tipoActual() { return TIPOS[$('tipo').value] ? $('tipo').value : 'obra'; }
+let MANZANAS = {};
+async function llenarManzanas() {
+  const s = $('sector').value, sel = $('torre'), antes = sel.value;
+  sel.innerHTML = '<option value="">' + (s ? '— Seleccione manzana —' : '— Elija primero el sector —') + '</option>';
+  if (!s) return;
+  if (!MANZANAS[s]) {
+    try { MANZANAS[s] = JSON.parse(localStorage.getItem('garmel_manzanas_' + s) || 'null') || []; } catch (e) { MANZANAS[s] = []; }
+    const clave = claveGuardada();
+    if (clave && navigator.onLine) {
+      try {
+        const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ clave, accion: 'compilado-manzanas', sector: s }) });
+        const res = await r.json();
+        if (res.ok && Array.isArray(res.manzanas)) { MANZANAS[s] = res.manzanas; try { localStorage.setItem('garmel_manzanas_' + s, JSON.stringify(res.manzanas)); } catch (e) {} }
+      } catch (e) {}
+    }
+  }
+  if ($('sector').value !== s || tipoActual() !== 'urbanismo') return;
+  sel.innerHTML = '<option value="">— Seleccione manzana —</option>';
+  (MANZANAS[s] || []).forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
+  if ([...sel.options].some(o => o.value === antes)) sel.value = antes;
+}
+function aplicarTipo() {
+  const t = tipoActual();
+  $('lbl-torre').textContent = TIPOS[t].lbl; $('sub-pedido').textContent = TIPOS[t].sub;
+  if (t === 'urbanismo') llenarManzanas(); else llenarTorres();
+}
+$('tipo').addEventListener('change', aplicarTipo);
+$('sector').addEventListener('change', () => { if (tipoActual() === 'urbanismo') llenarManzanas(); });
 
 function estado(txt, clase, sinMover) { const e = $('estado'); e.hidden = !txt; e.className = 'estado' + (clase ? ' ' + clase : ''); e.innerHTML = txt || ''; if (txt && !sinMover) e.scrollIntoView({ block: 'nearest' }); }
 function claveGuardada() { try { return localStorage.getItem('garmel_clave_envio') || ''; } catch (e) { return ''; } }
 
 // ── Pedir la semana al relevo ──
 async function generar() {
-  const sector = $('sector').value, torre = $('torre').value, desde = $('desde').value, hasta = $('hasta').value, quien = $('quien').value.trim();
-  if (!sector || !torre) return estado('Elija el sector y la torre.', 'mal');
+  const sector = $('sector').value, torre = $('torre').value, desde = $('desde').value, hasta = $('hasta').value, quien = $('quien').value.trim(), tipo = tipoActual();
+  if (!sector || !torre) return estado(tipo === 'urbanismo' ? 'Elija el sector y la manzana.' : 'Elija el sector y la torre.', 'mal');
   if (!desde || !hasta || hasta < desde) return estado('Revise las fechas: la final no puede ser anterior a la de inicio.', 'mal');
   if (!quien) return estado('Elija quién valida este compilado.', 'mal');
   const clave = claveGuardada();
   if (!clave) return estado('Este equipo no tiene la clave de envío. Configúrela en <a href="index.html' + QUERY + '">Inicio</a> y vuelva.', 'mal');
   if (!navigator.onLine) return estado('Sin conexión: el compilado se arma con los informes archivados en Drive y hace falta internet.', 'mal');
-  try { localStorage.setItem('garmel_compilado_ultimo', JSON.stringify({ sector, torre, quien })); } catch (e) {}
+  try { localStorage.setItem('garmel_compilado_ultimo', JSON.stringify({ sector, torre, quien, tipo })); } catch (e) {}
   $('btn-generar').disabled = true; $('resultado').hidden = true;
   const t0 = Date.now(), aviso = () => estado('⏳ Leyendo los informes de la ' + esc(torre) + ' del ' + fecha(desde) + ' al ' + fecha(hasta) + '… <b>' + Math.round((Date.now() - t0) / 1000) + ' s</b>. Cada apartamento tarda un par de segundos: una torre con 60 puede pasar de dos minutos. No cierre la página.', 'espera');
   aviso(); const latido = setInterval(() => { if (!$('estado').hidden) { const sc = scrollY; aviso(); window.scrollTo(0, sc); } }, 1000);
   const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 240000);
   try {
     const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ clave, accion: 'compilado-semana', sector, torre, desde, hasta, prueba: ESPRUEBA }), signal: corte.signal });
+      body: JSON.stringify({ clave, accion: 'compilado-semana', tipo, sector, torre, desde, hasta, prueba: ESPRUEBA }), signal: corte.signal });
     const res = await r.json();
     if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
-    DATA = res; DATA.quien = quien;
+    DATA = res; DATA.quien = quien; DATA.tipo = res.tipo || tipo;
     try { localStorage.setItem('garmel_compilado_semana', JSON.stringify(DATA)); } catch (e) {}
     estado(''); pintar();
   } catch (e) {
@@ -283,17 +326,31 @@ function pct(v, noInsp, hid, decl) {
 const corto = n => String(n || '').replace(/\s*\(CIV[^)]*\)/, '');
 function enlace(url, txt) { return url ? '<a class="doc" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(txt) + '</a>' : '<span class="sin" title="El PDF de este informe no está en la carpeta">' + esc(txt) + '</span>'; }
 function pintar() {
-  const d = DATA, hA = d.hitos.filter(h => h.apto), hT = d.hitos.filter(h => h.torre);
-  $('titulo').textContent = d.sectorNombre + ' · ' + d.torre + (d.empresa ? ' · ' + d.empresa : '');
+  const d = DATA; d.tipo = d.tipo || 'obra';
+  const T = TIPOS[d.tipo];
+  $('titulo').textContent = d.sectorNombre + ' · ' + (d.tipo === 'urbanismo' ? 'Manzana ' : '') + d.torre + (d.empresa ? ' · ' + d.empresa : '') + (d.tipo === 'obra' ? '' : ' · ' + (d.tipo === 'sha' ? 'SHA' : T.nombre.charAt(0).toUpperCase() + T.nombre.slice(1)));
   $('sin-informes').hidden = d.nInformes > 0;
-  $('sin-informes').textContent = 'No llegó ningún informe de obra de la ' + d.torre + ' entre el ' + fecha(d.desde) + ' y el ' + fecha(d.hasta) + (d.conPruebas ? ' (ni de prueba)' : '') + '. Revise las fechas o, si es así, escriba abajo qué pasó en la torre esta semana.';
+  $('sin-informes').textContent = 'No llegó ningún informe de ' + T.nombre + ' de la ' + (d.tipo === 'urbanismo' ? 'manzana ' : '') + d.torre + ' entre el ' + fecha(d.desde) + ' y el ' + fecha(d.hasta) + (d.conPruebas ? ' (ni de prueba)' : '') + '. Revise las fechas o, si es así, escriba abajo qué pasó esta semana.';
   $('membrete').innerHTML =
     '<div><b>Semana:</b> del ' + fecha(d.desde) + ' al ' + fecha(d.hasta) + '</div>' +
-    '<div><b>Informes de la semana:</b> ' + d.nInformes + ' (' + d.apartamentos.length + ' apartamento' + (d.apartamentos.length === 1 ? '' : 's') + (d.torreInforme ? ' y la torre' : '') + ')</div>' +
+    '<div><b>Informes de la semana:</b> ' + d.nInformes + (d.tipo === 'obra' ? ' (' + d.apartamentos.length + ' apartamento' + (d.apartamentos.length === 1 ? '' : 's') + (d.torreInforme ? ' y la torre' : '') + ')' : '') + '</div>' +
     '<div><b>Inspección:</b> ' + (d.inspectores.length ? esc(d.inspectores.join(' · ')) : '—') + '</div>' +
     '<div><b>Valida:</b> ' + esc(d.quien) + '</div>' +
-    (d.carpeta ? '<div><b>Carpeta de la torre:</b> ' + enlace(d.carpeta, 'abrir en Drive') + '</div>' : '') +
+    (d.carpeta ? '<div><b>Carpeta:</b> ' + enlace(d.carpeta, 'abrir en Drive') + '</div>' : '') +
     '<div><b>Generado:</b> ' + esc(String(d.generado || '').replace(/^(\d{4})-(\d{2})-(\d{2})/, (x, a, m, dd) => dd + '-' + m + '-' + a)) + '</div>';
+  if (d.tipo === 'obra') {
+    $('bloque-tipo').hidden = true; $('bloque-torre').hidden = false; $('bloque-aptos').hidden = false; $('notas-titulo').textContent = '5 · Notas de la semana';
+    pintarObra(d, d.hitos.filter(h => h.apto), d.hitos.filter(h => h.torre));
+  } else {
+    $('bloque-tipo').hidden = false; $('bloque-torre').hidden = true; $('bloque-aptos').hidden = true; $('notas-titulo').textContent = '4 · Notas de la semana';
+    pintarTipo(d);
+  }
+  pintarNotas(d);
+  cargarBorrador();
+  $('resultado').hidden = false; $('estado-envio').hidden = true;
+  $('resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function pintarObra(d, hA, hT) {
   // Áreas comunes
   const t = d.torreInforme;
   $('torre-bloque').innerHTML = !t ? '<div class="sin" style="color:#94a3b8">No hubo informe de torre completa en estas fechas.</div>' :
@@ -311,13 +368,52 @@ function pintar() {
       '<td>' + esc(a.inspectores.map(corto).join(', ')) + '</td><td>' + enlace(a.pdf, a.numeroRev) + ' <small>' + fecha(a.fecha) + '</small></td></tr>';
   });
   $('matriz').innerHTML = html;
+}
+function pintarTipo(d) {
+  const t = d.tipo, u = d.ultimo, gris = '<span style="color:#64748b">—</span>';
+  $('tipo-titulo').textContent = '3 · ' + (t === 'servicios' ? 'Servicios por ente' : t === 'urbanismo' ? 'Partidas con cantidades' : 'Recaudos, frentes e incidencias') + ' (último informe)';
+  if (!u) { $('tipo-sub').textContent = 'No hubo informe en estas fechas.'; $('tipo-tabla').innerHTML = ''; $('tipo-extra').innerHTML = ''; return; }
+  $('tipo-sub').innerHTML = 'Informe ' + enlace(u.pdf, u.numeroRev) + ' del ' + fecha(u.fecha) + ' · ' + esc((u.inspectores || []).join(' · ')) + (u.estatus && u.estatus.length ? ' · ' + esc(u.estatus.join(' · ')) : '');
+  let html = '', extra = '';
+  const ancho = 'style="white-space:normal;min-width:200px"';
+  if (t === 'servicios') {
+    html = '<tr><th>Ente</th><th>Servicio</th><th>Listos</th><th>Qué falta</th><th>Observación</th></tr>';
+    (u.entes || []).forEach(en => en.servicios.forEach((sv, i) => {
+      const listos = sv.noInsp ? 'no insp.' : (sv.si + ' de ' + (sv.si + sv.no) + (sv.na ? ' (' + sv.na + ' n/a)' : ''));
+      const falta = sv.faltan.length ? sv.faltan.map(x => esc(x.item) + (x.obs ? ' <small>(' + esc(x.obs) + ')</small>' : '')).join('; ') : gris;
+      html += '<tr><td>' + (i === 0 ? '<b>' + esc(en.ente) + '</b>' : '') + '</td><td>' + esc(sv.nombre) + '</td><td>' + listos + '</td><td ' + ancho + '>' + falta + '</td><td ' + ancho + '>' + (esc(sv.obs) || gris) + '</td></tr>';
+    }));
+  } else if (t === 'urbanismo') {
+    if (u.actividades) extra += '<div class="obs" style="margin-top:8px"><b>Actividades en ejecución:</b> ' + esc(u.actividades) + '</div>';
+    html = '<tr><th>Sección</th><th>Partida</th><th class="n">Ejecutado</th><th class="n">Proyectado</th><th>Camiones</th><th>Observación</th></tr>';
+    let filas = 0;
+    (u.secciones || []).forEach(sc => {
+      sc.items.forEach((it, i) => { filas++;
+        html += '<tr><td>' + (i === 0 ? '<b>' + esc(sc.nombre) + '</b>' : '') + '</td><td>' + esc(it.nombre) + '</td><td class="n">' + (it.cant ? esc(it.cant + ' ' + it.ud) : gris) + '</td><td class="n">' + (it.pr ? esc(it.pr + ' ' + it.ud) : gris) + '</td><td>' + (it.camiones ? esc(it.camiones + (it.camiones === 1 ? ' camión, ' : ' camiones, ') + it.viajes + (it.viajes === 1 ? ' viaje, ' : ' viajes, ') + it.m3 + ' m³') : gris) + '</td><td ' + ancho + '>' + (esc(it.obs) || gris) + '</td></tr>';
+      });
+      if (!sc.items.length && sc.obs) { filas++; html += '<tr><td><b>' + esc(sc.nombre) + '</b></td><td colspan="4">' + gris + '</td><td ' + ancho + '>' + esc(sc.obs) + '</td></tr>'; }
+    });
+    if (!filas) html += '<tr><td colspan="6" style="color:#64748b">Sin cantidades en este informe.</td></tr>';
+  } else {
+    const sh = u.sha || {};
+    extra += '<div class="obs" style="margin-top:8px"><b>Recaudos:</b> ' + sh.recaudosSi + ' al día, ' + sh.recaudosNo + ' faltan' + ((sh.recaudos || []).length ? ': ' + sh.recaudos.map(r => esc(r.item)).join('; ') : '') + '</div>';
+    html = '<tr><th>Frente de trabajo</th><th>Hallazgo o condición observada</th><th>Acción correctiva / estatus</th></tr>';
+    (sh.frentes || []).forEach(fr => { html += '<tr><td style="white-space:normal;min-width:140px">' + esc(fr.frente) + '</td><td style="white-space:normal;min-width:240px">' + (esc(fr.hallazgo) || gris) + '</td><td style="white-space:normal;min-width:140px">' + (esc(fr.estatus) || gris) + '</td></tr>'; });
+    if (!(sh.frentes || []).length) html += '<tr><td colspan="3" style="color:#64748b">Sin frentes en este informe.</td></tr>';
+    if ((sh.incidencias || []).length) extra += '<div class="obs"><b>Incidencias:</b> ' + sh.incidencias.map(x => esc(Object.keys(x).map(k => x[k] ? k + ': ' + x[k] : '').filter(String).join(' · '))).join('<br>') + '</div>';
+    if (sh.accion) extra += '<div class="obs"><b>Acción por el rechazo:</b> ' + esc(sh.accion) + (sh.accionDet ? ' — ' + esc(sh.accionDet) : '') + '</div>';
+    if ((sh.fotosGenerales || []).length) extra += '<div class="obs"><b>Fotos generales:</b> ' + esc(sh.fotosGenerales.join(' · ')) + '</div>';
+  }
+  $('tipo-tabla').innerHTML = html; $('tipo-extra').innerHTML = extra;
+}
+function pintarNotas(d) {
   // Notas
   const sinTexto = d.notas.filter(n => !(n.actividades && !n.actividadesHeredada) && !n.obs.length && !n.obsGeneral && !n.obsSp);
   const conTexto = d.notas.filter(n => sinTexto.indexOf(n) < 0);
   $('notas').innerHTML = (conTexto.length ? conTexto.map(n => {
     const txt = [];
     if (n.actividades && !n.actividadesHeredada) txt.push('<div class="obs"><b>Actividades en ejecución:</b> ' + esc(n.actividades) + '</div>');
-    n.obs.forEach(o => txt.push('<div class="obs"><b>' + esc(o.nombre.replace(/^HITO\s+\d+:\s*/i, '')) + ':</b> ' + esc(o.texto) + '</div>'));
+    (n.obs || []).forEach(o => txt.push('<div class="obs"><b>' + esc(o.nombre.replace(/^HITO\s+\d+:\s*/i, '')) + ':</b> ' + esc(o.texto) + '</div>'));
     if (n.obsGeneral) txt.push('<div class="obs"><b>Observación general:</b> ' + esc(n.obsGeneral) + '</div>');
     if (n.obsSp) txt.push('<div class="obs"><b>Servicios públicos:</b> ' + esc(n.obsSp) + '</div>');
     const foto = n.foto ? '<div class="foto"><a href="' + esc(n.foto.url) + '" target="_blank" rel="noopener"><img src="' + esc(n.foto.miniatura) + '" alt="Primera foto del informe" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.insertAdjacentHTML(\'beforeend\',\'📷 Ver la foto en Drive\')"></a></div>' : '';
@@ -325,14 +421,11 @@ function pintar() {
   }).join('') : (d.notas.length ? '' : '<div style="color:#94a3b8">Sin informes en estas fechas.</div>')) +
     (sinTexto.length ? '<div class="sin-texto"><b>' + sinTexto.length + ' informe' + (sinTexto.length === 1 ? '' : 's') + ' sin observaciones escritas:</b> ' +
       sinTexto.map(n => esc(n.lugar.replace('Piso ', 'P').replace(' · Apto. ', '-')) + ' (' + enlace(n.pdf, 'informe') + (n.foto ? ' · <a class="doc" href="' + esc(n.foto.url) + '" target="_blank" rel="noopener">foto</a>' : '') + ')').join(' · ') + '</div>' : '');
-  cargarBorrador();
-  $('resultado').hidden = false; $('estado-envio').hidden = true;
-  $('resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ── Lo que escribe la coordinación ──
 const CAMPOS = ['hitos', 'exitos', 'dificultades', 'otros'];
-function claveBorrador() { return DATA ? 'garmel_compilado_' + DATA.sector + '_' + DATA.torre + '_' + DATA.desde : ''; }   // por semana (su inicio), no por «hasta»: el jueves cambia la fecha final y el texto del miércoles se perdía
+function claveBorrador() { return DATA ? 'garmel_compilado_' + (DATA.tipo && DATA.tipo !== 'obra' ? DATA.tipo + '_' : '') + DATA.sector + '_' + DATA.torre + '_' + DATA.desde : ''; }   // por semana (su inicio), no por «hasta»: el jueves cambia la fecha final y el texto del miércoles se perdía
 function textos() { const o = {}; CAMPOS.forEach(k => o[k] = $('t-' + k).value.trim()); return o; }
 function cargarBorrador() {
   let b = null; try { b = JSON.parse(localStorage.getItem(claveBorrador()) || 'null'); } catch (e) {}
@@ -354,12 +447,12 @@ async function enviar() {
   const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 90000);
   try {
     const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ clave, accion: 'compilado-guardar', sector: DATA.sector, torre: DATA.torre, desde: DATA.desde, hasta: DATA.hasta,
+      body: JSON.stringify({ clave, accion: 'compilado-guardar', tipo: DATA.tipo || 'obra', sector: DATA.sector, torre: DATA.torre, desde: DATA.desde, hasta: DATA.hasta,
         coordinadora: DATA.quien, textos: t, semana: DATA, prueba: ESPRUEBA }), signal: corte.signal });
     const res = await r.json();
     if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
     ENVIADO = true; $('btn-enviar').textContent = '📤 Enviar de nuevo';
-    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + ' en la carpeta de la torre' + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal. Si cambia algo, toque «Enviar de nuevo»: reemplaza el archivo.', 'bien');
+    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + ' en la carpeta de la ' + (DATA.tipo === 'urbanismo' ? 'manzana' : 'torre') + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal. Si cambia algo, toque «Enviar de nuevo»: reemplaza el archivo.', 'bien');
     try { localStorage.removeItem(claveBorrador()); } catch (e) {}
   } catch (e) {
     const m = String(e && e.message || e);
@@ -373,7 +466,7 @@ function otraVez() { $('resultado').hidden = true; DATA = null; ENVIADO = false;
 try {
   const u = JSON.parse(localStorage.getItem('garmel_compilado_semana') || 'null');
   if (u && u.ok && u.sector && u.torre) {
-    DATA = u; $('sector').value = u.sector; llenarTorres(); $('torre').value = u.torre; $('desde').value = u.desde; $('hasta').value = u.hasta;
+    DATA = u; if (u.tipo && TIPOS[u.tipo]) $('tipo').value = u.tipo; aplicarTipo(); $('sector').value = u.sector; if (tipoActual() === 'urbanismo') { MANZANAS[u.sector] = MANZANAS[u.sector] || [u.torre]; llenarManzanas(); } else llenarTorres(); $('torre').value = u.torre; $('desde').value = u.desde; $('hasta').value = u.hasta;
     if (u.quien) { $('quien').value = u.quien; if ($('quien').selectedIndex < 0) $('quien').selectedIndex = 0; }
     pintar(); window.scrollTo(0, 0);
     estado('Se muestra la semana de la ' + esc(u.torre) + ' generada el ' + esc(u.generado || '') + '. Si hubo informes nuevos desde entonces, toque «Generar el compilado» otra vez.', 'espera', true);

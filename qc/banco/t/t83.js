@@ -1,0 +1,24 @@
+// TANDA 83 · V160 (13-oct-2026): el compilado también para servicios, urbanismo y SHA, con la misma página.
+localStorage.clear(); localStorage.setItem('garmel_clave_envio', 'qc'); await Q.relevo({ borrar: true, caido: false, lento: 0 });
+const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); };
+ok('1 · La página ofrece los cuatro tipos y arranca en obra', [...$('#tipo').options].map(o => o.value).join(',') === 'obra,servicios,urbanismo,sha' && $('#tipo').value === 'obra');
+sel('tipo', 'servicios'); sel('sector', 'EZ'); sel('torre', 'T-01'); sel('quien', COORDINADORES[3].n);
+ok('2 · Con servicios la unidad sigue siendo la torre y el texto del pedido cambia', $('#lbl-torre').textContent === 'Torre' && /servicios/.test($('#sub-pedido').textContent));
+await generar(); await hasta(() => !$('#resultado').hidden, 5000);
+ok('3 · Servicios: título con la torre y «Servicios», tabla por ente con listos, qué falta y observación; sin bloques de obra', /T-01 · EMPRESA DE PRUEBA, C.A. · Servicios/.test($('#titulo').textContent) && !$('#bloque-tipo').hidden && $('#bloque-torre').hidden && $('#bloque-aptos').hidden && /PDVSA Gas/.test($('#tipo-tabla').textContent) && /3 de 5/.test($('#tipo-tabla').textContent) && /Regulación secundaria/.test($('#tipo-tabla').textContent) && /no insp\./.test($('#tipo-tabla').textContent), $('#titulo').textContent);
+ok('4 · Las notas también salen para servicios', $$('#notas .nota').length === 1 && /Observación de prueba de servicios/.test($('#notas').textContent) && /4 · Notas/.test($('#notas-titulo').textContent));
+Q.escribir($('#t-hitos'), 'Validación de servicios'); await enviar(); await hasta(() => /archivado/.test($('#estado-envio').textContent), 5000);
+let env = await Q.envios(); let ult = env[env.length - 1] || {};
+ok('5 · Enviar manda el tipo y el archivo lleva el prefijo SRV-', ult.tipo === 'compilado-servicios' && /PRUEBA-SRV-EZ-T01-SEM-/.test($('#estado-envio').textContent), ult.tipo + ' ' + $('#estado-envio').textContent.slice(0, 80));
+ok('6 · El borrador de servicios no se mezcla con el de obra de la misma torre', !localStorage.getItem('garmel_compilado_EZ_T-01_' + $('#desde').value) && !!localStorage.getItem('garmel_compilado_servicios_EZ_T-01_' + $('#desde').value) === false, Object.keys(localStorage).filter(k => /compilado_/.test(k)).join(' '));
+otraVez(); sel('tipo', 'urbanismo'); await esperar(400);
+ok('7 · Urbanismo pide manzana o lote y trae las manzanas del sector desde el relevo', $('#lbl-torre').textContent === 'Manzana o lote' && [...$('#torre').options].map(o => o.value).join(',') === ',M-1 L1,M-5,M-6', [...$('#torre').options].map(o => o.value).join(','));
+sel('torre', 'M-6'); await generar(); await hasta(() => !$('#resultado').hidden, 5000);
+ok('8 · Urbanismo: título con la manzana, actividades, la partida con cantidad y camiones, y la sección con solo observación', /Manzana M-6/.test($('#titulo').textContent) && /Bote de material de prueba|Bote de material y desmalezamiento/.test($('#tipo-extra').textContent) && /449 m³/.test($('#tipo-tabla').textContent) && /2 camiones, 5 viajes, 82 m³/.test($('#tipo-tabla').textContent) && /Sin avance esta semana/.test($('#tipo-tabla').textContent), $('#tipo-tabla').textContent.slice(0, 160));
+otraVez(); sel('tipo', 'sha'); await esperar(200); sel('sector', 'SB'); sel('torre', 'J-12'); await generar(); await hasta(() => !$('#resultado').hidden, 5000);
+ok('9 · SHA: recaudos, frente con hallazgo y estatus, incidencia y foto general', /6 al día, 2 faltan/.test($('#tipo-extra').textContent) && /Trabajador sin casco/.test($('#tipo-tabla').textContent) && /Pendiente/.test($('#tipo-tabla').textContent) && /Corte en la mano/.test($('#tipo-extra').textContent) && /Trabajador sin EPP/.test($('#tipo-extra').textContent), $('#tipo-extra').textContent.slice(0, 200));
+Q.escribir($('#t-dificultades'), 'Validación de SHA'); await enviar(); await hasta(() => /archivado/.test($('#estado-envio').textContent), 5000);
+env = await Q.envios(); ult = env[env.length - 1] || {};
+ok('10 · Enviar SHA lleva su tipo y su prefijo', ult.tipo === 'compilado-sha' && /PRUEBA-SHA-SB-J12-SEM-/.test($('#estado-envio').textContent), $('#estado-envio').textContent.slice(0, 80));
+ok('11 · Ningún control por debajo de 44 px', Q.chicos().length === 0, Q.chicos().join(' '));
+localStorage.clear();

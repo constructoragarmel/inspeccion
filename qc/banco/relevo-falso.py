@@ -27,6 +27,21 @@ class H(http.server.BaseHTTPRequestHandler):
             self.close_connection=True; return
         if ESTADO['lento']: time.sleep(ESTADO['lento'])
         p=json.loads(raw or b'{}')
+        if p.get('accion')=='compilado-manzanas':
+            if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
+            return self._ok({"ok":True,"sector":p.get('sector'),"manzanas":["M-1 L1","M-5","M-6"] if p.get('sector')=='EZ' else []})
+        if p.get('accion')=='compilado-semana' and p.get('tipo') in ('servicios','urbanismo','sha'):
+            if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
+            if not p.get('sector') or not p.get('torre'): return self._ok({"ok":False,"error":"Faltan sector o torre"})
+            t=p['tipo']; nro={"servicios":"SRV-QC-T01-261009-OP","urbanismo":"URB-QC-M6-261009-ER","sha":"SHA-QC-T01-261009-VM"}[t]
+            ult={"numero":nro,"numeroRev":nro,"fecha":"2026-10-09","inspectores":["Inspector de prueba"],"pdf":"http://127.0.0.1:8777/qc-"+t+".pdf","estatus":["En progreso"]}
+            if t=='servicios': ult["entes"]=[{"ente":"PDVSA Gas","servicios":[{"id":"srv_gas","nombre":"PDVSA / GAS DOMÉSTICO","total":5,"si":3,"no":2,"na":0,"sinResponder":0,"faltan":[{"item":"Regulación secundaria","obs":"sin válvula"},{"item":"Prueba de hermeticidad","obs":""}],"obs":"Gas en proceso","noInsp":False}]},
+                {"ente":"Hidroven","servicios":[{"id":"srv_agua","nombre":"AGUA POTABLE","total":4,"si":4,"no":0,"na":0,"sinResponder":0,"faltan":[],"obs":"","noInsp":False},{"id":"srv_pluviales","nombre":"AGUAS PLUVIALES","total":3,"si":0,"no":0,"na":0,"sinResponder":3,"faltan":[],"obs":"","noInsp":True}]}]
+            elif t=='urbanismo': ult["actividades"]="Bote de material y desmalezamiento"; ult["secciones"]=[{"id":"urb_preliminares","nombre":"OBRAS PRELIMINARES","items":[{"nombre":"Bote de material","cant":"449","pr":"","ud":"m³","obs":"","camiones":2,"viajes":5,"m3":82}],"obs":""},{"id":"urb_drenaje","nombre":"DRENAJE","items":[],"obs":"Sin avance esta semana"}]
+            else: ult["sha"]={"recaudosSi":6,"recaudosNo":2,"recaudos":[{"item":"Registro Mercantil","obs":""},{"item":"RIF","obs":""}],"frentes":[{"frente":"Albañilería piso 3","hallazgo":"Trabajador sin casco","estatus":"Pendiente"}],"incidencias":[{"tipo":"Leve","descripcion":"Corte en la mano"}],"accion":"","accionDet":"","fotosGenerales":["Trabajador sin EPP"]}
+            notas=[{"numero":nro,"numeroRev":nro,"fecha":"2026-10-09","lugar":("Manzana M-6" if t=='urbanismo' else t.upper()+" de la torre "+p['torre']),"inspectores":["Inspector de prueba"],"obs":[{"hito":"x","nombre":"Sección de prueba","texto":"Observación de prueba de "+t}],"obsGeneral":"General de "+t,"actividades":"","actividadesHeredada":False,"foto":None,"pdf":ult["pdf"]}]
+            return self._ok({"ok":True,"tipo":t,"sector":p['sector'],"sectorNombre":{"EZ":"Ezequiel Zamora","SB":"Simón Bolívar","SR":"Simón Rodríguez"}.get(p['sector'],p['sector']),"torre":p['torre'],"empresa":"EMPRESA DE PRUEBA, C.A.","desde":p.get('desde'),"hasta":p.get('hasta') or '2026-10-13',
+                "ultimo":ult,"notas":notas,"inspectores":["Inspector de prueba"],"nInformes":1,"carpeta":"http://127.0.0.1:8777/carpeta","conPruebas":bool(p.get('prueba')),"generado":"2026-10-13 10:00"})
         if p.get('accion')=='compilado-semana':
             # v151: la semana de una torre como la arma el relevo r53 (Compilado.gs). Sin clave buena, 'Clave incorrecta'.
             if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
@@ -59,9 +74,9 @@ class H(http.server.BaseHTTPRequestHandler):
             t=p.get('textos') or {}
             if not any((t.get(k) or '').strip() for k in ('hitos','exitos','dificultades','otros')): return self._ok({"ok":False,"error":"El compilado va sin ningún comentario de la coordinación"})
             if not (p.get('coordinadora') or '').strip(): return self._ok({"ok":False,"error":"Falta quién valida"})
-            with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":"COMPILADO-"+str(p.get('torre')),"tipo":"compilado","ambito":"torre","fotos":[],"datos":{"textos":t,"coordinadora":p.get('coordinadora'),"desde":p.get('desde'),"hasta":p.get('hasta'),"nInformes":(p.get('semana') or {}).get('nInformes')}}, ensure_ascii=False)+"\n")
+            with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":"COMPILADO-"+str(p.get('torre')),"tipo":"compilado-"+str(p.get('tipo') or 'obra'),"ambito":"torre","fotos":[],"datos":{"textos":t,"coordinadora":p.get('coordinadora'),"desde":p.get('desde'),"hasta":p.get('hasta'),"nInformes":(p.get('semana') or {}).get('nInformes')}}, ensure_ascii=False)+"\n")
             H.compilados=getattr(H,'compilados',{}); k=(p.get('sector'),p.get('torre'),p.get('hasta')); antes=k in H.compilados; H.compilados[k]=t
-            return self._ok({"ok":True,"numero":("PRUEBA-" if p.get('prueba') else "")+str(p.get('sector'))+"-"+str(p.get('torre')).replace('-','')+"-SEM-"+str(p.get('desde') or '')[2:].replace('-',''),"archivo":"x.json","url":"http://127.0.0.1:8777/compilado.json","pdf":"http://127.0.0.1:8777/compilado.pdf","reemplazado":antes,"guardado":"2026-10-13 10:05"})
+            return self._ok({"ok":True,"numero":("PRUEBA-" if p.get('prueba') else "")+{"servicios":"SRV-","urbanismo":"URB-","sha":"SHA-"}.get(p.get('tipo'),"")+str(p.get('sector'))+"-"+str(p.get('torre')).replace('-','')+"-SEM-"+str(p.get('desde') or '')[2:].replace('-',''),"archivo":"x.json","url":"http://127.0.0.1:8777/compilado.json","pdf":"http://127.0.0.1:8777/compilado.pdf","reemplazado":antes,"guardado":"2026-10-13 10:05"})
         if p.get('accion')=='aplica':
             # Como el relevo r28: qué subpartidas están en el presupuesto de la torre (solo códigos).
             if p.get('torre') in ('T-17','T-18'): return self._ok({"ok":True,"sinPresupuesto":True,"codigos":None})

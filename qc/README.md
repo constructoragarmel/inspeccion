@@ -652,3 +652,10 @@ camino exacto que produjo las copias en obra no se encontró leyendo; la defensa
 el desplegable, que escribe en el mismo campo; «Guardar y otro apto» lo deja vacío; en un sector sin nomenclatura sigue el campo
 libre; un borrador con un apartamento fuera de la lista se abre con el campo libre y lo conserva; el desplegable mide 44 px.
 
+**t83 (13-oct-2026, v160): el compilado también para servicios, urbanismo y SHA.** La misma página con un selector «Qué se
+compila»: servicios y SHA por torre, urbanismo por manzana (la lista de manzanas la da el relevo, `compilado-manzanas`, y se
+recuerda en el equipo). El relevo falso contesta la semana de cada tipo como el relevo r58: servicios por ente con listos, qué
+falta y observación; urbanismo con partidas, cantidades y camiones; SHA con recaudos, frentes, incidencias y fotos generales.
+La tanda prueba el selector, los tres pedidos, las tres tablas, las notas, que el envío lleve el tipo y el prefijo (SRV-, URB-,
+SHA-), que el borrador de servicios no se mezcle con el de obra de la misma torre, y los 44 px.
+
