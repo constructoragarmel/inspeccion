@@ -40,6 +40,7 @@ button:disabled{opacity:.55;cursor:default}
 #matriz td:first-child,#matriz th:first-child{position:sticky;left:0;background:#fff;z-index:1;box-shadow:2px 0 0 #e0e3f0}
 #matriz th:first-child{background:#e8eaf6;z-index:2}
 #matriz td.piso{position:static}
+#matriz .piso-txt{position:sticky;left:8px;display:inline-block}   /* el piso tampoco se pierde al deslizar */
 .pista{font-size:12.5px;color:var(--gris);margin:0 0 6px}
 @media (min-width:900px){.pista{display:none}}
 table{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff}
@@ -84,7 +85,7 @@ a.doc:hover{text-decoration:underline}
   <a class="inicio" id="volver" href="index.html">🏠 Inicio</a>
 </header>
 <main>
-<div id="prueba" hidden class="prueba">🧪 Modo de prueba: habla con el relevo de pruebas y lo que se envía queda marcado como PRUEBA.</div>
+<div id="prueba" hidden class="prueba">🧪 Modo de prueba: el compilado también lee los informes de prueba (PRUEBA-) y lo que se envía queda marcado como PRUEBA.</div>
 
 <div class="tarjeta" id="pedido">
   <h2>1 · Qué torre y qué semana</h2>
@@ -104,17 +105,18 @@ a.doc:hover{text-decoration:underline}
 <div id="resultado" hidden>
   <div class="tarjeta">
     <h2 id="titulo">Torre</h2>
+    <div class="aviso" id="sin-informes" hidden style="margin:0 0 10px"></div>
     <div class="membrete" id="membrete"></div>
   </div>
 
   <div class="tarjeta" id="validacion">
     <h2>2 · Validación de la coordinación</h2>
     <div class="sub">Tres cuadros que preguntan algo concreto y uno libre. Esto es lo que va al informe semanal; las tablas de abajo son el sustento.</div>
+    <div class="leyenda noprint" id="guardado-txt" style="margin:0 0 10px">Se guarda solo en este equipo mientras escribe; se archiva al tocar «Enviar el compilado».</div>
     <div class="campo"><label for="t-hitos">Hitos y avances de la semana</label><textarea id="t-hitos" placeholder="Qué se terminó, qué arrancó, qué se movió en la torre esta semana"></textarea><div class="resumen-val" id="r-hitos" hidden></div></div>
     <div class="campo" style="margin-top:10px"><label for="t-exitos">Éxitos de la semana</label><textarea id="t-exitos" placeholder="Lo que salió bien y conviene decir"></textarea><div class="resumen-val" id="r-exitos" hidden></div></div>
     <div class="campo" style="margin-top:10px"><label for="t-dificultades">Dificultades, mitigación operativa y acciones</label><textarea id="t-dificultades" placeholder="Qué frena la obra, qué se está haciendo al respecto y qué se le pidió a la contratista"></textarea><div class="resumen-val" id="r-dificultades" hidden></div></div>
     <div class="campo" style="margin-top:10px"><label for="t-otros">Otros comentarios</label><textarea id="t-otros" placeholder="Inspecciones patológicas, informes que se esperan, llamadas y comunicados enviados: lo que se pierde en la semana si no se anota"></textarea><div class="resumen-val" id="r-otros" hidden></div></div>
-    <div class="leyenda noprint" id="guardado-txt">Se guarda solo en este equipo mientras escribe; se archiva al tocar «Enviar el compilado».</div>
   </div>
 
   <div class="tarjeta">
@@ -146,7 +148,7 @@ a.doc:hover{text-decoration:underline}
   <div class="estado" id="estado-envio" hidden></div>
 </div>
 
-<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v154</div>
+<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v155</div>
 </main>
 
 <script>
@@ -283,13 +285,15 @@ function enlace(url, txt) { return url ? '<a class="doc" href="' + esc(url) + '"
 function pintar() {
   const d = DATA, hA = d.hitos.filter(h => h.apto), hT = d.hitos.filter(h => h.torre);
   $('titulo').textContent = d.sectorNombre + ' · ' + d.torre + (d.empresa ? ' · ' + d.empresa : '');
+  $('sin-informes').hidden = d.nInformes > 0;
+  $('sin-informes').textContent = 'No llegó ningún informe de obra de la ' + d.torre + ' entre el ' + fecha(d.desde) + ' y el ' + fecha(d.hasta) + (d.conPruebas ? ' (ni de prueba)' : '') + '. Revise las fechas o, si es así, escriba abajo qué pasó en la torre esta semana.';
   $('membrete').innerHTML =
     '<div><b>Semana:</b> del ' + fecha(d.desde) + ' al ' + fecha(d.hasta) + '</div>' +
     '<div><b>Informes de la semana:</b> ' + d.nInformes + ' (' + d.apartamentos.length + ' apartamento' + (d.apartamentos.length === 1 ? '' : 's') + (d.torreInforme ? ' y la torre' : '') + ')</div>' +
     '<div><b>Inspección:</b> ' + (d.inspectores.length ? esc(d.inspectores.join(' · ')) : '—') + '</div>' +
     '<div><b>Valida:</b> ' + esc(d.quien) + '</div>' +
     (d.carpeta ? '<div><b>Carpeta de la torre:</b> ' + enlace(d.carpeta, 'abrir en Drive') + '</div>' : '') +
-    '<div><b>Generado:</b> ' + esc(d.generado || '') + '</div>';
+    '<div><b>Generado:</b> ' + esc(String(d.generado || '').replace(/^(\d{4})-(\d{2})-(\d{2})/, (x, a, m, dd) => dd + '-' + m + '-' + a)) + '</div>';
   // Áreas comunes
   const t = d.torreInforme;
   $('torre-bloque').innerHTML = !t ? '<div class="sin" style="color:#94a3b8">No hubo informe de torre completa en estas fechas.</div>' :
@@ -301,7 +305,7 @@ function pintar() {
   let html = '<tr><th>Apto</th>' + hA.map(h => '<th class="n" title="' + esc(h.nombre) + '">H' + esc(h.numero) + ' ' + esc(h.corto) + '</th>').join('') + '<th>Inspector</th><th>Informe</th></tr>';
   let piso = null;
   d.apartamentos.forEach(a => {
-    if (a.piso !== piso) { piso = a.piso; html += '<tr><td class="piso" colspan="' + (hA.length + 3) + '">' + esc(piso || 'Sin piso') + '</td></tr>'; }
+    if (a.piso !== piso) { piso = a.piso; html += '<tr><td class="piso" colspan="' + (hA.length + 3) + '"><span class="piso-txt">' + esc(piso || 'Sin piso') + '</span></td></tr>'; }
     html += '<tr><td><b>' + esc(a.apto || a.bloque) + '</b>' + (a.copiadoDe ? ' <small title="Mediciones a partir de ' + esc(a.copiadoDe) + '">≈</small>' : '') + '</td>' +
       hA.map(h => pct(a.pcts[h.id], a.noInsp, h.id, a.declarados)).join('') +
       '<td>' + esc(a.inspectores.map(corto).join(', ')) + '</td><td>' + enlace(a.pdf, a.numeroRev) + ' <small>' + fecha(a.fecha) + '</small></td></tr>';
@@ -332,11 +336,12 @@ function claveBorrador() { return DATA ? 'garmel_compilado_' + DATA.sector + '_'
 function textos() { const o = {}; CAMPOS.forEach(k => o[k] = $('t-' + k).value.trim()); return o; }
 function cargarBorrador() {
   let b = null; try { b = JSON.parse(localStorage.getItem(claveBorrador()) || 'null'); } catch (e) {}
-  CAMPOS.forEach(k => { $('t-' + k).value = (b && b[k]) || ''; });
+  CAMPOS.forEach(k => { $('t-' + k).value = (b && b[k]) || ''; crecer($('t-' + k)); });
   refrescarResumen();
 }
 function refrescarResumen() { CAMPOS.forEach(k => { const v = $('t-' + k).value.trim(); $('r-' + k).textContent = v || '(sin texto)'; }); }
-CAMPOS.forEach(k => $('t-' + k).addEventListener('input', () => { try { localStorage.setItem(claveBorrador(), JSON.stringify(textos())); $('guardado-txt').textContent = 'Borrador guardado en este equipo ✓ ' + new Date().toTimeString().slice(0, 5) + '. Se archiva al tocar «Enviar el compilado».'; } catch (e) {} refrescarResumen(); if (ENVIADO) $('btn-enviar').textContent = '📤 Enviar de nuevo (hay cambios sin archivar)'; }));
+function crecer(t) { t.style.height = 'auto'; t.style.height = Math.max(110, t.scrollHeight + 4) + 'px'; }
+CAMPOS.forEach(k => $('t-' + k).addEventListener('input', () => { crecer($('t-' + k)); try { localStorage.setItem(claveBorrador(), JSON.stringify(textos())); $('guardado-txt').textContent = 'Borrador guardado en este equipo ✓ ' + new Date().toTimeString().slice(0, 5) + '. Se archiva al tocar «Enviar el compilado».'; } catch (e) {} refrescarResumen(); if (ENVIADO) $('btn-enviar').textContent = '📤 Enviar de nuevo (hay cambios sin archivar)'; }));
 let ENVIADO = false;
 
 async function enviar() {
