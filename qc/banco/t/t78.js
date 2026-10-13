@@ -15,7 +15,7 @@ localStorage.setItem('garmel_clave_envio', 'qc'); await generar(); await hasta((
 ok('6 · Con la clave buena arma el compilado: título con sector, torre y empresa', !$('#resultado').hidden && /Ezequiel Zamora · T-01 · EMPRESA DE PRUEBA/.test($('#titulo').textContent), $('#titulo').textContent);
 ok('7 · La matriz trae los 3 apartamentos en 2 pisos, con n/i, — y % y el enlace de cada informe', $$('#matriz td.piso').length === 2 && $$('#matriz td.ni').length === 1 && $$('#matriz td.sin').length >= 1 && /45%/.test($('#matriz').textContent) && $$('#matriz a.doc').length === 3, $$('#matriz tr').length + ' filas');
 ok('8 · Áreas comunes: el informe de torre con su enlace y el avance declarado marcado', $$('#torre-bloque a.doc').length === 1 && $$('#torre-bloque td.decl').length === 1, $('#torre-bloque').textContent.slice(0, 120));
-ok('9 · Las notas: 4 informes, una con foto y con las actividades del día', $$('#notas .nota').length === 4 && $$('#notas .nota.confoto').length === 1 && /Vaciado de losa/.test($('#notas').textContent), $$('#notas .nota').length + ' notas');
+ok('9 · Las notas: 3 informes con texto (una con foto y actividades) y el que no tiene texto va en una línea aparte con su enlace', $$('#notas .nota').length === 3 && $$('#notas .nota.confoto').length === 1 && /Vaciado de losa/.test($('#notas').textContent) && /1 informe sin observaciones escritas:/.test($('#notas .sin-texto').textContent) && $$('#notas .sin-texto a.doc').length === 1, $$('#notas .nota').length + ' notas');
 ok('10 · La nota de los porcentajes dice que no son el físico ni el financiero', /No son el avance físico ni el financiero/.test($('#nota-pct').textContent));
 ok('11 · El membrete dice cuántos informes, quién inspeccionó y quién valida', /4 \(3 apartamentos y la torre\)/.test($('#membrete').textContent) && $('#membrete').textContent.indexOf(QUIEN) >= 0, $('#membrete').textContent.slice(0, 200));
 await enviar(); ok('12 · Enviar sin ningún cuadro escrito avisa y no manda', /al menos uno/.test($('#estado-envio').textContent), $('#estado-envio').textContent);
@@ -29,7 +29,7 @@ ok('15 · Tras enviar, el borrador local se borra', !localStorage.getItem(kb));
 await enviar(); await hasta(() => /actualizado/.test($('#estado-envio').textContent), 5000);
 ok('16 · Enviarlo otra vez la misma semana lo actualiza (mismo archivo), no duplica', /actualizado/.test($('#estado-envio').textContent), $('#estado-envio').textContent);
 sel('torre', 'T-02'); await generar(); await hasta(() => /T-02/.test($('#titulo').textContent), 5000);
-ok('17 · Una torre sin informe de torre lo dice en áreas comunes y las notas siguen', /No hubo informe de torre/.test($('#torre-bloque').textContent) && $$('#notas .nota').length === 3, $('#torre-bloque').textContent);
+ok('17 · Una torre sin informe de torre lo dice en áreas comunes y las notas siguen', /No hubo informe de torre/.test($('#torre-bloque').textContent) && $$('#notas .nota').length === 2, $('#torre-bloque').textContent);
 ok('18 · «Otra torre o semana» esconde el resultado y vuelve arriba', (otraVez(), $('#resultado').hidden));
 ok('19 · Ningún control por debajo de 44 px', Q.chicos().length === 0, Q.chicos().join(' '));
 localStorage.removeItem('garmel_clave_envio'); localStorage.removeItem('garmel_compilado_ultimo');

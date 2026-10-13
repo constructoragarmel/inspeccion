@@ -36,13 +36,19 @@ button:disabled{opacity:.55;cursor:default}
 .membrete{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 18px;font-size:14px}
 .membrete b{color:var(--azul)}
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
+.scroll.matriz{margin:0;padding:0;border:1px solid #e0e3f0;border-radius:8px}   /* sin el margen negativo: la columna fija pega al borde y no se asoma nada por debajo */
+#matriz td:first-child,#matriz th:first-child{position:sticky;left:0;background:#fff;z-index:1;box-shadow:2px 0 0 #e0e3f0}
+#matriz th:first-child{background:#e8eaf6;z-index:2}
+#matriz td.piso{position:static}
+.pista{font-size:12.5px;color:var(--gris);margin:0 0 6px}
+@media (min-width:900px){.pista{display:none}}
 table{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff}
 th,td{padding:6px 8px;border-bottom:1px solid #e0e3f0;text-align:left;white-space:nowrap;vertical-align:top}
 th{background:#e8eaf6;color:var(--azul);font-size:11px;text-transform:uppercase;position:sticky;top:0}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 td.piso{background:#f8f9ff;font-weight:700;color:var(--azul)}
-td.sin{color:#94a3b8}
-td.ni{color:#b45309;font-size:11px}
+td.sin{color:#64748b}
+td.ni{color:#64748b;font-size:11px}
 td.decl::after{content:' \00b0';color:#1565c0}
 a.doc{color:#1565c0;text-decoration:none;font-weight:700}
 a.doc:hover{text-decoration:underline}
@@ -54,6 +60,7 @@ a.doc:hover{text-decoration:underline}
 .nota .obs b{color:#334155}
 .nota img{width:100%;max-width:200px;border-radius:8px;border:1px solid var(--borde);display:block}
 .nota .foto a{font-size:12.5px}
+.sin-texto{font-size:13.5px;color:#475569;background:#f8fafc;border:1px dashed var(--borde);border-radius:10px;padding:10px 12px;margin-top:6px;line-height:1.7}
 .aviso{background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px;font-size:13.5px;margin:10px 0}
 .pie{text-align:center;font-size:12px;color:var(--gris);padding:10px 16px 24px}
 .leyenda{font-size:12.5px;color:var(--gris);margin-top:8px}
@@ -61,7 +68,7 @@ a.doc:hover{text-decoration:underline}
 [hidden]{display:none!important}
 @media (max-width:700px),(pointer:coarse){body{font-size:16px} table{font-size:13px}}
 @media print{
-  header,.acciones,#pedido,.estado,.prueba,.pie,.noprint{display:none!important}
+  header,.acciones,#pedido,.estado,.prueba,.pie,.pista,.noprint{display:none!important}
   body{background:#fff;font-size:11pt} main{max-width:none;padding:0}
   .tarjeta{border:none;padding:0;margin-bottom:12pt;break-inside:avoid-page}
   .scroll{overflow:visible;margin:0;padding:0} table{font-size:9pt} th{position:static}
@@ -107,7 +114,7 @@ a.doc:hover{text-decoration:underline}
     <div class="campo" style="margin-top:10px"><label for="t-exitos">Éxitos de la semana</label><textarea id="t-exitos" placeholder="Lo que salió bien y conviene decir"></textarea><div class="resumen-val" id="r-exitos" hidden></div></div>
     <div class="campo" style="margin-top:10px"><label for="t-dificultades">Dificultades, mitigación operativa y acciones</label><textarea id="t-dificultades" placeholder="Qué frena la obra, qué se está haciendo al respecto y qué se le pidió a la contratista"></textarea><div class="resumen-val" id="r-dificultades" hidden></div></div>
     <div class="campo" style="margin-top:10px"><label for="t-otros">Otros comentarios</label><textarea id="t-otros" placeholder="Inspecciones patológicas, informes que se esperan, llamadas y comunicados enviados: lo que se pierde en la semana si no se anota"></textarea><div class="resumen-val" id="r-otros" hidden></div></div>
-    <div class="leyenda noprint">Se guarda solo en este equipo mientras escribe; se archiva al tocar «Enviar el compilado».</div>
+    <div class="leyenda noprint" id="guardado-txt">Se guarda solo en este equipo mientras escribe; se archiva al tocar «Enviar el compilado».</div>
   </div>
 
   <div class="tarjeta">
@@ -118,7 +125,8 @@ a.doc:hover{text-decoration:underline}
   <div class="tarjeta">
     <h2>4 · Apartamentos</h2>
     <div class="sub" id="apto-sub"></div>
-    <div class="scroll"><table id="matriz"></table></div>
+    <div class="pista" id="pista">Deslice la tabla hacia la derecha para ver todos los hitos; el apartamento queda fijo.</div>
+    <div class="scroll matriz"><table id="matriz"></table></div>
     <div class="leyenda">— sin medir · n/i no inspeccionado · ° avance declarado por el inspector</div>
   </div>
 
@@ -138,7 +146,7 @@ a.doc:hover{text-decoration:underline}
   <div class="estado" id="estado-envio" hidden></div>
 </div>
 
-<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v153</div>
+<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v154</div>
 </main>
 
 <script>
@@ -232,7 +240,7 @@ function llenarTorres() {
 }
 $('sector').addEventListener('change', llenarTorres);
 
-function estado(txt, clase) { const e = $('estado'); e.hidden = !txt; e.className = 'estado' + (clase ? ' ' + clase : ''); e.innerHTML = txt || ''; }
+function estado(txt, clase, sinMover) { const e = $('estado'); e.hidden = !txt; e.className = 'estado' + (clase ? ' ' + clase : ''); e.innerHTML = txt || ''; if (txt && !sinMover) e.scrollIntoView({ block: 'nearest' }); }
 function claveGuardada() { try { return localStorage.getItem('garmel_clave_envio') || ''; } catch (e) { return ''; } }
 
 // ── Pedir la semana al relevo ──
@@ -246,7 +254,8 @@ async function generar() {
   if (!navigator.onLine) return estado('Sin conexión: el compilado se arma con los informes archivados en Drive y hace falta internet.', 'mal');
   try { localStorage.setItem('garmel_compilado_ultimo', JSON.stringify({ sector, torre, quien })); } catch (e) {}
   $('btn-generar').disabled = true; $('resultado').hidden = true;
-  estado('⏳ Leyendo los informes de la ' + esc(torre) + ' del ' + fecha(desde) + ' al ' + fecha(hasta) + '… Cada apartamento tarda un par de segundos: una torre con 60 puede pasar de dos minutos. No cierre la página.', 'espera');
+  const t0 = Date.now(), aviso = () => estado('⏳ Leyendo los informes de la ' + esc(torre) + ' del ' + fecha(desde) + ' al ' + fecha(hasta) + '… <b>' + Math.round((Date.now() - t0) / 1000) + ' s</b>. Cada apartamento tarda un par de segundos: una torre con 60 puede pasar de dos minutos. No cierre la página.', 'espera');
+  aviso(); const latido = setInterval(() => { if (!$('estado').hidden) { const sc = scrollY; aviso(); window.scrollTo(0, sc); } }, 1000);
   const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 240000);
   try {
     const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -254,12 +263,13 @@ async function generar() {
     const res = await r.json();
     if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
     DATA = res; DATA.quien = quien;
-    pintar(); estado('');
+    try { localStorage.setItem('garmel_compilado_semana', JSON.stringify(DATA)); } catch (e) {}
+    estado(''); pintar();
   } catch (e) {
     const m = String(e && e.message || e);
     estado(m === 'Clave incorrecta' ? 'La clave guardada en este equipo no es la del relevo. Configúrela otra vez en Inicio.' :
       (/abort/i.test(m) ? 'El relevo tardó demasiado. Pruebe con menos días o vuelva a intentar.' : 'No se pudo armar el compilado: ' + esc(m)), 'mal');
-  } finally { clearTimeout(reloj); $('btn-generar').disabled = false; }
+  } finally { clearTimeout(reloj); clearInterval(latido); $('btn-generar').disabled = false; }
 }
 
 // ── Pintar ──
@@ -268,6 +278,7 @@ function pct(v, noInsp, hid, decl) {
   if (v === null || v === undefined) return '<td class="n sin">—</td>';
   return '<td class="n' + (decl && decl[hid] ? ' decl' : '') + '">' + v + '%</td>';
 }
+const corto = n => String(n || '').replace(/\s*\(CIV[^)]*\)/, '');
 function enlace(url, txt) { return url ? '<a class="doc" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(txt) + '</a>' : '<span class="sin" title="El PDF de este informe no está en la carpeta">' + esc(txt) + '</span>'; }
 function pintar() {
   const d = DATA, hA = d.hitos.filter(h => h.apto), hT = d.hitos.filter(h => h.torre);
@@ -293,23 +304,26 @@ function pintar() {
     if (a.piso !== piso) { piso = a.piso; html += '<tr><td class="piso" colspan="' + (hA.length + 3) + '">' + esc(piso || 'Sin piso') + '</td></tr>'; }
     html += '<tr><td><b>' + esc(a.apto || a.bloque) + '</b>' + (a.copiadoDe ? ' <small title="Mediciones a partir de ' + esc(a.copiadoDe) + '">≈</small>' : '') + '</td>' +
       hA.map(h => pct(a.pcts[h.id], a.noInsp, h.id, a.declarados)).join('') +
-      '<td>' + esc(a.inspectores.join(', ')) + '</td><td>' + enlace(a.pdf, a.numeroRev) + ' <small>' + fecha(a.fecha) + '</small></td></tr>';
+      '<td>' + esc(a.inspectores.map(corto).join(', ')) + '</td><td>' + enlace(a.pdf, a.numeroRev) + ' <small>' + fecha(a.fecha) + '</small></td></tr>';
   });
   $('matriz').innerHTML = html;
   // Notas
-  $('notas').innerHTML = d.notas.length ? d.notas.map(n => {
+  const sinTexto = d.notas.filter(n => !(n.actividades && !n.actividadesHeredada) && !n.obs.length && !n.obsGeneral && !n.obsSp);
+  const conTexto = d.notas.filter(n => sinTexto.indexOf(n) < 0);
+  $('notas').innerHTML = (conTexto.length ? conTexto.map(n => {
     const txt = [];
     if (n.actividades && !n.actividadesHeredada) txt.push('<div class="obs"><b>Actividades en ejecución:</b> ' + esc(n.actividades) + '</div>');
     n.obs.forEach(o => txt.push('<div class="obs"><b>' + esc(o.nombre.replace(/^HITO\s+\d+:\s*/i, '')) + ':</b> ' + esc(o.texto) + '</div>'));
     if (n.obsGeneral) txt.push('<div class="obs"><b>Observación general:</b> ' + esc(n.obsGeneral) + '</div>');
     if (n.obsSp) txt.push('<div class="obs"><b>Servicios públicos:</b> ' + esc(n.obsSp) + '</div>');
-    if (!txt.length) txt.push('<div class="obs" style="color:#94a3b8">Sin observaciones escritas en este informe.</div>');
     const foto = n.foto ? '<div class="foto"><a href="' + esc(n.foto.url) + '" target="_blank" rel="noopener"><img src="' + esc(n.foto.miniatura) + '" alt="Primera foto del informe" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.insertAdjacentHTML(\'beforeend\',\'📷 Ver la foto en Drive\')"></a></div>' : '';
     return '<div class="nota' + (foto ? ' confoto' : '') + '">' + foto + '<div><div class="cab">' + esc(n.lugar) + ' <small>· ' + fecha(n.fecha) + ' · ' + esc(n.inspectores.join(', ')) + ' · ' + enlace(n.pdf, n.numeroRev) + '</small></div>' + txt.join('') + '</div></div>';
-  }).join('') : '<div style="color:#94a3b8">Sin informes en estas fechas.</div>';
+  }).join('') : (d.notas.length ? '' : '<div style="color:#94a3b8">Sin informes en estas fechas.</div>')) +
+    (sinTexto.length ? '<div class="sin-texto"><b>' + sinTexto.length + ' informe' + (sinTexto.length === 1 ? '' : 's') + ' sin observaciones escritas:</b> ' +
+      sinTexto.map(n => esc(n.lugar.replace('Piso ', 'P').replace(' · Apto. ', '-')) + ' (' + enlace(n.pdf, 'informe') + (n.foto ? ' · <a class="doc" href="' + esc(n.foto.url) + '" target="_blank" rel="noopener">foto</a>' : '') + ')').join(' · ') + '</div>' : '');
   cargarBorrador();
   $('resultado').hidden = false; $('estado-envio').hidden = true;
-  $('validacion').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  $('resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ── Lo que escribe la coordinación ──
@@ -322,7 +336,8 @@ function cargarBorrador() {
   refrescarResumen();
 }
 function refrescarResumen() { CAMPOS.forEach(k => { const v = $('t-' + k).value.trim(); $('r-' + k).textContent = v || '(sin texto)'; }); }
-CAMPOS.forEach(k => $('t-' + k).addEventListener('input', () => { try { localStorage.setItem(claveBorrador(), JSON.stringify(textos())); } catch (e) {} refrescarResumen(); }));
+CAMPOS.forEach(k => $('t-' + k).addEventListener('input', () => { try { localStorage.setItem(claveBorrador(), JSON.stringify(textos())); $('guardado-txt').textContent = 'Borrador guardado en este equipo ✓ ' + new Date().toTimeString().slice(0, 5) + '. Se archiva al tocar «Enviar el compilado».'; } catch (e) {} refrescarResumen(); if (ENVIADO) $('btn-enviar').textContent = '📤 Enviar de nuevo (hay cambios sin archivar)'; }));
+let ENVIADO = false;
 
 async function enviar() {
   if (!DATA) return;
@@ -338,7 +353,8 @@ async function enviar() {
         coordinadora: DATA.quien, textos: t, semana: DATA, prueba: ESPRUEBA }), signal: corte.signal });
     const res = await r.json();
     if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
-    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + ' en la carpeta de la torre' + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal.', 'bien');
+    ENVIADO = true; $('btn-enviar').textContent = '📤 Enviar de nuevo';
+    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + ' en la carpeta de la torre' + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal. Si cambia algo, toque «Enviar de nuevo»: reemplaza el archivo.', 'bien');
     try { localStorage.removeItem(claveBorrador()); } catch (e) {}
   } catch (e) {
     const m = String(e && e.message || e);
@@ -346,7 +362,18 @@ async function enviar() {
   } finally { clearTimeout(reloj); $('btn-enviar').disabled = false; }
 }
 function mostrarEnvio(txt, clase) { const e = $('estado-envio'); e.hidden = false; e.className = 'estado ' + clase; e.innerHTML = txt; e.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
-function otraVez() { $('resultado').hidden = true; DATA = null; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function otraVez() { $('resultado').hidden = true; DATA = null; ENVIADO = false; $('btn-enviar').textContent = '📤 Enviar el compilado'; try { localStorage.removeItem('garmel_compilado_semana'); } catch (e) {} window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+// La última semana generada se repinta al abrir (recargar o volver no obliga a esperar otra vez), con aviso.
+try {
+  const u = JSON.parse(localStorage.getItem('garmel_compilado_semana') || 'null');
+  if (u && u.ok && u.sector && u.torre) {
+    DATA = u; $('sector').value = u.sector; llenarTorres(); $('torre').value = u.torre; $('desde').value = u.desde; $('hasta').value = u.hasta;
+    if (u.quien) { $('quien').value = u.quien; if ($('quien').selectedIndex < 0) $('quien').selectedIndex = 0; }
+    pintar(); window.scrollTo(0, 0);
+    estado('Se muestra la semana de la ' + esc(u.torre) + ' generada el ' + esc(u.generado || '') + '. Si hubo informes nuevos desde entonces, toque «Generar el compilado» otra vez.', 'espera', true);
+  }
+} catch (e) {}
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });

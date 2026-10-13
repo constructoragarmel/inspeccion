@@ -617,3 +617,16 @@ PRUEBA en modo de prueba, el relevo caído al generar y al enviar (aviso, botón
 prueba y guardan antes. Lo que no se pudo probar con datos reales: dos informes del mismo apartamento en la misma semana (ninguna
 torre lo tiene todavía); la regla es la fecha del número y luego la revisión.
 
+**QC de experiencia de usuario del compilado (13-oct-2026, v154), pedido por Stephanie: diez comprobaciones a 375 × 812 y
+320 × 568 en un navegador de verdad contra el relevo falso, más una impresión a PDF con Chrome sin ventana.** Lo que falló y se
+corrigió: (1) el mensaje de espera quedaba debajo del botón, fuera de la pantalla del teléfono, y no daba señales de vida (ahora
+se desplaza a la vista y cuenta los segundos); (2) al pintar, la página saltaba 120 px porque el aviso de espera se escondía
+después de calcular el salto (ahora se esconde antes y queda en el inicio del resultado); (3) la matriz en el teléfono perdía el
+apartamento al deslizar (columna fija, con una pista de «deslice»); (4) «n/i» en naranja por todas partes y con contraste 2,5:1
+(ahora gris 4,8:1 y chico); (5) el inspector con su CIV ensanchaba la matriz (nombre corto; el completo va en membrete y notas);
+(6) las notas sin texto ocupaban una tarjeta cada una (van juntas en una línea con sus enlaces); (7) no se sabía si lo escrito
+estaba guardado ni si tras enviar había que reenviar («Borrador guardado ✓ hh:mm»; el botón pasa a «Enviar de nuevo» y avisa
+cuando hay cambios sin archivar); (8) recargar obligaba a esperar otra vez (la última semana generada se repinta con aviso y con
+lo escrito); (9) al imprimir salía la pista de deslizar (fuera). Verde sin cambios: nada por debajo de 44 px, ningún desborde
+horizontal a 375 ni a 320, y la impresión a PDF (dos páginas, con los textos de la validación y sin botones ni cabecera).
+

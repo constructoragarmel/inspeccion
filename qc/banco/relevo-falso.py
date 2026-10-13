@@ -41,7 +41,7 @@ class H(http.server.BaseHTTPRequestHandler):
                    apto("P01AB1","Piso 01","B1",{"hito_cerramientos":80,"hito_servicios":None,"hito_acabados":12,"hito_ascensor":None},[]),
                    apto("P02AA1","Piso 02","A1",{"hito_cerramientos":50,"hito_servicios":0,"hito_acabados":None,"hito_ascensor":None},[])]
             notas=[{"numero":a["numero"],"numeroRev":a["numeroRev"],"fecha":a["fecha"],"lugar":a["lugar"],"ambito":"apartamento","inspectores":a["inspectores"],
-                    "actividades":"","actividadesHeredada":False,"obs":[{"hito":"hito_servicios","nombre":"HITO 3: INSTALACIÓN DE SERVICIOS","texto":"Observación de prueba del hito 3 en "+a["apto"]}],
+                    "actividades":"","actividadesHeredada":False,"obs":([] if a["bloque"]=="P02AA1" else [{"hito":"hito_servicios","nombre":"HITO 3: INSTALACIÓN DE SERVICIOS","texto":"Observación de prueba del hito 3 en "+a["apto"]}]),
                     "obsGeneral":"","obsSp":"","foto":None,"pdf":a["pdf"],"copiadoDe":""} for a in aptos]
             torre=None
             if p.get('torre')!='T-02':
