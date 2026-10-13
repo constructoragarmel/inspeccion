@@ -630,3 +630,13 @@ cuando hay cambios sin archivar); (8) recargar obligaba a esperar otra vez (la �
 lo escrito); (9) al imprimir salía la pista de deslizar (fuera). Verde sin cambios: nada por debajo de 44 px, ningún desborde
 horizontal a 375 ni a 320, y la impresión a PDF (dos páginas, con los textos de la validación y sin botones ni cabecera).
 
+**Tercera ronda de experiencia y ronda del circuito completo (13-oct-2026, v155 y v156).** Experiencia, en el navegador a 375 px:
+el rótulo del piso también queda fijo al deslizar la matriz (pedido de Stephanie), los cuadros de la validación crecen con el texto
+(en el teléfono no se pueden estirar), el «guardado ✓» se ve arriba de los cuadros, una torre sin informes lo dice en un aviso claro
+y no solo con tablas vacías, y la fecha de «Generado» va en el formato de la casa. Circuito completo, con el relevo real en modo de
+prueba (r56): el pedido de la semana lleva `prueba: true` y el relevo incluye los informes `PRUEBA-`; un informe de prueba con foto
+entró por `doPost`, el compilado lo mostró junto con el informe de torre real del día, el envío dejó JSON, PDF y una fila en
+`OPE_Compilados_Obra`, y `mirarCompiladosValidados` tomó las tres líneas de la coordinadora para el borrador. Hallazgo corregido por
+el camino (r57): un compilado validado después de que el borrador del jueves ya se armó no lo rehacía; ahora la fecha de la hoja de
+compilados entra en la huella de la semana.
+
