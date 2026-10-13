@@ -659,3 +659,11 @@ falta y observación; urbanismo con partidas, cantidades y camiones; SHA con rec
 La tanda prueba el selector, los tres pedidos, las tres tablas, las notas, que el envío lleve el tipo y el prefijo (SRV-, URB-,
 SHA-), que el borrador de servicios no se mezcle con el de obra de la misma torre, y los 44 px.
 
+**t84 (13-oct-2026, v162): el proceso de los compilados de servicios, urbanismo y SHA**, las mismas comprobaciones que t79 hizo
+para obra: el borrador va por tipo y por semana (el de SHA no hereda el de servicios de la misma torre; el texto del miércoles
+sigue el jueves), emojis y comillas intactos, el archivo con su prefijo y PRUEBA, el relevo caído al generar urbanismo (aviso,
+botón libre, las manzanas recordadas siguen) y al enviar SHA (lo escrito se conserva), fechas al revés, y recargar con SHA en
+pantalla repinta tipo, torre y semana. En el navegador a 375 px: sin desborde, la primera columna de la tabla del tipo queda
+fija al deslizar (v162) y nada baja de 44 px. Contra el relevo real: servicios T-39, urbanismo M-6 y SHA T-07 de Simón Rodríguez
+en 20 s cada uno; envíos de prueba de servicios y urbanismo con PDF y fila en Smartsheet, borrados después.
+

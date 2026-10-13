@@ -37,8 +37,10 @@ button:disabled{opacity:.55;cursor:default}
 .membrete b{color:var(--azul)}
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
 .scroll.matriz{margin:0;padding:0;border:1px solid #e0e3f0;border-radius:8px}   /* sin el margen negativo: la columna fija pega al borde y no se asoma nada por debajo */
-#matriz td:first-child,#matriz th:first-child{position:sticky;left:0;background:#fff;z-index:1;box-shadow:2px 0 0 #e0e3f0}
-#matriz th:first-child{background:#e8eaf6;z-index:2}
+#matriz td:first-child,#matriz th:first-child,#tipo-tabla td:first-child,#tipo-tabla th:first-child{position:sticky;left:0;background:#fff;z-index:1;box-shadow:2px 0 0 #e0e3f0}
+#matriz th:first-child,#tipo-tabla th:first-child{background:#e8eaf6;z-index:2}
+#tipo-tabla td{white-space:normal;min-width:120px;max-width:280px}
+#tipo-tabla td:first-child{min-width:90px;font-weight:700;color:var(--azul)}
 #matriz td.piso{position:static}
 #matriz .piso-txt{position:sticky;left:8px;display:inline-block}   /* el piso tampoco se pierde al deslizar */
 .pista{font-size:12.5px;color:var(--gris);margin:0 0 6px}
