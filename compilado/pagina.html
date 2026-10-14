@@ -330,15 +330,15 @@ function pintarTipo(d) {
     }));
   } else if (t === 'urbanismo') {
     if (u.actividades) extra += '<div class="obs" style="margin-top:8px"><b>Actividades en ejecución:</b> ' + esc(u.actividades) + '</div>';
-    html = '<tr><th>Sección</th><th>Partida</th><th class="n">Ejecutado</th><th class="n">Proyectado</th><th>Camiones</th><th>Observación</th></tr>';
+    html = '<tr><th>Sección</th><th>Partida</th><th class="n">Ejecutado</th><th class="n">Proyectado</th><th>Camiones</th><th>Maquinaria</th><th>Observación</th></tr>';   // v164: maquinaria (relevo r61)
     let filas = 0;
     (u.secciones || []).forEach(sc => {
       sc.items.forEach((it, i) => { filas++;
-        html += '<tr><td>' + (i === 0 ? '<b>' + esc(sc.nombre) + '</b>' : '') + '</td><td>' + esc(it.nombre) + '</td><td class="n">' + (it.cant ? esc(it.cant + ' ' + it.ud) : gris) + '</td><td class="n">' + (it.pr ? esc(it.pr + ' ' + it.ud) : gris) + '</td><td>' + (it.camiones ? esc(it.camiones + (it.camiones === 1 ? ' camión, ' : ' camiones, ') + it.viajes + (it.viajes === 1 ? ' viaje, ' : ' viajes, ') + it.m3 + ' m³') : gris) + '</td><td ' + ancho + '>' + (esc(it.obs) || gris) + '</td></tr>';
+        html += '<tr><td>' + (i === 0 ? '<b>' + esc(sc.nombre) + '</b>' : '') + '</td><td>' + esc(it.nombre) + '</td><td class="n">' + (it.cant ? esc(it.cant + ' ' + it.ud) : gris) + '</td><td class="n">' + (it.pr ? esc(it.pr + ' ' + it.ud) : gris) + '</td><td>' + (it.camiones ? esc(it.camiones + (it.camiones === 1 ? ' camión, ' : ' camiones, ') + it.viajes + (it.viajes === 1 ? ' viaje, ' : ' viajes, ') + it.m3 + ' m³') : gris) + '</td><td>' + (it.maquinaria ? esc(it.maquinaria) : gris) + '</td><td ' + ancho + '>' + (esc(it.obs) || gris) + '</td></tr>';
       });
-      if (!sc.items.length && sc.obs) { filas++; html += '<tr><td><b>' + esc(sc.nombre) + '</b></td><td colspan="4">' + gris + '</td><td ' + ancho + '>' + esc(sc.obs) + '</td></tr>'; }
+      if (!sc.items.length && sc.obs) { filas++; html += '<tr><td><b>' + esc(sc.nombre) + '</b></td><td colspan="5">' + gris + '</td><td ' + ancho + '>' + esc(sc.obs) + '</td></tr>'; }
     });
-    if (!filas) html += '<tr><td colspan="6" style="color:#64748b">Sin cantidades en este informe.</td></tr>';
+    if (!filas) html += '<tr><td colspan="7" style="color:#64748b">Sin cantidades en este informe.</td></tr>';
   } else {
     const sh = u.sha || {};
     extra += '<div class="obs" style="margin-top:8px"><b>Recaudos:</b> ' + sh.recaudosSi + ' al día, ' + sh.recaudosNo + ' faltan' + ((sh.recaudos || []).length ? ': ' + sh.recaudos.map(r => esc(r.item)).join('; ') : '') + '</div>';

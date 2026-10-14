@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: 1d726b9271
+// Huella de la fuente: c92c56781f
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -1255,7 +1255,7 @@ function _pdfSeccionUrbanismo(g, fotos, noInspeccionado) {
   var html = '<div style="' + PDF_BARRA + ';' + PDF_REGLA + ';margin:14px 0 6px;font-size:12px">' +
              _pdfEsc(g.nombre) + (noInspeccionado ? ' — NO INSPECCIONADO' : '') + '</div>';
   if (noInspeccionado) return html;
-  var items = (g.items || []).filter(function (it) { return it.sn || it.cant || it.pr || String(it.obs || '').trim(); });
+  var items = (g.items || []).filter(function (it) { return it.sn || it.cant || it.pr || String(it.obs || '').trim() || (it.camiones || []).length || String(it.maquinaria || '').trim(); });   // r61: camiones o maquinaria tambi\u00e9n
   if (!items.length && !String(g.obs || '').trim() && !fotos.length) return '';
   if (!items.length) {
     html += '<div style="color:#666;font-style:italic;margin:2px 0 4px">Sin partidas registradas en esta visita.</div>';
@@ -1276,7 +1276,7 @@ function _pdfSeccionUrbanismo(g, fotos, noInspeccionado) {
         '<td align="center">' + av + '</td>' +
         '<td align="center"><b>' + (PDF_CALIDAD[it.sn] || '—') + '</b></td>' +
         '<td>' + _pdfTexto(it.obs || '') + '</td></tr>' +
-        _pdfCamionesUrbanismo(it);
+        _pdfCamionesUrbanismo(it) + _pdfMaquinariaUrbanismo(it);
     });
     html += '</table>';
   }
@@ -1299,8 +1299,13 @@ function _pdfCamionesUrbanismo(it) {
   return '<tr><td></td><td colspan="6" style="font-size:9px;color:#334155">' +
            '<b>Camiones:</b> ' + lista + '<br>' + cuenta + '</td></tr>';
 }
+function _pdfMaquinariaUrbanismo(it) {
+  var m = String(it.maquinaria || '').trim();
+  if (!m) return '';
+  return '<tr><td></td><td colspan="6" style="font-size:9px;color:#334155"><b>Maquinaria que oper\u00f3:</b> ' + _pdfEsc(m) + '</td></tr>';
+}
   window.VistaPrevia = {
-    huella: '1d726b9271',
+    huella: 'c92c56781f',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];

@@ -409,6 +409,9 @@ lista de máquinas con contratista y residente para el maestro (cada máquina se
 maquinaria cuenta como contenido del informe. **Y la vista previa de servicios, SHA y urbanismo vuelve a abrir**: desde la v146 fallaba
 porque la plantilla no traía `_versionDelInforme` (ver `qc/README.md`, `t86`).
 
+**v164 (14-oct-2026):** la página del compilado muestra la columna «Maquinaria» en la tabla de urbanismo (la manda el relevo r61);
+`t83` lo comprueba con el relevo falso.
+
 ## Lo que todavía no hace
 
 - **Avisar de un conteo que no cuadra** con lo que dice el presupuesto. Se decidió esperar a ver
