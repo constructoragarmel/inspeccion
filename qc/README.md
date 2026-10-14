@@ -710,6 +710,19 @@ recién agregada y vacía se ve pero no viaja; con descripción, viaja. Sin vent
 `inspeccion.html?prueba=1`, en el navegador a la vista (la foto pasa por canvas): con una hoja cargada el sobre lleva «minutas-1» además
 de la foto del hito; el envío al relevo falso la lleva con ese nombre; sin hojas no agrega nada. 3/3.
 
+**`t90` y `t91` (14-oct-2026, v168): el envío espera al relevo y, si se corta, pregunta antes de darlo por pendiente (cambio 184).**
+El relevo falso aprende dos mandos: `colgar: N` (archiva el envío y tarda N s en contestar, como el relevo real con muchas fotos) y
+`perder: true` (lee el cuerpo, no archiva y cierra sin contestar), y contesta `accion: 'existe'` como el r62. El plazo de 5 min se
+acorta en la tanda (`PLAZO_ENVIO_MS = 3000`, `_REINTENTO_EXISTE_MS = 800`). `t90`, seis comprobaciones en `inspeccion.html?prueba=1`:
+relevo lento (7 s): se ve el contador en el botón, nunca dice «La señal no alcanzó», dice que ya estaba archivado, queda enviado y hay
+un solo envío; Enviar otra vez avisa que ya se envió; cuerpo perdido: «todavía no aparece archivado», sigue pendiente y recuerda el
+corte; con el relevo de vuelta pregunta una vez y lo manda una vez; si el envío cortado sí llegó, el siguiente Enviar lo reconoce y no
+lo reenvía; «Enviar todos» con dos pendientes y el relevo lento: cartel con segundos, dos enviados, dos envíos. `t91`, cuatro
+comprobaciones equivalentes en `servicios.html`, `sha.html` y `urbanismo.html` (en el motor el reconocimiento también casa por
+`guardado`). En el navegador a la vista: `t90` 6/6, `t91` 4/4 en los tres, `t33` 5/5 (su comprobación 9 ahora usa `perder`) y `t24`
+5/5. **Una trampa:** la primera corrida de `t91` justo después de cargar servicios o SHA tropezó una vez cada una (un envío falló
+con «Failed to fetch» antes del plazo, sin rastro en el relevo falso); la segunda corrida pasó limpia las dos veces. Si pasa, repetir.
+
 **`t89` (14-oct-2026, v167): el residente de urbanismo se propone solo.** Seis comprobaciones en `urbanismo.html?prueba=1`: en
 una manzana sin residente recordado, empresa y residente de su contratista; al quitar la manzana sigue el del sector; lo escrito a mano
 se guarda y manda al reabrir; cambia con el sector (Procodima, Racar); una manzana nueva nace con el suyo. 6/6; `t19`, `t46`, `t85`
