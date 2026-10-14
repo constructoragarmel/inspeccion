@@ -405,7 +405,9 @@ de texto libre «Maquinaria que operó hoy». Solo en Bote los camiones calculan
 evidencia del día, y la cantidad ejecutada se sigue escribiendo a mano (la tierra la mueve la máquina, el camión la acarrea). La maquinaria
 es del día: se guarda con el borrador y viaja al relevo, pero no se hereda de la visita anterior. Es texto libre mientras Urbanismo pasa la
 lista de máquinas con contratista y residente para el maestro (cada máquina se paga aparte, por partida). Maestro en
-`urbanismo/contenido.py` (`CAMIONES`, `CAMIONES_CALCULAN`, `MAQUINARIA`); tanda `t85`.
+`urbanismo/contenido.py` (`CAMIONES`, `CAMIONES_CALCULAN`, `MAQUINARIA`); tandas `t85` y `t86`. Un ítem con solo camiones o solo
+maquinaria cuenta como contenido del informe. **Y la vista previa de servicios, SHA y urbanismo vuelve a abrir**: desde la v146 fallaba
+porque la plantilla no traía `_versionDelInforme` (ver `qc/README.md`, `t86`).
 
 ## Lo que todavía no hace
 

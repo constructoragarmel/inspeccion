@@ -568,11 +568,11 @@ J = sustituir(J, "        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs:
                  "        ...((i.camiones || []).length ? { camiones: i.camiones.map(x => ({ placa: x.placa, m3: x.m3 })) } : {}),\n"
                  "        ...((i.camionesAntes || []).length ? { camionesAntes: i.camionesAntes } : {}),", "14e· memoria de la manzana")
 J = sustituir(J, "  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs)) ||",
-                 "  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs || i.cant || i.pr)) ||", "14f· contestado")
+                 "  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs || i.cant || i.pr || (i.camiones || []).length || (i.maquinaria || '').trim())) ||", "14f· contestado")
 J = sustituir(J, "                                      (g.items || []).some(i => i.sn || (i.obs || '').trim())) &&",
-                 "                                      (g.items || []).some(i => i.sn || i.cant || i.pr || (i.obs || '').trim())) &&", "14g· vacío")
+                 "                                      (g.items || []).some(i => i.sn || i.cant || i.pr || (i.obs || '').trim() || (i.camiones || []).length || (i.maquinaria || '').trim())) &&", "14g· vacío")
 J = sustituir(J, "  return ![...document.querySelectorAll('.item')].some(it =>\n    valorSN(it) || (it.querySelector('textarea').value || '').trim());",
-                 "  return ![...document.querySelectorAll('.item')].some(it =>\n    valorSN(it) || it.querySelector('.cant').value || it.querySelector('.pr').value || (it.querySelector('textarea').value || '').trim());", "14h· en blanco")
+                 "  return ![...document.querySelectorAll('.item')].some(it =>\n    valorSN(it) || it.querySelector('.cant').value || it.querySelector('.pr').value || (it.querySelector('textarea').value || '').trim() || it.querySelector('.camion') || (it.querySelector('.maquinaria') || {}).value);", "14h· en blanco")
 J = sustituir(J, "  const items = [...document.querySelectorAll('.item')].filter(it => valorSN(it) || (it.querySelector('textarea').value || '').trim());",
                  "  const items = [...document.querySelectorAll('.item')].filter(it => valorSN(it) || it.querySelector('.cant').value || it.querySelector('.pr').value || (it.querySelector('textarea').value || '').trim());", "14i· solo heredado")
 J = sustituir(J, "    const hechos = items.filter(i => valorSN(i)).length;",

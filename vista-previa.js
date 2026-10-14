@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: 8e7fdf56dc
+// Huella de la fuente: 1d726b9271
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -404,6 +404,11 @@ var LOGO_MINHVI = 'data:image/png;base64,' +
   '2H+d9ao0zs1uB5A/cv8bFPkhEjJwOdmWG6q/u+X5vwh2kPX/Mr2Wx2frpjbocRI33Q2ZekgWjb5qIaMXK86LT7xuxFJ9EMBUaM7jxRxdBpxNC5' +
   'Gn7pEHtfHj5DpxFD54ulG80NMmLoNGLEiKHTiBEjhk4jRgydRowYMXQaMWLoNGLEiKHTiBEjhk4jRgydRowYMXQaMWLoNGLEiKHTiBEjmvxvwt' +
   'KpHK3GYakAAAAASUVORK5CYII=';
+function _versionDelInforme(d) {
+  var v = (d || {}).definitiva;
+  if (v && v.por) return 'Definitiva · cerrada en oficina por ' + v.por + (v.fecha ? ' el ' + v.fecha : '');
+  return 'Preliminar (campo)';
+}
 var PDF_BARRA = 'color:#1a237e;font-weight:bold;font-size:11px';
 var PDF_REGLA = 'border-bottom:2px solid #1a237e';
 var PDF_APAGADO = 'color:#8f4b00;font-weight:bold;font-size:11px';
@@ -1295,7 +1300,7 @@ function _pdfCamionesUrbanismo(it) {
            '<b>Camiones:</b> ' + lista + '<br>' + cuenta + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: '8e7fdf56dc',
+    huella: '1d726b9271',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];

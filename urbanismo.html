@@ -1211,7 +1211,7 @@ function datosDelFormulario(){
 // la cabecera sola no es un informe.
 function informeVacio(d){
   return !(d.general || []).some(g => (g.obs || '').trim() || (g.fotos || []).length ||
-                                      (g.items || []).some(i => i.sn || i.cant || i.pr || (i.obs || '').trim())) &&
+                                      (g.items || []).some(i => i.sn || i.cant || i.pr || (i.obs || '').trim() || (i.camiones || []).length || (i.maquinaria || '').trim())) &&
          !(d.apartamentos || []).length && !(d.fotosGenerales || []).length && !(d.fotosMinutas || []).length &&
          !(d.noInspeccionados || []).length && !(d.obs_general || '').trim() && !(d.actividades || '').trim() && !d.estatus;
 }
@@ -1322,7 +1322,7 @@ function anotarEstadoTorre(d){
   // Un borrador sin nada contestado no es el estado de la torre: con la fecha
   // de hoy pisaba al informe real de ayer —el del teléfono y el que llegaba
   // del relevo— y el historial ofrecía un vacío. Visto el 15-sep en T-12.
-  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs || i.cant || i.pr)) ||
+  const contestado = (d.general || []).some(g => (g.items || []).some(i => i.sn || i.obs || i.cant || i.pr || (i.camiones || []).length || (i.maquinaria || '').trim())) ||
                      (d.apartamentos || []).length > 0;
   if (!contestado) return;
   const todos = estadosDeTorres();
@@ -1406,7 +1406,7 @@ function nombreVigente(sid, nombre){
 function formularioEnBlanco(){
   if (document.querySelectorAll('#filas-apto .fila-apto').length) return false;
   return ![...document.querySelectorAll('.item')].some(it =>
-    valorSN(it) || it.querySelector('.cant').value || it.querySelector('.pr').value || (it.querySelector('textarea').value || '').trim());
+    valorSN(it) || it.querySelector('.cant').value || it.querySelector('.pr').value || (it.querySelector('textarea').value || '').trim() || it.querySelector('.camion') || (it.querySelector('.maquinaria') || {}).value);
 }
 
 // Hay contenido y todo viene de la visita anterior, sin nada de hoy.

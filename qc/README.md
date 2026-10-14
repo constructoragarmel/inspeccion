@@ -676,3 +676,19 @@ cada camión subió a 44 px). `t19` cambia su comprobación de camiones a las tr
 10/10 y `t49b` 6/6; en el navegador real `t85` 10/10 de punta a punta. **Límite nuevo del Chrome sin ventana:** con tiempo virtual
 IndexedDB no resuelve (ni un `indexedDB.open` suelto), y el envío lee las fotos de ahí; `t85` lo detecta con una sonda y salta el envío
 diciéndolo, para probarlo en un navegador de verdad.
+
+**`t86` (14-oct-2026, v163): diez rondas alrededor de camiones y maquinaria, pedidas por Stephanie («UX y el recorrido
+completo, desde que se pone el dato hasta que sale»).** Sobre `urbanismo.html?prueba=1`: la memoria de placas es una sola para las
+tres partidas; la visita anterior con camiones en Desmalezamiento hereda la cantidad (sin maquinaria) y ofrece «Traer los 2 camiones»
+sin tocar lo escrito a mano; un ítem con solo maquinaria o solo camiones cuenta como contenido (antes el informe se daba por vacío y
+no se guardaba: corregido en la misma v163, cambios 14f/14g/14h); un borrador de antes de la v163 abre igual; cambiar la maquinaria
+de un informe enviado lo marca para reenviar; quitar el único camión en registro deja la cantidad y la casilla editable; los viajes
+no pisan la cantidad escrita; la maqueta con dos camiones y maquinaria en las tres partidas a 375 px; la vista previa imprime los
+camiones bajo Desmalezamiento; y la memoria de la manzana para la visita siguiente lleva placa y m³ sin viajes ni maquinaria. 10/10.
+
+**Hallazgo de la ronda 9, ajeno a la v163: la vista previa de servicios, SHA y urbanismo estaba rota desde la v146 (7-oct).** La
+plantilla `vista-previa.js` se genera de `PDF.gs`, y desde el relevo r47/r50 el PDF imprime la fila «Versión» con
+`_versionDelInforme`, que vive en `Oficina.gs`: al abrir la vista previa salía «No se pudo armar la vista previa de este informe»
+(ReferenceError). `generar-vista-previa.py` (repositorio Garmel) ahora toma esa función de `Oficina.gs` y la huella la incluye;
+`t86` ronda 9 y `t59` (pasos sin foto) la cubren. En el Chrome sin ventana de hoy IndexedDB no resuelve, así que los pasos con foto de
+`t59` (9) y `t61` quedan para un navegador a la vista; no cambiaron con esto.
