@@ -1,6 +1,8 @@
 import http.server, json, os, time
 S=os.path.dirname(os.path.abspath(__file__))
-ESTADO={'tipos':['inspeccion','servicios','sha','urbanismo'],'caido':False,'fallar':[],'lento':0,'clave':'qc'}
+# v168 (cambio 184): `colgar: N` archiva el envío y tarda N s en contestar (como el relevo real con muchas fotos);
+# `perder: True` lee el cuerpo, no archiva nada y tarda `colgar` s en cerrar sin contestar (el cuerpo no llegó).
+ESTADO={'tipos':['inspeccion','servicios','sha','urbanismo'],'caido':False,'fallar':[],'lento':0,'colgar':0,'perder':False,'clave':'qc'}
 class H(http.server.BaseHTTPRequestHandler):
     historial={}
     obra={}
@@ -140,6 +142,16 @@ class H(http.server.BaseHTTPRequestHandler):
             return self._ok({"ok":True,"mismo":H.obra.get((p.get('torre'),b)),"deLaTorre":H.obraApto.get(p.get('torre')) if p.get('bloque') and b!='ESTR' else None})
         if p.get('accion')=='historial':
             h=H.historial.get((p.get('tipo'),p.get('torre'))); return self._ok({"ok":True,"informe":h})
+        if p.get('accion')=='existe':
+            # Como el relevo r62: ¿ese número exacto ya está archivado? Lleva `nro`, no `numero`. `hace` en segundos.
+            if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
+            if not p.get('nro') or not p.get('sector') or not p.get('torre'): return self._ok({"ok":False,"error":"Faltan nro, sector o torre"})
+            v=H.oficina.get(p['nro'])
+            if not v: return self._ok({"ok":True,"existe":False,"nro":p['nro']})
+            ult=p['nro']+('-r%d'%v['rev'] if v['rev']>1 else '')+'.json'
+            return self._ok({"ok":True,"existe":True,"nro":p['nro'],"archivos":[ult],"ultimo":ult,"hace":int(time.time()-v.get('t',0)),"guardado":(v['datos'] or {}).get('guardado','')})
+        if ESTADO.get('perder'):
+            time.sleep(ESTADO.get('colgar') or 0); self.close_connection=True; return
         with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":p.get('numero'),"tipo":p.get('tipo'),"ambito":p.get('ambito'),"fotos":[x.get('nombre') for x in (p.get('fotos') or [])],"datos":p.get('datos')}, ensure_ascii=False)+"\n")
         if p.get('clave')!=ESTADO['clave']: return self._ok({"error":"Clave incorrecta"})
         if 'numero' not in p: return self._ok({"ok":True})
@@ -147,7 +159,7 @@ class H(http.server.BaseHTTPRequestHandler):
         if p.get('datos'): H.historial[(p.get('tipo'),p['datos'].get('torre'))]=p['datos']
         if p.get('datos'):
             prev=H.oficina.get(p['numero']); rev=(prev['rev']+1) if prev else 1
-            H.oficina[p['numero']]={'rev':rev,'datos':p['datos'],'tipo':p.get('tipo'),'fotos':[{'nombre':x.get('nombre'),'dato':x.get('dato')} for x in (p.get('fotos') or []) if x and x.get('dato')]}
+            H.oficina[p['numero']]={'rev':rev,'t':time.time(),'datos':p['datos'],'tipo':p.get('tipo'),'fotos':[{'nombre':x.get('nombre'),'dato':x.get('dato')} for x in (p.get('fotos') or []) if x and x.get('dato')]}
         d=p.get('datos') or {}
         if not p.get('tipo') and d.get('lista')=='v2':
             import re
@@ -155,6 +167,7 @@ class H(http.server.BaseHTTPRequestHandler):
             r={"nro":d.get('nro'),"fecha":d.get('fecha'),"piso":d.get('piso'),"apto":d.get('apto'),"ambito":d.get('ambito'),"partidas":d.get('partidas')}
             H.obra[(d.get('torre'),m.group(1) if m else 'TORRE')]=r
             if m and m.group(1)!='ESTR': H.obraApto[d.get('torre')]=r
+        if ESTADO.get('colgar'): time.sleep(ESTADO['colgar'])   # ya archivado: la respuesta es lo que tarda
         self._ok({"ok":True,"numero":p['numero'],"archivos":[p['numero']+'.json',p['numero']+'.pdf']})
     def log_message(self,*a): pass
 http.server.ThreadingHTTPServer(('127.0.0.1',8776),H).serve_forever()

@@ -131,13 +131,24 @@ _marcarComoEnviado = function(nro, id){
 };
 
 // ═══ 3. «Enviar todos» como en servicios ═════════════════════════════════════
-// Con tope de 90 s por informe (servicios: «con señal mala el envío se quedaba colgado sin
-// decir nada»), el motivo de cada fallo (v77, 17-sep: «no hubo forma de saber por qué»),
-// guardando antes lo que está en pantalla («se envía lo guardado, no lo que se ve») y sin
-// mandar informes a medias (v78: dice cuáles y qué les falta).
+// Con tope por informe (servicios: «con señal mala el envío se quedaba colgado sin decir
+// nada»; desde el cambio 184 son PLAZO_ENVIO_MS = 5 min con el contador en el cartel, y si
+// se corta se pregunta al relevo si ya lo archivó antes de darlo por fallido), el motivo de
+// cada fallo (v77, 17-sep: «no hubo forma de saber por qué»), guardando antes lo que está
+// en pantalla («se envía lo guardado, no lo que se ve») y sin mandar informes a medias
+// (v78: dice cuáles y qué les falta).
 let _motivoEnvio = '';
+// 184: el cartel recuerda su texto para que el contador de segundos se le sume sin pisarlo.
+const _cartelEnvioBase184 = _cartelEnvio;
+_cartelEnvio = function(texto){ _cartelEnvio._base = texto || ''; return _cartelEnvioBase184.apply(this, arguments); };
+function _cartelSegundos(seg){
+  const c = document.getElementById('cartel-envio');
+  if (c) c.textContent = (_cartelEnvio._base || '') + '\n\n⏳ ' + seg + ' s · el relevo archiva, arma el PDF y lo pasa a Smartsheet; con muchas fotos tarda más de un minuto.';
+}
 _enviarUno = async function(b, clave){
   _motivoEnvio = '';
+  const _t0 = Date.now();
+  const latido = setInterval(function(){ _cartelSegundos(Math.round((Date.now() - _t0) / 1000)); }, 1000);
   try {
     if (b && b.fotosEnIdb) {
       const f = await _fotosGet(b.id).catch(function(){ return null; });
@@ -149,8 +160,13 @@ _enviarUno = async function(b, clave){
       (b.fotos[pid] || []).forEach(function(src, fi){ if (_esDato(src)) fotos.push({ nombre: pid + '-' + (fi + 1), dato: src }); });
     });
     const sector = (typeof SECTOR_POR_CONVENIO !== 'undefined' && SECTOR_POR_CONVENIO[b.convenio]) || 'XX';
+    // 184: si el envío anterior de este número se quedó sin respuesta, primero se mira si ya llegó.
+    if (_cortes[b.nro]) {
+      const ya = await _yaArchivado(clave, b.nro, sector, b.torre, undefined, _cortes[b.nro], false);
+      if (ya) { delete _cortes[b.nro]; _marcarComoEnviado(b.nro, b.id); return true; }
+    }
     const corte = new AbortController();
-    const reloj = setTimeout(function(){ corte.abort(); }, 90000);
+    const reloj = setTimeout(function(){ corte.abort(); }, PLAZO_ENVIO_MS);
     let r;
     try {
       r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -158,14 +174,24 @@ _enviarUno = async function(b, clave){
                                datos: _sinFotos(b), fotos: fotos }), signal: corte.signal });
     } finally { clearTimeout(reloj); }
     const res = await r.json();
-    if (res.ok) { _marcarComoEnviado(b.nro, b.id); return true; }
+    if (res.ok) { delete _cortes[b.nro]; _marcarComoEnviado(b.nro, b.id); return true; }
     _motivoEnvio = res.error || 'el relevo no lo aceptó';
     return false;
   } catch(e) {
-    _motivoEnvio = (e && e.name === 'AbortError') ? 'sin respuesta en 90 s (señal mala)'
-                                                  : 'sin conexión: ' + String(e && e.message || e).slice(0, 60);
+    clearInterval(latido);   // el contador no pisa el «comprobando…»
+    if (e && e.name === 'AbortError') {
+      // 184: sin respuesta no quiere decir que no llegó: se le pregunta al relevo antes de darlo por fallido.
+      _cartelSegundos(Math.round((Date.now() - _t0) / 1000) + ' s sin respuesta. El relevo puede estar terminando de archivarlo: comprobando…');
+      const sector = (typeof SECTOR_POR_CONVENIO !== 'undefined' && SECTOR_POR_CONVENIO[b.convenio]) || 'XX';
+      const ya = await _yaArchivado(clave, b.nro, sector, b.torre, undefined, _t0, true);
+      if (ya) { delete _cortes[b.nro]; _marcarComoEnviado(b.nro, b.id); return true; }
+      _cortes[b.nro] = _t0;
+      _motivoEnvio = 'sin respuesta en ' + _minutosDeEspera() + ' min y todavía no aparece archivado (señal mala); espere unos minutos y reintente';
+    } else {
+      _motivoEnvio = 'sin conexión: ' + String(e && e.message || e).slice(0, 60);
+    }
     return false;
-  }
+  } finally { clearInterval(latido); }
 };
 
 function _faltanEn(b){

@@ -9246,6 +9246,122 @@ s = sustituir(s, "// Devuelve la lista de campos obligatorios que faltan, según
  "// Devuelve la lista de campos obligatorios que faltan, según el ámbito.\nfunction camposFaltantes(){",
  "183· las minutas de campo viajan desde obra")
 
+# ── 184. El envío espera al relevo, y si se corta pregunta antes de darlo por pendiente (14-oct-2026) ──
+# El relevo archiva, arma el PDF y empuja a Smartsheet dentro de la misma llamada: con muchas fotos pasa de los 90 s
+# del cambio 36, el formulario decía «La señal no alcanzó para enviar» y el inspector volvía a tocar Enviar. En el
+# «Registro de informes de inspección» había 34 reenvíos del mismo número entre 1 y 4 minutos después del anterior,
+# 17 solo el 14-oct, casi todos a 85-120 s (SR-T04-261007-GM se mandó cuatro veces en seis minutos), y el relevo los
+# archivaba como -r2, -r3. Ahora se espera hasta 5 min con el contador a la vista (como el compilado); si aun así se
+# corta, se le pregunta al relevo (`accion: 'existe'`, r62) si ese número ya está archivado y, si existe, se marca
+# como enviado sin reenviar. Lo compartido con los otros tres formularios vive en comun/envio_paciente.js.
+ENVIO_PACIENTE_JS = open(os.path.join(RAIZ, "comun", "envio_paciente.js"), encoding="utf-8").read()
+s = sustituir(s, "async function enviarAlRelevo() {\n",
+ ENVIO_PACIENTE_JS + "\n"
+ "// 184: lo que pasa cuando el relevo contestó ok, o cuando contestó tarde y el informe ya estaba archivado.\n"
+ "function _envioLogrado184(datos, clave, logEl, archivos, rescatado){\n"
+ "  localStorage.setItem('garmel_clave_envio', clave);\n"
+ "  refrescarEstadoClave();\n"
+ "  // Sin esto el informe sigue contando como pendiente y «Enviar todos»\n"
+ "  // lo manda otra vez: el relevo lo archivaría como -r2.\n"
+ "  _marcarComoEnviado(datos.nro, datos.id);\n"
+ "  delete _cortes[datos.nro];\n"
+ "  if (typeof _oficinaTrasEnvio === 'function') _oficinaTrasEnvio();\n"
+ "  logEl.textContent += rescatado\n"
+ "    ? '✅ Ya estaba archivado en Drive › Inspección › ' + _rutaDrive() + ' (' + rescatado + ').\\n' +\n"
+ "      'La respuesta tardó más que la espera, pero el informe llegó completo: no hace falta reenviarlo.'\n"
+ "    : '✅ Archivado en Drive › Inspección › ' + _rutaDrive() + '\\n' + (archivos || []).join('\\n');\n"
+ "  showToast('✅ Enviado. Quedó en Drive › ' + _rutaDrive(), 'ok');\n"
+ "  closeSend();\n"
+ "}\n"
+ "async function enviarAlRelevo() {\n",
+ "184a· el ayudante compartido y el cierre del envío logrado")
+s = sustituir(s,
+ "  // Con señal mala un envío puede quedarse esperando para siempre. A los 90\n"
+ "  // segundos se corta y se avisa, en vez de dejar el botón muerto.\n"
+ "  const corte = new AbortController();\n"
+ "  const reloj = setTimeout(function(){ corte.abort(); }, 90000);\n"
+ "\n"
+ "  try {\n",
+ "  // 184: se espera hasta PLAZO_ENVIO_MS (5 min) con el contador a la vista. Con señal mala un envío puede quedarse\n"
+ "  // esperando para siempre: al cumplirse el plazo se corta, pero antes de darlo por pendiente se pregunta al relevo.\n"
+ "  const corte = new AbortController();\n"
+ "  const reloj = setTimeout(function(){ corte.abort(); }, PLAZO_ENVIO_MS);\n"
+ "  const _t0 = Date.now(), _base = logEl.textContent;\n"
+ "  const latido = setInterval(function(){\n"
+ "    const seg = Math.round((Date.now() - _t0) / 1000);\n"
+ "    btn.innerHTML = '⏳ Enviando… ' + seg + ' s';\n"
+ "    logEl.textContent = _base + '⏳ ' + seg + ' s · el relevo archiva, arma el PDF y lo pasa a Smartsheet; con muchas fotos tarda más de un minuto. No cierre esta pantalla.\\n';\n"
+ "  }, 1000);\n"
+ "\n"
+ "  try {\n"
+ "    // 184: si el envío anterior de este mismo número se quedó sin respuesta, primero se mira si ya llegó.\n"
+ "    if (_cortes[datos.nro]) {\n"
+ "      logEl.textContent = _base + '⏳ El envío anterior quedó sin respuesta: comprobando si ya llegó…\\n';\n"
+ "      const ya = await _yaArchivado(clave, datos.nro, getSectorActual(), getTorreActual(), undefined, _cortes[datos.nro], false);\n"
+ "      if (ya) { clearInterval(latido); logEl.textContent = _base; _envioLogrado184(datos, clave, logEl, [], ya); return; }\n"
+ "    }\n",
+ "184b· cinco minutos con contador, y mirar antes si el envío cortado ya llegó")
+s = sustituir(s,
+ "    const res = await r.json();\n"
+ "\n"
+ "    if(res.ok){\n"
+ "      localStorage.setItem('garmel_clave_envio', clave);\n"
+ "      refrescarEstadoClave();\n"
+ "      // Sin esto el informe sigue contando como pendiente y «Enviar todos»\n"
+ "      // lo manda otra vez: el relevo lo archivaría como -r2.\n"
+ "      _marcarComoEnviado(datos.nro, datos.id);\n"
+ "      if (typeof _oficinaTrasEnvio === 'function') _oficinaTrasEnvio();\n"
+ "      logEl.textContent += '✅ Archivado en Drive › Inspección › ' + _rutaDrive() + '\\n' + (res.archivos || []).join('\\n');\n"
+ "      showToast('✅ Enviado. Quedó en Drive › ' + _rutaDrive(), 'ok');\n"
+ "      closeSend();\n"
+ "    } else {\n",
+ "    const res = await r.json();\n"
+ "    clearInterval(latido); logEl.textContent = _base;\n"
+ "\n"
+ "    if(res.ok){\n"
+ "      _envioLogrado184(datos, clave, logEl, res.archivos, '');\n"
+ "    } else {\n",
+ "184c· el relevo contestó: se quita el contador")
+s = sustituir(s,
+ "  } catch(e) {\n"
+ "    const seRindio = (e && e.name === 'AbortError');\n"
+ "    logEl.textContent += seRindio\n"
+ "      ? '❌ La señal no alcanzó para enviar (90 s sin respuesta).' +\n"
+ "        '\\nEl borrador sigue guardado en este teléfono. Intente donde haya mejor señal.'\n"
+ "      : '❌ Sin conexión o el relevo no responde: ' + e.message +\n"
+ "        '\\nEl borrador sigue guardado en este teléfono. Intente de nuevo con señal.';\n"
+ "    showToast(seRindio ? '❌ Sin señal suficiente. El borrador no se perdió'\n"
+ "                       : '❌ No se pudo enviar. El borrador no se perdió. (detalle: ' + String(e && e.message || e).slice(0, 90) + ')', 'err');\n"
+ "  } finally {\n"
+ "    clearTimeout(reloj);\n",
+ "  } catch(e) {\n"
+ "    clearInterval(latido); logEl.textContent = _base;\n"
+ "    const seRindio = (e && e.name === 'AbortError');\n"
+ "    const min = _minutosDeEspera();\n"
+ "    let rescatado = false;\n"
+ "    if (seRindio) {\n"
+ "      // 184: sin respuesta no quiere decir que no llegó. El cuerpo pudo entrar completo y el relevo seguir con el\n"
+ "      // PDF y Smartsheet: se le pregunta si ya lo archivó antes de dejar el informe como pendiente.\n"
+ "      logEl.textContent += '⏳ Pasaron ' + min + ' min sin respuesta. El relevo puede estar terminando de archivarlo: comprobando…\\n';\n"
+ "      btn.innerHTML = '⏳ Comprobando…';\n"
+ "      rescatado = await _yaArchivado(clave, datos.nro, getSectorActual(), getTorreActual(), undefined, _t0, true);\n"
+ "      if (!rescatado) _cortes[datos.nro] = _t0;\n"
+ "    }\n"
+ "    if (rescatado) {\n"
+ "      _envioLogrado184(datos, clave, logEl, [], rescatado);\n"
+ "    } else {\n"
+ "      logEl.textContent += seRindio\n"
+ "        ? '⚠️ Pasaron ' + min + ' min sin respuesta y el informe todavía no aparece archivado.' +\n"
+ "          '\\nSigue guardado en este teléfono. Espere un par de minutos con señal y vuelva a tocar Enviar: antes de mandarlo se comprueba si ya llegó, así no se duplica.'\n"
+ "        : '❌ Sin conexión o el relevo no responde: ' + e.message +\n"
+ "          '\\nEl borrador sigue guardado en este teléfono. Intente de nuevo con señal.';\n"
+ "      showToast(seRindio ? '⚠️ El relevo no contestó en ' + min + ' min. El borrador no se perdió'\n"
+ "                         : '❌ No se pudo enviar. El borrador no se perdió. (detalle: ' + String(e && e.message || e).slice(0, 90) + ')', 'err');\n"
+ "    }\n"
+ "  } finally {\n"
+ "    clearTimeout(reloj); clearInterval(latido);\n",
+ "184d· si se corta, decir que puede estar terminando y comprobar, no decir que no llegó")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

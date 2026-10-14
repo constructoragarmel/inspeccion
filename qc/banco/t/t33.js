@@ -58,22 +58,22 @@ ok('8 · Con un fallo del relevo: «Enviados: 1 · Con problemas: 1» y el motiv
    /Enviados: 1/.test(fin8) && /Con problemas: 1/.test(fin8) && fin8.indexOf(f2.nro + ' — fallo simulado del relevo') >= 0 && !lista().find(x => x.id === f2.id).enviado,
    fin8.replace(/\n/g, ' ').slice(0, 160));
 
-// ── 9. Si el relevo no contesta, se corta (a los 90 s; aquí acortado) y lo dice ──
-const st = window.setTimeout;
-// El plazo de 90 s se acorta a 1,5 s con la espera del banco (MessageChannel): con la pestaña oculta,
-// Chrome retrasa los setTimeout y el relevo lento contestaba antes del corte.
-window.setTimeout = function(f, ms){ if (ms === 90000) { esperar(1500).then(f); return 0; } return st.apply(window, arguments); };
-await Q.relevo({ lento: 4 });
+// ── 9. Si el relevo no contesta y el informe no aparece archivado, se corta (a los 5 min; aquí acortado) y lo dice ──
+// v168 (cambio 184): el plazo es PLAZO_ENVIO_MS; el relevo falso «pierde» el cuerpo (no archiva y tarda 4 s en cerrar),
+// así que la consulta `existe` dice que no y el informe sigue pendiente. Si lo hubiera archivado, se marcaría enviado (t90).
+const plazo9 = PLAZO_ENVIO_MS, reint9 = _REINTENTO_EXISTE_MS;
+PLAZO_ENVIO_MS = 1500; _REINTENTO_EXISTE_MS = 300;
+await Q.relevo({ perder: true, colgar: 4 });
 Q.dialogos = [];
 const t9 = Date.now();
 await enviarPendientes();
 const dur9 = Date.now() - t9;
-window.setTimeout = st;
-await Q.relevo({ lento: 0 });
-await esperar(3500);                                   // que el relevo lento termine su respuesta
+PLAZO_ENVIO_MS = plazo9; _REINTENTO_EXISTE_MS = reint9;
+await Q.relevo({ perder: false, colgar: 0 });
+await esperar(3500);                                   // que el relevo termine de cerrar
 const fin9 = Q.dialogos.slice(-1)[0] || '';
-ok('9 · Sin respuesta del relevo: el envío se corta solo, dice «sin respuesta en 90 s (señal mala)» y el informe sigue pendiente',
-   /sin respuesta en 90 s/.test(fin9) && dur9 < 3800 && !lista().find(x => x.id === f2.id).enviado && !_tandaEnCurso,
+ok('9 · Sin respuesta del relevo y sin archivo: el envío se corta solo, dice «todavía no aparece archivado» y el informe sigue pendiente',
+   /sin respuesta en \d+ min y todavía no aparece archivado/.test(fin9) && dur9 < 4500 && !lista().find(x => x.id === f2.id).enviado && !_tandaEnCurso && _cortes[f2.nro],
    Math.round(dur9) + ' ms · ' + fin9.replace(/\n/g, ' ').slice(0, 120));
 
 // ── 10. Lo que está en pantalla se guarda antes de «Enviar todos» ──

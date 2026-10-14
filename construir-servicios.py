@@ -1703,6 +1703,7 @@ function sobreDe(d, clave, grupos){
 // a los dos segundos hacía que el inspector volviera a pulsar y mandara todo
 // dos veces.
 function cartel(texto){
+  cartel._base = texto || '';   // 184: el contador de segundos se le suma sin pisarlo
   let c = document.getElementById('cartel-envio');
   if (!texto){ if (c) c.remove(); return; }
   if (!c){
@@ -1715,12 +1716,27 @@ function cartel(texto){
   c.textContent = texto;
 }
 
+function cartelSegundos(texto){
+  const c = document.getElementById('cartel-envio');
+  if (c) c.textContent = (cartel._base || '') + '\\n\\n' + texto;
+}
+
+@@ENVIO_PACIENTE@@
 async function enviarUno(d, clave){
-  // Con señal mala el envío se quedaba colgado sin decir nada; a los 90 s se
-  // corta solo y el informe sigue guardado para reintentarlo.
+  // Con señal mala el envío se quedaba colgado sin decir nada; se corta solo al cumplirse
+  // PLAZO_ENVIO_MS (184: 5 min, antes 90 s, con el contador en el cartel) y, antes de darlo
+  // por fallido, `rescatar` le pregunta al relevo si ya lo archivó.
   const corte = new AbortController();
-  const reloj = setTimeout(() => corte.abort(), 90000);
+  const reloj = setTimeout(() => corte.abort(), PLAZO_ENVIO_MS);
+  const t0 = Date.now();
+  const latido = setInterval(() => cartelSegundos('⏳ ' + Math.round((Date.now() - t0) / 1000) + ' s · el relevo archiva, arma el PDF y lo pasa a Smartsheet; con muchas fotos tarda más de un minuto.'), 1000);
   try {
+    // 184: si el envío anterior de este número se quedó sin respuesta, primero se mira si ya llegó.
+    if (_cortes[d.nro]){
+      cartelSegundos('⏳ El envío anterior quedó sin respuesta: comprobando si ya llegó…');
+      const ya = await _yaArchivado(clave, d.nro, SECTOR_POR_CONVENIO[d.convenio], d.torre, TIPO_INFORME, _cortes[d.nro], false, d.guardado);
+      if (ya){ delete _cortes[d.nro]; marcarEnviado(d.id, d.nro); return { ok: true, rescatado: true }; }
+    }
     // Las fotos se leen de IndexedDB después de que termine cualquier
     // escritura en curso: lo que viaja es lo último que se guardó.
     await _escrituraFotos.catch(() => {});
@@ -1732,36 +1748,38 @@ async function enviarUno(d, clave){
       signal: corte.signal
     });
     const res = await r.json();
-    if (res.ok){ marcarEnviado(d.id, d.nro); return { ok: true }; }
-    return await rescatar(d, clave, res.error || 'Error desconocido');
+    if (res.ok){ delete _cortes[d.nro]; marcarEnviado(d.id, d.nro); return { ok: true }; }
+    clearInterval(latido);   // el contador no pisa lo que diga `rescatar`
+    return await rescatar(d, clave, res.error || 'Error desconocido', t0);
   } catch (e) {
-    return await rescatar(d, clave, (e && e.name === 'AbortError') ? 'Sin respuesta en 90 segundos' : String(e));
-  } finally { clearTimeout(reloj); }
+    clearInterval(latido);
+    return await rescatar(d, clave, (e && e.name === 'AbortError') ? 'Sin respuesta en ' + _minutosDeEspera() + ' minutos' : String(e), t0);
+  } finally { clearTimeout(reloj); clearInterval(latido); }
 }
 
 // Antes de dar un envío por fallido se le pregunta al relevo si ese informe ya
 // quedó archivado. El 17-sep-2026 el relevo archivó SHA-EZ-T16 dos veces y el
 // teléfono, que no recibió la respuesta, lo seguía mostrando como no enviado.
-// Se confirma por número Y por hora de guardado: el mismo número de un envío
-// anterior no cuenta. Si no se puede confirmar, el fallo se informa como antes.
-async function rescatar(d, clave, error){
+// Desde el cambio 184 se pregunta por el número exacto (`accion: 'existe'`, r62) y
+// se confirma por hora de guardado o por un archivo creado desde que empezó este
+// intento: el mismo número de un envío anterior no cuenta. Si se cortó por tiempo
+// se mira dos veces, y el corte se recuerda para preguntar otra vez antes de
+// reenviar. Si no se puede confirmar, el fallo se informa como antes.
+async function rescatar(d, clave, error, desde){
   const fallo = { ok: false, error };
   if (/clave|faltan|sector/i.test(error) || !navigator.onLine) return fallo;
   const sec = SECTOR_POR_CONVENIO[d.convenio];
-  if (!sec || !d.torre || !d.guardado) return fallo;
-  const corte = new AbortController(); const reloj = setTimeout(() => corte.abort(), 20000);
-  try {
-    const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ clave, accion: 'historial', tipo: TIPO_INFORME, sector: sec, torre: d.torre }), signal: corte.signal });
-    const j = await r.json();
-    const e = j && j.informe;
-    if (j.ok && e && e.nro === d.nro && e.guardado === d.guardado){
-      console.warn(d.nro, 'sí quedó archivado aunque la respuesta no llegó:', error);
-      marcarEnviado(d.id, d.nro);
-      return { ok: true, rescatado: true };
-    }
-  } catch (e2) {
-  } finally { clearTimeout(reloj); }
+  if (!sec || !d.torre) return fallo;
+  const cortado = /Sin respuesta en \\d+ minutos/.test(error);
+  if (cortado) cartelSegundos('⏳ Pasaron ' + _minutosDeEspera() + ' min sin respuesta. El relevo puede estar terminando de archivarlo: comprobando…');
+  const ya = await _yaArchivado(clave, d.nro, sec, d.torre, TIPO_INFORME, desde || Date.now(), cortado, d.guardado);
+  if (ya){
+    console.warn(d.nro, 'sí quedó archivado aunque la respuesta no llegó:', error, ya);
+    delete _cortes[d.nro];
+    marcarEnviado(d.id, d.nro);
+    return { ok: true, rescatado: true };
+  }
+  if (cortado) _cortes[d.nro] = desde || Date.now();
   return fallo;
 }
 
@@ -1823,7 +1841,7 @@ function explicar(err){
   if (/clave/i.test(err))  return 'La clave de este teléfono no es válida. Abra otra vez el enlace de configuración.';
   if (/sector/i.test(err)) return 'El informe no tiene convenio, y sin convenio no sabe a qué sector va.';
   if (/faltan/i.test(err)) return 'Al informe le faltan datos de cabecera: ' + err;
-  if (/90 segundos/.test(err)) return 'No hubo respuesta. Con señal, vuelva a pulsar Enviar.';
+  if (/Sin respuesta en \\d+ minutos/.test(err)) return 'Pasaron ' + _minutosDeEspera() + ' minutos sin respuesta y el informe todavía no aparece archivado. Espere un par de minutos con señal y vuelva a pulsar Enviar: antes de mandarlo se comprueba si ya llegó.';
   if (/Failed to fetch|NetworkError|Load failed/i.test(err)) return 'No hay señal, o el relevo no responde. Con señal, vuelva a pulsar Enviar.';
   // Con un detalle corto: sin él, el 17-sep no hubo forma de saber por qué la
   // respuesta del relevo no llegó al teléfono.
@@ -2108,6 +2126,8 @@ def inspectores_de_servicios():
     return sel
 
 
+ENVIO_PACIENTE_JS = open(os.path.join(RAIZ, "comun", "envio_paciente.js"), encoding="utf-8").read()
+
 def construir():
     pagina = (HTML
         .replace('@@CSS@@', CSS)
@@ -2125,7 +2145,8 @@ def construir():
         .replace('@@CALIDAD@@', str(CALIDAD_FOTO))
         .replace('@@RELEVO@@', json.dumps(RELEVO_URL))
         .replace('@@JS@@', JS)
-        # este va DESPUÉS del JS: el marcador vive dentro del motor
+        # estos van DESPUÉS del JS: los marcadores viven dentro del motor
+        .replace('@@ENVIO_PACIENTE@@', ENVIO_PACIENTE_JS)
         .replace('@@TOPE@@', str(TOPE_ALMACEN)))
 
     if '@@' in pagina:

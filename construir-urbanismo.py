@@ -780,6 +780,7 @@ def construir():
         .replace('@@CALIDAD@@', str(motor.CALIDAD_FOTO))
         .replace('@@RELEVO@@', json.dumps(motor.RELEVO_URL))
         .replace('@@JS@@', PREFIJO + J)
+        .replace('@@ENVIO_PACIENTE@@', motor.ENVIO_PACIENTE_JS)   # 184: el envío paciente, compartido con obra
         .replace('@@TOPE@@', str(motor.TOPE_ALMACEN))
         .replace('@@NOMBRE_SECTOR@@', json.dumps(contenido.NOMBRE_SECTOR, ensure_ascii=False))
         .replace('@@EMPRESA_POR_SECTOR@@', json.dumps(contenido.EMPRESA_POR_SECTOR, ensure_ascii=False))
