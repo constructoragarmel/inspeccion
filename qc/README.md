@@ -692,3 +692,9 @@ plantilla `vista-previa.js` se genera de `PDF.gs`, y desde el relevo r47/r50 el 
 (ReferenceError). `generar-vista-previa.py` (repositorio Garmel) ahora toma esa función de `Oficina.gs` y la huella la incluye;
 `t86` ronda 9 y `t59` (pasos sin foto) la cubren. En el Chrome sin ventana de hoy IndexedDB no resuelve, así que los pasos con foto de
 `t59` (9) y `t61` quedan para un navegador a la vista; no cambiaron con esto.
+
+**Regresión de la v163 (14-oct-2026).** Sin ventana a 500 px, 44 tandas de los cinco formularios: 37 en verde y 7 que no
+cierran ahí por el límite de IndexedDB de hoy (`t32`, `t36`, `t37`, `t38` envían; `t62` paso 6, `t61` y `t59` paso 9 leen fotos).
+Esas siete se corrieron en el panel del navegador, con la pestaña oculta (los temporizadores van frenados, por eso se lanzan sin
+esperar y se leen después): `t32` 5/5, `t37` 3/3, `t36` 5/5, `t62` 9/9, `t38` 2/2, `t61` servicios 11/11, `t59` 14/14 y `t61` SHA
+11/11. Todo en verde: nada de lo anterior cambió con la v163.
