@@ -698,3 +698,10 @@ cierran ahí por el límite de IndexedDB de hoy (`t32`, `t36`, `t37`, `t38` env�
 Esas siete se corrieron en el panel del navegador, con la pestaña oculta (los temporizadores van frenados, por eso se lanzan sin
 esperar y se leen después): `t32` 5/5, `t37` 3/3, `t36` 5/5, `t62` 9/9, `t38` 2/2, `t61` servicios 11/11, `t59` 14/14 y `t61` SHA
 11/11. Todo en verde: nada de lo anterior cambió con la v163.
+
+**`t87` (14-oct-2026, v165): las filas agregadas en campo no pasan al informe siguiente ni se duplican (cambio 182).** Seis
+comprobaciones sobre `inspeccion.html?prueba=1`: dos filas siguen siendo dos tras reabrir el borrador tres veces; «Nuevo» y «Siguiente
+apartamento» arrancan sin filas agregadas en pantalla y en los datos (antes quedaban en memoria y viajaban como «(sin descripción)»);
+un borrador contaminado como el de la T-09 (11 filas: 6 fantasmas y 2 duplicadas) abre con sus 3 filas reales y se guarda así; una fila
+recién agregada y vacía se ve pero no viaja; con descripción, viaja. Sin ventana: `t87` 6/6 y la regresión de obra (`t21`–`t24`, `t26`,
+`t39`, `t42`, `t43`, `t47`, `t49`, `t50`, `t52`, `t56`, `t64`, `t66`–`t69`, `t71`, `t72`, `t76`, `t82`) en verde.

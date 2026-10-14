@@ -9207,6 +9207,29 @@ s = sustituir(s,
  "  if(d.convenio) filtrarPorConvenio();\n  _aplicarListaApto();\n  if(d.empresa) document.getElementById('empresa').value = d.empresa;\n",
  "181d\u00b7 al abrir un borrador, lista o campo libre seg\u00fan traiga")
 
+# ── 182. Las filas agregadas en campo no pasan al informe siguiente ni se duplican al reabrir (14-oct-2026) ──
+# `extraRows` es una memoria global que nunca se vaciaba: «Nuevo» y «Siguiente apartamento» redibujaban los hitos sin
+# filas, pero la memoria seguía con las del informe anterior, así que viajaban como «(sin descripción)» al siguiente y
+# se iban acumulando (EZ-T09-P01AB1-261013-KC llegó con 188 filas agregadas en el hito 2, casi todas repetidas o vacías).
+# Ahora: la memoria se vacía cada vez que se redibujan los hitos; al abrir un borrador se saltan las filas fantasma
+# (sin descripción ni medición) y las duplicadas exactas; y en los datos solo viaja una fila agregada que tenga algo.
+s = sustituir(s, "function initAppContent() {\n",
+ "function _vaciarExtras(){ Object.keys(extraRows).forEach(function(k){ delete extraRows[k]; }); }   // 182\n"
+ "function initAppContent() {\n  _vaciarExtras();\n", "182a\u00b7 la memoria de filas agregadas se vac\u00eda al redibujar")
+s = sustituir(s, "          rows.forEach(r => { addRow(pid, r.desc || '', r.pr || '', r.ej || '', r.ev || ''); });\n",
+ "          const _vistas182 = {};\n"
+ "          rows.forEach(r => {\n"
+ "            if (!String(r.desc || '').trim() && !r.pr && !r.ej && !r.ev) return;   // 182: fila fantasma\n"
+ "            const _k = [r.desc || '', r.pr || '', r.ej || '', r.ev || ''].join('\\u0001');\n"
+ "            if (_vistas182[_k]) return;                                               // 182: duplicada exacta\n"
+ "            _vistas182[_k] = true; addRow(pid, r.desc || '', r.pr || '', r.ej || '', r.ev || '');\n"
+ "          });\n", "182b\u00b7 al abrir un borrador, sin fantasmas ni duplicadas")
+s = sustituir(s,
+ "        return {desc:document.getElementById('desc_'+rid)?.value||row.desc||'',pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};\n      });\n",
+ "        return {desc:document.getElementById('desc_'+rid)?.value||row.desc||'',pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};\n"
+ "      }).filter(function(r){ return String(r.desc || '').trim() || r.pr || r.ej || r.ev; });   // 182: solo viaja la que tiene algo\n",
+ "182c\u00b7 en los datos no viajan filas vac\u00edas")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

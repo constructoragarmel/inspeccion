@@ -409,6 +409,13 @@ lista de máquinas con contratista y residente para el maestro (cada máquina se
 maquinaria cuenta como contenido del informe. **Y la vista previa de servicios, SHA y urbanismo vuelve a abrir**: desde la v146 fallaba
 porque la plantilla no traía `_versionDelInforme` (ver `qc/README.md`, `t86`).
 
+**v165 (14-oct-2026, cambio 182): las filas agregadas en campo ya no pasan al informe siguiente ni se duplican.** Llegó de obra un
+informe de apartamento (EZ-T09, 13-oct) con 188 filas agregadas en el hito 2, casi todas repetidas o «(sin descripción)». La memoria de
+filas agregadas nunca se vaciaba: «Nuevo» y «Siguiente apartamento» redibujaban los hitos sin filas, pero las del informe anterior seguían
+en memoria, viajaban como fantasmas al siguiente y se acumulaban. Ahora se vacía al redibujar; al abrir un borrador se saltan las filas
+fantasma y las duplicadas exactas (así los borradores ya contaminados abren limpios y se reenvían limpios); y en los datos solo viaja una
+fila agregada que tenga descripción o medición. Tanda `t87`; regresión de obra (22 tandas) en verde.
+
 **v164 (14-oct-2026):** la página del compilado muestra la columna «Maquinaria» en la tabla de urbanismo (la manda el relevo r61);
 `t83` lo comprueba con el relevo falso.
 

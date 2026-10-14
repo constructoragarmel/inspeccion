@@ -1525,10 +1525,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v164';
+    el.textContent = '● en línea · v165';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v164 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v165 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -2817,7 +2817,9 @@ function setModeUI(mode) {
 // ═══════════════════════════════════════════════
 // CONSTRUCTOR DINÁMICO DE CONTENIDO (DETALLADO VS HITOS)
 // ═══════════════════════════════════════════════
+function _vaciarExtras(){ Object.keys(extraRows).forEach(function(k){ delete extraRows[k]; }); }   // 182
 function initAppContent() {
+  _vaciarExtras();
   const main = document.getElementById('main-content');
   main.innerHTML = '';
 
@@ -3616,7 +3618,7 @@ function getFormData(){
         const idx=p.items.length+i; const rid=`${p.id}_extra_${idx}`;
         const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
         return {desc:document.getElementById('desc_'+rid)?.value||row.desc||'',pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};
-      });
+      }).filter(function(r){ return String(r.desc || '').trim() || r.pr || r.ej || r.ev; });   // 182: solo viaja la que tiene algo
     });
   }
   return d;
@@ -3998,7 +4000,13 @@ function loadDraftData(index) {
           ? medidas
           : ((d.extraRows || {})[pid] || []);
         if (Array.isArray(rows)) {
-          rows.forEach(r => { addRow(pid, r.desc || '', r.pr || '', r.ej || '', r.ev || ''); });
+          const _vistas182 = {};
+          rows.forEach(r => {
+            if (!String(r.desc || '').trim() && !r.pr && !r.ej && !r.ev) return;   // 182: fila fantasma
+            const _k = [r.desc || '', r.pr || '', r.ej || '', r.ev || ''].join('\u0001');
+            if (_vistas182[_k]) return;                                               // 182: duplicada exacta
+            _vistas182[_k] = true; addRow(pid, r.desc || '', r.pr || '', r.ej || '', r.ev || '');
+          });
         }
       });
     }
