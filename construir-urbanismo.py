@@ -156,7 +156,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
 .camion{border-top:1px solid #e2e8f0;padding:6px 0}
 .camion:first-child{border-top:0}
 .cam-cab{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#334155;margin-bottom:4px}
-.cam-cab .quitar-cam{background:none;border:0;color:#b91c1c;font-size:12px;padding:4px 6px}
+.cam-cab .quitar-cam{background:none;border:0;color:#b91c1c;font-size:12px;padding:4px 10px;min-height:44px}   /* v163: 44 px como todo botón */
 .cam-ayuda{font-size:12px;color:#475569;margin-top:3px}
 .cam-ayuda:empty{display:none}
 .camiones .cam-ant{margin-top:6px;border-style:solid}
@@ -164,6 +164,11 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
 .cam-campos label{display:flex;flex-direction:column;font-size:11px;color:#64748b;min-width:0}
 .cam-campos input{min-width:0;width:100%}
 .cam-total{font-size:13px;font-weight:700;color:#1a237e;margin:4px 0}
+/* v163: en Desmalezamiento y Movimiento de tierra los camiones son registro: sin acumulado anterior, y una nota lo dice */
+.camiones.registro .cam-base{display:none!important}
+.cam-nota{font-size:12px;color:#475569;margin:0 0 4px}
+.maq{display:flex;flex-direction:column;font-size:12px;color:#64748b;margin:0 0 8px}
+.maq input{min-width:0;width:100%;margin-top:3px;min-height:44px}
 .cant[readonly]{background:#eef2ff}
 .plan-aviso{background:#e8eaf6;border:1px solid #1a237e;color:#1a237e;border-radius:8px;padding:8px 12px;margin:0 12px 8px;font-size:13px;font-weight:700}""", "9· estilos de cantidad, calidad y planificación")
 
@@ -292,7 +297,7 @@ J = sustituir(J, r"""    '<div class="sino">' +
     '</div>' +""",
 r"""    '<div class="cant-fila"><span class="et">Ejecutado</span><input type="text" inputmode="decimal" class="cant" placeholder="Cantidad a la fecha" oninput="numero(this); marcar()">' + ud + '</div>' +
     '<div class="cant-fila proy"><span class="et">Proyectado</span><input type="text" inputmode="decimal" class="pr" placeholder="Cantidad proyectada" oninput="numero(this); marcar()"><span class="avance"></span></div>' +
-    camionesHtml(sid, nombre) +
+    camionesHtml(sid, nombre) + maquinariaHtml(sid, nombre) +
     '<div class="sino">' +
       '<button type="button" onclick="marcarSN(this,\'B\')">B</button>' +
       '<button type="button" onclick="marcarSN(this,\'R\')">R</button>' +
@@ -351,6 +356,8 @@ function ponerCant(el, it, heredando){
                         .filter(x => clavePlaca(x.placa)).map(x => ({ placa: String(x.placa).trim().toUpperCase(), m3: String(x.m3 || '').trim() }));
             botonCamionesAnteriores(c); }
   }
+  // v163: la maquinaria es del día: se restaura con el borrador y no se hereda de la visita anterior
+  { const mq = el.querySelector('.maquinaria'); if (mq) mq.value = heredando ? '' : (it.maquinaria || ''); }
   actualizarAvance(el);
 }
 // % de avance = ejecutado / proyectado, solo cuando hay proyectado. Sin él no
@@ -371,12 +378,21 @@ function actualizarAvances(){ document.querySelectorAll('.item').forEach(actuali
 // corregir. Sin camiones, el ejecutado vuelve a escribirse a mano.
 function camionesHtml(sid, nombre){
   if ((CAMIONES[sid] || []).indexOf(nombre) < 0) return '';
-  return '<div class="camiones">' +
+  // v163: fuera de «Bote de material» los camiones son registro y evidencia del día: no calculan el ejecutado.
+  const calcula = (CAMIONES_CALCULAN[sid] || []).indexOf(nombre) >= 0;
+  return '<div class="camiones' + (calcula ? '' : ' registro') + '">' +
+    (calcula ? '' : '<div class="cam-nota">Los camiones de hoy quedan como registro. La cantidad ejecutada se escribe arriba, a mano.</div>') +
     '<div class="cant-fila cam-base"><span class="et">Acumulado anterior</span><input type="text" inputmode="decimal" class="base" placeholder="0" oninput="numero(this); recalcCamiones(this)"><span class="ud">m³</span></div>' +
     '<div class="cam-lista"></div><div class="cam-total"></div>' +
     '<button type="button" class="btn-add" onclick="agregarCamion(this)">🚚 ＋ Agregar camión</button>' +
     '<button type="button" class="btn-add cam-ant" style="display:none" onclick="traerCamionesAnteriores(this)"></button></div>';
 }
+// v163: «Maquinaria que operó hoy», texto libre por partida, mientras llega la lista de máquinas de Urbanismo.
+function maquinariaHtml(sid, nombre){
+  if ((MAQUINARIA[sid] || []).indexOf(nombre) < 0) return '';
+  return '<label class="maq">Maquinaria que operó hoy<input type="text" class="maquinaria" placeholder="Ej.: retroexcavadora, patrol, vibrocompactador" oninput="marcar()"></label>';
+}
+function maquinariaDe(it){ const m = it.querySelector('.maquinaria'); const v = m ? m.value.trim() : ''; return v ? { maquinaria: v } : {}; }
 function filaCamion(c, x){
   x = x || {};
   const esc = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -393,7 +409,7 @@ function filaCamion(c, x){
 function agregarCamion(btn){
   const c = btn.closest('.camiones'), it = c.closest('.item');
   tocado(btn);
-  if (!c.querySelector('.camion')) c.querySelector('.base').value = it.querySelector('.cant').value;
+  if (!c.classList.contains('registro') && !c.querySelector('.camion')) c.querySelector('.base').value = it.querySelector('.cant').value;
   filaCamion(c).querySelector('.placa').focus();
   recalcCamiones(c); marcar();
 }
@@ -417,13 +433,14 @@ function recalcCamiones(el){
     const v = parseInt(f.querySelector('.viajes').value, 10) || 0;
     hoy += (parseFloat(f.querySelector('.m3').value) || 0) * v; viajes += v;
   });
+  const registro = c.classList.contains('registro');   // v163: no toca el ejecutado
   if (filas.length){
-    c.classList.add('con'); cant.readOnly = true;
-    cant.value = (base.value || hoy) ? redondear((parseFloat(base.value) || 0) + hoy) : '';
-    c.querySelector('.cam-total').textContent = filas.length + ' camión(es) · ' + viajes + ' viaje(s) · ' + redondear(hoy) + ' m³ hoy';
+    c.classList.add('con');
+    if (!registro){ cant.readOnly = true; cant.value = (base.value || hoy) ? redondear((parseFloat(base.value) || 0) + hoy) : ''; }
+    c.querySelector('.cam-total').textContent = filas.length + ' camión(es) · ' + viajes + ' viaje(s) · ' + redondear(hoy) + ' m³ hoy' + (registro ? ' (registro)' : '');
   } else {
     c.classList.remove('con'); c.querySelector('.cam-total').textContent = '';
-    if (cant.readOnly){ cant.readOnly = false; cant.value = base.value; }
+    if (!registro && cant.readOnly){ cant.readOnly = false; cant.value = base.value; }
   }
   botonCamionesAnteriores(c);
   actualizarAvance(it);
@@ -505,7 +522,7 @@ function botonCamionesAnteriores(c){
 function traerCamionesAnteriores(btn){
   const c = btn.closest('.camiones'), it = c.closest('.item');
   tocado(btn);
-  if (!c.querySelector('.camion')) c.querySelector('.base').value = it.querySelector('.cant').value;
+  if (!c.classList.contains('registro') && !c.querySelector('.camion')) c.querySelector('.base').value = it.querySelector('.cant').value;
   camionesPorTraer(c).forEach(x => filaCamion(c, { placa: x.placa, m3: x.m3, viajes: '' }));
   recalcCamiones(c); marcar();
 }
@@ -533,7 +550,7 @@ J = sustituir(J, """  if (g.querySelector('.si-on')) return 'SI';
 
 # 14 · La cantidad viaja, se restaura, se hereda y cuenta como contenido.
 J = sustituir(J, "      obs: (it.querySelector('textarea').value || '').trim(),\n",
-                 "      obs: (it.querySelector('textarea').value || '').trim(),\n      cant: (it.querySelector('.cant').value || '').trim(),\n      pr: (it.querySelector('.pr').value || '').trim(),\n      ud: unidadLeida(it),\n      ...camionesDe(it),\n", "14a· datos")
+                 "      obs: (it.querySelector('textarea').value || '').trim(),\n      cant: (it.querySelector('.cant').value || '').trim(),\n      pr: (it.querySelector('.pr').value || '').trim(),\n      ud: unidadLeida(it),\n      ...camionesDe(it),\n      ...maquinariaDe(it),\n", "14a· datos")
 # 14a' · Una proyectada que vino de la visita anterior no es «sin revisar»: es la
 # meta, y sigue vigente. El ítem que solo trae proyectado no viaja con la marca
 # de heredado —el relevo la imprime en ámbar como «sin revisar» (r22)—.
@@ -769,6 +786,8 @@ def construir():
         .replace('@@UNIDADES@@', json.dumps(contenido.UNIDADES, ensure_ascii=False))
         .replace('@@UNIDAD_DE@@', json.dumps(unidad_de, ensure_ascii=False))
         .replace('@@CAMIONES@@', json.dumps(contenido.CAMIONES, ensure_ascii=False))
+        .replace('@@CAMIONES_CALCULAN@@', json.dumps(contenido.CAMIONES_CALCULAN, ensure_ascii=False))
+        .replace('@@MAQUINARIA@@', json.dumps(contenido.MAQUINARIA, ensure_ascii=False))
         .replace('@@RETIRADAS@@', json.dumps(contenido.RETIRADAS)))
 
     if '@@' in pagina:
@@ -795,6 +814,8 @@ const CLAVE_SECCIONES = 'garmel_urb_secciones';
 const UNIDADES = @@UNIDADES@@;
 const UNIDAD_DE = @@UNIDAD_DE@@;
 const CAMIONES = @@CAMIONES@@;
+const CAMIONES_CALCULAN = @@CAMIONES_CALCULAN@@;
+const MAQUINARIA = @@MAQUINARIA@@;
 const RETIRADA = new RegExp(@@RETIRADAS@@, 'i');
 """
 

@@ -91,7 +91,14 @@ RENOMBRADOS = {}
 # Partidas que llevan la lista de camiones (Skarlet, 24-sep): cada camión con
 # su placa, los m³ que carga y los viajes de la visita. La suma de hoy se añade
 # al acumulado anterior y eso es el ejecutado.
-CAMIONES = {"urb_preliminares": ["Bote de material"]}
+# v163 (14-oct-2026, Planificación): la lista de camiones va en las tres partidas de «Obras preliminares». Solo en
+# «Bote de material» los camiones calculan el ejecutado; en las otras dos son registro y evidencia del día, y la
+# cantidad ejecutada se sigue escribiendo a mano (la tierra la mueve la máquina; el camión la acarrea).
+CAMIONES = {"urb_preliminares": ["Desmalezamiento", "Movimiento de tierra", "Bote de material"]}
+CAMIONES_CALCULAN = {"urb_preliminares": ["Bote de material"]}
+# «Maquinaria que operó hoy», texto libre, en las mismas tres partidas, mientras Urbanismo pasa la lista de máquinas
+# (con contratista y residente) para el maestro. Cada máquina se paga aparte: por eso va por partida.
+MAQUINARIA = {"urb_preliminares": ["Desmalezamiento", "Movimiento de tierra", "Bote de material"]}
 
 # Secciones que un teléfono agregó a mano y que ya son fijas: Gabriel creó
 # «Obras preliminares» y «Desmalezamiento» en el suyo antes de que existiera la

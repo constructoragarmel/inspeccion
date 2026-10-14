@@ -667,3 +667,12 @@ pantalla repinta tipo, torre y semana. En el navegador a 375 px: sin desborde, l
 fija al deslizar (v162) y nada baja de 44 px. Contra el relevo real: servicios T-39, urbanismo M-6 y SHA T-07 de Simón Rodríguez
 en 20 s cada uno; envíos de prueba de servicios y urbanismo con PDF y fila en Smartsheet, borrados después.
 
+**`t85` (14-oct-2026, v163): camiones en las tres partidas de «Obras preliminares» y «Maquinaria que operó hoy».** Diez
+comprobaciones sobre `urbanismo.html?prueba=1`: dónde están las listas y los cuadros (solo esas tres partidas); solo Bote calcula el
+ejecutado y las otras dos lo dicen como registro, sin «Acumulado anterior» y sin tocar la cantidad escrita a mano; lo que viaja en el
+informe; reabierto desde Informes conserva camiones y maquinaria; al traer la visita anterior pasa el acumulado pero no la maquinaria ni
+los camiones; el envío al relevo falso lleva maquinaria y camiones; a 375 px nada se sale y ningún control baja de 44 px (el «Quitar» de
+cada camión subió a 44 px). `t19` cambia su comprobación de camiones a las tres partidas. Sin ventana: `t19` 26/26, `t46` 13/13, `t85`
+10/10 y `t49b` 6/6; en el navegador real `t85` 10/10 de punta a punta. **Límite nuevo del Chrome sin ventana:** con tiempo virtual
+IndexedDB no resuelve (ni un `indexedDB.open` suelto), y el envío lee las fotos de ahí; `t85` lo detecta con una sonda y salta el envío
+diciéndolo, para probarlo en un navegador de verdad.

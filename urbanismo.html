@@ -222,7 +222,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
 .camion{border-top:1px solid #e2e8f0;padding:6px 0}
 .camion:first-child{border-top:0}
 .cam-cab{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#334155;margin-bottom:4px}
-.cam-cab .quitar-cam{background:none;border:0;color:#b91c1c;font-size:12px;padding:4px 6px}
+.cam-cab .quitar-cam{background:none;border:0;color:#b91c1c;font-size:12px;padding:4px 10px;min-height:44px}   /* v163: 44 px como todo botón */
 .cam-ayuda{font-size:12px;color:#475569;margin-top:3px}
 .cam-ayuda:empty{display:none}
 .camiones .cam-ant{margin-top:6px;border-style:solid}
@@ -230,6 +230,11 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
 .cam-campos label{display:flex;flex-direction:column;font-size:11px;color:#64748b;min-width:0}
 .cam-campos input{min-width:0;width:100%}
 .cam-total{font-size:13px;font-weight:700;color:#1a237e;margin:4px 0}
+/* v163: en Desmalezamiento y Movimiento de tierra los camiones son registro: sin acumulado anterior, y una nota lo dice */
+.camiones.registro .cam-base{display:none!important}
+.cam-nota{font-size:12px;color:#475569;margin:0 0 4px}
+.maq{display:flex;flex-direction:column;font-size:12px;color:#64748b;margin:0 0 8px}
+.maq input{min-width:0;width:100%;margin-top:3px;min-height:44px}
 .cant[readonly]{background:#eef2ff}
 .plan-aviso{background:#e8eaf6;border:1px solid #1a237e;color:#1a237e;border-radius:8px;padding:8px 12px;margin:0 12px 8px;font-size:13px;font-weight:700}
 .etq-her{display:inline-block;font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;
@@ -352,7 +357,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v162</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v163</div>
 </div>
 
 <div class="acciones">
@@ -502,7 +507,9 @@ const CLAVE_MANZANAS = 'garmel_urb_manzanas';
 const CLAVE_SECCIONES = 'garmel_urb_secciones';
 const UNIDADES = ["m", "m²", "m³", "und", "kg", "glb", "ha", "ton"];
 const UNIDAD_DE = {"urb_preliminares": {"Desmalezamiento": "m²", "Movimiento de tierra": "m³", "Bote de material": "m³"}, "urb_drenaje": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquilla": "und"}, "urb_estructura": {"Excavación / Movimiento de tierra": "m³", "Acero de refuerzo": "kg", "Concreto": "m³", "Encofrado": "m²"}, "urb_acueductos": {"Topografía": "m", "Excavación": "m³", "Canalizaciones": "m", "Captación": "und"}, "urb_electricidad": {"Puntos cableados": "und", "Canalización": "m", "Tuberías": "m", "Tanquillas": "und", "Postes de luminaria": "und"}, "urb_aguas_servidas": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquillas": "und", "Colectores": "m"}, "urb_vialidad": {"Topografía": "m", "Escarificación": "m²", "Suministro y colocación": "m³", "Carpeta de rodamiento": "m²", "Brocales": "m", "Aceras": "m²", "Demarcación": "m", "Transporte y maquinaria": "glb"}, "urb_camineria": {"Topografía / Trazo": "m", "Excavación y conformación": "m³", "Pavimento / Acabado": "m²"}, "urb_paisajismo": {"Topografía": "m", "Jardinería": "m²", "Sistema de riego": "m", "Iluminación": "und", "Mobiliario urbano": "und", "Caminerías": "m²"}};
-const CAMIONES = {"urb_preliminares": ["Bote de material"]};
+const CAMIONES = {"urb_preliminares": ["Desmalezamiento", "Movimiento de tierra", "Bote de material"]};
+const CAMIONES_CALCULAN = {"urb_preliminares": ["Bote de material"]};
+const MAQUINARIA = {"urb_preliminares": ["Desmalezamiento", "Movimiento de tierra", "Bote de material"]};
 const RETIRADA = new RegExp("^urb_x_(obras)?preliminar(es)?$|^urb_x_de?s?malez(amiento|ado)s?$", 'i');
 
 // ── Cascada: la torre manda ───────────────────────────────────────────────
@@ -772,7 +779,7 @@ function addItem(sid, nombre, fijo, recordado){
     // en una torre sin red— y sin botón propio se confundía con «sin contestar».
     '<div class="cant-fila"><span class="et">Ejecutado</span><input type="text" inputmode="decimal" class="cant" placeholder="Cantidad a la fecha" oninput="numero(this); marcar()">' + ud + '</div>' +
     '<div class="cant-fila proy"><span class="et">Proyectado</span><input type="text" inputmode="decimal" class="pr" placeholder="Cantidad proyectada" oninput="numero(this); marcar()"><span class="avance"></span></div>' +
-    camionesHtml(sid, nombre) +
+    camionesHtml(sid, nombre) + maquinariaHtml(sid, nombre) +
     '<div class="sino">' +
       '<button type="button" onclick="marcarSN(this,\'B\')">B</button>' +
       '<button type="button" onclick="marcarSN(this,\'R\')">R</button>' +
@@ -1153,6 +1160,7 @@ function datosDelFormulario(){
       pr: (it.querySelector('.pr').value || '').trim(),
       ud: unidadLeida(it),
       ...camionesDe(it),
+      ...maquinariaDe(it),
       // De qué informe viene la respuesta, si nadie la tocó hoy. Vacío = de hoy.
       heredado: it.classList.contains('her-pr') ? '' : (it.dataset.heredado || '')
     }))
@@ -3074,6 +3082,8 @@ function ponerCant(el, it, heredando){
                         .filter(x => clavePlaca(x.placa)).map(x => ({ placa: String(x.placa).trim().toUpperCase(), m3: String(x.m3 || '').trim() }));
             botonCamionesAnteriores(c); }
   }
+  // v163: la maquinaria es del día: se restaura con el borrador y no se hereda de la visita anterior
+  { const mq = el.querySelector('.maquinaria'); if (mq) mq.value = heredando ? '' : (it.maquinaria || ''); }
   actualizarAvance(el);
 }
 // % de avance = ejecutado / proyectado, solo cuando hay proyectado. Sin él no
@@ -3094,12 +3104,21 @@ function actualizarAvances(){ document.querySelectorAll('.item').forEach(actuali
 // corregir. Sin camiones, el ejecutado vuelve a escribirse a mano.
 function camionesHtml(sid, nombre){
   if ((CAMIONES[sid] || []).indexOf(nombre) < 0) return '';
-  return '<div class="camiones">' +
+  // v163: fuera de «Bote de material» los camiones son registro y evidencia del día: no calculan el ejecutado.
+  const calcula = (CAMIONES_CALCULAN[sid] || []).indexOf(nombre) >= 0;
+  return '<div class="camiones' + (calcula ? '' : ' registro') + '">' +
+    (calcula ? '' : '<div class="cam-nota">Los camiones de hoy quedan como registro. La cantidad ejecutada se escribe arriba, a mano.</div>') +
     '<div class="cant-fila cam-base"><span class="et">Acumulado anterior</span><input type="text" inputmode="decimal" class="base" placeholder="0" oninput="numero(this); recalcCamiones(this)"><span class="ud">m³</span></div>' +
     '<div class="cam-lista"></div><div class="cam-total"></div>' +
     '<button type="button" class="btn-add" onclick="agregarCamion(this)">🚚 ＋ Agregar camión</button>' +
     '<button type="button" class="btn-add cam-ant" style="display:none" onclick="traerCamionesAnteriores(this)"></button></div>';
 }
+// v163: «Maquinaria que operó hoy», texto libre por partida, mientras llega la lista de máquinas de Urbanismo.
+function maquinariaHtml(sid, nombre){
+  if ((MAQUINARIA[sid] || []).indexOf(nombre) < 0) return '';
+  return '<label class="maq">Maquinaria que operó hoy<input type="text" class="maquinaria" placeholder="Ej.: retroexcavadora, patrol, vibrocompactador" oninput="marcar()"></label>';
+}
+function maquinariaDe(it){ const m = it.querySelector('.maquinaria'); const v = m ? m.value.trim() : ''; return v ? { maquinaria: v } : {}; }
 function filaCamion(c, x){
   x = x || {};
   const esc = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -3116,7 +3135,7 @@ function filaCamion(c, x){
 function agregarCamion(btn){
   const c = btn.closest('.camiones'), it = c.closest('.item');
   tocado(btn);
-  if (!c.querySelector('.camion')) c.querySelector('.base').value = it.querySelector('.cant').value;
+  if (!c.classList.contains('registro') && !c.querySelector('.camion')) c.querySelector('.base').value = it.querySelector('.cant').value;
   filaCamion(c).querySelector('.placa').focus();
   recalcCamiones(c); marcar();
 }
@@ -3140,13 +3159,14 @@ function recalcCamiones(el){
     const v = parseInt(f.querySelector('.viajes').value, 10) || 0;
     hoy += (parseFloat(f.querySelector('.m3').value) || 0) * v; viajes += v;
   });
+  const registro = c.classList.contains('registro');   // v163: no toca el ejecutado
   if (filas.length){
-    c.classList.add('con'); cant.readOnly = true;
-    cant.value = (base.value || hoy) ? redondear((parseFloat(base.value) || 0) + hoy) : '';
-    c.querySelector('.cam-total').textContent = filas.length + ' camión(es) · ' + viajes + ' viaje(s) · ' + redondear(hoy) + ' m³ hoy';
+    c.classList.add('con');
+    if (!registro){ cant.readOnly = true; cant.value = (base.value || hoy) ? redondear((parseFloat(base.value) || 0) + hoy) : ''; }
+    c.querySelector('.cam-total').textContent = filas.length + ' camión(es) · ' + viajes + ' viaje(s) · ' + redondear(hoy) + ' m³ hoy' + (registro ? ' (registro)' : '');
   } else {
     c.classList.remove('con'); c.querySelector('.cam-total').textContent = '';
-    if (cant.readOnly){ cant.readOnly = false; cant.value = base.value; }
+    if (!registro && cant.readOnly){ cant.readOnly = false; cant.value = base.value; }
   }
   botonCamionesAnteriores(c);
   actualizarAvance(it);
@@ -3228,7 +3248,7 @@ function botonCamionesAnteriores(c){
 function traerCamionesAnteriores(btn){
   const c = btn.closest('.camiones'), it = c.closest('.item');
   tocado(btn);
-  if (!c.querySelector('.camion')) c.querySelector('.base').value = it.querySelector('.cant').value;
+  if (!c.classList.contains('registro') && !c.querySelector('.camion')) c.querySelector('.base').value = it.querySelector('.cant').value;
   camionesPorTraer(c).forEach(x => filaCamion(c, { placa: x.placa, m3: x.m3, viajes: '' }));
   recalcCamiones(c); marcar();
 }

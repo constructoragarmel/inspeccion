@@ -27,7 +27,7 @@ ok('Las secciones de Gabriel ya no están, ni en pantalla ni recordadas', !GENER
 ok('Una sección propia se queda y se renumera: «10. GAS»', GENERAL[9] && GENERAL[9].id === 'urb_x_gas' && GENERAL[9].nombre === '10. GAS', GENERAL[9] && GENERAL[9].nombre);
 $('#ns-nombre').value = 'Obras preliminares'; agregarSeccion();
 ok('Agregar a mano «Obras preliminares» se rechaza y remite a la 1', GENERAL.length === 10 && /sección 1/.test(Q.dialogos.join()), Q.dialogos.join(' / '));
-ok('Solo «Bote de material» lleva camiones', $$('.camiones').length === 1 && items('urb_preliminares')[2].querySelector('.camiones'));
+ok('Las tres partidas de «Obras preliminares» llevan camiones (v163) y ninguna otra', $$('.camiones').length === 3 && items('urb_preliminares').slice(0, 3).every(i => i.querySelector('.camiones')));
 
 // 2. camiones
 Q.elegir($('#convenio'), 'Convenio Bielorusos'); Q.elegir($('#torre'), 'M-2'); Q.elegir($('#inspectores select'), INSPECTORES_DB[1]);
