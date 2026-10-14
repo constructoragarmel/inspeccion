@@ -211,7 +211,7 @@ J = sustituir(J, """function alElegirConvenio(){
   llenarManzanas(c);
   // Sin sector, o con otro, la manzana elegida ya no corresponde: se suelta.
   if (t && (!c || !entradasDe(t).some(x => x.c === c))){ document.getElementById('torre').value = ''; alElegirTorre(); }
-  if (!document.getElementById('torre').value) document.getElementById('empresa').value = c ? (EMPRESA_POR_SECTOR[c] || '') : '';
+  if (!document.getElementById('torre').value) { const _e = c ? (EMPRESA_POR_SECTOR[c] || '') : ''; document.getElementById('empresa').value = _e; document.getElementById('residente').value = residenteDe(_e); }   // v167
 """, "11b· el sector filtra las manzanas")
 J = sustituir(J, """  // QC de UX del 7-oct-2026: el mismo orden que en obra (por letra y número: D-08, J-07…, T-01…T-58).
   const natural = t => [t.replace(/-.*/, ''), parseInt(t.replace(/^[^0-9]*/, ''), 10) || 0];
@@ -269,7 +269,7 @@ function guardarNuevaManzana(){
   // anterior va por nombre, y dos «M-2» mezclarían sus historiales.
   const ya = TORRES_DATA.find(x => x.t === nombre);
   if (ya){ alert('«' + nombre + '» ya está en la lista, en ' + (NOMBRE_SECTOR[ya.c] || ya.c) + '.' + (ya.c !== c ? '\n\nEl nombre tiene que ser distinto en cada sector: escríbalo con el sector, por ejemplo «' + nombre + ' ' + (NOMBRE_SECTOR[c] || '').split(' ').map(w => w[0]).join('') + '».' : '')); return; }
-  const fila = { t: nombre, c: c, e: EMPRESA_POR_SECTOR[c] || '', r: '' };
+  const fila = { t: nombre, c: c, e: EMPRESA_POR_SECTOR[c] || '', r: residenteDe(EMPRESA_POR_SECTOR[c] || '') };   // v167
   TORRES_DATA.push(fila);
   const rec = manzanasRecordadas(); rec.push(fila);
   try { localStorage.setItem(CLAVE_MANZANAS, JSON.stringify(rec)); } catch(e){}
@@ -786,10 +786,22 @@ def construir():
         .replace('@@UNIDADES@@', json.dumps(contenido.UNIDADES, ensure_ascii=False))
         .replace('@@UNIDAD_DE@@', json.dumps(unidad_de, ensure_ascii=False))
         .replace('@@CAMIONES@@', json.dumps(contenido.CAMIONES, ensure_ascii=False))
+        .replace('@@RESIDENTE_POR_EMPRESA@@', json.dumps(contenido.RESIDENTE_POR_EMPRESA, ensure_ascii=False))
         .replace('@@CAMIONES_CALCULAN@@', json.dumps(contenido.CAMIONES_CALCULAN, ensure_ascii=False))
         .replace('@@MAQUINARIA@@', json.dumps(contenido.MAQUINARIA, ensure_ascii=False))
         .replace('@@RETIRADAS@@', json.dumps(contenido.RETIRADAS)))
 
+    # v167: el residente de la contratista se propone donde antes quedaba en blanco; lo recordado por manzana manda.
+    for viejo, nuevo in [
+        ("document.getElementById('residente').value = ''; return actualizarNro(); }",
+         "document.getElementById('residente').value = residenteDe(document.getElementById('empresa').value); return actualizarNro(); }"),
+        ("    document.getElementById('residente').value = filas[0].r || '';\n",
+         "    document.getElementById('residente').value = filas[0].r || residenteDe(filas[0].e || '');\n"),
+        ("    document.getElementById('empresa').value = EMPRESA_POR_SECTOR[conv.value] || '';\n    document.getElementById('residente').value = '';\n",
+         "    document.getElementById('empresa').value = EMPRESA_POR_SECTOR[conv.value] || '';\n    document.getElementById('residente').value = residenteDe(document.getElementById('empresa').value);\n")]:
+        if pagina.count(viejo) != 1:
+            sys.exit('✗ v167: ancla del residente no encontrada o repetida: ' + viejo[:60])
+        pagina = pagina.replace(viejo, nuevo)
     if '@@' in pagina:
         import re as _re
         sys.exit("✗ Quedaron marcadores sin sustituir: %s" % _re.findall(r'@@\w+@@', pagina))
@@ -814,6 +826,8 @@ const CLAVE_SECCIONES = 'garmel_urb_secciones';
 const UNIDADES = @@UNIDADES@@;
 const UNIDAD_DE = @@UNIDAD_DE@@;
 const CAMIONES = @@CAMIONES@@;
+const RESIDENTE_POR_EMPRESA = @@RESIDENTE_POR_EMPRESA@@;
+function residenteDe(e){ return (typeof RESIDENTE_POR_EMPRESA !== 'undefined' && RESIDENTE_POR_EMPRESA[e]) || ''; }
 const CAMIONES_CALCULAN = @@CAMIONES_CALCULAN@@;
 const MAQUINARIA = @@MAQUINARIA@@;
 const RETIRADA = new RegExp(@@RETIRADAS@@, 'i');

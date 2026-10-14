@@ -409,6 +409,10 @@ lista de máquinas con contratista y residente para el maestro (cada máquina se
 maquinaria cuenta como contenido del informe. **Y la vista previa de servicios, SHA y urbanismo vuelve a abrir**: desde la v146 fallaba
 porque la plantilla no traía `_versionDelInforme` (ver `qc/README.md`, `t86`).
 
+**v167 (14-oct-2026): el residente de la contratista de urbanismo se propone solo.** Planificación mandó contratista y residente de
+las tres empresas de urbanismo (`RESIDENTE_POR_EMPRESA` en `urbanismo/contenido.py`): al elegir el sector, o una manzana sin residente
+recordado, el campo se llena; lo que se escriba a mano por manzana manda, como antes. Tanda `t89`.
+
 **v166 (14-oct-2026, cambio 183): las hojas de «Minutas de campo» ya viajan desde el formulario de obra.** Desde la v116 se
 guardaban en el borrador y Smartsheet las contaba, pero el sobre de obra solo llevaba las fotos de los hitos: las hojas nunca salían del
 teléfono (servicios, SHA y urbanismo sí las mandaban). Lo reportó Planificación («no se reflejan en la torre»). Ahora van como

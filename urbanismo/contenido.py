@@ -25,6 +25,13 @@ EMPRESA_POR_SECTOR = {
     "Convenio Rusos":      "PROCODIMA, C.A.",
     "Convenio Chinos":     "RACAR INGENIEROS, C.A.",
 }
+# v167 (14-oct-2026): el residente de cada contratista de urbanismo, según Planificación (lista del 14-oct). Se propone al
+# elegir el sector o una manzana sin residente recordado; lo escrito a mano por manzana manda.
+RESIDENTE_POR_EMPRESA = {
+    "ADDISON": "Ing. Paola Saa",
+    "PROCODIMA, C.A.": "Ing. Gustavo Guillén",
+    "RACAR INGENIEROS, C.A.": "Ing. Nelson Socorro",
+}
 NOMBRE_SECTOR = {
     "Convenio Bielorusos": "Ezequiel Zamora",
     "Convenio Rusos":      "Simón Rodríguez",

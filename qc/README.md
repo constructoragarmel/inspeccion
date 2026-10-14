@@ -709,3 +709,8 @@ recién agregada y vacía se ve pero no viaja; con descripción, viaja. Sin vent
 **`t88` (14-oct-2026, v166): las hojas de minuta de campo viajan desde obra (cambio 183).** Tres comprobaciones en
 `inspeccion.html?prueba=1`, en el navegador a la vista (la foto pasa por canvas): con una hoja cargada el sobre lleva «minutas-1» además
 de la foto del hito; el envío al relevo falso la lleva con ese nombre; sin hojas no agrega nada. 3/3.
+
+**`t89` (14-oct-2026, v167): el residente de urbanismo se propone solo.** Seis comprobaciones en `urbanismo.html?prueba=1`: en
+una manzana sin residente recordado, empresa y residente de su contratista; al quitar la manzana sigue el del sector; lo escrito a mano
+se guarda y manda al reabrir; cambia con el sector (Procodima, Racar); una manzana nueva nace con el suyo. 6/6; `t19`, `t46`, `t85`
+y `t86` en verde (`t37` envía y no cierra sin ventana).
