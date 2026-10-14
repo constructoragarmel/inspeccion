@@ -1525,10 +1525,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v165';
+    el.textContent = '● en línea · v166';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v165 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v166 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -4650,6 +4650,14 @@ function _fotosParaEnviar(){
   return out;
 }
 
+// 183: las hojas de minuta van en el sobre como «minutas-N», igual que en los otros tres formularios.
+const _fotosParaEnviarBase183 = _fotosParaEnviar;
+_fotosParaEnviar = function(){
+  const out = _fotosParaEnviarBase183.apply(this, arguments);
+  [0,1,2,3,4,5].forEach(function(fi){ const im = document.getElementById('fimg_minutas_' + fi);
+    if (im && im.src && im.src.indexOf('data:') === 0) out.push({ nombre: 'minutas-' + (fi + 1), dato: im.src }); });
+  return out;
+};
 // Devuelve la lista de campos obligatorios que faltan, según el ámbito.
 function camposFaltantes(){
   const falta = [];

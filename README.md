@@ -409,6 +409,12 @@ lista de máquinas con contratista y residente para el maestro (cada máquina se
 maquinaria cuenta como contenido del informe. **Y la vista previa de servicios, SHA y urbanismo vuelve a abrir**: desde la v146 fallaba
 porque la plantilla no traía `_versionDelInforme` (ver `qc/README.md`, `t86`).
 
+**v166 (14-oct-2026, cambio 183): las hojas de «Minutas de campo» ya viajan desde el formulario de obra.** Desde la v116 se
+guardaban en el borrador y Smartsheet las contaba, pero el sobre de obra solo llevaba las fotos de los hitos: las hojas nunca salían del
+teléfono (servicios, SHA y urbanismo sí las mandaban). Lo reportó Planificación («no se reflejan en la torre»). Ahora van como
+«minutas-N», se archivan en la carpeta `fotos` de la torre con el número del informe y salen al final del PDF. Tanda `t88`. Quien ya
+envió un informe con minutas desde obra tiene que reabrirlo desde «Informes» y reenviarlo con la app actualizada.
+
 **v165 (14-oct-2026, cambio 182): las filas agregadas en campo ya no pasan al informe siguiente ni se duplican.** Llegó de obra un
 informe de apartamento (EZ-T09, 13-oct) con 188 filas agregadas en el hito 2, casi todas repetidas o «(sin descripción)». La memoria de
 filas agregadas nunca se vaciaba: «Nuevo» y «Siguiente apartamento» redibujaban los hitos sin filas, pero las del informe anterior seguían

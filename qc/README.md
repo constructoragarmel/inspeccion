@@ -705,3 +705,7 @@ apartamento» arrancan sin filas agregadas en pantalla y en los datos (antes que
 un borrador contaminado como el de la T-09 (11 filas: 6 fantasmas y 2 duplicadas) abre con sus 3 filas reales y se guarda así; una fila
 recién agregada y vacía se ve pero no viaja; con descripción, viaja. Sin ventana: `t87` 6/6 y la regresión de obra (`t21`–`t24`, `t26`,
 `t39`, `t42`, `t43`, `t47`, `t49`, `t50`, `t52`, `t56`, `t64`, `t66`–`t69`, `t71`, `t72`, `t76`, `t82`) en verde.
+
+**`t88` (14-oct-2026, v166): las hojas de minuta de campo viajan desde obra (cambio 183).** Tres comprobaciones en
+`inspeccion.html?prueba=1`, en el navegador a la vista (la foto pasa por canvas): con una hoja cargada el sobre lleva «minutas-1» además
+de la foto del hito; el envío al relevo falso la lleva con ese nombre; sin hojas no agrega nada. 3/3.

@@ -9230,6 +9230,22 @@ s = sustituir(s,
  "      }).filter(function(r){ return String(r.desc || '').trim() || r.pr || r.ej || r.ev; });   // 182: solo viaja la que tiene algo\n",
  "182c\u00b7 en los datos no viajan filas vac\u00edas")
 
+# ── 183. Las minutas de campo también viajan desde obra (14-oct-2026) ───────────────────────────────
+# Desde el cambio 163 (v116) las hojas de minuta se guardaban en el borrador (`fotos.minutas`) y Smartsheet las cuenta por el
+# prefijo «minutas-», pero `_fotosParaEnviar` de obra solo recorría los hitos: las hojas nunca salían del teléfono. Servicios, SHA
+# y urbanismo sí las mandan (su sobre las lleva como «minutas-N»). Lo reportó Planificación el 14-oct: «no se reflejan en la torre».
+s = sustituir(s, "// Devuelve la lista de campos obligatorios que faltan, según el ámbito.\nfunction camposFaltantes(){",
+ "// 183: las hojas de minuta van en el sobre como «minutas-N», igual que en los otros tres formularios.\n"
+ "const _fotosParaEnviarBase183 = _fotosParaEnviar;\n"
+ "_fotosParaEnviar = function(){\n"
+ "  const out = _fotosParaEnviarBase183.apply(this, arguments);\n"
+ "  [0,1,2,3,4,5].forEach(function(fi){ const im = document.getElementById('fimg_minutas_' + fi);\n"
+ "    if (im && im.src && im.src.indexOf('data:') === 0) out.push({ nombre: 'minutas-' + (fi + 1), dato: im.src }); });\n"
+ "  return out;\n"
+ "};\n"
+ "// Devuelve la lista de campos obligatorios que faltan, según el ámbito.\nfunction camposFaltantes(){",
+ "183· las minutas de campo viajan desde obra")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
