@@ -1525,10 +1525,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v168';
+    el.textContent = '● en línea · v169';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v168 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v169 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -3457,7 +3457,30 @@ function saveExtraDesc(pid,idx,val){
 function deleteExtraRow(rid, pid) {
   const tr = document.getElementById('row_' + rid);
   if(tr) tr.remove();
+  // 185: también sale de la memoria; si no, al guardar viajaba con la descripción que recordaba `extraRows`.
+  const _pObj185 = PARTIDAS.find(function(p){ return p.id === pid; });
+  const _i185 = parseInt(String(rid).slice(String(rid).lastIndexOf('_') + 1), 10) - (_pObj185 ? _pObj185.items.length : 0);
+  if (extraRows[pid] && extraRows[pid][_i185]) extraRows[pid][_i185].quitada = true;
   recalcP(pid);
+}
+// 185: las filas agregadas en campo que tienen descripción y ninguna medición (ni total, ni hechas, ni evaluación).
+function _filasAgregadasSinMedicion185(){
+  return Array.prototype.slice.call(document.querySelectorAll('tr.extra-row')).filter(function(tr){
+    const rid = tr.dataset.rid;
+    const v = function(id){ const e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; };
+    return v('desc_' + rid) && !v('pr_' + rid) && !v('ej_' + rid) && !tr.querySelector('.ev-btn.on');
+  });
+}
+// 185: al abrir un borrador con tres o más de esas filas se ofrece quitarlas de una vez. Devuelve cuántas se quitaron.
+function _ofrecerQuitarSinMedicion185(){
+  const filas = _filasAgregadasSinMedicion185();
+  if (filas.length < 3) return 0;
+  if (!confirm('Este informe trae ' + filas.length + ' filas agregadas en campo sin medición (restos de un error corregido el 14-oct).\n\n' +
+               '¿Las quito? Las que tienen medición se quedan.')) return 0;
+  filas.forEach(function(tr){ const rid = tr.dataset.rid; deleteExtraRow(rid, rid.replace(/_extra_\d+$/, '')); });
+  saveDraft(true);
+  showToast('🧹 Se quitaron ' + filas.length + ' filas agregadas sin medición. Las que tienen medición siguen ahí.', 'ok');
+  return filas.length;
 }
 
 const MAX_FOTO_PX = 1280;      // lado mayor tras reducir
@@ -3616,6 +3639,7 @@ function getFormData(){
       });
       d.partidas[p.id+'_extra']=(extraRows[p.id]||[]).map((row,i)=>{
         const idx=p.items.length+i; const rid=`${p.id}_extra_${idx}`;
+        if(row.quitada) return {desc:'',pr:'',ej:'',ev:''};   // 185: la quitaron con la ✕, no viaja
         const ev=document.querySelector(`.ev-btn.on[data-rid="${rid}"]`);
         return {desc:document.getElementById('desc_'+rid)?.value||row.desc||'',pr:document.getElementById('pr_'+rid)?.value||'',ej:document.getElementById('ej_'+rid)?.value||'',ev:ev?ev.textContent:''};
       }).filter(function(r){ return String(r.desc || '').trim() || r.pr || r.ej || r.ev; });   // 182: solo viaja la que tiene algo
@@ -4030,6 +4054,7 @@ function loadDraftData(index) {
 
   _todosLosValoresAlPapel();
   closeSavedModal();
+  if (!_falloAlAbrir.length) _ofrecerQuitarSinMedicion185();   // 185: solo sobre un borrador que abrió completo
   if (_falloAlAbrir.length) {
     showToast('⚠️ El informe se abrió INCOMPLETO: no se pudo restaurar ' +
               _falloAlAbrir.length + ' hito(s). NO lo envíe así — avise a la oficina.', 'err');

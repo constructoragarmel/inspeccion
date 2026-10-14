@@ -723,6 +723,15 @@ comprobaciones equivalentes en `servicios.html`, `sha.html` y `urbanismo.html` (
 5/5. **Una trampa:** la primera corrida de `t91` justo después de cargar servicios o SHA tropezó una vez cada una (un envío falló
 con «Failed to fetch» antes del plazo, sin rastro en el relevo falso); la segunda corrida pasó limpia las dos veces. Si pasa, repetir.
 
+**`t92` (14-oct-2026, v169): al abrir un borrador se ofrece quitar de una vez las filas agregadas sin medición (cambio 185).**
+Lo que la v165 no limpiaba: en los borradores viejos del teléfono quedan filas agregadas con descripción distinta y sin medición (once
+marcos de puerta en `EZ-T09-P01AB1-261013-KC`) y la inspectora las reenvía cada vez que abre uno; y la ✕ no servía, porque quitaba la fila
+de la pantalla pero no de la memoria, y al guardar viajaba igual con la descripción recordada. Seis comprobaciones en
+`inspeccion.html?prueba=1` sobre `hito_puertas`: un borrador con 11 filas sin medición y 2 con medición, «Sí» → quedan 2 en pantalla, en
+los datos y en el borrador guardado (se guarda en el acto); el mismo con «No» → quedan 13 y al guardar siguen 13; con 2 sin medición no
+se pregunta; la ✕ quita la fila de la pantalla, de los datos y del borrador; el texto del confirm es el acordado y cuenta 11; al reabrir,
+la quitada no vuelve y las dos con medición siguen intactas. Sin ventana: `t92` 6/6, `t87` 6/6 y la regresión de obra en verde.
+
 **`t89` (14-oct-2026, v167): el residente de urbanismo se propone solo.** Seis comprobaciones en `urbanismo.html?prueba=1`: en
 una manzana sin residente recordado, empresa y residente de su contratista; al quitar la manzana sigue el del sector; lo escrito a mano
 se guarda y manda al reabrir; cambia con el sector (Procodima, Racar); una manzana nueva nace con el suyo. 6/6; `t19`, `t46`, `t85`

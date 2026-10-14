@@ -9362,6 +9362,62 @@ s = sustituir(s,
  "    clearTimeout(reloj); clearInterval(latido);\n",
  "184d· si se corta, decir que puede estar terminando y comprobar, no decir que no llegó")
 
+
+# ── 185. Al abrir un borrador, ofrecer quitar de una vez las filas agregadas sin medición (14-oct-2026) ──
+# El cambio 182 (v165) dejó de multiplicar las filas agregadas en campo y, al abrir un borrador, salta las fantasma (sin nada) y las
+# duplicadas exactas. Lo que NO limpia es el residuo que quedó en los borradores viejos del teléfono: filas con descripción distinta
+# y sin ninguna medición (en el hito de puertas de EZ-T09-P01AB1-261013-KC, once variantes de «MARCO DE PUERTA 0.70 M», «MARCOS DE
+# PUERTAS DE MADERA», «MARCOS DE PUERTAS INTERNAS»). Cada vez que la inspectora abre uno de sus 13 borradores las ve y las reenvía,
+# y quitarlas una por una con la ✕ no servía: `deleteExtraRow` quitaba la fila de la pantalla pero no de la memoria `extraRows`, y al
+# guardar `getFormData` caía en `row.desc` de la memoria cuando la fila ya no estaba en el papel, así que la fila borrada viajaba igual.
+# Ahora: (a) la ✕ marca la fila como quitada en la memoria y al guardar no viaja; (b) al terminar de restaurar un borrador, si trae
+# tres o más filas agregadas con descripción y sin pr, ej ni evaluación, se pregunta UNA vez si se quitan todas; con «Sí» salen de la
+# pantalla y el borrador se guarda en el acto sin ellas; con «No» quedan como estaban. Con una o dos no se pregunta: una fila con
+# descripción y sin números puede ser legítima (se escribe y se mide después). Las que tienen medición nunca se tocan.
+s = sustituir(s,
+ "function deleteExtraRow(rid, pid) {\n  const tr = document.getElementById('row_' + rid);\n  if(tr) tr.remove();\n  recalcP(pid);\n}\n",
+ "function deleteExtraRow(rid, pid) {\n  const tr = document.getElementById('row_' + rid);\n  if(tr) tr.remove();\n"
+ "  // 185: también sale de la memoria; si no, al guardar viajaba con la descripción que recordaba `extraRows`.\n"
+ "  const _pObj185 = PARTIDAS.find(function(p){ return p.id === pid; });\n"
+ "  const _i185 = parseInt(String(rid).slice(String(rid).lastIndexOf('_') + 1), 10) - (_pObj185 ? _pObj185.items.length : 0);\n"
+ "  if (extraRows[pid] && extraRows[pid][_i185]) extraRows[pid][_i185].quitada = true;\n"
+ "  recalcP(pid);\n}\n"
+ "// 185: las filas agregadas en campo que tienen descripción y ninguna medición (ni total, ni hechas, ni evaluación).\n"
+ "function _filasAgregadasSinMedicion185(){\n"
+ "  return Array.prototype.slice.call(document.querySelectorAll('tr.extra-row')).filter(function(tr){\n"
+ "    const rid = tr.dataset.rid;\n"
+ "    const v = function(id){ const e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; };\n"
+ "    return v('desc_' + rid) && !v('pr_' + rid) && !v('ej_' + rid) && !tr.querySelector('.ev-btn.on');\n"
+ "  });\n"
+ "}\n"
+ "// 185: al abrir un borrador con tres o más de esas filas se ofrece quitarlas de una vez. Devuelve cuántas se quitaron.\n"
+ "function _ofrecerQuitarSinMedicion185(){\n"
+ "  const filas = _filasAgregadasSinMedicion185();\n"
+ "  if (filas.length < 3) return 0;\n"
+ "  if (!confirm('Este informe trae ' + filas.length + ' filas agregadas en campo sin medición (restos de un error corregido el 14-oct).\\n\\n' +\n"
+ "               '¿Las quito? Las que tienen medición se quedan.')) return 0;\n"
+ "  filas.forEach(function(tr){ const rid = tr.dataset.rid; deleteExtraRow(rid, rid.replace(/_extra_\\d+$/, '')); });\n"
+ "  saveDraft(true);\n"
+ "  showToast('🧹 Se quitaron ' + filas.length + ' filas agregadas sin medición. Las que tienen medición siguen ahí.', 'ok');\n"
+ "  return filas.length;\n"
+ "}\n",
+ "185a· la ✕ quita la fila también de la memoria, y el ayudante que las quita en lote")
+s = sustituir(s,
+ "        const idx=p.items.length+i; const rid=`${p.id}_extra_${idx}`;\n"
+ "        const ev=document.querySelector(`.ev-btn.on[data-rid=\"${rid}\"]`);\n"
+ "        return {desc:document.getElementById('desc_'+rid)?.value||row.desc||'',",
+ "        const idx=p.items.length+i; const rid=`${p.id}_extra_${idx}`;\n"
+ "        if(row.quitada) return {desc:'',pr:'',ej:'',ev:''};   // 185: la quitaron con la ✕, no viaja\n"
+ "        const ev=document.querySelector(`.ev-btn.on[data-rid=\"${rid}\"]`);\n"
+ "        return {desc:document.getElementById('desc_'+rid)?.value||row.desc||'',",
+ "185b· una fila quitada no viaja aunque la memoria recuerde su descripción")
+s = sustituir(s,
+ "  _todosLosValoresAlPapel();\n  closeSavedModal();\n  if (_falloAlAbrir.length) {\n",
+ "  _todosLosValoresAlPapel();\n  closeSavedModal();\n"
+ "  if (!_falloAlAbrir.length) _ofrecerQuitarSinMedicion185();   // 185: solo sobre un borrador que abrió completo\n"
+ "  if (_falloAlAbrir.length) {\n",
+ "185c· al terminar de restaurar un borrador se ofrece quitar las filas sin medición")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
