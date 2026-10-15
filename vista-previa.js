@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: c92c56781f
+// Huella de la fuente: 2c77e4e4f7
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -1305,7 +1305,7 @@ function _pdfMaquinariaUrbanismo(it) {
   return '<tr><td></td><td colspan="6" style="font-size:9px;color:#334155"><b>Maquinaria que oper\u00f3:</b> ' + _pdfEsc(m) + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: 'c92c56781f',
+    huella: '2c77e4e4f7',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];

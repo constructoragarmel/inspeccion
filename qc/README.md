@@ -732,6 +732,15 @@ los datos y en el borrador guardado (se guarda en el acto); el mismo con «No» 
 se pregunta; la ✕ quita la fila de la pantalla, de los datos y del borrador; el texto del confirm es el acordado y cuenta 11; al reabrir,
 la quitada no vuelve y las dos con medición siguen intactas. Sin ventana: `t92` 6/6, `t87` 6/6 y la regresión de obra en verde.
 
+**`t93` y `t94` (15-oct-2026, v170): las fotos HEIC se convierten en el teléfono (cambio 186).** `prueba.heic` es sintética
+(3000×4000, hecha con `sips -s format heic`, no una foto de obra: el repositorio es público) y `basura.jpg` son 4 KB al azar.
+`t93`, cinco comprobaciones en `inspeccion.html?prueba=1`: una HEIC con su tipo entra como JPEG de 1280 px con el cartel de conversión
+mientras tanto y sin él al final; una HEIC disfrazada de «.jpg» se reconoce por sus bytes; un archivo que no es imagen avisa y NO entra
+(antes entraba tal cual); una JPEG normal entra sin cartel; lo que viaja al relevo son JPEG de menos de 400 KB. `t94`, tres en
+`servicios.html`, `sha.html` y `urbanismo.html`: dos HEIC de golpe entran como JPEG de 1280 px de una en una («en cola»), un archivo
+que no es imagen avisa y no entra (antes desaparecía sin aviso), y el sobre lleva JPEG chicos. En el navegador a la vista: `t93` 5/5,
+`t94` 3/3 en los tres, `t24` en verde. `preparar.py` copia ahora `heic2any.min.js` al banco.
+
 **`t89` (14-oct-2026, v167): el residente de urbanismo se propone solo.** Seis comprobaciones en `urbanismo.html?prueba=1`: en
 una manzana sin residente recordado, empresa y residente de su contratista; al quitar la manzana sigue el del sector; lo escrito a mano
 se guarda y manda al reabrir; cambia con el sector (Procodima, Racar); una manzana nueva nace con el suyo. 6/6; `t19`, `t46`, `t85`

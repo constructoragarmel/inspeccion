@@ -999,8 +999,12 @@ function pintarFotos(grid, fotos, anadir){
   });
 }
 
-function reducir(file, listo, lado){
+@@HEIC@@
+// 186 (15-oct-2026): la foto HEIC se convierte antes de reducir (comun/heic.js), y la que no se puede leer se avisa. Antes
+// se quedaba fuera sin decir nada: `img.onerror` no existía.
+function reducir(file0, listo, lado){
   lado = lado || MAX_FOTO_PX;
+  aJpegSiHeic(file0, cartel).then(file => {
   const r = new FileReader();
   r.onload = e => {
     const img = new Image();
@@ -1015,9 +1019,11 @@ function reducir(file, listo, lado){
       cv.getContext('2d').drawImage(img, 0, 0, w, h);
       listo(cv.toDataURL('image/jpeg', CALIDAD_FOTO));
     };
+    img.onerror = () => avisoFotoIlegible();
     img.src = e.target.result;
   };
   r.readAsDataURL(file);
+  }).catch(avisoFotoIlegible);
 }
 """
 
@@ -2127,6 +2133,7 @@ def inspectores_de_servicios():
 
 
 ENVIO_PACIENTE_JS = open(os.path.join(RAIZ, "comun", "envio_paciente.js"), encoding="utf-8").read()
+HEIC_JS = open(os.path.join(RAIZ, "comun", "heic.js"), encoding="utf-8").read()   # 186
 
 def construir():
     pagina = (HTML
@@ -2147,6 +2154,7 @@ def construir():
         .replace('@@JS@@', JS)
         # estos van DESPUÉS del JS: los marcadores viven dentro del motor
         .replace('@@ENVIO_PACIENTE@@', ENVIO_PACIENTE_JS)
+        .replace('@@HEIC@@', HEIC_JS)
         .replace('@@TOPE@@', str(TOPE_ALMACEN)))
 
     if '@@' in pagina:

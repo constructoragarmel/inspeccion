@@ -9418,6 +9418,27 @@ s = sustituir(s,
  "  if (_falloAlAbrir.length) {\n",
  "185c· al terminar de restaurar un borrador se ofrece quitar las filas sin medición")
 
+# ── 186. Las fotos HEIC se convierten en el teléfono (15-oct-2026) ────────────────────────────────────────────
+# Génesis Márquez mandó 38 fotos HEIC (su cámara guarda en ese formato) en la T-04 y la T-14 del 5 al 13-oct: Chrome en
+# Android no las dibuja, `loadFoto` caía en su rama de error y mandaba la ORIGINAL (1,5 a 10 MB, hasta 8160×6120). El envío
+# tardaba minutos (se cortaba a los 90 s: de ahí la T-04 del 7-oct en -r6) y el PDF las dejaba como imagen rota. Ahora la
+# foto HEIC se convierte a JPEG en el teléfono (comun/heic.js, heic2any) y sigue la reducción de siempre; si no se puede
+# leer, se avisa y no entra. Nunca viaja un original. Lo mismo en servicios, SHA y urbanismo (construir-servicios.py).
+HEIC_JS = open(os.path.join(RAIZ, "comun", "heic.js"), encoding="utf-8").read()
+s = sustituir(s, "function loadFoto(pid,fi,inp){\n  const file = inp.files[0]; if(!file) return;\n  const r = new FileReader();\n",
+ HEIC_JS + "\n"
+ "function loadFoto(pid,fi,inp){\n  const file0 = inp.files[0]; if(!file0) return;\n"
+ "  aJpegSiHeic(file0, _cartelEnvio).then(function(file){   // 186: la HEIC se convierte antes de reducir\n"
+ "  const r = new FileReader();\n",
+ "186a· la foto HEIC se convierte antes de reducirla")
+s = sustituir(s,
+ "      } catch(err) {\n        _pintarFoto(pid, fi, original);   // si el navegador no deja, va la original\n      }\n    };\n"
+ "    tmp.onerror = () => _pintarFoto(pid, fi, original);\n    tmp.src = original;\n  };\n  r.readAsDataURL(file);\n}\n",
+ "      } catch(err) {\n        avisoFotoIlegible(err);   // 186: antes iba la original entera\n      }\n    };\n"
+ "    tmp.onerror = () => avisoFotoIlegible();   // 186: antes iba la original entera\n    tmp.src = original;\n  };\n  r.readAsDataURL(file);\n"
+ "  }).catch(avisoFotoIlegible);\n}\n",
+ "186b· una foto que no se puede leer no entra: nunca la original")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

@@ -699,6 +699,7 @@ def construir():
                            "const CLAVE_TIPOS_INC = 'garmel_sha_tipos_inc';\nlet _nInc = 0;\n" +
                            "const OBSTACULOS = %s;\n" % json.dumps(contenido.OBSTACULOS, ensure_ascii=False) + J)
         .replace('@@ENVIO_PACIENTE@@', motor.ENVIO_PACIENTE_JS)   # 184: el envío paciente, compartido con obra
+        .replace('@@HEIC@@', motor.HEIC_JS)   # 186: las fotos HEIC se convierten en el teléfono
         .replace('@@TOPE@@', str(motor.TOPE_ALMACEN))
         .replace('@@INC_TIPOS@@', json.dumps(contenido.TIPOS_INCIDENCIA, ensure_ascii=False))
         .replace('@@INC_ESTADOS@@', json.dumps(contenido.ESTADOS_INCIDENCIA, ensure_ascii=False)))
