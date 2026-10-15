@@ -732,6 +732,12 @@ los datos y en el borrador guardado (se guarda en el acto); el mismo con «No» 
 se pregunta; la ✕ quita la fila de la pantalla, de los datos y del borrador; el texto del confirm es el acordado y cuenta 11; al reabrir,
 la quitada no vuelve y las dos con medición siguen intactas. Sin ventana: `t92` 6/6, `t87` 6/6 y la regresión de obra en verde.
 
+**`t97` (15-oct-2026, v172): el compilado ya archivado se carga en los cuadros** (relevo r65), para que la coordinación corrija sobre
+el borrador que dejó Planificación. Seis comprobaciones en `compilado.html?prueba=1` contra el relevo falso, que ahora guarda los compilados
+y los devuelve como `archivado`: sin nada archivado ni escrito, cuadros vacíos y sin aviso; con uno archivado, sus textos en los cuadros y
+el aviso con quién lo dejó; al enviar va el nombre de quien valida con el texto corregido y el aviso se va; lo escrito en ese equipo sin
+enviar manda sobre lo archivado y el aviso lo dice; obra (una torre) también lo carga; cambiar de torre no arrastra el aviso. 6/6.
+
 **`t96` (15-oct-2026, v171): diez QC del compilado de servicios por urbanismo**, pedidas por Stephanie antes de avisar a Planificación.
 Nueve en `compilado.html?prueba=1` a 320 × 568 contra el relevo falso (se corre dos veces: la primera prepara y recarga): borrador por
 semana sin mezclarse con el de una torre; ida y vuelta entre todo el urbanismo y una torre sin restos; la opción no aparece en SHA ni obra;
