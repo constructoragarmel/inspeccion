@@ -3,7 +3,7 @@ localStorage.clear(); localStorage.setItem('garmel_clave_envio', 'qc'); await Q.
 const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); };
 ok('1 · La página ofrece los cuatro tipos y arranca en obra', [...$('#tipo').options].map(o => o.value).join(',') === 'obra,servicios,urbanismo,sha' && $('#tipo').value === 'obra');
 sel('tipo', 'servicios'); sel('sector', 'EZ'); sel('torre', 'T-01'); sel('quien', COORDINADORES[3].n);
-ok('2 · Con servicios la unidad sigue siendo la torre y el texto del pedido cambia', $('#lbl-torre').textContent === 'Torre' && /servicios/.test($('#sub-pedido').textContent));
+ok('2 · Con servicios la unidad sigue siendo la torre (o, desde la v171, todo el urbanismo) y el texto del pedido cambia', $('#lbl-torre').textContent === 'Torre o todo el urbanismo' && /servicios/.test($('#sub-pedido').textContent));
 await generar(); await hasta(() => !$('#resultado').hidden, 5000);
 ok('3 · Servicios: título con la torre y «Servicios», tabla por ente con listos, qué falta y observación; sin bloques de obra', /T-01 · EMPRESA DE PRUEBA, C.A. · Servicios/.test($('#titulo').textContent) && !$('#bloque-tipo').hidden && $('#bloque-torre').hidden && $('#bloque-aptos').hidden && /PDVSA Gas/.test($('#tipo-tabla').textContent) && /3 de 5/.test($('#tipo-tabla').textContent) && /Regulación secundaria/.test($('#tipo-tabla').textContent) && /no insp\./.test($('#tipo-tabla').textContent), $('#titulo').textContent);
 ok('4 · Las notas también salen para servicios', $$('#notas .nota').length === 1 && /Observación de prueba de servicios/.test($('#notas').textContent) && /4 · Notas/.test($('#notas-titulo').textContent));

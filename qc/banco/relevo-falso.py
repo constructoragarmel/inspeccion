@@ -41,9 +41,16 @@ class H(http.server.BaseHTTPRequestHandler):
                 {"ente":"Hidroven","servicios":[{"id":"srv_agua","nombre":"AGUA POTABLE","total":4,"si":4,"no":0,"na":0,"sinResponder":0,"faltan":[],"obs":"","noInsp":False},{"id":"srv_pluviales","nombre":"AGUAS PLUVIALES","total":3,"si":0,"no":0,"na":0,"sinResponder":3,"faltan":[],"obs":"","noInsp":True}]}]
             elif t=='urbanismo': ult["actividades"]="Bote de material y desmalezamiento"; ult["secciones"]=[{"id":"urb_preliminares","nombre":"OBRAS PRELIMINARES","items":[{"nombre":"Bote de material","cant":"449","pr":"","ud":"m³","obs":"","camiones":2,"viajes":5,"m3":82,"maquinaria":"Retroexcavadora de prueba"}],"obs":""},{"id":"urb_drenaje","nombre":"DRENAJE","items":[],"obs":"Sin avance esta semana"}]
             else: ult["sha"]={"recaudosSi":6,"recaudosNo":2,"recaudos":[{"item":"Registro Mercantil","obs":""},{"item":"RIF","obs":""}],"frentes":[{"frente":"Albañilería piso 3","hallazgo":"Trabajador sin casco","estatus":"Pendiente"}],"incidencias":[{"tipo":"Leve","descripcion":"Corte en la mano"}],"accion":"","accionDet":"","fotosGenerales":["Trabajador sin EPP"]}
+            porTorre=None
+            if t=='servicios' and p.get('torre')=='URBANISMO':
+                # Como el relevo r64: todo el urbanismo, el último informe de cada torre y el de toda la zona.
+                porTorre=[dict(ult,torre='Toda la zona',numero='SRV-QC-ZONA-261009-OP',numeroRev='SRV-QC-ZONA-261009-OP'),dict(ult,torre='T-01')]
             notas=[{"numero":nro,"numeroRev":nro,"fecha":"2026-10-09","lugar":("Manzana M-6" if t=='urbanismo' else t.upper()+" de la torre "+p['torre']),"inspectores":["Inspector de prueba"],"obs":[{"hito":"x","nombre":"Sección de prueba","texto":"Observación de prueba de "+t}],"obsGeneral":"General de "+t,"actividades":"","actividadesHeredada":False,"foto":None,"pdf":ult["pdf"]}]
-            return self._ok({"ok":True,"tipo":t,"sector":p['sector'],"sectorNombre":{"EZ":"Ezequiel Zamora","SB":"Simón Bolívar","SR":"Simón Rodríguez"}.get(p['sector'],p['sector']),"torre":p['torre'],"empresa":"EMPRESA DE PRUEBA, C.A.","desde":p.get('desde'),"hasta":p.get('hasta') or '2026-10-13',
+            if porTorre: notas=notas+[dict(notas[0],numero='SRV-QC-ZONA-261009-OP',numeroRev='SRV-QC-ZONA-261009-OP',lugar='SERVICIOS de toda la zona')]
+            r=dict({"ok":True,"tipo":t,"sector":p['sector'],"sectorNombre":{"EZ":"Ezequiel Zamora","SB":"Simón Bolívar","SR":"Simón Rodríguez"}.get(p['sector'],p['sector']),"torre":p['torre'],"empresa":"EMPRESA DE PRUEBA, C.A.","desde":p.get('desde'),"hasta":p.get('hasta') or '2026-10-13',
                 "ultimo":ult,"notas":notas,"inspectores":["Inspector de prueba"],"nInformes":1,"carpeta":"http://127.0.0.1:8777/carpeta","conPruebas":bool(p.get('prueba')),"generado":"2026-10-13 10:00"})
+            if porTorre: r.update({"porTorre":porTorre,"nInformes":len(notas),"empresa":"","torre":"URBANISMO"})
+            return self._ok(r)
         if p.get('accion')=='compilado-semana':
             # v151: la semana de una torre como la arma el relevo r53 (Compilado.gs). Sin clave buena, 'Clave incorrecta'.
             if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
