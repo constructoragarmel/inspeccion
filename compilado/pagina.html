@@ -116,6 +116,7 @@ a.doc:hover{text-decoration:underline}
   <div class="tarjeta" id="validacion">
     <h2>2 · Validación de la coordinación</h2>
     <div class="sub">Tres cuadros que preguntan algo concreto y uno libre. Esto es lo que va al informe semanal; las tablas de abajo son el sustento.</div>
+    <div class="aviso noprint" id="aviso-archivado" hidden></div>
     <div class="leyenda noprint" id="guardado-txt" style="margin:0 0 10px">Se guarda solo en este equipo mientras escribe; se archiva al tocar «Enviar el compilado».</div>
     <div class="campo"><label for="t-hitos">Hitos y avances de la semana</label><textarea id="t-hitos" placeholder="Qué se terminó, qué arrancó, qué se movió en la torre esta semana"></textarea><div class="resumen-val" id="r-hitos" hidden></div></div>
     <div class="campo" style="margin-top:10px"><label for="t-exitos">Éxitos de la semana</label><textarea id="t-exitos" placeholder="Lo que salió bien y conviene decir"></textarea><div class="resumen-val" id="r-exitos" hidden></div></div>
@@ -379,9 +380,23 @@ function pintarNotas(d) {
 const CAMPOS = ['hitos', 'exitos', 'dificultades', 'otros'];
 function claveBorrador() { return DATA ? 'garmel_compilado_' + (DATA.tipo && DATA.tipo !== 'obra' ? DATA.tipo + '_' : '') + DATA.sector + '_' + DATA.torre + '_' + DATA.desde : ''; }   // por semana (su inicio), no por «hasta»: el jueves cambia la fecha final y el texto del miércoles se perdía
 function textos() { const o = {}; CAMPOS.forEach(k => o[k] = $('t-' + k).value.trim()); return o; }
+// v172 (15-oct-2026): si la semana ya tiene un compilado archivado (`DATA.archivado`, relevo r65) y en este equipo no hay nada escrito,
+// sus textos se cargan en los cuadros: quien valida corrige sobre lo que ya está y lo envía, y el nuevo reemplaza al archivado. Lo
+// escrito en este equipo sin enviar manda sobre lo archivado, y el aviso lo dice.
 function cargarBorrador() {
   let b = null; try { b = JSON.parse(localStorage.getItem(claveBorrador()) || 'null'); } catch (e) {}
-  CAMPOS.forEach(k => { $('t-' + k).value = (b && b[k]) || ''; crecer($('t-' + k)); });
+  const a = DATA && DATA.archivado, hayLocal = !!(b && CAMPOS.some(k => String(b[k] || '').trim()));
+  const usarArchivado = !hayLocal && !!(a && a.textos && CAMPOS.some(k => String(a.textos[k] || '').trim()));
+  const src = usarArchivado ? a.textos : b;
+  CAMPOS.forEach(k => { $('t-' + k).value = (src && src[k]) || ''; crecer($('t-' + k)); });
+  const av = $('aviso-archivado');
+  if (a && (usarArchivado || hayLocal)) {
+    const cuando = String(a.guardado || '').replace(/^(\d{4})-(\d{2})-(\d{2})/, (x, y, m, d) => d + '-' + m + '-' + y);
+    av.innerHTML = '📄 <b>Esta semana ya tiene un compilado archivado</b> (' + esc(a.coordinadora || 'sin nombre') + (cuando ? ', ' + esc(cuando) : '') + '). ' +
+      (usarArchivado ? 'Sus textos están cargados abajo: revíselos, corrija lo que haga falta y toque «Enviar el compilado». Lo que envíe <b>reemplaza</b> al archivado, con su nombre.'
+                     : 'Abajo está lo que usted escribió en este equipo y todavía no envió; si lo envía, <b>reemplaza</b> al archivado.');
+    av.hidden = false;
+  } else { av.hidden = true; av.innerHTML = ''; }
   refrescarResumen();
 }
 function refrescarResumen() { CAMPOS.forEach(k => { const v = $('t-' + k).value.trim(); $('r-' + k).textContent = v || '(sin texto)'; }); }
@@ -423,6 +438,7 @@ async function enviar() {
     const res = await r.json();
     if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
     ENVIADO = true; $('btn-enviar').textContent = '📤 Enviar de nuevo';
+    DATA.archivado = { numero: res.numero, coordinadora: DATA.quien, guardado: res.guardado || '', textos: t }; $('aviso-archivado').hidden = true;   // v172: lo archivado ahora es esto
     mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + (DATA.torre === 'URBANISMO' ? ' en General › Servicios del sector' : ' en la carpeta de la ' + (DATA.tipo === 'urbanismo' ? 'manzana' : 'torre')) + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal. Si cambia algo, toque «Enviar de nuevo»: reemplaza el archivo.', 'bien');
     try { localStorage.removeItem(claveBorrador()); } catch (e) {}
   } catch (e) {
@@ -431,7 +447,7 @@ async function enviar() {
   } finally { clearTimeout(reloj); $('btn-enviar').disabled = false; }
 }
 function mostrarEnvio(txt, clase) { const e = $('estado-envio'); e.hidden = false; e.className = 'estado ' + clase; e.innerHTML = txt; e.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
-function otraVez() { $('resultado').hidden = true; DATA = null; ENVIADO = false; $('btn-enviar').textContent = '📤 Enviar el compilado'; $('guardado-txt').textContent = 'Se guarda solo en este equipo mientras escribe; se archiva al tocar «Enviar el compilado».'; try { localStorage.removeItem('garmel_compilado_semana'); } catch (e) {} window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function otraVez() { $('aviso-archivado').hidden = true; $('resultado').hidden = true; DATA = null; ENVIADO = false; $('btn-enviar').textContent = '📤 Enviar el compilado'; $('guardado-txt').textContent = 'Se guarda solo en este equipo mientras escribe; se archiva al tocar «Enviar el compilado».'; try { localStorage.removeItem('garmel_compilado_semana'); } catch (e) {} window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
 // La última semana generada se repinta al abrir (recargar o volver no obliga a esperar otra vez), con aviso.
 try {

@@ -50,6 +50,7 @@ class H(http.server.BaseHTTPRequestHandler):
             r=dict({"ok":True,"tipo":t,"sector":p['sector'],"sectorNombre":{"EZ":"Ezequiel Zamora","SB":"Simón Bolívar","SR":"Simón Rodríguez"}.get(p['sector'],p['sector']),"torre":p['torre'],"empresa":"EMPRESA DE PRUEBA, C.A.","desde":p.get('desde'),"hasta":p.get('hasta') or '2026-10-13',
                 "ultimo":ult,"notas":notas,"inspectores":["Inspector de prueba"],"nInformes":1,"carpeta":"http://127.0.0.1:8777/carpeta","conPruebas":bool(p.get('prueba')),"generado":"2026-10-13 10:00"})
             if porTorre: r.update({"porTorre":porTorre,"nInformes":len(notas),"empresa":"","torre":"URBANISMO"})
+            r["archivado"]=getattr(H,'compilados',{}).get((p.get('sector'),p.get('torre'),t,p.get('desde'),bool(p.get('prueba'))))
             if porTorre and str(p.get('desde') or '')>='2026-12-01': r.update({"porTorre":[],"nInformes":0,"notas":[],"ultimo":None,"inspectores":[]})   # semana sin informes
             return self._ok(r)
         if p.get('accion')=='compilado-semana':
@@ -78,14 +79,16 @@ class H(http.server.BaseHTTPRequestHandler):
             return self._ok({"ok":True,"sector":p['sector'],"sectorNombre":{"EZ":"Ezequiel Zamora","SB":"Simón Bolívar","SR":"Simón Rodríguez"}.get(p['sector'],p['sector']),
                 "torre":p['torre'],"empresa":"EMPRESA DE PRUEBA, C.A.","convenio":"","desde":p.get('desde'),"hasta":p.get('hasta') or '2026-10-13',
                 "hitos":hitos,"torreInforme":torre,"apartamentos":aptos,"notas":notas,"inspectores":["Inspector de prueba","Otra inspectora"],
-                "nInformes":len(notas),"carpeta":"http://127.0.0.1:8777/carpeta","generado":"2026-10-13 10:00"})
+                "nInformes":len(notas),"carpeta":"http://127.0.0.1:8777/carpeta","generado":"2026-10-13 10:00",
+                "archivado":getattr(H,'compilados',{}).get((p.get('sector'),p.get('torre'),'obra',p.get('desde'),bool(p.get('prueba'))))})
         if p.get('accion')=='compilado-guardar':
             if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
             t=p.get('textos') or {}
             if not any((t.get(k) or '').strip() for k in ('hitos','exitos','dificultades','otros')): return self._ok({"ok":False,"error":"El compilado va sin ningún comentario de la coordinación"})
             if not (p.get('coordinadora') or '').strip(): return self._ok({"ok":False,"error":"Falta quién valida"})
             with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":"COMPILADO-"+str(p.get('torre')),"tipo":"compilado-"+str(p.get('tipo') or 'obra'),"ambito":"torre","fotos":[],"datos":{"textos":t,"coordinadora":p.get('coordinadora'),"desde":p.get('desde'),"hasta":p.get('hasta'),"nInformes":(p.get('semana') or {}).get('nInformes')}}, ensure_ascii=False)+"\n")
-            H.compilados=getattr(H,'compilados',{}); k=(p.get('sector'),p.get('torre'),p.get('hasta')); antes=k in H.compilados; H.compilados[k]=t
+            H.compilados=getattr(H,'compilados',{}); k=(p.get('sector'),p.get('torre'),p.get('tipo') or 'obra',p.get('desde'),bool(p.get('prueba'))); antes=k in H.compilados
+            H.compilados[k]={"textos":t,"coordinadora":p.get('coordinadora'),"guardado":"2026-10-15 16:40","numero":"x"}   # como el relevo r65: lo archivado por semana
             return self._ok({"ok":True,"numero":("PRUEBA-" if p.get('prueba') else "")+{"servicios":"SRV-","urbanismo":"URB-","sha":"SHA-"}.get(p.get('tipo'),"")+str(p.get('sector'))+"-"+str(p.get('torre')).replace('-','')+"-SEM-"+str(p.get('desde') or '')[2:].replace('-',''),"archivo":"x.json","url":"http://127.0.0.1:8777/compilado.json","pdf":"http://127.0.0.1:8777/compilado.pdf","reemplazado":antes,"guardado":"2026-10-13 10:05"})
         if p.get('accion')=='aplica':
             # Como el relevo r28: qué subpartidas están en el presupuesto de la torre (solo códigos).
