@@ -732,6 +732,14 @@ los datos y en el borrador guardado (se guarda en el acto); el mismo con «No» 
 se pregunta; la ✕ quita la fila de la pantalla, de los datos y del borrador; el texto del confirm es el acordado y cuenta 11; al reabrir,
 la quitada no vuelve y las dos con medición siguen intactas. Sin ventana: `t92` 6/6, `t87` 6/6 y la regresión de obra en verde.
 
+**`t95` (15-oct-2026, v171): el compilado de servicios por urbanismo.** Seis comprobaciones en `compilado.html?prueba=1`: «Todo el
+urbanismo» es la primera opción de la lista solo con servicios (obra, SHA y urbanismo no la ofrecen); el resultado dice «Todo el urbanismo»
+y la tabla trae columna Torre con una fila por lugar y su informe; enviar lo archiva como `SRV-…-URBANISMO-SEM-…` y el aviso dice «General ›
+Servicios del sector»; nada por debajo de 44 px; una torre sola sigue como antes. El relevo falso contesta `porTorre` como el r64. Además,
+a mano: el aviso de espera nombra el sector y queda a la vista, nada se sale a 375 ni a 320 px, y al recargar vuelve la semana de todo el
+urbanismo con lo escrito («Se muestra la semana de todo el urbanismo generada el dd-mm-aaaa»). `t83` 11/11 (su comprobación 2 acepta el
+rótulo nuevo «Torre o todo el urbanismo»). Corre en una página limpia: si la página abre recordando otro tipo, `t83` falla su paso 1.
+
 **`t93` y `t94` (15-oct-2026, v170): las fotos HEIC se convierten en el teléfono (cambio 186).** `prueba.heic` es sintética
 (3000×4000, hecha con `sips -s format heic`, no una foto de obra: el repositorio es público) y `basura.jpg` son 4 KB al azar.
 `t93`, cinco comprobaciones en `inspeccion.html?prueba=1`: una HEIC con su tipo entra como JPEG de 1280 px con el cartel de conversión
