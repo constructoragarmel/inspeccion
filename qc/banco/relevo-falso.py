@@ -50,6 +50,7 @@ class H(http.server.BaseHTTPRequestHandler):
             r=dict({"ok":True,"tipo":t,"sector":p['sector'],"sectorNombre":{"EZ":"Ezequiel Zamora","SB":"Simón Bolívar","SR":"Simón Rodríguez"}.get(p['sector'],p['sector']),"torre":p['torre'],"empresa":"EMPRESA DE PRUEBA, C.A.","desde":p.get('desde'),"hasta":p.get('hasta') or '2026-10-13',
                 "ultimo":ult,"notas":notas,"inspectores":["Inspector de prueba"],"nInformes":1,"carpeta":"http://127.0.0.1:8777/carpeta","conPruebas":bool(p.get('prueba')),"generado":"2026-10-13 10:00"})
             if porTorre: r.update({"porTorre":porTorre,"nInformes":len(notas),"empresa":"","torre":"URBANISMO"})
+            if porTorre and str(p.get('desde') or '')>='2026-12-01': r.update({"porTorre":[],"nInformes":0,"notas":[],"ultimo":None,"inspectores":[]})   # semana sin informes
             return self._ok(r)
         if p.get('accion')=='compilado-semana':
             # v151: la semana de una torre como la arma el relevo r53 (Compilado.gs). Sin clave buena, 'Clave incorrecta'.

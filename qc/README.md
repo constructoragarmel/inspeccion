@@ -732,6 +732,17 @@ los datos y en el borrador guardado (se guarda en el acto); el mismo con «No» 
 se pregunta; la ✕ quita la fila de la pantalla, de los datos y del borrador; el texto del confirm es el acordado y cuenta 11; al reabrir,
 la quitada no vuelve y las dos con medición siguen intactas. Sin ventana: `t92` 6/6, `t87` 6/6 y la regresión de obra en verde.
 
+**`t96` (15-oct-2026, v171): diez QC del compilado de servicios por urbanismo**, pedidas por Stephanie antes de avisar a Planificación.
+Nueve en `compilado.html?prueba=1` a 320 × 568 contra el relevo falso (se corre dos veces: la primera prepara y recarga): borrador por
+semana sin mezclarse con el de una torre; ida y vuelta entre todo el urbanismo y una torre sin restos; la opción no aparece en SHA ni obra;
+relevo caído al generar y al enviar; semana sin informes; «Enviar de nuevo» actualiza el mismo número; nada se sale ni baja de 44 px y la
+columna Torre queda fija al deslizar; al recargar vuelve todo. 9/9. La décima, contra el relevo real desde el editor: un compilado PRUEBA
+de todo el urbanismo de Simón Bolívar entra a las cuatro láminas de servicios del borrador. **Encontró** que en Hidroven no entraba (la
+validación iba al final del sector y la celda ya estaba llena); se movió al principio del sector (relevo, `BorradorSemana.gs`) y pasó 4/4.
+Corrida completa con los datos reales de la semana, en la página publicada: los informes por sector coinciden con Drive (1, 8 y 12),
+todas las fotos cargan (1, 4 y 6, ninguna rota) y coinciden con las que hay en las carpetas, y las observaciones de las 12 notas de Simón
+Rodríguez son idénticas al texto de cada informe. Estrés: 60 días de Simón Rodríguez, 19 informes, 49 s, 34 KB, se guarda y repinta.
+
 **`t95` (15-oct-2026, v171): el compilado de servicios por urbanismo.** Seis comprobaciones en `compilado.html?prueba=1`: «Todo el
 urbanismo» es la primera opción de la lista solo con servicios (obra, SHA y urbanismo no la ofrecen); el resultado dice «Todo el urbanismo»
 y la tabla trae columna Torre con una fila por lugar y su informe; enviar lo archiva como `SRV-…-URBANISMO-SEM-…` y el aviso dice «General ›
