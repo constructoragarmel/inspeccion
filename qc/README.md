@@ -732,6 +732,12 @@ los datos y en el borrador guardado (se guarda en el acto); el mismo con «No» 
 se pregunta; la ✕ quita la fila de la pantalla, de los datos y del borrador; el texto del confirm es el acordado y cuenta 11; al reabrir,
 la quitada no vuelve y las dos con medición siguen intactas. Sin ventana: `t92` 6/6, `t87` 6/6 y la regresión de obra en verde.
 
+**`t98` (16-oct-2026, v173): Diego Orta, de Planificación, valida compilados.** Stephanie lo pidió el día del corte para que Diego
+envíe con su nombre los compilados de urbanismo, que todavía no tienen coordinación propia. Va al final de `COORDINADORES`
+(`comun/maestros.py`) para no mover a los demás. Tres comprobaciones en `compilado.html?prueba=1` a 375 × 812: la lista trae a los
+cuatro de siempre en su lugar y a Diego al final («Diego Orta · Planificación»); un compilado de urbanismo de la M-6 de Ezequiel
+Zamora se genera y se envía con su nombre; al recargar la página lo recuerda. 3/3, y `t97` y `t95` siguen 6/6.
+
 **`t97` (15-oct-2026, v172): el compilado ya archivado se carga en los cuadros** (relevo r65), para que la coordinación corrija sobre
 el borrador que dejó Planificación. Seis comprobaciones en `compilado.html?prueba=1` contra el relevo falso, que ahora guarda los compilados
 y los devuelve como `archivado`: sin nada archivado ni escrito, cuadros vacíos y sin aviso; con uno archivado, sus textos en los cuadros y
