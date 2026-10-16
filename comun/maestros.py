@@ -242,14 +242,15 @@ CORRECCIONES_TEXTO = [
 # nombres de los coordinadores de cada área»). Las cadenas son las mismas del padrón de arriba. Inspección de obra: los
 # tres coordinadores de inspección (uno por sector); servicios: su coordinador. SHA y urbanismo todavía no tienen
 # coordinación propia en el padrón: cuando la tengan, entra aquí. Mientras tanto, los de urbanismo los valida Diego Orta, de
-# Planificación (Stephanie, 16-oct-2026: el día del corte no había quién los hiciera en la oficina). Va al final para no mover
-# a los demás en la lista.
+# Planificación (Stephanie, 16-oct-2026: el día del corte no había quién los hiciera en la oficina), y Miguel Ávila, también de
+# Planificación, por si hace falta (Stephanie, el mismo día). Van al final para no mover a los demás en la lista.
 COORDINADORES_JS = """const COORDINADORES = [
   {n: "Leidy Villamizar (CIV-258.266)",     a: "Inspecci\u00f3n de obra"},
   {n: "Edenil Narv\u00e1ez (CIV-150.422)",       a: "Inspecci\u00f3n de obra"},
   {n: "Carlos J. Colmenares (CIV-127.708)", a: "Inspecci\u00f3n de obra"},
   {n: "Hern\u00e1n Escobar (CIV-151.021)",       a: "Servicios"},
-  {n: "Diego Orta",                         a: "Planificaci\u00f3n"}
+  {n: "Diego Orta",                         a: "Planificaci\u00f3n"},
+  {n: "Miguel E. \u00c1vila (CIV-NC)",         a: "Planificaci\u00f3n"}
 ];"""
 
 # ── Los apartamentos de cada piso, por sector ───────────────────────────────

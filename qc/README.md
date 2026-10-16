@@ -732,6 +732,18 @@ los datos y en el borrador guardado (se guarda en el acto); el mismo con «No» 
 se pregunta; la ✕ quita la fila de la pantalla, de los datos y del borrador; el texto del confirm es el acordado y cuenta 11; al reabrir,
 la quitada no vuelve y las dos con medición siguen intactas. Sin ventana: `t92` 6/6, `t87` 6/6 y la regresión de obra en verde.
 
+**`t99` (16-oct-2026, v174, relevo r68): urbanismo y SHA también por «todo el urbanismo».** Planificación pidió el día del corte
+el compilado de urbanismo de todo el sector, y Stephanie sumó SHA (sus láminas van por contratista) y a Miguel Ávila en «quién valida».
+Ocho comprobaciones en `compilado.html?prueba=1` a 375 × 812: la opción sale primera en urbanismo («todas las manzanas y la zona») y en
+SHA («todas las torres y la zona»), y no en obra; tabla por manzana con la manzana sin cantidades avisada; se envía con Diego Orta a
+General › Urbanismo; nada se sale de la página; vuelve al recargar; una manzana sola sigue igual; SHA trae la contratista de cada torre y
+avisa la torre sin frentes; se envía a General › SHA. 8/8. Toda la batería del compilado otra vez, desde una página limpia: `t78` 20/20,
+`t79` 7/7, `t83` 11/11, `t84` 10/10, `t95` 6/6, `t96` 9/9, `t97` 6/6, `t98` 3/3 (ajustadas `t83`, `t84`, `t95` y `t96`, que suponían que
+urbanismo y SHA no tenían esa opción). Contra el relevo real, desde el editor: urbanismo EZ 4 informes (M-1, M-6) en 48 s, SB 3 (toda la
+zona, M-J, TORRE J 08), SR 1 (M-6 SR); SHA EZ 7 informes en 6 lugares con su contratista, SR 5 (T-04 y T-43); el PDF de urbanismo con la
+columna Manzana. **Ojo al correr las tandas seguidas:** cada una deja la semana guardada y la página la repinta al abrir; limpiar
+`localStorage` y `sessionStorage` antes de cada una.
+
 **`t98` (16-oct-2026, v173): Diego Orta, de Planificación, valida compilados.** Stephanie lo pidió el día del corte para que Diego
 envíe con su nombre los compilados de urbanismo, que todavía no tienen coordinación propia. Va al final de `COORDINADORES`
 (`comun/maestros.py`) para no mover a los demás. Tres comprobaciones en `compilado.html?prueba=1` a 375 × 812: la lista trae a los

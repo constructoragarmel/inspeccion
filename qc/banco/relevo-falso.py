@@ -45,8 +45,16 @@ class H(http.server.BaseHTTPRequestHandler):
             if t=='servicios' and p.get('torre')=='URBANISMO':
                 # Como el relevo r64: todo el urbanismo, el último informe de cada torre y el de toda la zona.
                 porTorre=[dict(ult,torre='Toda la zona',numero='SRV-QC-ZONA-261009-OP',numeroRev='SRV-QC-ZONA-261009-OP'),dict(ult,torre='T-01')]
+            if t=='sha' and p.get('torre')=='URBANISMO':
+                # Como el relevo r68: SHA de todas las torres y de toda la zona, con la contratista; una torre sin frentes.
+                porTorre=[dict(ult,torre='Toda la zona',numero='SHA-QC-ZONA-261009-VM',numeroRev='SHA-QC-ZONA-261009-VM',empresa=''),dict(ult,torre='T-01',empresa='CONSTRUCTORA RÍO LIMÓN, C.A.'),dict(ult,torre='T-05',empresa='INVERSIONES ALNAVIC, C.A.',sha=dict(ult['sha'],frentes=[]))]
+            if t=='urbanismo' and p.get('torre')=='URBANISMO':
+                # Como el relevo r68: urbanismo de todas las manzanas y de toda la zona; una manzana sin cantidades.
+                porTorre=[dict(ult,torre='Toda la zona',numero='URB-QC-ZONA-261009-GB',numeroRev='URB-QC-ZONA-261009-GB'),dict(ult,torre='M-6'),dict(ult,torre='M-1',numero='URB-QC-M1-261008-MR',numeroRev='URB-QC-M1-261008-MR',secciones=[],actividades='Replanteo')]
             notas=[{"numero":nro,"numeroRev":nro,"fecha":"2026-10-09","lugar":("Manzana M-6" if t=='urbanismo' else t.upper()+" de la torre "+p['torre']),"inspectores":["Inspector de prueba"],"obs":[{"hito":"x","nombre":"Sección de prueba","texto":"Observación de prueba de "+t}],"obsGeneral":"General de "+t,"actividades":"","actividadesHeredada":False,"foto":None,"pdf":ult["pdf"]}]
-            if porTorre: notas=notas+[dict(notas[0],numero='SRV-QC-ZONA-261009-OP',numeroRev='SRV-QC-ZONA-261009-OP',lugar='SERVICIOS de toda la zona')]
+            if porTorre and t=='servicios': notas=notas+[dict(notas[0],numero='SRV-QC-ZONA-261009-OP',numeroRev='SRV-QC-ZONA-261009-OP',lugar='SERVICIOS de toda la zona')]
+            if porTorre and t=='sha': notas=notas+[dict(notas[0],numero='SHA-QC-ZONA-261009-VM',numeroRev='SHA-QC-ZONA-261009-VM',lugar='SHA de toda la zona')]
+            if porTorre and t=='urbanismo': notas=notas+[dict(notas[0],numero='URB-QC-ZONA-261009-GB',numeroRev='URB-QC-ZONA-261009-GB',lugar='Urbanismo de toda la zona')]
             r=dict({"ok":True,"tipo":t,"sector":p['sector'],"sectorNombre":{"EZ":"Ezequiel Zamora","SB":"Simón Bolívar","SR":"Simón Rodríguez"}.get(p['sector'],p['sector']),"torre":p['torre'],"empresa":"EMPRESA DE PRUEBA, C.A.","desde":p.get('desde'),"hasta":p.get('hasta') or '2026-10-13',
                 "ultimo":ult,"notas":notas,"inspectores":["Inspector de prueba"],"nInformes":1,"carpeta":"http://127.0.0.1:8777/carpeta","conPruebas":bool(p.get('prueba')),"generado":"2026-10-13 10:00"})
             if porTorre: r.update({"porTorre":porTorre,"nInformes":len(notas),"empresa":"","torre":"URBANISMO"})

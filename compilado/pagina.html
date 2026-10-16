@@ -193,7 +193,8 @@ function llenarTorres() {
   sel.innerHTML = '<option value="">' + (s ? '— Seleccione torre —' : '— Elija primero el sector —') + '</option>';
   // v171 (15-oct-2026): servicios también por urbanismo —el sector entero: todas las torres y lo de toda la zona—, porque no
   // trabaja por torre en todos los sectores (en Ezequiel Zamora la semana del 8 trajo un solo informe, de toda la zona).
-  if (s && tipoActual() === 'servicios') { const o = document.createElement('option'); o.value = 'URBANISMO'; o.textContent = '★ Todo el urbanismo (todas las torres y la zona)'; sel.appendChild(o); }
+  // v174 (16-oct-2026): SHA también, con la contratista de cada torre, porque sus láminas del informe van por contratista.
+  if (s && (tipoActual() === 'servicios' || tipoActual() === 'sha')) { const o = document.createElement('option'); o.value = 'URBANISMO'; o.textContent = '★ Todo el urbanismo (todas las torres y la zona)'; sel.appendChild(o); }
   TORRES.filter(t => SECTOR_POR_CONVENIO[t.c] === s).forEach(t => { const o = document.createElement('option'); o.value = t.t; o.textContent = t.t + (t.e ? ' · ' + t.e : ''); sel.appendChild(o); });
   if ([...sel.options].some(o => o.value === antes)) sel.value = antes;
 }
@@ -201,8 +202,8 @@ $('sector').addEventListener('change', llenarTorres);
 const TIPOS = {
   obra: { lbl: 'Torre', nombre: 'obra', sub: 'Se traen todos los informes de obra de esa torre entre las dos fechas: el último de cada apartamento, el último de la torre y las notas de todos.' },
   servicios: { lbl: 'Torre o todo el urbanismo', nombre: 'servicios', sub: 'Se traen los informes de servicios de esa torre entre las dos fechas —o, con «Todo el urbanismo», de todas las torres del sector y de toda la zona—: el último, por ente, con lo listo y lo que falta, y las notas de todos.' },
-  urbanismo: { lbl: 'Manzana o lote', nombre: 'urbanismo', sub: 'Se traen los informes de urbanismo de esa manzana entre las dos fechas: el último, con sus cantidades y camiones, y las notas de todos.' },
-  sha: { lbl: 'Torre', nombre: 'SHA', sub: 'Se traen los informes de SHA de esa torre entre las dos fechas: el último, con recaudos, frentes e incidencias, y las notas de todos.' }
+  urbanismo: { lbl: 'Manzana o todo el urbanismo', nombre: 'urbanismo', sub: 'Se traen los informes de urbanismo de esa manzana entre las dos fechas —o, con «Todo el urbanismo», de todas las manzanas del sector y de toda la zona—: el último, con sus cantidades y camiones, y las notas de todos.' },
+  sha: { lbl: 'Torre o todo el urbanismo', nombre: 'SHA', sub: 'Se traen los informes de SHA de esa torre entre las dos fechas —o, con «Todo el urbanismo», de todas las torres del sector y de toda la zona, con la contratista de cada una—: el último, con recaudos, frentes e incidencias, y las notas de todos.' }
 };
 function tipoActual() { return TIPOS[$('tipo').value] ? $('tipo').value : 'obra'; }
 let MANZANAS = {};
@@ -223,6 +224,8 @@ async function llenarManzanas() {
   }
   if ($('sector').value !== s || tipoActual() !== 'urbanismo') return;
   sel.innerHTML = '<option value="">— Seleccione manzana —</option>';
+  // v174 (16-oct-2026): urbanismo también por todo el urbanismo —todas las manzanas del sector y lo de toda la zona—, como servicios.
+  { const o = document.createElement('option'); o.value = 'URBANISMO'; o.textContent = '★ Todo el urbanismo (todas las manzanas y la zona)'; sel.appendChild(o); }
   (MANZANAS[s] || []).forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
   if ([...sel.options].some(o => o.value === antes)) sel.value = antes;
 }
@@ -248,8 +251,8 @@ async function generar() {
   if (!navigator.onLine) return estado('Sin conexión: el compilado se arma con los informes archivados en Drive y hace falta internet.', 'mal');
   try { localStorage.setItem('garmel_compilado_ultimo', JSON.stringify({ sector, torre, quien, tipo })); } catch (e) {}
   $('btn-generar').disabled = true; $('resultado').hidden = true;
-  const t0 = Date.now(), aviso = () => estado(torre === 'URBANISMO'   // v171: todo el urbanismo recorre las carpetas de servicios de cada torre
-    ? '⏳ Leyendo los informes de servicios de todas las torres de ' + esc($('sector').selectedOptions[0] ? $('sector').selectedOptions[0].textContent : sector) + ' y de toda la zona, del ' + fecha(desde) + ' al ' + fecha(hasta) + '… <b>' + Math.round((Date.now() - t0) / 1000) + ' s</b>. Son varias carpetas: puede pasar de un minuto. No cierre la página.'
+  const t0 = Date.now(), aviso = () => estado(torre === 'URBANISMO'   // v171: todo el urbanismo recorre las carpetas de servicios de cada torre (v174: o de urbanismo de cada manzana)
+    ? '⏳ Leyendo los informes de ' + (tipo === 'urbanismo' ? 'urbanismo de todas las manzanas' : (tipo === 'sha' ? 'SHA' : 'servicios') + ' de todas las torres') + ' de ' + esc($('sector').selectedOptions[0] ? $('sector').selectedOptions[0].textContent : sector) + ' y de toda la zona, del ' + fecha(desde) + ' al ' + fecha(hasta) + '… <b>' + Math.round((Date.now() - t0) / 1000) + ' s</b>. Son varias carpetas: puede pasar de un minuto. No cierre la página.'
     : '⏳ Leyendo los informes de la ' + esc(torre) + ' del ' + fecha(desde) + ' al ' + fecha(hasta) + '… <b>' + Math.round((Date.now() - t0) / 1000) + ' s</b>. Cada apartamento tarda un par de segundos: una torre con 60 puede pasar de dos minutos. No cierre la página.', 'espera');
   aviso(); const latido = setInterval(() => { if (!$('estado').hidden) { const sc = scrollY; aviso(); window.scrollTo(0, sc); } }, 1000);
   const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 240000);
@@ -323,7 +326,7 @@ function pintarObra(d, hA, hT) {
 }
 function pintarTipo(d) {
   const t = d.tipo, u = d.ultimo, gris = '<span style="color:#64748b">—</span>';
-  if (d.porTorre) return pintarServiciosPorTorre(d, gris);   // v171: todo el urbanismo
+  if (d.porTorre) return t === 'urbanismo' ? pintarUrbanismoPorManzana(d, gris) : t === 'sha' ? pintarShaPorTorre(d, gris) : pintarServiciosPorTorre(d, gris);   // v171: todo el urbanismo (v174: también urbanismo)
   $('tipo-titulo').textContent = '3 · ' + (t === 'servicios' ? 'Servicios por ente' : t === 'urbanismo' ? 'Partidas con cantidades' : 'Recaudos, frentes e incidencias') + ' (último informe)';
   if (!u) { $('tipo-sub').textContent = 'No hubo informe en estas fechas.'; $('tipo-tabla').innerHTML = ''; $('tipo-extra').innerHTML = ''; return; }
   $('tipo-sub').innerHTML = 'Informe ' + enlace(u.pdf, u.numeroRev) + ' del ' + fecha(u.fecha) + ' · ' + esc((u.inspectores || []).join(' · ')) + (u.estatus && u.estatus.length ? ' · ' + esc(u.estatus.join(' · ')) : '');
@@ -421,6 +424,47 @@ function pintarServiciosPorTorre(d, gris) {
   });
   $('tipo-tabla').innerHTML = html;
 }
+// v174: urbanismo de todo el urbanismo — las partidas del último informe de cada manzana (y de toda la zona).
+function pintarUrbanismoPorManzana(d, gris) {
+  $('tipo-titulo').textContent = '3 · Partidas con cantidades (último informe de cada manzana)';
+  $('tipo-extra').innerHTML = '';
+  if (!d.porTorre.length) { $('tipo-sub').textContent = 'No hubo informes de urbanismo en estas fechas.'; $('tipo-tabla').innerHTML = ''; return; }
+  $('tipo-sub').textContent = d.porTorre.length + (d.porTorre.length === 1 ? ' lugar' : ' lugares') + ' con informe: ' + d.porTorre.map(p => p.torre).join(' · ') + '. El enlace abre el PDF.';
+  const ancho = 'style="white-space:normal;min-width:200px"';
+  let html = '<tr><th>Manzana</th><th>Sección</th><th>Partida</th><th class="n">Ejecutado</th><th class="n">Proyectado</th><th>Camiones</th><th>Maquinaria</th><th>Observación</th></tr>';
+  d.porTorre.forEach(p => {
+    let primera = true;
+    const cab = () => { const t = primera ? '<b>' + esc(p.torre) + '</b><br><small>' + enlace(p.pdf, p.numeroRev) + ' · ' + fecha(p.fecha) + '</small>' : ''; primera = false; return t; };
+    (p.secciones || []).forEach(sc => {
+      sc.items.forEach((it, i) => {
+        html += '<tr><td>' + cab() + '</td><td>' + (i === 0 ? '<b>' + esc(sc.nombre) + '</b>' : '') + '</td><td>' + esc(it.nombre) + '</td><td class="n">' + (it.cant ? esc(it.cant + ' ' + it.ud) : gris) + '</td><td class="n">' + (it.pr ? esc(it.pr + ' ' + it.ud) : gris) + '</td><td>' +
+          (it.camiones ? esc(it.camiones + (it.camiones === 1 ? ' camión, ' : ' camiones, ') + it.viajes + (it.viajes === 1 ? ' viaje, ' : ' viajes, ') + it.m3 + ' m³') : gris) + '</td><td>' + (it.maquinaria ? esc(it.maquinaria) : gris) + '</td><td ' + ancho + '>' + (esc(it.obs) || gris) + '</td></tr>';
+      });
+      if (!sc.items.length && sc.obs) html += '<tr><td>' + cab() + '</td><td><b>' + esc(sc.nombre) + '</b></td><td colspan="5">' + gris + '</td><td ' + ancho + '>' + esc(sc.obs) + '</td></tr>';
+    });
+    if (primera) html += '<tr><td>' + cab() + '</td><td colspan="7" style="color:#64748b;white-space:normal">Sin cantidades en este informe.' + (p.actividades ? ' Actividades: ' + esc(p.actividades) : '') + '</td></tr>';
+  });
+  $('tipo-tabla').innerHTML = html;
+}
+// v174: SHA de todo el urbanismo — los frentes del último informe de cada torre, con su contratista y sus recaudos.
+function pintarShaPorTorre(d, gris) {
+  $('tipo-titulo').textContent = '3 · Recaudos, frentes e incidencias (último informe de cada torre)';
+  $('tipo-extra').innerHTML = '';
+  if (!d.porTorre.length) { $('tipo-sub').textContent = 'No hubo informes de SHA en estas fechas.'; $('tipo-tabla').innerHTML = ''; return; }
+  $('tipo-sub').textContent = d.porTorre.length + (d.porTorre.length === 1 ? ' lugar' : ' lugares') + ' con informe: ' + d.porTorre.map(p => p.torre).join(' · ') + '. El enlace abre el PDF.';
+  const ancho = 'style="white-space:normal;min-width:200px"';
+  let html = '<tr><th>Torre</th><th>Contratista</th><th>Recaudos</th><th>Frente de trabajo</th><th>Hallazgo o condición observada</th><th>Acción correctiva / estatus</th></tr>';
+  d.porTorre.forEach(p => {
+    const sh = p.sha || {}, fr = (sh.frentes || []).length ? sh.frentes : [null];
+    fr.forEach((x, i) => {
+      html += '<tr><td>' + (i === 0 ? '<b>' + esc(p.torre) + '</b><br><small>' + enlace(p.pdf, p.numeroRev) + ' · ' + fecha(p.fecha) + '</small>' : '') + '</td><td>' + (i === 0 ? esc(p.empresa || '') : '') + '</td><td>' +
+        (i === 0 ? (sh.recaudosSi || 0) + ' al día, ' + (sh.recaudosNo || 0) + ' faltan' : '') + '</td>' +
+        (x ? '<td ' + ancho + '>' + (esc(x.frente) || gris) + '</td><td ' + ancho + '>' + (esc(x.hallazgo) || gris) + '</td><td ' + ancho + '>' + (esc(x.estatus) || gris) + '</td>'
+           : '<td colspan="3" style="color:#64748b;white-space:normal">Sin frentes en este informe.</td>') + '</tr>';
+    });
+  });
+  $('tipo-tabla').innerHTML = html;
+}
 let ENVIADO = false;
 
 async function enviar() {
@@ -439,7 +483,7 @@ async function enviar() {
     if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
     ENVIADO = true; $('btn-enviar').textContent = '📤 Enviar de nuevo';
     DATA.archivado = { numero: res.numero, coordinadora: DATA.quien, guardado: res.guardado || '', textos: t }; $('aviso-archivado').hidden = true;   // v172: lo archivado ahora es esto
-    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + (DATA.torre === 'URBANISMO' ? ' en General › Servicios del sector' : ' en la carpeta de la ' + (DATA.tipo === 'urbanismo' ? 'manzana' : 'torre')) + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal. Si cambia algo, toque «Enviar de nuevo»: reemplaza el archivo.', 'bien');
+    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + (DATA.torre === 'URBANISMO' ? ' en General › ' + (DATA.tipo === 'urbanismo' ? 'Urbanismo' : DATA.tipo === 'sha' ? 'SHA' : 'Servicios') + ' del sector' : ' en la carpeta de la ' + (DATA.tipo === 'urbanismo' ? 'manzana' : 'torre')) + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal. Si cambia algo, toque «Enviar de nuevo»: reemplaza el archivo.', 'bien');
     try { localStorage.removeItem(claveBorrador()); } catch (e) {}
   } catch (e) {
     const m = String(e && e.message || e);

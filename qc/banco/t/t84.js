@@ -24,7 +24,7 @@ let env = await Q.envios(), ult = env[env.length - 1] || {};
 ok('3 · Emojis y comillas intactos; el archivo es SRV-…-SEM-261008 con PRUEBA en modo de prueba', env.length === antes + 1 && ((ult.datos || {}).textos || {}).exitos === 'Servicios del miércoles 😊\n«comillas»' && ult.tipo === 'compilado-servicios' && /PRUEBA-SRV-EZ-T01-SEM-261008/.test($('#estado-envio').textContent), $('#estado-envio').textContent.slice(0, 90));
 // 4 · Relevo caído al generar urbanismo: aviso y botón libre; las manzanas recordadas siguen.
 otraVez(); sel('tipo', 'urbanismo'); await esperar(400); sel('torre', 'M-6'); await Q.relevo({ caido: true }); await generar(); await hasta(() => /No se pudo/.test($('#estado').textContent), 8000);
-ok('4 · Urbanismo con el relevo caído: «No se pudo armar», botón habilitado y las manzanas recordadas siguen en la lista', /No se pudo armar/.test($('#estado').textContent) && !$('#btn-generar').disabled && $('#torre').options.length === 4, $('#estado').textContent + ' · ' + $('#torre').options.length);
+ok('4 · Urbanismo con el relevo caído: «No se pudo armar», botón habilitado y las manzanas recordadas siguen en la lista', /No se pudo armar/.test($('#estado').textContent) && !$('#btn-generar').disabled && $('#torre').options.length === 5, $('#estado').textContent + ' · ' + $('#torre').options.length);
 await Q.relevo({ caido: false });
 // 5 · Enviar SHA con el relevo caído conserva lo escrito.
 otraVez(); sel('tipo', 'sha'); sel('sector', 'EZ'); sel('torre', 'T-01'); await generar(); await hasta(() => !$('#resultado').hidden, 5000);

@@ -41,9 +41,10 @@ ok('2 · De todo el urbanismo a una torre y de vuelta: sin columna Torre ni fila
 otraVez(); sel('tipo', 'sha'); await esperar(100);
 const conSha = [...$('#torre').options].some(o => o.value === 'URBANISMO'), torreSha = $('#torre').value;
 sel('tipo', 'obra'); await esperar(100);
-const conObra = [...$('#torre').options].some(o => o.value === 'URBANISMO');
-ok('3 · Al pasar a SHA u obra la opción desaparece y la torre queda sin elegir (no se puede pedir un SHA de todo el urbanismo)',
-   !conSha && !conObra && torreSha === '', 'sha=' + conSha + ' obra=' + conObra + ' torre=«' + torreSha + '»');
+const conObra = [...$('#torre').options].some(o => o.value === 'URBANISMO'), torreObra = $('#torre').value;
+// v174: SHA también tiene «Todo el urbanismo», así que al pasar de servicios a SHA la elección se mantiene; en obra desaparece.
+ok('3 · Al pasar a SHA la opción sigue (v174) y queda elegida; al pasar a obra desaparece y la torre queda sin elegir',
+   conSha && torreSha === 'URBANISMO' && !conObra && torreObra === '', 'sha=' + conSha + ' obra=' + conObra + ' torreSha=«' + torreSha + '» torreObra=«' + torreObra + '»');
 // 4
 await urb(); await Q.relevo({ caido: true }); await generar(); await hasta(() => /No se pudo/.test($('#estado').textContent), 8000);
 ok('4 · Relevo caído al generar todo el urbanismo: «No se pudo armar» y el botón queda habilitado',

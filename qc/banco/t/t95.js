@@ -10,9 +10,10 @@ const opciones = () => [...$('#torre').options].map(o => o.value);
 sel('tipo', 'servicios'); sel('sector', 'EZ'); await esperar(100);
 ok('1 · Servicios: «Todo el urbanismo» es la primera opción después de «Seleccione torre»', opciones()[1] === 'URBANISMO' && /Todo el urbanismo/.test($('#torre').options[1].textContent), opciones().slice(0, 3).join(','));
 const otros = {};
-for (const t of ['obra', 'sha']) { sel('tipo', t); sel('sector', 'EZ'); await esperar(100); otros[t] = opciones().indexOf('URBANISMO') < 0; }
-sel('tipo', 'urbanismo'); await esperar(400); otros.urbanismo = opciones().indexOf('URBANISMO') < 0;
-ok('2 · Obra, SHA y urbanismo no la ofrecen', otros.obra && otros.sha && otros.urbanismo, JSON.stringify(otros));
+for (const t of ['obra', 'sha']) { sel('tipo', t); sel('sector', 'EZ'); await esperar(100); otros[t] = t === 'sha' ? opciones()[1] === 'URBANISMO' : opciones().indexOf('URBANISMO') < 0; }   // v174: SHA también la ofrece
+// v174: urbanismo ofrece ahora su propio «Todo el urbanismo» (de todas las manzanas), con otro texto; ver t99.
+sel('tipo', 'urbanismo'); await esperar(400); otros.urbanismo = /manzanas/.test(($('#torre').options[1] || {}).textContent || '');
+ok('2 · Obra no la ofrece; SHA sí (v174); urbanismo trae la suya, la de las manzanas', otros.obra && otros.sha && otros.urbanismo, JSON.stringify(otros));
 sel('tipo', 'servicios'); sel('sector', 'EZ'); await esperar(100); sel('torre', 'URBANISMO'); sel('quien', COORDINADORES[3].n);
 Q.escribir($('#desde'), '2026-10-08'); Q.escribir($('#hasta'), '2026-10-14');
 await generar(); await hasta(() => !$('#resultado').hidden, 8000);
