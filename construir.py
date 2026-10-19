@@ -9439,6 +9439,67 @@ s = sustituir(s,
  "  }).catch(avisoFotoIlegible);\n}\n",
  "186b· una foto que no se puede leer no entra: nunca la original")
 
+# ── 187. «Mandar la lista a la oficina» desde «Informes» (19-oct-2026) ───────────────────────────────────────
+# Diego Orta, 19-oct: a Leidy Villamizar le aparecían 60 informes en el teléfono (52 sin enviar) con seis apartamentos
+# cargados, y «Enviar» le pedía completar datos. Para ver qué son sin pedirle treinta capturas: un botón en «Informes»
+# arma una lista de texto —número, lugar, hora de guardado, si se envió, qué le falta para poder enviarse, si tiene
+# medición y fotos, y si es idéntico a otro (mismo número y misma huella de contenido)— y la abre en el menú de
+# compartir del teléfono (WhatsApp); si el teléfono no tiene ese menú, la copia. No borra ni cambia nada.
+s = sustituir(s,
+ """            onclick="quitarBorradoresEnBlanco()">🧹 Quitar los borradores en blanco</button>""",
+ """            onclick="quitarBorradoresEnBlanco()">🧹 Quitar los borradores en blanco</button>
+    <button type="button" class="s-btn" id="btn-lista-oficina" style="width:100%;margin:10px 0 0;background:#eef2ff;color:#1a237e;border-color:#c7d2fe"
+            onclick="mandarListaOficina()">📤 Mandar la lista a la oficina (por WhatsApp)</button>""",
+ "187a· el botón en «Informes»")
+s = sustituir(s,
+ "function toggleP(id){",
+ """// 187: la lista de informes del teléfono, en texto, para la oficina. Solo lee.
+function _faltanDe187(b){
+  const f = [];
+  if(!String(b.fecha || '').trim()) f.push('fecha');
+  if(!String(b.convenio || '').trim()) f.push('sector');
+  if(!String(b.empresa || '').trim()) f.push('empresa');
+  if(!String(b.torre || '').trim() || b.torre === '—') f.push('torre');
+  if((b.ambito || 'apartamento') !== 'torre'){
+    if(!String(b.piso || '').trim()) f.push('piso');
+    if(!String(b.apto || '').trim()) f.push('apartamento');
+  }
+  if(!(b.inspectores || []).length) f.push('inspector');
+  if(!(b.estatus || []).length) f.push('estatus');
+  return f;
+}
+function _corta187(t){ let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return h.toString(36).slice(-4).toUpperCase(); }
+function _textoLista187(){
+  const lista = getSavedReports().filter(Boolean), vistos = {}, L = [];
+  let copias = 0, faltan = 0, blancos = 0, enviados = 0;
+  lista.forEach(function(b, i){
+    const nro = /^[A-Z]/.test(String(b.nro || '')) ? b.nro : 'sin número';
+    const huella = _corta187(_huellaInforme(b)), clave = nro + '|' + huella;
+    const igual = vistos[clave]; if (!igual) vistos[clave] = i + 1; else copias++;
+    const f = b.enviado ? [] : _faltanDe187(b); if (f.length) faltan++;
+    const con = _tieneContenido(b); if (!con) blancos++; if (b.enviado) enviados++;
+    let fotos = 0; Object.keys(b.fotos || {}).forEach(function(k){ fotos += (b.fotos[k] || []).filter(Boolean).length; });
+    const lugar = String(b.torre || '?') + ((b.ambito || 'apartamento') === 'torre' ? ' (torre)' : ' P' + (b.piso || '?') + ' ' + (b.apto || '?'));
+    L.push((i + 1) + '. ' + nro + ' · ' + lugar + ' · ' + String(b.timestamp || '').replace(/:\\d\\d(\\s?[ap]\\.?\\s?m\\.?)?$/i, '$1') +
+      ' · ' + (b.enviado ? 'enviado' : 'sin enviar') + (con ? '' : ' · EN BLANCO') + (fotos ? ' · ' + fotos + ' foto' + (fotos === 1 ? '' : 's') : '') +
+      (f.length ? ' · falta: ' + f.join(', ') : '') + ' · ' + huella + (igual ? ' · IGUAL AL ' + igual : ''));
+  });
+  const insp = (lista.find(function(b){ return (b.inspectores || []).length; }) || {}).inspectores || [];
+  return ['📋 Informes en el teléfono' + (insp.length ? ' de ' + insp[0] : '') + ' · v' + ((((document.getElementById('estado-conexion') || {}).textContent || '').match(/v(\d+)/) || [])[1] || '?') + ' · ' + new Date().toLocaleString(),
+          lista.length + ' informes: ' + enviados + ' enviados, ' + (lista.length - enviados) + ' sin enviar · ' + copias + ' iguales a otro · ' + faltan + ' con datos que faltan · ' + blancos + ' en blanco',
+          ''].concat(L).join('\\n');
+}
+async function mandarListaOficina(){
+  const texto = _textoLista187();
+  try {
+    if (navigator.share) { await navigator.share({ title: 'Informes del teléfono', text: texto }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(texto); alert('📋 La lista quedó copiada.\\n\\nAbra WhatsApp, mantenga el dedo en el cuadro de escribir y toque «Pegar».'); return; } catch (e) {}
+  prompt('Copie este texto y péguelo en WhatsApp:', texto);
+}
+function toggleP(id){""",
+ "187b· la lista en texto, al menú de compartir")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

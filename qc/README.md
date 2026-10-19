@@ -732,6 +732,16 @@ los datos y en el borrador guardado (se guarda en el acto); el mismo con «No» 
 se pregunta; la ✕ quita la fila de la pantalla, de los datos y del borrador; el texto del confirm es el acordado y cuenta 11; al reabrir,
 la quitada no vuelve y las dos con medición siguen intactas. Sin ventana: `t92` 6/6, `t87` 6/6 y la regresión de obra en verde.
 
+**`t100` (19-oct-2026, v175, cambio 187): «Mandar la lista a la oficina» desde «Informes».** Diego Orta: a Leidy Villamizar le
+salían 60 informes en el teléfono (52 sin enviar) con seis apartamentos cargados, y «Enviar» le pedía completar datos. Antes de tocar
+nada se intentó reproducir en el banco a 375 px —salir de la app y volver (`visibilitychange`), con y sin cambios, en informe de
+apartamento y de torre, con «Guardar y otra torre» y con recarga de la página— y en ningún caso aparecieron copias. Para ver qué hay
+en su teléfono sin treinta capturas, el botón arma la lista en texto (número, lugar, hora, enviado o no, qué le falta para enviarse,
+si tiene medición y fotos, y «IGUAL AL n» cuando el número y la huella de contenido coinciden) y la abre en el menú de compartir.
+Siete comprobaciones con cinco informes de ejemplo (dos idénticos, uno sin estatus, uno en blanco sin número, uno enviado): botón de
+44 px, resumen, la copia marcada, lo que falta, el blanco, el menú de compartir con el texto, y nada cambia en el teléfono. 7/7; `t92`
+y `t87` siguen 6/6. Solo en obra: es donde está el problema; si sirve, pasa a los otros tres.
+
 **`t99` (16-oct-2026, v174, relevo r68): urbanismo y SHA también por «todo el urbanismo».** Planificación pidió el día del corte
 el compilado de urbanismo de todo el sector, y Stephanie sumó SHA (sus láminas van por contratista) y a Miguel Ávila en «quién valida».
 Ocho comprobaciones en `compilado.html?prueba=1` a 375 × 812: la opción sale primera en urbanismo («todas las manzanas y la zona») y en
