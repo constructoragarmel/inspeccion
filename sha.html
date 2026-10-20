@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script>
+// 188 (20-oct-2026): el navegador no repone las casillas al volver a una pestaña descargada. En inspección eso
+// dejaba en pantalla un informe a medias que se guardaba como copia; aquí la recuperación no lo guarda, pero
+// lo repuesto podía quedar en pantalla tras un informe ya enviado. El formulario recupera él mismo.
+(function(){
+  function apagar(el){ if (el && /^(INPUT|SELECT|TEXTAREA|FORM)$/.test(el.tagName) && el.type !== 'password') el.setAttribute('autocomplete', 'off'); }
+  function recorrer(n){ if (!n || n.nodeType !== 1) return; apagar(n); if (n.querySelectorAll) n.querySelectorAll('input,select,textarea,form').forEach(apagar); }
+  new MutationObserver(function(ms){ ms.forEach(function(m){ m.addedNodes.forEach(recorrer); }); })
+    .observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inspección SHA — GARMEL</title>
@@ -334,7 +345,7 @@ header .nro-hint{font-size:12px;opacity:.85;margin-top:3px}
       <div class="fotos" id="fotos-general"></div></div>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v175</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v176</div>
 </div>
 
 <div class="acciones">

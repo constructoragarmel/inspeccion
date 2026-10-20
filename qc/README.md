@@ -742,6 +742,23 @@ Siete comprobaciones con cinco informes de ejemplo (dos idénticos, uno sin esta
 44 px, resumen, la copia marcada, lo que falta, el blanco, el menú de compartir con el texto, y nada cambia en el teléfono. 7/7; `t92`
 y `t87` siguen 6/6. Solo en obra: es donde está el problema; si sirve, pasa a los otros tres.
 
+**Cambio 188 (20-oct-2026, v176): la copia «XX-T---…» al volver a la app.** Mariana Rojas mandó el 19-oct desde la T-52 un
+`XX-T---P--A---261019---` con cero segundos de uso. Lo que la `t100` no probó era **volver a una pestaña descargada**: Chrome
+repone solo lo escrito en las casillas (cantidades, textos, torre, piso, inspectora), no los botones ni el número, y la
+recuperación del cambio 153 guardaba eso como borrador nuevo antes de abrir el de verdad. Se reproduce **a mano**, no en una
+tanda, porque la navegación corta el guion: con el JSON real cargado como borrador sin enviar y `garmel_actual` apuntándolo,
+`location.href = '/t52.json'` y luego `history.back()` (la entrada de navegación dice `back_forward`). En la v175 aparece un
+segundo borrador `XX-…` que difiere del original en 5 evaluaciones, 16 proyectadas, 16 ejecutadas y 3 Sí/No, las mismas cifras de
+la copia real. En la v176 los 391 controles nacen con `autocomplete="off"`, queda un solo borrador con todo (5 evaluaciones, 40
+proyectadas), y con un informe ya enviado la pantalla vuelve vacía y «Enviar todos» no manda nada. Servicios no hacía copias
+(su recuperación no guarda la pantalla), pero lleva el mismo freno en el motor, y con él SHA y urbanismo.
+El recorrido completo a mano (menú → obra → cabecera → medida, conteo y estado → foto → salir y volver → «Enviar») encontró
+además que, tras recuperar, la cabecera seguía diciendo «se arma al completar la cabecera» y «Torre: T--» con el número ya armado
+(el ocultado de la v175 se quedaba con el cálculo del arranque): `_pintarNumero188` lo repinta sin recalcularlo. Regresión sobre
+la v176: sin ventana `t21`–`t24`, `t26`, `t87`, `t88`, `t92`, `t100`, `t19`, `t46`, `t85`, `t86`, `t89`, `t79`, `t83`, `t84`,
+`t95`–`t99` en verde; a la vista `t33` 5/5, `t90` 6/6, `t93` 5/5, `t59` 15/15, y `t91` 4/4 y `t94` 3/3 en servicios, SHA y
+urbanismo (la `t94` de servicios corrida justo detrás de la `t91` dio 2/3 y sola 3/3: la trampa de arriba).
+
 **`t99` (16-oct-2026, v174, relevo r68): urbanismo y SHA también por «todo el urbanismo».** Planificación pidió el día del corte
 el compilado de urbanismo de todo el sector, y Stephanie sumó SHA (sus láminas van por contratista) y a Miguel Ávila en «quién valida».
 Ocho comprobaciones en `compilado.html?prueba=1` a 375 × 812: la opción sale primera en urbanismo («todas las manzanas y la zona») y en

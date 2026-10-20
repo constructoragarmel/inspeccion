@@ -9500,6 +9500,29 @@ async function mandarListaOficina(){
 function toggleP(id){""",
  "187b· la lista en texto, al menú de compartir")
 
+# ── 188. El navegador no repone las casillas al volver a la app (20-oct-2026) ─────────────────────────────────
+# Mariana Rojas, T-52, 19-oct: salió un informe «XX-T---P--A---261019---» con cero segundos de uso. Al volver a
+# una pestaña que Android había descargado, Chrome repone por su cuenta lo escrito en las casillas —cantidades,
+# textos, torre, piso, inspectora— pero no los botones (estados, evaluación, Sí/No) ni el número. La
+# recuperación del cambio 153 guardaba eso como borrador nuevo antes de abrir el de verdad, y «Enviar todos» lo
+# mandaba. Reproducido en el banco con el JSON real: la copia difiere del original en las mismas 5 evaluaciones,
+# 16 proyectadas, 16 ejecutadas y 3 Sí/No. Explica las copias del teléfono de Leidy Villamizar.
+# Dos frenos: autocomplete="off" en cada control desde que nace (el navegador no guarda ni repone su valor), y
+# la recuperación ya no guarda lo de pantalla (comun/robustez.js, 188).
+s = sustituir(s,
+ "<head>",
+ """<head>
+<script>
+// 188: ninguna casilla la repone el navegador al volver; el formulario recupera el informe él mismo.
+(function(){
+  function apagar(el){ if (el && /^(INPUT|SELECT|TEXTAREA|FORM)$/.test(el.tagName) && el.type !== 'password') el.setAttribute('autocomplete', 'off'); }
+  function recorrer(n){ if (!n || n.nodeType !== 1) return; apagar(n); if (n.querySelectorAll) n.querySelectorAll('input,select,textarea,form').forEach(apagar); }
+  new MutationObserver(function(ms){ ms.forEach(function(m){ m.addedNodes.forEach(recorrer); }); })
+    .observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>""",
+ "188· el navegador no repone las casillas al volver a la app")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

@@ -256,13 +256,34 @@ const _borrarEnviadosBase153 = borrarEnviados;
 borrarEnviados = function(){ const r = _borrarEnviadosBase153.apply(this, arguments); _limpiarFotosHuerfanas(); return r; };
 
 let _fotosListas = Promise.resolve();
+let _recuperandoAlAbrir188 = false;
+// 188: el número recuperado se muestra como en «Informes». Se pinta el que trae el borrador, sin
+// recalcularlo: uno recalculado distinto haría que el autoguardado lo separara en otro informe.
+function _pintarNumero188(){
+  try {
+    const el = document.getElementById('nro-display'); if (!el) return;
+    const nro = el.textContent || '';
+    const aMedias = /(^|-)XX-|-T---(-|$)|P--|A--|------|---$/.test(nro);
+    el.style.display = aMedias ? 'none' : '';
+    const hint = document.getElementById('nro-hint'); if (hint) hint.style.display = aMedias ? 'block' : 'none';
+    const docNum = document.getElementById('doc-num');
+    if (docNum) docNum.textContent = 'Informe N°: ' + (aMedias ? '(se arma al completar la cabecera)' : nro);
+    const docTorre = document.getElementById('doc-torre');
+    const apto = (document.getElementById('apto') || {}).value || '';
+    if (docTorre) docTorre.textContent = [normalizaTorre(getTorreActual()), (document.getElementById('piso') || {}).value, apto].filter(Boolean).join(' · ') || '—';
+    const fecha = document.getElementById('doc-fecha'); const fv = (document.getElementById('fecha') || {}).value;
+    if (fecha && fv) fecha.textContent = fv;
+  } catch (e) {}
+}
 const _loadDraftDataBase153 = loadDraftData;
 loadDraftData = function(index){
   let d = (getSavedReports() || [])[index];
   // Guardar lo de pantalla puede correr la lista (un borrador nuevo entra arriba):
   // después se vuelve a buscar el que se pidió por su id, no por su puesto.
   try {
-    if (d && d.id !== _idEnEdicion && _tieneContenido(getFormData()) && saveDraft(true)) {
+    // 188: al recuperar tras volver a la app no se guarda lo de pantalla: son casillas que el
+    // navegador repuso por su cuenta, sin estados ni número, y salía una copia «XX-T---…».
+    if (d && !_recuperandoAlAbrir188 && d.id !== _idEnEdicion && _tieneContenido(getFormData()) && saveDraft(true)) {
       const i = getSavedReports().findIndex(function(b){ return b && b.id === d.id; });
       if (i >= 0) index = i;
     }
@@ -357,7 +378,9 @@ window.addEventListener('load', function(){
       const lista = getSavedReports();
       const i = lista.findIndex(function(b){ return b && b.id === id && !b.enviado; });
       if (i < 0) { _olvidarActual(); return; }
-      loadDraftData(i);
+      _recuperandoAlAbrir188 = true;
+      try { loadDraftData(i); } finally { _recuperandoAlAbrir188 = false; }
+      _pintarNumero188();
       _abiertoParaEditar = false;          // se sigue llenando como antes de la recarga
       // Después de los avisos de arranque, que si no lo tapan.
       setTimeout(function(){ showToast('↩️ Se recuperó el informe que estaba llenando', 'ok'); }, 1800);
