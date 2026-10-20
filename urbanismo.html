@@ -370,7 +370,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v178</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v179</div>
 </div>
 
 <div class="acciones">
@@ -2498,6 +2498,8 @@ function _pintarDonde(){
   : _modoDonde === 'zona'   ? 'Para lo que no es de una ' + _LUGAR + ' sino de toda la zona. Se archiva en la carpeta «General» de la zona.'
   : _modoDonde === 'manzana' ? 'Para lo que es de una manzana o lote del urbanismo. Se archiva en la carpeta de esa manzana. Si también afecta a otras, agréguelas abajo.'
   : '';
+  const ob = document.getElementById('ofi-buscar');   // v179: el botón del panel dice «esta manzana» en una manzana
+  try { if (ob) ob.textContent = 'Buscar los informes de ' + _OC_LUGAR.estas; } catch (e) {}   // al cargar, _OC_LUGAR todavía no existe
   const lt = document.querySelector('label[for="torre"]');
   if (lt && _CON_MANZANA) lt.textContent = _modoDonde === 'manzana' ? 'Manzana o lote' : _etiquetaTorre;
   if (_CON_MANZANA && _modoDonde === 'manzana') ['empresa', 'residente'].forEach(function(id){
@@ -2780,8 +2782,13 @@ let _definitiva = null;   // {por, fecha, desde}
 let _oficinaDe = null;    // {numero, revision, abierto}
 let _copiaDe = null;      // {nro, torre, fecha}
 const _OC_MANZANA = (typeof TIPO_INFORME !== 'undefined' && TIPO_INFORME === 'urbanismo');
-const _OC_LUGAR = _OC_MANZANA ? { una: 'manzana', otra: 'otra manzana', estas: 'esta manzana', de: 'de la manzana', plural: 'manzanas' }
-                           : { una: 'torre', otra: 'otra torre', estas: 'esta torre', de: 'de la torre', plural: 'torres' };
+// v179: en SHA por manzana los rótulos dicen «manzana» (QC del 20-oct: decía «Copiar de otra torre…» en una manzana).
+const _OC_M = { una: 'manzana', otra: 'otra manzana', estas: 'esta manzana', de: 'de la manzana', plural: 'manzanas' };
+const _OC_T = { una: 'torre', otra: 'otra torre', estas: 'esta torre', de: 'de la torre', plural: 'torres' };
+const _OC_LUGAR = {};
+['una', 'otra', 'estas', 'de', 'plural'].forEach(function(k){ Object.defineProperty(_OC_LUGAR, k, { get: function(){
+  const mz = _OC_MANZANA || (typeof _modoDonde !== 'undefined' && _modoDonde === 'manzana');
+  return (mz ? _OC_M : _OC_T)[k]; } }); });
 // El motor no tiene un aviso breve (usa alert y cartel): uno propio, que no tapa nada.
 function _ocToast(msg){
   let t = document.getElementById('oc-toast');
@@ -3285,6 +3292,8 @@ function _copiarAvisoBloqueo(d){
   }
   window._residentesSugeridos = sugeridos;
   document.addEventListener('click', function(ev){ if (!ev.target.closest || !ev.target.closest('.res-caja, .res-lista')) cerrar(); }, true);
+  // v179: con teclado, Escape la cierra (QC del 20-oct).
+  document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && document.querySelector('.res-lista')) cerrar(); }, true);
   function todos(){ document.querySelectorAll('#residente, .residente-input').forEach(preparar); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', todos); else todos();
   new MutationObserver(function(ms){ ms.forEach(function(m){ m.addedNodes.forEach(function(n){

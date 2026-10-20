@@ -843,3 +843,21 @@ y no 3; en `t106` el relevo falso no distingue zonas; `t91` de urbanismo corrida
 4/4. Regresión final: sin ventana 32 tandas en verde; a la vista `t33`, `t90`, `t93`, `t101` (obra), `t91`, `t94`, `t102`, `t105`
 (SHA), `t91`, `t94` (servicios), `t106`, `t59`, `t91` (urbanismo), `t66` y `t74` en los cuatro, todas en verde; a 320 px sin desborde.
 
+
+**v179 (20-oct-2026): 20 rondas más de QC, pedidas por Stephanie.** Tandas `t108` (obra: un día real de tres apartamentos con
+foto y «Enviar todos»; el teléfono de Leidy simulado con 60 informes y «Quitar copias»; la lista para la oficina), `t109` (servicios y
+SHA: dos torres con «Sig. torre» y una de varias, con foto y minuta; hallazgo, incidencia y rechazo; dos manzanas seguidas; «Copiar de
+otra manzana»), `t110` (urbanismo: varias manzanas con camión, maquinaria y foto; la lista de placas; residentes con Escape),
+`t111` (la página del compilado dibujando la semana de SHA del r70), y a mano: salir y volver con foto en obra, el menú con
+pendientes en cada formulario, los anchos 320, 412, 768 y horizontal 812×375 en los cuatro (sin desborde, nada nuevo por debajo de
+44 px, ningún botón cortado). Contra el relevo real, desde `Correr.gs`: un SHA de manzana PRUEBA- por `doPost` (archivado en
+`Urbanismo › M-1 L4 › SHA`, PDF, Smartsheet `EZ-M-1 L4`), la visita anterior compartida de toda la zona en SB y SR, el buscador de SHA
+y la semana de SHA de todo EZ (12 lugares, 4 sin informe en la semana, 10 hallazgos de antes; tarda 69 s, la página espera 240).
+Arreglado en la v179: en «Manzana» los botones decían «Copiar de otra torre» y «Buscar los informes de esta torre» (`_OC_LUGAR`
+ahora depende del modo); la lista de residentes no se cerraba con Escape; el menú decía que SHA es solo «Por torre». Errores de las
+pruebas, no del formulario: `t108` reemplazaba la lista con un informe en pantalla (el «Enviar todos» lo guardaba, como debe); en
+`t109` los campos del hallazgo iban con otro nombre y el botón de copiar aparece con demora; `t8` (21-sep) elegía M-101 sin su
+sector desde que las manzanas se filtran por sector, y fallaba igual con la v177; `t8` necesita la clave puesta; `t108` corrida
+detrás de `t101` en la misma página da 3/4 y sola 4/4. Regresión: 33 tandas sin ventana y a la vista `t33`, `t90`, `t93`, `t101`,
+`t108`, `t66` (obra), `t102`, `t105`, `t109`, `t91`, `t94`, `t74` (SHA), `t109`, `t91`, `t94`, `t74` (servicios), `t106`, `t110`, `t59`,
+`t74`, `t8` (urbanismo), todas en verde.

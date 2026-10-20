@@ -64,6 +64,7 @@ const mem = memoriaItems(); GENERAL.forEach(g => { mem[g.id] = (mem[g.id] || [])
 t = Date.now(); nuevoInforme(); const tP = Date.now() - t;
 ok('29 secciones y ' + $$('.item').length + ' partidas: «Nuevo» pinta en ' + ms(tP), GENERAL.length === 29 && $$('.item').length >= 42 + 112 && tP < 1500, ms(tP));
 ok('Sin scroll horizontal con 28 secciones', document.documentElement.scrollWidth <= innerWidth);
+Q.elegir($('#convenio'), 'Convenio Rusos'); await esperar(100);   // 20-oct: las manzanas se filtran por sector (M-101 es de SR)
 t = Date.now(); insp(); Q.elegir(torre, 'M-101'); await esperar(50); $('#aviso-historial .si') && $('#aviso-historial .si').click(); const tH = Date.now() - t;
 ok('Traer historial de M-101 con 151 partidas en pantalla: ' + ms(tH), tH < 1500 && $$('.item.heredado').length === 42, $$('.item.heredado').length);
 ok('Ningún error de página', !Q.R.some(r => /pageerror|unhandled/.test(r.n)));

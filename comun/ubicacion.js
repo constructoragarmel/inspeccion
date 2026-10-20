@@ -200,6 +200,8 @@ function _pintarDonde(){
   : _modoDonde === 'zona'   ? 'Para lo que no es de una ' + _LUGAR + ' sino de toda la zona. Se archiva en la carpeta «General» de la zona.'
   : _modoDonde === 'manzana' ? 'Para lo que es de una manzana o lote del urbanismo. Se archiva en la carpeta de esa manzana. Si también afecta a otras, agréguelas abajo.'
   : '';
+  const ob = document.getElementById('ofi-buscar');   // v179: el botón del panel dice «esta manzana» en una manzana
+  try { if (ob) ob.textContent = 'Buscar los informes de ' + _OC_LUGAR.estas; } catch (e) {}   // al cargar, _OC_LUGAR todavía no existe
   const lt = document.querySelector('label[for="torre"]');
   if (lt && _CON_MANZANA) lt.textContent = _modoDonde === 'manzana' ? 'Manzana o lote' : _etiquetaTorre;
   if (_CON_MANZANA && _modoDonde === 'manzana') ['empresa', 'residente'].forEach(function(id){

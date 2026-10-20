@@ -22,8 +22,13 @@ let _definitiva = null;   // {por, fecha, desde}
 let _oficinaDe = null;    // {numero, revision, abierto}
 let _copiaDe = null;      // {nro, torre, fecha}
 const _OC_MANZANA = (typeof TIPO_INFORME !== 'undefined' && TIPO_INFORME === 'urbanismo');
-const _OC_LUGAR = _OC_MANZANA ? { una: 'manzana', otra: 'otra manzana', estas: 'esta manzana', de: 'de la manzana', plural: 'manzanas' }
-                           : { una: 'torre', otra: 'otra torre', estas: 'esta torre', de: 'de la torre', plural: 'torres' };
+// v179: en SHA por manzana los rótulos dicen «manzana» (QC del 20-oct: decía «Copiar de otra torre…» en una manzana).
+const _OC_M = { una: 'manzana', otra: 'otra manzana', estas: 'esta manzana', de: 'de la manzana', plural: 'manzanas' };
+const _OC_T = { una: 'torre', otra: 'otra torre', estas: 'esta torre', de: 'de la torre', plural: 'torres' };
+const _OC_LUGAR = {};
+['una', 'otra', 'estas', 'de', 'plural'].forEach(function(k){ Object.defineProperty(_OC_LUGAR, k, { get: function(){
+  const mz = _OC_MANZANA || (typeof _modoDonde !== 'undefined' && _modoDonde === 'manzana');
+  return (mz ? _OC_M : _OC_T)[k]; } }); });
 // El motor no tiene un aviso breve (usa alert y cartel): uno propio, que no tapa nada.
 function _ocToast(msg){
   let t = document.getElementById('oc-toast');

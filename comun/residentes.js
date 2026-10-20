@@ -91,6 +91,8 @@
   }
   window._residentesSugeridos = sugeridos;
   document.addEventListener('click', function(ev){ if (!ev.target.closest || !ev.target.closest('.res-caja, .res-lista')) cerrar(); }, true);
+  // v179: con teclado, Escape la cierra (QC del 20-oct).
+  document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && document.querySelector('.res-lista')) cerrar(); }, true);
   function todos(){ document.querySelectorAll('#residente, .residente-input').forEach(preparar); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', todos); else todos();
   new MutationObserver(function(ms){ ms.forEach(function(m){ m.addedNodes.forEach(function(n){

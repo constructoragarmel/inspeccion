@@ -47,7 +47,7 @@ FORMULARIOS = [
     # recibiera. Encendido el 15-sep-2026 por Stephanie González (v73).
     {"id": "sha", "archivo": "sha.html",
      "titulo": "SHA · Seguridad, Higiene y Ambiente",
-     "sub": "Por torre · recaudos, hallazgos de campo y cierre",
+     "sub": "Por torre o manzana · recaudos, hallazgos de campo y cierre",
      "lista": "garmel_sha_list", "activo": True},
     # Construido el 21-sep-2026 (urbanismo.html) a partir del borrador de ese
     # día y las respuestas de Skarlet; por manzana o lote, no por torre.
