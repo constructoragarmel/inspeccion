@@ -35,6 +35,7 @@ button:disabled{opacity:.55;cursor:default}
 .prueba{background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:12px;font-size:13px;font-weight:700;margin-bottom:12px}
 .membrete{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 18px;font-size:14px}
 .membrete b{color:var(--azul)}
+.linea-semana{grid-column:1/-1;font-size:16px;font-weight:700;color:var(--azul)}
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
 .scroll.matriz{margin:0;padding:0;border:1px solid #e0e3f0;border-radius:8px}   /* sin el margen negativo: la columna fija pega al borde y no se asoma nada por debajo */
 #matriz td:first-child,#matriz th:first-child,#tipo-tabla td:first-child,#tipo-tabla th:first-child{position:sticky;left:0;background:#fff;z-index:1;box-shadow:2px 0 0 #e0e3f0}
@@ -173,6 +174,18 @@ const QUERY = ESPRUEBA ? '?prueba=1' : '';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fecha = s => { const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? m[3] + '-' + m[2] + '-' + m[1] : (s || '—'); };
+// v180 (Diego Orta, 20-oct-2026): el número …-SEM-261008 lleva el lunes de la semana, no el día en que se generó (así desde el r55
+// del relevo, y no se cambia). La página y el PDF lo dicen en palabras: «Semana del 08 al 14-oct · generado el 20-oct por …».
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const corta = s => { const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[3] + '-' + MESES[+m[2] - 1] : ''; };
+const hoyIso = () => { const h = new Date(); return h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0') + '-' + String(h.getDate()).padStart(2, '0'); };
+function semanaTxt(desde, hasta) {
+  const a = String(desde || ''), b = String(hasta || '');
+  return 'Semana del ' + (a.slice(0, 7) === b.slice(0, 7) ? a.slice(8, 10) : corta(a)) + ' al ' + corta(b);
+}
+function semanaGenerada(desde, hasta, generado, quien) {
+  return semanaTxt(desde, hasta) + (corta(generado) ? ' · generado el ' + corta(generado) : '') + (quien ? ' por ' + corto(quien) : '');
+}
 let DATA = null;
 
 // ── Arranque ──
@@ -288,12 +301,11 @@ function pintar() {
   $('sin-informes').hidden = d.nInformes > 0;
   $('sin-informes').textContent = 'No llegó ningún informe de ' + T.nombre + ' de ' + lugarTxt + ' entre el ' + fecha(d.desde) + ' y el ' + fecha(d.hasta) + (d.conPruebas ? ' (ni de prueba)' : '') + '. Revise las fechas o, si es así, escriba abajo qué pasó esta semana.';
   $('membrete').innerHTML =
-    '<div><b>Semana:</b> del ' + fecha(d.desde) + ' al ' + fecha(d.hasta) + '</div>' +
+    '<div class="linea-semana" id="linea-semana">' + esc(semanaGenerada(d.desde, d.hasta, d.generado, d.quien)) + '</div>' +
     '<div><b>Informes de la semana:</b> ' + d.nInformes + (d.tipo === 'obra' ? ' (' + d.apartamentos.length + ' apartamento' + (d.apartamentos.length === 1 ? '' : 's') + (d.torreInforme ? ' y la torre' : '') + ')' : '') + '</div>' +
     '<div><b>Inspección:</b> ' + (d.inspectores.length ? esc(d.inspectores.join(' · ')) : '—') + '</div>' +
     '<div><b>Valida:</b> ' + esc(d.quien) + '</div>' +
-    (d.carpeta ? '<div><b>Carpeta:</b> ' + enlace(d.carpeta, 'abrir en Drive') + '</div>' : '') +
-    '<div><b>Generado:</b> ' + esc(String(d.generado || '').replace(/^(\d{4})-(\d{2})-(\d{2})/, (x, a, m, dd) => dd + '-' + m + '-' + a)) + '</div>';
+    (d.carpeta ? '<div><b>Carpeta:</b> ' + enlace(d.carpeta, 'abrir en Drive') + '</div>' : '');
   if (d.tipo === 'obra') {
     $('bloque-tipo').hidden = true; $('bloque-torre').hidden = false; $('bloque-aptos').hidden = false; $('notas-titulo').textContent = '5 · Notas de la semana';
     pintarObra(d, d.hitos.filter(h => h.apto), d.hitos.filter(h => h.torre));
@@ -398,7 +410,7 @@ function cargarBorrador() {
   const av = $('aviso-archivado');
   if (a && (usarArchivado || hayLocal)) {
     const cuando = String(a.guardado || '').replace(/^(\d{4})-(\d{2})-(\d{2})/, (x, y, m, d) => d + '-' + m + '-' + y);
-    av.innerHTML = '📄 <b>Esta semana ya tiene un compilado archivado</b> (' + esc(a.coordinadora || 'sin nombre') + (cuando ? ', ' + esc(cuando) : '') + '). ' +
+    av.innerHTML = '📄 <b>Esta semana ya tiene un compilado archivado</b> (generado el ' + esc(corta(a.guardado) || cuando || '—') + ' por ' + esc(corto(a.coordinadora) || 'sin nombre') + '). ' +
       (usarArchivado ? 'Sus textos están cargados abajo: revíselos, corrija lo que haga falta y toque «Enviar el compilado». Lo que envíe <b>reemplaza</b> al archivado, con su nombre.'
                      : 'Abajo está lo que usted escribió en este equipo y todavía no envió; si lo envía, <b>reemplaza</b> al archivado.');
     av.hidden = false;
@@ -486,7 +498,7 @@ async function enviar() {
     if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
     ENVIADO = true; $('btn-enviar').textContent = '📤 Enviar de nuevo';
     DATA.archivado = { numero: res.numero, coordinadora: DATA.quien, guardado: res.guardado || '', textos: t }; $('aviso-archivado').hidden = true;   // v172: lo archivado ahora es esto
-    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + (DATA.torre === 'URBANISMO' ? ' en General › ' + (DATA.tipo === 'urbanismo' ? 'Urbanismo' : DATA.tipo === 'sha' ? 'SHA' : 'Servicios') + ' del sector' : ' en la carpeta de la ' + (DATA.tipo === 'urbanismo' ? 'manzana' : 'torre')) + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal. Si cambia algo, toque «Enviar de nuevo»: reemplaza el archivo.', 'bien');
+    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + ' (' + esc(semanaGenerada(DATA.desde, DATA.hasta, res.guardado || hoyIso(), DATA.quien)) + ')' + (DATA.torre === 'URBANISMO' ? ' en General › ' + (DATA.tipo === 'urbanismo' ? 'Urbanismo' : DATA.tipo === 'sha' ? 'SHA' : 'Servicios') + ' del sector' : ' en la carpeta de la ' + (DATA.tipo === 'urbanismo' ? 'manzana' : 'torre')) + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal. Si cambia algo, toque «Enviar de nuevo»: reemplaza el archivo.', 'bien');
     try { localStorage.removeItem(claveBorrador()); } catch (e) {}
   } catch (e) {
     const m = String(e && e.message || e);

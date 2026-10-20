@@ -9661,6 +9661,22 @@ function toggleP(id){""",
 RESIDENTES_JS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "comun", "residentes.js"), encoding="utf-8").read()
 s = sustituir(s, "function toggleP(id){", RESIDENTES_JS + "\nfunction toggleP(id){", "191· residentes como lista desplegable")
 
+# ── 192. Lo que no debe salir en «Enviar todos» (20-oct-2026) ───────────────────────────────────────────────────
+# El 20-oct una inspectora vació su teléfono con «Enviar todos» y salieron borradores viejos: creados el 13-oct con fecha
+# 5-oct, apartamentos a medias («A», «B», «B-1» en una torre de A1, A2, B1, B2) y uno sin nada medido. Hubo que limpiarlos a
+# mano en Drive, en el registro y en Smartsheet. Tres frenos —la fecha que no es hoy se pregunta una vez al elegirla (criterio
+# de Stephanie del 20-oct), el apartamento a medias no sale y lo que no tiene nada medido tampoco— en
+# comun/antes_de_enviar.js, el mismo de servicios, SHA y urbanismo. Va al final, después de todo lo que envuelve el
+# guardado, el envío y la lista (153, 172, 173, 176, 189), para ser lo primero que corre.
+ANTES_DE_ENVIAR_JS = open(os.path.join(RAIZ, "comun", "antes_de_enviar.js"), encoding="utf-8").read()
+# 193 · El teléfono no se duerme mientras envía (Diego Orta, 20-oct-2026): comun/pantalla_encendida.js, después del 192 para
+# envolver lo que él ya envolvió.
+PANTALLA_ENCENDIDA_JS = open(os.path.join(RAIZ, "comun", "pantalla_encendida.js"), encoding="utf-8").read()
+s = sustituir(s,
+ "if ('serviceWorker' in navigator) {\n  window.addEventListener('load', function(){\n    navigator.serviceWorker.register('sw.js')",
+ ANTES_DE_ENVIAR_JS + "\n" + PANTALLA_ENCENDIDA_JS + "\nif ('serviceWorker' in navigator) {\n  window.addEventListener('load', function(){\n    navigator.serviceWorker.register('sw.js')",
+ "192· fecha que no es hoy, apartamento a medias y nada medido · 193· pantalla encendida al enviar")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

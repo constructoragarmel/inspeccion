@@ -1907,17 +1907,19 @@ async function enviar(){
   }
   if (!f.length) guardar(false);
 
-  const pendientes = listaGuardada().filter(x => !x.enviado && !faltan(x).length);
+  // 192: lo que no tiene nada medido se queda (comun/antes_de_enviar.js).
+  const pendientes = listaGuardada().filter(x => !x.enviado && !faltan(x).length && !(typeof _fueraDeTanda192 === 'function' && _fueraDeTanda192(x)));
+  const fuera = (typeof _resumenFuera192 === 'function') ? _resumenFuera192() : '';
   if (!pendientes.length){
     // «Informes» cuenta como pendiente todo lo no enviado, también lo que está a
     // medias; decir aquí «no hay pendientes» con ocho en la lista confundía
     // (QC de SHA del 17-sep). Se dice cuáles y qué les falta.
     const aMedias = listaGuardada().filter(x => !x.enviado && faltan(x).length);
-    alert(aMedias.length
+    alert((aMedias.length
       ? 'No hay informes listos para enviar. Hay ' + aMedias.length + ' guardado(s) a medias:\\n\\n' +
         aMedias.slice(0, 5).map(x => x.nro + ': falta ' + faltan(x).join(', ')).join('\\n') +
         (aMedias.length > 5 ? '\\n\u2026' : '') + '\\n\\n\u00c1bralos desde Informes y compl\u00e9telos, o b\u00f3rrelos.'
-      : 'No hay informes pendientes de enviar.');
+      : (fuera ? 'No hay informes listos para enviar.' : 'No hay informes pendientes de enviar.')) + fuera);
     return;
   }
   if (!confirmarSinRevisar(pendientes)) return;
@@ -1935,7 +1937,7 @@ async function enviar(){
 
   actualizarContador();
   alert((bien ? '✓ ' + bien + ' informe(s) enviado(s) a Drive.\\n\\n' : '') +
-        (fallos.length ? '✗ ' + fallos.length + ' sin enviar — siguen guardados aquí:\\n\\n' + fallos.join('\\n\\n') : ''));
+        (fallos.length ? '✗ ' + fallos.length + ' sin enviar — siguen guardados aquí:\\n\\n' + fallos.join('\\n\\n') : '') + fuera);
 }
 
 // ── Vista previa del informe (v115, 2-oct-2026) ─────────────────────────────
@@ -2143,6 +2145,17 @@ JS = JS.replace(_ANCLA_SW, OFICINA_COPIAR_JS + "\n" + _ANCLA_SW)
 # Diego Orta. El código vive en comun/residentes.js y es el mismo de obra (construir.py, cambio 191).
 RESIDENTES_JS = open(os.path.join(RAIZ, "comun", "residentes.js"), encoding="utf-8").read()
 JS = JS.replace(_ANCLA_SW, RESIDENTES_JS + "\n" + _ANCLA_SW)
+
+
+# ── Lo que no debe salir en «Enviar todos» (v180, 20-oct-2026) ───────────────
+# La fecha que no es hoy se pregunta una vez al elegirla, y lo que no tiene nada medido no sale en «Enviar todos»: los mismos
+# frenos de obra (construir.py, cambio 192; el del apartamento no aplica aquí). El código vive en
+# comun/antes_de_enviar.js; va el último, para envolver lo que ya envolvieron ubicacion.js y oficina_copiar_motor.js.
+ANTES_DE_ENVIAR_JS = open(os.path.join(RAIZ, "comun", "antes_de_enviar.js"), encoding="utf-8").read()
+JS = JS.replace(_ANCLA_SW, ANTES_DE_ENVIAR_JS + "\n" + _ANCLA_SW)
+# Y el teléfono no se duerme mientras envía (Diego Orta, 20-oct-2026; obra, cambio 193): comun/pantalla_encendida.js.
+PANTALLA_ENCENDIDA_JS = open(os.path.join(RAIZ, "comun", "pantalla_encendida.js"), encoding="utf-8").read()
+JS = JS.replace(_ANCLA_SW, PANTALLA_ENCENDIDA_JS + "\n" + _ANCLA_SW)
 
 
 # ══════════════════════════════════════════════════════════════════════════

@@ -63,7 +63,7 @@ Q.fallo13 = _falloAlAbrir.length;
 
 // ── 14. Enviado y editado después: se marca, se ve y se reenvía; sin cambios no se marca ──
 localStorage.setItem('garmel_reports_list', '[]'); await limpiar();
-const e1 = await nuevo('ED1', '8', '2');
+const e1 = await nuevo('B2', '8', '2');   // v180: «ED1» ya no sale en la T-07 (192)
 await _enviarUno(lista()[0], 'qc');
 loadDraftData(0); await esperar(300); saveDraft(true); await esperar(100);
 const sinCambio = lista()[0].editadoTras;

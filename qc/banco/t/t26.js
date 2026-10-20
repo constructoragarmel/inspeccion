@@ -1,4 +1,5 @@
 // INFORME ANTERIOR (cambio 151, 29-sep-2026): cinco QC en inspeccion.html, contra el relevo falso.
+// v180 (20-oct-2026): los apartamentos «A», «B», «C» pasaron a A1, B1, B2: en la T-07 de Ezequiel Zamora los otros ya no salen (192).
 localStorage.setItem('garmel_rol', 'inspector');
 localStorage.setItem('garmel_clave_envio', 'qc');
 const put = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -27,11 +28,11 @@ const medir = () => {
 await Q.relevo({ caido: false, fallar: [], lento: 0, borrar: true });
 
 // ── 1. Del mismo teléfono ──
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 05', 'A');
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 05', 'A1');
 await esperar(900);
 const antesDeMedir = aviso();
 medir(); saveDraft(true); await esperar(200);
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 05', 'A');
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 05', 'A1');
 const a1 = await esperarAviso();
 document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
 ok('1 · Mismo apartamento guardado en el teléfono: ofrece traerlo y trae mediciones (no la evaluación)',
@@ -41,12 +42,12 @@ ok('1 · Mismo apartamento guardado en el teléfono: ofrece traerlo y trae medic
    'aviso: «' + a1.slice(0, 70) + '» · tomas ' + pct('hito_acc_electricos_0') + ' · frisos ' + pct('hito_acabados_0'));
 
 // ── 2. Del archivo (otro teléfono): se envía, se borra lo local y se vuelve a pedir ──
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 06', 'B');
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 06', 'B1');
 await esperar(900); document.querySelector('#aviso-anterior .no')?.click();
 medir(); document.getElementById('btn-enviar-relevo').disabled = false; refrescarEstadoClave();
 await enviarAlRelevo(); await esperar(600);
 localStorage.setItem('garmel_reports_list', '[]');
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 06', 'B');
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 06', 'B1');
 const a2 = await esperarAviso();
 document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
 ok('2 · Sin nada en el teléfono, lo trae del archivo (relevo) y vuelca las mediciones',
@@ -54,7 +55,7 @@ ok('2 · Sin nada en el teléfono, lo trae del archivo (relevo) y vuelca las med
    'aviso: «' + a2.slice(0, 80) + '» · ducha ' + pct('hito_acc_sanitarios_0'));
 
 // ── 3. Apartamento nuevo: ofrece las cantidades «hay» de otro de la torre ──
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 07', 'C');
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 07', 'B2');
 const a3 = await esperarAviso();
 document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
 const pr3 = document.getElementById('pr_hito_acc_electricos_0').value, ej3 = document.getElementById('ej_hito_acc_electricos_0').value;
@@ -65,14 +66,14 @@ ok('3 · Apartamento sin informe: copia solo las cantidades «hay» (no las pues
 // ── 4. Cuándo NO ofrece ──
 await limpiar(); setAmbito('apartamento'); cabecera();
 put('pr_hito_acc_electricos_0', '9');                                         // ya hay algo medido
-sel('piso', 'Piso 05'); put('apto', 'A'); await esperar(1500);
+sel('piso', 'Piso 05'); put('apto', 'A1'); await esperar(1500);
 const conMedida = aviso();
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 05', 'A');
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 05', 'A1');
 await esperarAviso(); document.querySelector('#aviso-anterior .no')?.click(); await esperar(200);
-put('apto', 'A '); await esperar(1200); const trasNo = aviso();                 // mismo apartamento: no insiste
-put('apto', 'B'); const otro = await esperarAviso();                            // otro: vuelve a ofrecer
+put('apto', 'A1 '); await esperar(1200); const trasNo = aviso();                 // mismo apartamento: no insiste
+put('apto', 'B1'); const otro = await esperarAviso();                            // otro: vuelve a ofrecer
 put('pr_hito_acc_electricos_1', '4'); saveDraft(true); await esperar(200);   // un borrador que abrir…
-const idx = getSavedReports().findIndex(b => b.apto === 'B' && b.piso === 'Piso 05');
+const idx = getSavedReports().findIndex(b => b.apto === 'B1' && b.piso === 'Piso 05');
 Q.aceptar = true; loadDraftData(idx); await esperar(1500); const alEditar = aviso();
 ok('4 · No ofrece si ya hay algo medido, ni tras decir «No», ni al abrir un borrador; sí al cambiar de apartamento',
    conMedida === '' && trasNo === '' && otro.length > 0 && alEditar === '',

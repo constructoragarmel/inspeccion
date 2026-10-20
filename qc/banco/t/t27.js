@@ -1,4 +1,6 @@
 // INFORME ANTERIOR · tanda 2 de 5 — BORDES (29-sep-2026), contra el relevo falso.
+// v180 (20-oct-2026): «A» y «B» pasaron a A1 y B1, y el «4» = «04» se prueba en la T-04 de Simón Rodríguez, que no tiene lista:
+// en la T-07 de Ezequiel Zamora un apartamento sin la forma de la lista ya no sale (192).
 localStorage.setItem('garmel_rol', 'inspector');
 localStorage.setItem('garmel_clave_envio', 'qc');
 const put = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -6,9 +8,9 @@ const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.d
 const pct = rid => (document.getElementById('pct_' + rid)?.innerText || '').trim();
 const aviso = () => (document.getElementById('aviso-anterior')?.innerText || '').trim();
 const limpiar = async () => { Q.aceptar = true; nuevoFormulario(); await esperar(300); };
-const cabecera = (piso, apto, fecha) => {
+const cabecera = (piso, apto, fecha, sinLista) => {
   sel('fecha', fecha || '2026-09-29');
-  sel('torre', 'T-07'); sel('convenio', 'Convenio Bielorrusos');
+  if (sinLista) { sel('convenio', 'Convenio Rusos'); sel('torre', 'T-04'); } else { sel('torre', 'T-07'); sel('convenio', 'Convenio Bielorrusos'); }
   const emp = [...document.getElementById('empresa').options].map(o => o.value);
   sel('empresa', emp.find(x => /ALNAVIC/i.test(x)) || emp[1]);
   const insp = document.querySelector('.inspector-select');
@@ -22,21 +24,21 @@ const enviar = async () => { document.getElementById('btn-enviar-relevo').disabl
 await Q.relevo({ caido: false, fallar: [], lento: 0, borrar: true });
 
 // ── 1. Dos informes anteriores del mismo apartamento: trae el más reciente ──
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 08', 'A', '2026-09-20'); await cerrarAviso();
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 08', 'A1', '2026-09-20'); await cerrarAviso();
 put('pr_hito_acc_electricos_0', '5'); put('ej_hito_acc_electricos_0', '1'); currentEditingIndex = null; _idEnEdicion = null; saveDraft(true);
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 08', 'A', '2026-09-28'); await cerrarAviso();
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 08', 'A1', '2026-09-28'); await cerrarAviso();
 put('pr_hito_acc_electricos_0', '5'); put('ej_hito_acc_electricos_0', '4'); currentEditingIndex = null; _idEnEdicion = null; saveDraft(true);
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 08', 'A', '2026-09-29');
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 08', 'A1', '2026-09-29');
 const a1 = await esperarAviso(); document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
 ok('1 · Con dos informes del mismo apartamento trae el más reciente (28-sep: 4 de 5)',
    /2026-09-28/.test(a1) && pct('hito_acc_electricos_0') === '80%', '«' + a1.slice(0, 60) + '» · tomas ' + pct('hito_acc_electricos_0'));
 
 // ── 2. Un borrador de la lista anterior no se ofrece ──
-const lista2 = getSavedReports().filter(b => !(b.piso === 'Piso 08' && b.apto === 'A'));
-const viejo = { id: 'v1-p09', formType: 'detallado', ambito: 'apartamento', torre: 'T-07', piso: 'Piso 09', apto: 'A', fecha: '2026-09-27',
+const lista2 = getSavedReports().filter(b => !(b.piso === 'Piso 08' && b.apto === 'A1'));
+const viejo = { id: 'v1-p09', formType: 'detallado', ambito: 'apartamento', torre: 'T-07', piso: 'Piso 09', apto: 'A1', fecha: '2026-09-27',
                 partidas: { hito_acc_electricos: [{ pr: '5', ej: '5', ud: 'pza' }, {}, {}, {}, {}] }, noInspeccionados: [], fotos: {}, fotobs: {} };
 localStorage.setItem('garmel_reports_list', JSON.stringify(lista2.concat([viejo])));
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 09', 'A');
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 09', 'A1');
 await esperar(2500);
 const a2 = aviso();
 ok('2 · Un borrador de la lista anterior (53) del mismo apartamento no se ofrece como informe anterior',
@@ -45,11 +47,11 @@ ok('2 · Un borrador de la lista anterior (53) del mismo apartamento no se ofrec
 // ── 3. Relevo caído y sin clave: ni aviso roto ni error, y el formulario sigue ──
 localStorage.setItem('garmel_reports_list', '[]');
 await Q.relevo({ caido: true });
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 10', 'A');
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 10', 'A1');
 const t0 = Date.now(); await esperar(3000);
 const a3 = aviso(), errores3 = Q.R.filter(r => /pageerror|unhandled/.test(r.n)).length;
 localStorage.removeItem('garmel_clave_envio');
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 10', 'B'); await esperar(1500);
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 10', 'B1'); await esperar(1500);
 const a3b = aviso();
 localStorage.setItem('garmel_clave_envio', 'qc');
 await Q.relevo({ caido: false });
@@ -59,11 +61,11 @@ ok('3 · Con el relevo caído o sin clave no aparece aviso ni error, y se sigue 
    'caído «' + a3.slice(0, 20) + '» · sin clave «' + a3b.slice(0, 20) + '» · errores ' + errores3 + ' · ' + (Date.now() - t0) + ' ms');
 
 // ── 4. Lo traído se envía, y la evaluación vuelve vacía ──
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 11', 'A'); await cerrarAviso();
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 11', 'A1'); await cerrarAviso();
 put('pr_hito_acc_electricos_0', '6'); put('ej_hito_acc_electricos_0', '3'); setEv(document.querySelector('.ev-btn.M[data-rid="hito_acc_electricos_0"]'));
 await enviar();
 localStorage.setItem('garmel_reports_list', '[]');
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 11', 'A');
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 11', 'A1');
 await esperarAviso(); document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
 put('ej_hito_acc_electricos_0', '5');
 await enviar();
@@ -74,11 +76,11 @@ ok('4 · Se trae del archivo, se corrige una fila y se envía: llegan 5 de 6 y s
 
 // ── 5. Apartamento «4» y «04» son el mismo para el archivo ──
 localStorage.setItem('garmel_reports_list', '[]');
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 12', '4'); await cerrarAviso();
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 12', '4', null, true); await cerrarAviso();
 put('pr_hito_acc_sanitarios_0', '3'); put('ej_hito_acc_sanitarios_0', '3');
 await enviar();
 localStorage.setItem('garmel_reports_list', '[]');
-await limpiar(); setAmbito('apartamento'); cabecera('Piso 12', '04');
+await limpiar(); setAmbito('apartamento'); cabecera('Piso 12', '04', null, true);
 const a5 = await esperarAviso();
 ok('5 · El apartamento «4» y el «04» son el mismo: el número de informe los iguala y el archivo lo encuentra',
    /Este apartamento ya tiene un informe/.test(a5) && /del archivo/.test(a5), '«' + a5.slice(0, 70) + '»');

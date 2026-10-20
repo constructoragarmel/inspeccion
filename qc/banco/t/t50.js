@@ -26,7 +26,7 @@ const cabecera = () => {
   insp.value = [...insp.options].map(o => o.value).filter(Boolean)[0]; insp.dispatchEvent(new Event('change', { bubbles: true }));
   const res = document.querySelector('#residentes-container input'); if (res) put(res.id || (res.id = 'res0'), 'Ing. Prueba');
   if (!document.querySelector('#estatus .ck-lbl.on')) document.querySelector('#estatus .ck-lbl').click();
-  sel('piso', 'Piso 03'); put('apto', 'A');
+  sel('piso', 'Piso 03'); put('apto', 'A1');   // v180: «A» ya no sale en la T-07 (192)
 };
 // Las filas del ámbito, por forma de medir
 const filasDe = tipo => { const out = []; _hitosDelAmbito().forEach(p => p.items.forEach((_, i) => { if (!_aplica(p.id, i)) return; const rid = p.id + '_' + i;

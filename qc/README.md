@@ -861,3 +861,43 @@ sector desde que las manzanas se filtran por sector, y fallaba igual con la v177
 detrás de `t101` en la misma página da 3/4 y sola 4/4. Regresión: 33 tandas sin ventana y a la vista `t33`, `t90`, `t93`, `t101`,
 `t108`, `t66` (obra), `t102`, `t105`, `t109`, `t91`, `t94`, `t74` (SHA), `t109`, `t91`, `t94`, `t74` (servicios), `t106`, `t110`, `t59`,
 `t74`, `t8` (urbanismo), todas en verde.
+
+
+**v180 (20-oct-2026): lo que no debe salir en «Enviar todos» (cambio 192, `comun/antes_de_enviar.js`), el teléfono despierto
+mientras envía (cambio 193, `comun/pantalla_encendida.js`) y dos pedidos de Diego Orta en el compilado.** El 20-oct una inspectora
+vació el teléfono con «Enviar todos» y salieron borradores viejos de la T-16: hechos el 13-oct con fecha 5-oct (una sola fecha mal
+elegida y arrastrada con «Siguiente apto.»), con el apartamento a medias («A», «B», «B-1») y uno sin nada medido. Tres frenos, en el
+mismo archivo para los cuatro formularios:
+1 · **la fecha que no es hoy** se pregunta una sola vez, al elegirla en el selector («La fecha que eligió es el 05-oct, no hoy
+(13-oct). ¿Es correcta?»); con «no» vuelve la que había. No se repite al pasar de apartamento o de torre, ni al abrir un borrador, ni al
+guardar o enviar (criterio de Stephanie del 20-oct, que reemplazó al primero, «más de dos días, al guardar y al enviar»). Al pasar al
+siguiente con una fecha que no es hoy, un aviso la muestra. 2 · **el apartamento a medias** (solo obra, donde la torre tiene lista:
+Ezequiel Zamora y J-09 a J-12 de Simón Bolívar) no sale y se marca en «Informes»; «B-1» y «b1» pasan solos a «B1»; uno con la forma de
+la lista pero fuera de ella («C1») pasa, como decidió el 181. En servicios el «Apto / área» admite áreas y en SHA y urbanismo esas filas
+son hallazgos y manzanas: no aplica. 3 · **sin nada medido** (en obra ninguna ejecutada, evaluación, Sí/No ni %; en los otros tres
+ninguna respuesta, cantidad, camión, maquinaria, fila con algo, incidencia ni obstáculo; la proyectada no cuenta) no sale en «Enviar
+todos», queda marcado «Vacío, no se envía» y se borra con 🗑️ Borrar; enviado de a uno se pregunta antes.
+**Pantalla encendida** (Diego Orta): Android congela la página con el teléfono en reposo y una PWA no sube en segundo plano. Desde la
+primera llamada al relevo de un envío (uno o todos, en los cuatro) se pide `navigator.wakeLock.request('screen')`, se vuelve a pedir si
+la página vuelve a verse y se suelta al terminar o fallar; arriba queda «Mantenga la app abierta y el teléfono desbloqueado hasta que
+termine». Sin Wake Lock solo sale el aviso. **Compilado**: Eduardo Rivero entra en «Quién valida» como coordinador de urbanismo (al
+final de `COORDINADORES`), y la página dice «Semana del 08 al 14-oct · generado el 13-oct por Diego Orta» en vez de «Semana» y
+«Generado» sueltos, también en el aviso al enviar y en el de lo ya archivado: el número `…-SEM-261008` lleva el lunes de la semana (r55)
+y se leía como la fecha de generación; no se cambia. El PDF que archiva el relevo dice lo mismo desde el r71 (preparado, sin desplegar).
+Tandas nuevas, todas en el navegador a 375 × 812: `t112` (obra: el teléfono del 20-oct con 8 borradores de la T-16 y uno de hoy, marcas,
+«Guardar» y «Enviar» de uno, formas de apartamento, informe de torre, lista para la oficina; 11/11), `t113` (servicios, SHA y urbanismo:
+lo mismo sin apartamentos; 7/7 en los tres), `t114` (obra: el caso de la fecha, «estando» en el 13-oct con `_hoy192`: elegir el 5-oct,
+decir que sí y pasar tres apartamentos sin otra pregunta; el «no»; hoy no pregunta; a las 23:30 cuenta la hora del teléfono; 9/9),
+`t115` (lo mismo con «Sig. torre» en los otros tres; 6/6 en los tres), `t116` (el Wake Lock sustituido por uno que cuenta: aviso y
+bloqueo durante «Enviar todos» y de uno, se pide otra vez al volver a verse, nada si se cancela, sin Wake Lock solo el aviso, y un envío
+cortado a la mitad queda enviado y no se repite; 7/7 en los cuatro) y `t117` (compilado: Eduardo al final y la línea de la semana, en la
+página, al enviar, en lo archivado y entre dos meses; 6/6). Las tandas que eligen una fecha vieja con `change` ven ahora una pregunta más,
+que `Q.aceptar` contesta. Expectativas vencidas corregidas sin quitar comprobaciones: `t26`, `t27`, `t34` y `t50` usaban en la T-07
+apartamentos «A», «B», «C», «ED1» y «4», que ya no salen: pasaron a A1, B1, B2, y el «4» = «04» se prueba en la T-04 de Simón
+Rodríguez, que no tiene lista; `t98` esperaba seis coordinadores. Regresión: sin ventana 31 tandas de obra en verde y `t33`-9, `t90`,
+`t93` y `t108` fallan igual con la v179 (temporizadores), así que van a la vista; urbanismo `t19`, `t46`, servicios `t40`, `t53`, `t63`,
+`t73`, `t80`, `t103`, `t104`, SHA `t41`, `t57`, `t105`, `t107` y compilado `t78`, `t79`, `t83`, `t84`, `t95`, `t97`, `t98`, `t111` en
+verde. A la vista: obra `t32`, `t33`, `t34`+`t34b`, `t90`, `t93`, `t101`, `t108`; servicios `t36`, `t61`, `t74` (con `?oficina=1`),
+`t75`, `t91`, `t94`, `t109`; SHA `t12`, `t38`, `t54`, `t74`, `t91`, `t102`, `t109`; urbanismo `t37`, `t55`, `t59`, `t74`, `t85`, `t89`,
+`t91`, `t106`, `t110`: todas en verde. SHA `t6` da 28/30 (la pestaña «Obstáculos» que no esperaba y una reapertura de incidencias) y la
+v179 en la misma corrida 14/30: no es de esta versión.
