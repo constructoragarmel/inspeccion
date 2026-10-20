@@ -759,6 +759,16 @@ la v176: sin ventana `t21`–`t24`, `t26`, `t87`, `t88`, `t92`, `t100`, `t19`, `
 `t95`–`t99` en verde; a la vista `t33` 5/5, `t90` 6/6, `t93` 5/5, `t59` 15/15, y `t91` 4/4 y `t94` 3/3 en servicios, SHA y
 urbanismo (la `t94` de servicios corrida justo detrás de la `t91` dio 2/3 y sola 3/3: la trampa de arriba).
 
+**`t101` (20-oct-2026, v177, cambio 189): «Quitar copias de informes ya enviados».** Stephanie: que envíen lo que tienen y que
+puedan quitar las copias, «pero que les dé seguridad que ya se enviaron las que no son copias». Una copia es un informe sin número del
+mismo lugar que otro con número guardado antes; se quita solo si ese original ya se envió y la copia no tiene nada que él no tenga, y el
+aviso lista cada original con ✅. «Enviar todos» deja fuera las copias («es copia de …»). Trece comprobaciones armadas sobre la forma de
+las dos copias reales (T-52: menos que el original, se quita; T-46: una «ejecutada 0» de más, no se quita y se nombra para revisar),
+con el original sin enviar, una foto de más, otro apartamento, «Cancelar», tres copias de un original, las fotos que se borran, la copia
+abierta en pantalla, y de punta a punta contra el relevo falso «Enviar todos» → «Quitar copias». A la vista 13/13; `t33` 5/5, `t90` 6/6,
+`t93` 5/5, y sin ventana la regresión de obra en verde (la `t21` corrida a la par de una tanda a la vista dio 5/6 y sola 6/6: comparten
+el contador de envíos del relevo falso, así que no se corren dos baterías a la vez).
+
 **`t99` (16-oct-2026, v174, relevo r68): urbanismo y SHA también por «todo el urbanismo».** Planificación pidió el día del corte
 el compilado de urbanismo de todo el sector, y Stephanie sumó SHA (sus láminas van por contratista) y a Miguel Ávila en «quién valida».
 Ocho comprobaciones en `compilado.html?prueba=1` a 375 × 812: la opción sale primera en urbanismo («todas las manzanas y la zona») y en

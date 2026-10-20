@@ -9523,6 +9523,118 @@ s = sustituir(s,
 </script>""",
  "188· el navegador no repone las casillas al volver a la app")
 
+# ── 189. «Quitar copias» en «Informes» (20-oct-2026) ──────────────────────────────────────────────────────────
+# Stephanie: que las inspectoras envíen lo que tienen y que puedan quitar las copias que dejó el defecto del cambio
+# 188, «pero que les dé seguridad que ya se enviaron las que no son copias». Una copia es un informe SIN número (a
+# medias) del mismo lugar —torre, ámbito, vista, piso y apartamento— que otro CON número guardado antes. Se quita
+# solo si (1) ese original ya está enviado y (2) la copia no tiene nada que el original no tenga: cada cantidad,
+# evaluación, Sí/No, texto y foto de la copia está igual en el original. Así se quitó la de la T-52 (19-oct). La de
+# la T-46 (14-oct) tenía una «ejecutada 0» que el original no: esas no se quitan, se nombran para revisar. Antes
+# de quitar, el aviso lista cada original con ✅ enviado. Solo en obra: los otros tres no hacían copias (ver 188).
+s = sustituir(s,
+ """            onclick="mandarListaOficina()">📤 Mandar la lista a la oficina (por WhatsApp)</button>""",
+ """            onclick="mandarListaOficina()">📤 Mandar la lista a la oficina (por WhatsApp)</button>
+    <button type="button" class="s-btn" id="btn-quitar-copias" style="width:100%;margin:10px 0 0;background:#fff7ed;color:#9a3412;border-color:#fed7aa"
+            onclick="quitarCopias189()">🧹 Quitar copias de informes ya enviados</button>""",
+ "189a· el botón «Quitar copias» en «Informes»")
+s = sustituir(s,
+ "function toggleP(id){",
+ """// 189: las copias sin número que dejó el defecto del cambio 188. Solo se quitan si su original ya se envió y
+// la copia no tiene nada que el original no tenga.
+const _A_MEDIAS189 = /(^|-)XX-|-T---(-|$)|P--|A--|------|---$/;
+function _sinNumero189(b){ const n = String(b.nro || ''); return !n || _A_MEDIAS189.test(n); }
+function _lugar189(b){ return [b.torre, b.ambito || 'apartamento', b.vista || '', (b.ambito === 'torre') ? '' : (b.piso || ''), (b.ambito === 'torre') ? '' : (b.apto || '')].join('|'); }
+function _vacio189(v){ return v === undefined || v === null || String(v).trim() === ''; }
+function _texto189(c, o){ c = String(c || '').trim(); return !c || String(o || '').indexOf(c) >= 0; }
+function _contenida189(c, o){
+  const P = ['pr', 'ej', 'ev', 'sn', 'pct'];
+  const cp = c.partidas || {}, op = o.partidas || {};
+  for (const pid in cp) {
+    const a = cp[pid], b = op[pid];
+    if (Array.isArray(a)) {
+      for (let i = 0; i < a.length; i++) {
+        const f = a[i]; if (!f) continue;
+        const g = (Array.isArray(b) && b[i]) || {};
+        for (const k of P) if (!_vacio189(f[k]) && String(f[k]) !== String(g[k] || '')) return false;
+        if (!_texto189(f.obs, g.obs) || !_texto189(f.desc, g.desc)) return false;
+      }
+    } else if (a && typeof a === 'object') {
+      const g = b || {};
+      if (!_vacio189(a.pct) && String(a.pct) !== String(g.pct || '')) return false;
+      if (!_texto189(a.obs, g.obs)) return false;
+    }
+  }
+  const ce = c.extraRows || {}, oe = JSON.stringify(o.extraRows || {});
+  for (const k in ce) { const v = JSON.stringify(ce[k]); if (v && v !== '[]' && v !== '{}' && oe.indexOf(v) < 0) return false; }
+  const cf = c.fotobs || {}, of = o.fotobs || {};
+  for (const k in cf) if (!_texto189(cf[k], of[k])) return false;
+  for (const k of ['obs_general', 'obs_sp', 'actividades']) if (!_texto189(c[k], o[k])) return false;
+  const cuenta = function(x, k){ return ((x.fotos || {})[k] || []).filter(Boolean).length; };
+  for (const k in (c.fotos || {})) if (cuenta(c, k) > cuenta(o, k)) return false;
+  if ((c.noInspeccionados || []).some(function(h){ return (o.noInspeccionados || []).indexOf(h) < 0; })) return false;
+  return true;
+}
+// El original de una copia: con número, del mismo lugar, guardado antes (los id son la hora de creación).
+function _origDe189(c, lista){
+  if (!c || !_sinNumero189(c) || !c.torre || c.torre === '—') return null;
+  const lugar = _lugar189(c);
+  return lista.filter(function(o){ return o && o !== c && !_sinNumero189(o) && _lugar189(o) === lugar && String(o.id) < String(c.id); })
+              .sort(function(a, b){ return String(b.id) < String(a.id) ? -1 : 1; })[0] || null;
+}
+// «Enviar todos» no manda una copia: la deja fuera como deja fuera un incompleto, y dice de cuál es copia.
+if (typeof _faltanEn === 'function') {
+  const _faltanEnBase189 = _faltanEn;
+  _faltanEn = function(b){
+    const f = _faltanEnBase189.apply(this, arguments);
+    try { const o = _origDe189(b, getSavedReports()); if (o) f.push('número propio — es copia de ' + o.nro + '; quítela con 🧹 Quitar copias'); } catch (e) {}
+    return f;
+  };
+}
+function _copias189(){
+  const lista = getSavedReports();
+  const r = { quitar: [], esperan: [], revisar: [], originales: {} };
+  lista.forEach(function(c){
+    if (!c || !_sinNumero189(c) || !c.torre || c.torre === '—') return;
+    const orig = _origDe189(c, lista);
+    if (!orig) return;
+    if (!_contenida189(c, orig)) { r.revisar.push({ c: c, o: orig }); return; }
+    if (!orig.enviado) { r.esperan.push({ c: c, o: orig }); return; }
+    r.quitar.push({ c: c, o: orig });
+    r.originales[orig.nro] = (r.originales[orig.nro] || 0) + 1;
+  });
+  return r;
+}
+function quitarCopias189(){
+  const r = _copias189();
+  const lugar = function(x){ return x.c.torre + ((x.c.ambito === 'torre') ? '' : ' ' + (x.c.piso || '') + ' ' + (x.c.apto || '')); };
+  const resto = [];
+  if (r.esperan.length) resto.push('⏳ ' + r.esperan.length + ' copia(s) de informes que TODAVÍA NO SE ENVIARON. Primero envíe:\\n' +
+    r.esperan.map(function(x){ return '   · ' + x.o.nro; }).filter(function(v, i, a){ return a.indexOf(v) === i; }).join('\\n'));
+  if (r.revisar.length) resto.push('🔎 ' + r.revisar.length + ' informe(s) sin número con algo distinto a su original. No se quitan: ábralos en «Informes» y revise (' +
+    r.revisar.map(lugar).filter(function(v, i, a){ return a.indexOf(v) === i; }).join(', ') + ').');
+  if (!r.quitar.length) {
+    alert('✅ No hay copias para quitar en este teléfono.' + (resto.length ? '\\n\\n' + resto.join('\\n\\n') : ''));
+    return;
+  }
+  const lineas = Object.keys(r.originales).map(function(n){ return '   ✅ ' + n + ' — enviado' + (r.originales[n] > 1 ? ' (' + r.originales[n] + ' copias)' : ''); });
+  const ok = confirm('🧹 Hay ' + r.quitar.length + ' copia(s) sin número de informes que YA LLEGARON A DRIVE:\\n\\n' + lineas.join('\\n') +
+    '\\n\\nLas copias no tienen nada que el enviado no tenga. Se quitan solo de este teléfono; lo enviado sigue en Drive y no se toca.' +
+    (resto.length ? '\\n\\nNo se tocan:\\n' + resto.join('\\n\\n') : '') + '\\n\\n¿Quitar las ' + r.quitar.length + ' copias?');
+  if (!ok) return;
+  const fuera = {}; r.quitar.forEach(function(x){ fuera[x.c.id] = true; });
+  const quedan = getSavedReports().filter(function(b){ return !(b && fuera[b.id]); });
+  localStorage.setItem('garmel_reports_list', JSON.stringify(quedan));
+  Object.keys(fuera).forEach(function(id){ try { _fotosDel(id); } catch (e) {} });
+  if (_idEnEdicion && fuera[_idEnEdicion]) { currentEditingIndex = null; _idEnEdicion = null; }
+  else if (_idEnEdicion) { currentEditingIndex = quedan.findIndex(function(b){ return b && b.id === _idEnEdicion; }); if (currentEditingIndex < 0) currentEditingIndex = null; }
+  try { if (fuera[localStorage.getItem('garmel_actual')]) localStorage.removeItem('garmel_actual'); } catch (e) {}
+  renderSavedList(); actualizarContadores();
+  showToast('🧹 ' + r.quitar.length + ' copia(s) quitadas. Los enviados siguen en Drive.', 'ok');
+  if (resto.length) setTimeout(function(){ alert(resto.join('\\n\\n')); }, 400);
+}
+function toggleP(id){""",
+ "189b· qué es una copia, y quitarla solo si su original ya se envió")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
