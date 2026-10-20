@@ -34,6 +34,48 @@ let _sectorElegido = '';
 const _placeholders = { empresa: (document.getElementById('empresa') || {}).placeholder || '',
                         residente: (document.getElementById('residente') || {}).placeholder || '' };
 
+// ── SHA por manzana (v178, 20-oct-2026, Diego Orta: «hay reportes que son por manzanas») ──
+// Solo en SHA (trae EMPRESA_URB_SHA). Las manzanas del padrón de urbanismo ya están en TORRES_DATA con `m: 1`; aquí se
+// suman las que este teléfono conoce (las agregadas en urbanismo y en SHA) y se decide qué se ve: en «Manzana», solo
+// manzanas del sector; en los demás modos, solo torres. El relevo r70 la archiva en `Urbanismo › <manzana> › SHA`.
+const _CON_MANZANA = (typeof EMPRESA_URB_SHA !== 'undefined');
+const CLAVE_MZ_SHA = 'garmel_sha_manzanas';
+let _etiquetaTorre = (document.querySelector('label[for="torre"]') || {}).textContent || 'Torre';
+function _esManzanaT(t){ return !!(entradasDe(t)[0] || {}).m; }
+function _filaManzana(t, c){
+  const e = (typeof EMPRESA_URB_SHA !== 'undefined' && EMPRESA_URB_SHA[c]) || '';
+  return { t: t, c: c, e: e, r: (typeof RESIDENTE_URB_SHA !== 'undefined' && RESIDENTE_URB_SHA[e]) || '', m: 1 };
+}
+function _sumarManzana(t, c){
+  if (!t || !c || entradasDe(t).some(function(x){ return x.c === c; })) return;
+  TORRES_DATA.push(_filaManzana(t, c));
+  const sel = document.getElementById('torre');
+  if (![...sel.options].some(function(o){ return o.value === t; })) {
+    const o = document.createElement('option'); o.value = t; o.textContent = t;
+    const otra = [...sel.options].find(function(x){ return x.value === '__OTRA_MZ__'; });
+    sel.insertBefore(o, otra || null);
+  }
+}
+function _manzanasConocidas(){
+  let l = [];
+  [CLAVE_MZ_SHA, 'garmel_urb_manzanas'].forEach(function(k){ try { const v = JSON.parse(localStorage.getItem(k) || '[]'); if (Array.isArray(v)) l = l.concat(v); } catch(e){} });
+  return l.filter(function(m){ return m && m.t && m.c; });
+}
+function _normalManzana(v){
+  const r = String(v || '').trim().toUpperCase().replace(/\s+/g, ' ').replace(/^M\s*-?\s*/, '');
+  return r ? 'M-' + r : '';
+}
+function agregarManzanaSha(){
+  const inp = document.getElementById('mz-otra');
+  const t = _normalManzana(inp && inp.value), c = _sectorElegido || document.getElementById('convenio').value;
+  if (!c) { alert('Elija primero el sector.'); return; }
+  if (!t) { if (inp) inp.focus(); return; }
+  _sumarManzana(t, c);
+  try { const l = JSON.parse(localStorage.getItem(CLAVE_MZ_SHA) || '[]'); if (!l.some(function(m){ return m.t === t && m.c === c; })) { l.push({ t: t, c: c }); localStorage.setItem(CLAVE_MZ_SHA, JSON.stringify(l)); } } catch(e){}
+  document.getElementById('mz-otra-campo').hidden = true; if (inp) inp.value = '';
+  const sel = document.getElementById('torre'); sel.value = t; alElegirTorre();
+}
+
 (function(){
   const st = document.createElement('style');
   st.textContent =
@@ -41,6 +83,8 @@ const _placeholders = { empresa: (document.getElementById('empresa') || {}).plac
     '.donde button{flex:1 1 30%;min-height:44px;border:2px solid var(--azul);background:#fff;color:var(--azul);' +
     'border-radius:10px;font-weight:700;font-size:13px;padding:6px 8px;cursor:pointer}' +
     '.donde button.on{background:var(--azul);color:#fff}' +
+    '.donde.cuatro button{flex:1 1 45%}' +
+    '#mz-otra-campo{display:flex;gap:6px;margin-top:6px}#mz-otra-campo input{flex:1;min-height:44px}#mz-otra-campo button{min-height:44px;padding:0 14px;border-radius:10px;border:2px solid var(--azul);background:var(--azul);color:#fff;font-weight:700}' +
     '.donde-ayuda{font-size:12px;color:#475569;margin-top:6px}' +
     '#otras-lista{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}' +
     '.otra{display:inline-flex;align-items:center;gap:2px;background:var(--azul-cl);color:var(--azul);border-radius:16px;' +
@@ -52,8 +96,8 @@ const _placeholders = { empresa: (document.getElementById('empresa') || {}).plac
   const rej = torre.closest('.rejilla') || torre.closest('.campo').parentElement;
   const caja = document.createElement('div');
   caja.className = 'campo'; caja.id = 'campo-donde'; caja.style.gridColumn = '1 / -1';
-  caja.innerHTML = '<label>¿Dónde es?</label><div class="donde" role="radiogroup" aria-label="¿Dónde es?">' +
-    [['una', _TXT_DONDE.una], ['varias', _TXT_DONDE.varias], ['zona', 'Toda la zona']].map(function(x){
+  caja.innerHTML = '<label>¿Dónde es?</label><div class="donde' + (_CON_MANZANA ? ' cuatro' : '') + '" role="radiogroup" aria-label="¿Dónde es?">' +
+    [['una', _TXT_DONDE.una], ['varias', _TXT_DONDE.varias]].concat(_CON_MANZANA ? [['manzana', 'Manzana']] : []).concat([['zona', 'Toda la zona']]).map(function(x){
       return '<button type="button" role="radio" data-m="' + x[0] + '">' + x[1] + '</button>'; }).join('') +
     '</div><div class="donde-ayuda" id="donde-ayuda"></div>';
   rej.insertBefore(caja, rej.firstChild);
@@ -70,6 +114,14 @@ const _placeholders = { empresa: (document.getElementById('empresa') || {}).plac
   otras.innerHTML = '<label for="otra-lugar">También afecta a</label><div id="otras-lista"></div>' +
     '<select id="otra-lugar"></select><div class="otras-empresas" id="otras-empresas"></div>';
   torre.closest('.campo').after(otras);
+  if (_CON_MANZANA) {
+    const o = document.createElement('option'); o.value = '__OTRA_MZ__'; o.textContent = '＋ Otra manzana o lote'; torre.appendChild(o);
+    const mz = document.createElement('div'); mz.id = 'mz-otra-campo'; mz.hidden = true;
+    mz.innerHTML = '<input id="mz-otra" type="text" placeholder="Ej.: M-7 L2" autocapitalize="characters" aria-label="Manzana o lote">' +
+                   '<button type="button" onclick="agregarManzanaSha()">Agregar</button>';
+    torre.after(mz);
+    _manzanasConocidas().forEach(function(m){ _sumarManzana(m.t, m.c); });
+  }
   document.getElementById('otra-lugar').onchange = function(){
     const v = this.value; this.value = '';
     if (v && _otras.indexOf(v) < 0) { _otras.push(v); _alCambiarOtras(); }
@@ -103,10 +155,12 @@ function _opcionesSector(){
 function _torresDelSector(){
   if (!_SECTOR_PRIMERO) return;
   const sel = document.getElementById('torre');
+  const mz = _CON_MANZANA && _modoDonde === 'manzana';
   [...sel.options].forEach(function(o){
-    if (!o.value) { o.textContent = _sectorElegido ? '— Seleccione torre —' : '— Elija primero el sector —'; return; }
-    if (o.value === 'ZONA') return;
-    const ok = !_sectorElegido || (entradasDe(o.value) || []).some(function(x){ return x.c === _sectorElegido; });
+    if (!o.value) { o.textContent = !_sectorElegido ? '— Elija primero el sector —' : mz ? '— Seleccione manzana o lote —' : '— Seleccione torre —'; return; }
+    if (o.value === 'ZONA') { o.hidden = mz; o.disabled = mz; return; }   // v178: en «Manzana» no se ofrece toda la zona
+    if (o.value === '__OTRA_MZ__') { o.hidden = !(mz && _sectorElegido); o.disabled = o.hidden; sel.appendChild(o); return; }   // siempre al final
+    const ok = (!_sectorElegido || (entradasDe(o.value) || []).some(function(x){ return x.c === _sectorElegido; })) && (!_CON_MANZANA || _esManzanaT(o.value) === mz);
     o.hidden = !ok; o.disabled = !ok;
   });
 }
@@ -116,7 +170,7 @@ function _empresasDeTodas(){
 }
 // Empresa y residente de «Varias»: los de la principal más los de las demás.
 function _asignarATodas(){
-  if (_modoDonde !== 'varias') return;
+  if (_modoDonde !== 'varias' && _modoDonde !== 'manzana') return;
   const res = _unicos([_propios.residente].concat([].concat.apply([], _otras.map(function(t){ return _entradasDelSector(t).map(function(x){ return x.r; }); }))));
   document.getElementById('empresa').value = _empresasDeTodas().join(' · ');
   document.getElementById('residente').value = res.join(' · ');
@@ -144,7 +198,13 @@ function _pintarDonde(){
     _modoDonde === 'varias' ? 'Elija abajo la ' + (_LUGAR === 'manzana' ? 'manzana principal' : 'torre principal') +
                               ' (ahí se archiva el informe) y agregue las demás.'
   : _modoDonde === 'zona'   ? 'Para lo que no es de una ' + _LUGAR + ' sino de toda la zona. Se archiva en la carpeta «General» de la zona.'
+  : _modoDonde === 'manzana' ? 'Para lo que es de una manzana o lote del urbanismo. Se archiva en la carpeta de esa manzana. Si también afecta a otras, agréguelas abajo.'
   : '';
+  const lt = document.querySelector('label[for="torre"]');
+  if (lt && _CON_MANZANA) lt.textContent = _modoDonde === 'manzana' ? 'Manzana o lote' : _etiquetaTorre;
+  if (_CON_MANZANA && _modoDonde === 'manzana') ['empresa', 'residente'].forEach(function(id){
+    const e = document.getElementById(id); if (e && _placeholders[id]) e.placeholder = _placeholders[id].replace(/la torre/, 'la manzana');
+  });
   const campo = document.getElementById('campo-otras');
   campo.hidden = (_modoDonde === 'una');
   if (campo.hidden) return;
@@ -154,9 +214,9 @@ function _pintarDonde(){
   }).join('');
   const candidatos = zona
     ? Object.keys(SECTOR_POR_CONVENIO).map(_nombreZona).filter(function(z){ return z !== _nombreZona(conv); })
-    : torresUnicas().filter(function(t){ return t !== principal && (!_sectorElegido || (entradasDe(t) || []).some(function(x){ return x.c === _sectorElegido; })); });
+    : torresUnicas().filter(function(t){ return t !== principal && (!_CON_MANZANA || _esManzanaT(t) === (_modoDonde === 'manzana')) && (!_sectorElegido || (entradasDe(t) || []).some(function(x){ return x.c === _sectorElegido; })); });
   const sel = document.getElementById('otra-lugar');
-  sel.innerHTML = '<option value="">' + (zona ? '＋ Agregar otra zona' : _TXT_DONDE.otra) + '</option>' +
+  sel.innerHTML = '<option value="">' + (zona ? '＋ Agregar otra zona' : _modoDonde === 'manzana' ? '＋ Agregar otra manzana o lote' : _TXT_DONDE.otra) + '</option>' +
     candidatos.filter(function(x){ return _otras.indexOf(x) < 0; })
               .map(function(x){ return '<option value="' + escapar(x) + '">' + escapar(x) + '</option>'; }).join('');
   // Lo que está entre dos contratistas se asigna a las dos (Skarlet, 30-sep).
@@ -173,7 +233,13 @@ function ponerModoDonde(m){
   const antes = _modoDonde;
   _modoDonde = m;
   const torre = document.getElementById('torre');
-  if (m === 'zona') {
+  if (m === 'manzana' || antes === 'manzana') {
+    // v178: entre torres y manzanas no hay nada que conservar: se empieza el lugar de cero.
+    _otras = [];
+    if (antes === 'zona' || torre.value) { torre.value = ''; alElegirTorre(); }
+    if (m === 'zona') { _asegurarOpcionZona(); torre.value = 'ZONA'; alElegirTorre(); }
+    _modoDonde = m;
+  } else if (m === 'zona') {
     _otras = [];
     _asegurarOpcionZona(); torre.value = 'ZONA'; alElegirTorre();
   } else {
@@ -184,13 +250,13 @@ function ponerModoDonde(m){
     }
     if (m === 'varias' && antes === 'una') _recordarPropios();
   }
-  _pintarDonde(); actualizarNro(); marcar();
+  _torresDelSector(); _pintarDonde(); actualizarNro(); marcar();
 }
 
 function _textoUbicacion(){
   const t = document.getElementById('torre').value;
   if (_modoDonde === 'zona') return 'Toda la zona ' + _nombreZona(document.getElementById('convenio').value) + (_otras.length ? ' · ' + _otras.join(' · ') : '');
-  if (_modoDonde === 'varias') return [t].concat(_otras).filter(Boolean).join(' · ');
+  if (_modoDonde === 'varias' || (_modoDonde === 'manzana' && _otras.length)) return [t].concat(_otras).filter(Boolean).join(' · ');
   return '';
 }
 
@@ -218,6 +284,13 @@ function _zonaElegida(){
 const _alElegirTorreBaseU = alElegirTorre;
 alElegirTorre = function(){
   const t = document.getElementById('torre').value;
+  if (t === '__OTRA_MZ__') {   // v178: escribir una manzana que no está en la lista
+    document.getElementById('torre').value = '';
+    const c = document.getElementById('mz-otra-campo'); if (c) { c.hidden = false; const i = document.getElementById('mz-otra'); if (i) i.focus(); }
+    return;
+  }
+  if (_CON_MANZANA) { const c = document.getElementById('mz-otra-campo'); if (c) c.hidden = true; }
+  if (_CON_MANZANA && t && t !== 'ZONA' && _esManzanaT(t) && _modoDonde !== 'manzana') { _modoDonde = 'manzana'; _otras = []; }
   if (t === 'ZONA') { _modoDonde = 'zona'; _pintarDonde(); return _zonaElegida(); }
   if (_modoDonde === 'zona') { _modoDonde = 'una'; _otras = []; }
   const r = _alElegirTorreBaseU.apply(this, arguments);
@@ -269,6 +342,7 @@ alElegirConvenio = function(){
   const nombre = _nombreZona(c);
   if (_otras.indexOf(nombre) >= 0) _otras.splice(_otras.indexOf(nombre), 1);
   _pintarDonde(); actualizarNro(); marcar();
+  ofrecerHistorial();   // v178: cada zona tiene su visita anterior; al cambiar de zona, el aviso es el de la nueva
   pedirHistorialAlRelevo();
 };
 
@@ -287,7 +361,7 @@ if (typeof llenarManzanas === 'function') {
 const _actualizarNroBaseU = actualizarNro;
 actualizarNro = function(){
   const r = _actualizarNroBaseU.apply(this, arguments);
-  if (_modoDonde === 'varias' && _otras.length) {
+  if ((_modoDonde === 'varias' || _modoDonde === 'manzana') && _otras.length) {
     const el = document.getElementById('nro');
     const t = limpiar(document.getElementById('torre').value);
     if (t) el.textContent = el.textContent.replace('-' + t + '-', '-' + t + '+' + _otras.length + '-');
@@ -298,7 +372,8 @@ actualizarNro = function(){
 const _datosDelFormularioBaseU = datosDelFormulario;
 datosDelFormulario = function(){
   const d = _datosDelFormularioBaseU.apply(this, arguments);
-  if (_modoDonde !== 'una') d.ubicacion = { modo: _modoDonde, otras: _otras.slice(), texto: _textoUbicacion() };
+  if (_modoDonde === 'manzana') d.ubicacion = { modo: _otras.length ? 'varias' : 'una', lugar: 'manzana', otras: _otras.slice(), texto: _textoUbicacion() };   // v178
+  else if (_modoDonde !== 'una') d.ubicacion = { modo: _modoDonde, otras: _otras.slice(), texto: _textoUbicacion() };
   return d;
 };
 
@@ -310,16 +385,30 @@ faltan = function(d){
   const u = (d && d.ubicacion) || {};
   const modo = (d && d.torre === 'ZONA') ? 'zona' : (u.modo || 'una');
   if (modo === 'zona') f = f.map(function(x){ return /convenio|sector/.test(x) ? 'la zona' : x; });
+  else if (u.lugar === 'manzana') f = f.map(function(x){ return x === 'la torre' ? 'la manzana o lote' : x === 'el convenio' ? 'el sector' : x; });   // v178
   else if (_SECTOR_PRIMERO) f = f.map(function(x){ return x === 'el convenio' ? 'el sector' : x; });
   if (modo === 'varias' && !(u.otras || []).length) f.push('las otras ' + _TXT_DONDE.plural + ' (o elija «' + _TXT_DONDE.una + '»)');
   return f;
 };
 
+// v178 (QC 2): «Sig. torre» en «Manzana» sigue en «Manzana»: se hacen varias manzanas seguidas.
+if (typeof siguienteTorre === 'function') {
+  const _siguienteTorreBaseU = siguienteTorre;
+  siguienteTorre = function(){
+    const eraManzana = _CON_MANZANA && _modoDonde === 'manzana', sector = _sectorElegido;
+    const r = _siguienteTorreBaseU.apply(this, arguments);
+    if (eraManzana && !document.getElementById('torre').value) {
+      _modoDonde = 'manzana'; if (sector) _sectorElegido = sector;
+      _torresDelSector(); _pintarDonde(); actualizarNro();
+    }
+    return r;
+  };
+}
 const _vaciarFormularioBaseU = vaciarFormulario;
 vaciarFormulario = function(){
   _modoDonde = 'una'; _otras = [];
   const r = _vaciarFormularioBaseU.apply(this, arguments);
-  _pintarDonde();
+  _torresDelSector(); _pintarDonde();
   return r;
 };
 
@@ -331,11 +420,11 @@ cargarInforme = function(id){
   const r = _cargarInformeBaseU.apply(this, arguments);
   if (d && idActual === d.id) {
     const u = d.ubicacion || {};
-    _modoDonde = d.torre === 'ZONA' ? 'zona' : (u.modo === 'varias' ? 'varias' : 'una');
+    _modoDonde = d.torre === 'ZONA' ? 'zona' : (u.lugar === 'manzana' || (_CON_MANZANA && _esManzanaT(d.torre))) ? 'manzana' : (u.modo === 'varias' ? 'varias' : 'una');
     _otras = (u.otras || []).slice();
     const e0 = String(d.empresa || '').split(' · ')[0], r0 = String(d.residente || '').split(' · ')[0];
     _propios = { empresa: e0, residente: r0 };
-    _pintarDonde(); actualizarNro();
+    _torresDelSector(); _pintarDonde(); actualizarNro();
   }
   return r;
 };
@@ -349,11 +438,22 @@ const _anotarEstadoTorreBaseU = anotarEstadoTorre;
 anotarEstadoTorre = function(d){
   _anotarEstadoTorreBaseU.apply(this, arguments);
   const u = d && d.ubicacion;
-  if (!u || u.modo !== 'varias') return;
+  if (!u) return;
+  // v178 (20-oct-2026, Diego Orta): un informe de toda la zona que también afecta a otras zonas es la visita anterior
+  // de esas zonas. Va con la zona de cada una y sin empresa ni residente, que son de la zona donde se hizo.
+  if (u.modo === 'zona' && d.torre === 'ZONA') {
+    (u.otras || []).forEach(function(nombre){
+      const conv = Object.keys(_ZONA_NOMBRE).find(function(c){ return _ZONA_NOMBRE[c] === nombre; });
+      if (conv && conv !== d.convenio) _anotarEstadoTorreBaseU(Object.assign({}, d, { convenio: conv, zonaDe: d.convenio, empresa: '', residente: '' }));
+    });
+    return;
+  }
+  if (u.modo !== 'varias') return;
   (u.otras || []).forEach(function(o){
     if (o && o !== d.torre) _anotarEstadoTorreBaseU(Object.assign({}, d, { torre: o }));
   });
 };
 
+if (_CON_MANZANA) { const t0 = document.getElementById('torre').value; if (t0 && t0 !== 'ZONA' && _esManzanaT(t0)) _modoDonde = 'manzana'; }
 _pintarDonde();
 _torresDelSector();

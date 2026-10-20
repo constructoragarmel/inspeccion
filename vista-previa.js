@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: 2c77e4e4f7
+// Huella de la fuente: f22a89188d
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -930,7 +930,8 @@ function _pdfCuentaHeredados(d) {
 }
 function _pdfEtiquetaLugar(p, etiqueta) {
   var u = (p.datos || {}).ubicacion;
-  return (u && u.modo && u.modo !== 'una') ? 'Ubicaci\u00f3n' : etiqueta;
+  if (u && u.modo && u.modo !== 'una') return 'Ubicaci\u00f3n';
+  return (etiqueta === 'Torre' && typeof _esManzana === 'function' && _esManzana(p.torre)) ? 'Manzana o lote' : etiqueta;   // r70: SHA de una manzana
 }
 function _pdfLugar(p) {
   var u = (p.datos || {}).ubicacion || {};
@@ -1305,7 +1306,7 @@ function _pdfMaquinariaUrbanismo(it) {
   return '<tr><td></td><td colspan="6" style="font-size:9px;color:#334155"><b>Maquinaria que oper\u00f3:</b> ' + _pdfEsc(m) + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: '2c77e4e4f7',
+    huella: 'f22a89188d',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];

@@ -78,6 +78,7 @@ a.doc:hover{text-decoration:underline}
   .campo textarea{display:none} .resumen-val{display:block!important;border:1px solid #999}
   .nota{break-inside:avoid}
 }
+.de-antes{color:#8f4b00;font-weight:600}
 </style>
 </head>
 <body>
@@ -203,7 +204,7 @@ const TIPOS = {
   obra: { lbl: 'Torre', nombre: 'obra', sub: 'Se traen todos los informes de obra de esa torre entre las dos fechas: el último de cada apartamento, el último de la torre y las notas de todos.' },
   servicios: { lbl: 'Torre o todo el urbanismo', nombre: 'servicios', sub: 'Se traen los informes de servicios de esa torre entre las dos fechas —o, con «Todo el urbanismo», de todas las torres del sector y de toda la zona—: el último, por ente, con lo listo y lo que falta, y las notas de todos.' },
   urbanismo: { lbl: 'Manzana o todo el urbanismo', nombre: 'urbanismo', sub: 'Se traen los informes de urbanismo de esa manzana entre las dos fechas —o, con «Todo el urbanismo», de todas las manzanas del sector y de toda la zona—: el último, con sus cantidades y camiones, y las notas de todos.' },
-  sha: { lbl: 'Torre o todo el urbanismo', nombre: 'SHA', sub: 'Se traen los informes de SHA de esa torre entre las dos fechas —o, con «Todo el urbanismo», de todas las torres del sector y de toda la zona, con la contratista de cada una—: el último, con recaudos, frentes e incidencias, y las notas de todos.' }
+  sha: { lbl: 'Torre o todo el urbanismo', nombre: 'SHA', sub: 'Se traen los informes de SHA de esa torre entre las dos fechas —o, con «Todo el urbanismo», de todas las torres y manzanas del sector y de toda la zona, con la contratista de cada una—: todos los hallazgos e incidencias de la semana (cada uno una vez, con su último estatus) y los que seguían abiertos de antes, los recaudos del último informe y las notas de todos.' }
 };
 function tipoActual() { return TIPOS[$('tipo').value] ? $('tipo').value : 'obra'; }
 let MANZANAS = {};
@@ -327,9 +328,11 @@ function pintarObra(d, hA, hT) {
 function pintarTipo(d) {
   const t = d.tipo, u = d.ultimo, gris = '<span style="color:#64748b">—</span>';
   if (d.porTorre) return t === 'urbanismo' ? pintarUrbanismoPorManzana(d, gris) : t === 'sha' ? pintarShaPorTorre(d, gris) : pintarServiciosPorTorre(d, gris);   // v171: todo el urbanismo (v174: también urbanismo)
-  $('tipo-titulo').textContent = '3 · ' + (t === 'servicios' ? 'Servicios por ente' : t === 'urbanismo' ? 'Partidas con cantidades' : 'Recaudos, frentes e incidencias') + ' (último informe)';
+  $('tipo-titulo').textContent = '3 · ' + (t === 'servicios' ? 'Servicios por ente' : t === 'urbanismo' ? 'Partidas con cantidades' : 'Recaudos, frentes e incidencias') + (t === 'sha' ? ' (toda la semana y lo abierto de antes)' : ' (último informe)');   // v178
   if (!u) { $('tipo-sub').textContent = 'No hubo informe en estas fechas.'; $('tipo-tabla').innerHTML = ''; $('tipo-extra').innerHTML = ''; return; }
-  $('tipo-sub').innerHTML = 'Informe ' + enlace(u.pdf, u.numeroRev) + ' del ' + fecha(u.fecha) + ' · ' + esc((u.inspectores || []).join(' · ')) + (u.estatus && u.estatus.length ? ' · ' + esc(u.estatus.join(' · ')) : '');
+  $('tipo-sub').innerHTML = (u.sinInformeSemana ? 'Sin informe esta semana: lo abierto viene de ' + esc(u.numero) + ' (' + fecha(u.fecha) + ').'
+    : 'Informe ' + enlace(u.pdf, u.numeroRev) + ' del ' + fecha(u.fecha) + ' · ' + esc((u.inspectores || []).join(' · ')) + (u.estatus && u.estatus.length ? ' · ' + esc(u.estatus.join(' · ')) : '') +
+      (t === 'sha' && (u.sha || {}).informesSemana > 1 ? ' · junta los ' + u.sha.informesSemana + ' informes de la semana' : ''));
   let html = '', extra = '';
   const ancho = 'style="white-space:normal;min-width:200px"';
   if (t === 'servicios') {
@@ -354,7 +357,7 @@ function pintarTipo(d) {
     const sh = u.sha || {};
     extra += '<div class="obs" style="margin-top:8px"><b>Recaudos:</b> ' + sh.recaudosSi + ' al día, ' + sh.recaudosNo + ' faltan' + ((sh.recaudos || []).length ? ': ' + sh.recaudos.map(r => esc(r.item)).join('; ') : '') + '</div>';
     html = '<tr><th>Frente de trabajo</th><th>Hallazgo o condición observada</th><th>Acción correctiva / estatus</th></tr>';
-    (sh.frentes || []).forEach(fr => { html += '<tr><td style="white-space:normal;min-width:140px">' + esc(fr.frente) + '</td><td style="white-space:normal;min-width:240px">' + (esc(fr.hallazgo) || gris) + '</td><td style="white-space:normal;min-width:140px">' + (esc(fr.estatus) || gris) + '</td></tr>'; });
+    (sh.frentes || []).forEach(fr => { html += '<tr><td style="white-space:normal;min-width:140px">' + esc(fr.frente) + '</td><td style="white-space:normal;min-width:240px">' + (esc(fr.hallazgo) || gris) + (fr.deAntes ? ' <small class="de-antes">· viene de antes</small>' : '') + '</td><td style="white-space:normal;min-width:140px">' + (esc(fr.estatus) || gris) + '</td></tr>'; });
     if (!(sh.frentes || []).length) html += '<tr><td colspan="3" style="color:#64748b">Sin frentes en este informe.</td></tr>';
     if ((sh.incidencias || []).length) extra += '<div class="obs"><b>Incidencias:</b> ' + sh.incidencias.map(x => esc(Object.keys(x).map(k => x[k] ? k + ': ' + x[k] : '').filter(String).join(' · '))).join('<br>') + '</div>';
     if (sh.accion) extra += '<div class="obs"><b>Acción por el rechazo:</b> ' + esc(sh.accion) + (sh.accionDet ? ' — ' + esc(sh.accionDet) : '') + '</div>';
@@ -448,7 +451,7 @@ function pintarUrbanismoPorManzana(d, gris) {
 }
 // v174: SHA de todo el urbanismo — los frentes del último informe de cada torre, con su contratista y sus recaudos.
 function pintarShaPorTorre(d, gris) {
-  $('tipo-titulo').textContent = '3 · Recaudos, frentes e incidencias (último informe de cada torre)';
+  $('tipo-titulo').textContent = '3 · Recaudos, frentes e incidencias (toda la semana de cada torre y lo abierto de antes)';   // v178
   $('tipo-extra').innerHTML = '';
   if (!d.porTorre.length) { $('tipo-sub').textContent = 'No hubo informes de SHA en estas fechas.'; $('tipo-tabla').innerHTML = ''; return; }
   $('tipo-sub').textContent = d.porTorre.length + (d.porTorre.length === 1 ? ' lugar' : ' lugares') + ' con informe: ' + d.porTorre.map(p => p.torre).join(' · ') + '. El enlace abre el PDF.';
@@ -457,9 +460,9 @@ function pintarShaPorTorre(d, gris) {
   d.porTorre.forEach(p => {
     const sh = p.sha || {}, fr = (sh.frentes || []).length ? sh.frentes : [null];
     fr.forEach((x, i) => {
-      html += '<tr><td>' + (i === 0 ? '<b>' + esc(p.torre) + '</b><br><small>' + enlace(p.pdf, p.numeroRev) + ' · ' + fecha(p.fecha) + '</small>' : '') + '</td><td>' + (i === 0 ? esc(p.empresa || '') : '') + '</td><td>' +
+      html += '<tr><td>' + (i === 0 ? '<b>' + esc(p.torre) + '</b><br><small>' + (p.sinInformeSemana ? '<span class="de-antes">sin informe esta semana</span>' : enlace(p.pdf, p.numeroRev) + ' · ' + fecha(p.fecha) + ((sh.informesSemana || 0) > 1 ? ' · ' + sh.informesSemana + ' informes' : '')) + '</small>' : '') + '</td><td>' + (i === 0 ? esc(p.empresa || '') : '') + '</td><td>' +
         (i === 0 ? (sh.recaudosSi || 0) + ' al día, ' + (sh.recaudosNo || 0) + ' faltan' : '') + '</td>' +
-        (x ? '<td ' + ancho + '>' + (esc(x.frente) || gris) + '</td><td ' + ancho + '>' + (esc(x.hallazgo) || gris) + '</td><td ' + ancho + '>' + (esc(x.estatus) || gris) + '</td>'
+        (x ? '<td ' + ancho + '>' + (esc(x.frente) || gris) + '</td><td ' + ancho + '>' + (esc(x.hallazgo) || gris) + (x.deAntes ? ' <small class="de-antes">· viene de antes</small>' : '') + '</td><td ' + ancho + '>' + (esc(x.estatus) || gris) + '</td>'
            : '<td colspan="3" style="color:#64748b;white-space:normal">Sin frentes en este informe.</td>') + '</tr>';
     });
   });

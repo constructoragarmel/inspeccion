@@ -825,3 +825,21 @@ que no es imagen avisa y no entra (antes desaparecía sin aviso), y el sobre lle
 una manzana sin residente recordado, empresa y residente de su contratista; al quitar la manzana sigue el del sector; lo escrito a mano
 se guarda y manda al reabrir; cambia con el sector (Procodima, Racar); una manzana nueva nace con el suyo. 6/6; `t19`, `t46`, `t85`
 y `t86` en verde (`t37` envía y no cierra sin ventana).
+
+**v178 (20-oct-2026): seis pedidos de Diego Orta, con el relevo r70.** 1 · urbanismo (y servicios y SHA) de «Toda la zona» que también
+afecta a otras zonas es la visita anterior de esas zonas, y la memoria de «Toda la zona» va por zona (`_claveMem`; la vieja `ZONA` se
+migra al leerla). 2 · SHA por manzana: cuarto botón «Manzana», las manzanas del padrón de urbanismo en `TORRES_DATA` con `m: 1`,
+«＋ Otra manzana o lote», «También afecta a» con manzanas y «Sig. torre» que sigue en «Manzana». 3 · el buscador de SHA pide `abiertos` y
+pinta «de antes» con cuántos siguen abiertos. 4 · la semana de SHA (relevo y `compilado/pagina.html`) junta toda la semana y lo abierto
+de antes. 5 · el panel «Buscar los informes» va después del lugar en los cuatro (cambio 190 en obra). 6 · residentes con «▾» y lista
+propia (`comun/residentes.js`, cambio 191 en obra); en «Varias torres» el que se toca se suma. Tandas nuevas: `t102` (SHA: manzana,
+buscador, memoria por zona, 15), `t103` (urbanismo, servicios y obra: zona compartida y panel), `t104` (residentes en los cuatro),
+`t105` a `t107` (QC 1 a 6 pedidas por Francisco: modos de SHA, zona de punta a punta y memoria vieja, residentes en varias torres y
+en obra). Las 10 rondas de QC encontraron y se arreglaron dentro de la v178: el aviso de visita anterior no se recalculaba al cambiar de
+zona; «Sig. torre» volvía a «Una torre»; «Toda la zona» aparecía en la lista de manzanas; la memoria vieja `ZONA` se habría perdido;
+en «Varias torres» elegir un residente borraba a los demás; la flecha del residente se corría al abrir la lista; los campos con lista
+del navegador (placas) quedaban con `autocomplete="off"`. Errores de prueba, no del formulario: el informe «de antes» tiene 2 abiertos
+y no 3; en `t106` el relevo falso no distingue zonas; `t91` de urbanismo corrida después de `t106` en la misma página da 0/4 y sola
+4/4. Regresión final: sin ventana 32 tandas en verde; a la vista `t33`, `t90`, `t93`, `t101` (obra), `t91`, `t94`, `t102`, `t105`
+(SHA), `t91`, `t94` (servicios), `t106`, `t59`, `t91` (urbanismo), `t66` y `t74` en los cuatro, todas en verde; a 320 px sin desborde.
+

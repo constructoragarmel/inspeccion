@@ -42,6 +42,19 @@ spec = importlib.util.spec_from_file_location("motor", os.path.join(RAIZ, "const
 motor = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(motor)
 
+# v178 (20-oct-2026, Diego Orta): SHA también por MANZANA. Las manzanas salen del padrón de urbanismo, con la
+# contratista de urbanismo del sector y su residente; entran a TORRES_DATA marcadas `m: 1`, así el motor las trata
+# como un lugar más (sector, empresa, residente, visita anterior) y comun/ubicacion.js decide cuándo se ven.
+_specU = importlib.util.spec_from_file_location("contenido_urb", os.path.join(RAIZ, "urbanismo", "contenido.py"))
+contenido_urb = importlib.util.module_from_spec(_specU)
+_specU.loader.exec_module(contenido_urb)
+def _conv(c): return c.replace("Bielorusos", "Bielorrusos")
+EMPRESA_URB = {_conv(c): e for c, e in contenido_urb.EMPRESA_POR_SECTOR.items()}
+RESIDENTE_URB = dict(contenido_urb.RESIDENTE_POR_EMPRESA)
+def manzanas_sha():
+    return json.dumps([{"t": m, "c": _conv(c), "e": EMPRESA_URB.get(_conv(c), ""), "r": RESIDENTE_URB.get(EMPRESA_URB.get(_conv(c), ""), ""), "m": 1}
+                       for m, c in contenido_urb.MANZANAS], ensure_ascii=False)
+
 SALIDA = os.path.join(RAIZ, "sha.html")
 INSPECTORES_SHA = ["Ángel Sánchez", "Birmania Rada", "Víctor Mendoza"]
 
@@ -202,7 +215,7 @@ J = sustituir(J, "(aptos ? ' · ' + aptos + ' hallazgo(s)' : '')",
 # traer SOLO los recaudos, heredados y marcados como tal.
 J = sustituir(J, "  try { localStorage.setItem(CLAVE_TORRES, JSON.stringify(todos)); } catch(e){}\n}",
 """  try { localStorage.setItem(CLAVE_TORRES, JSON.stringify(todos)); } catch(e){}
-  anotarRecaudosEmpresa(d, todos[d.torre]);
+  anotarRecaudosEmpresa(d, todos[clave]);
 }
 const CLAVE_EMPRESAS = 'garmel_sha_empresas';
 function estadosDeEmpresas(){
@@ -682,7 +695,7 @@ def construir():
         .replace('@@VERSION@@', motor.VERSION)
         .replace('@@CIERRE@@', ''.join('<option>%s</option>' % c for c in contenido.CIERRE))
         .replace('@@ACCIONES@@', ''.join('<option>%s</option>' % c for c in contenido.ACCIONES_RECHAZO))
-        .replace('@@TORRES@@', motor.js_de(maestros.TORRES_JS))
+        .replace('@@TORRES@@', motor.js_de(maestros.TORRES_JS) + '.concat(' + manzanas_sha() + ')')
         .replace('@@SECTOR@@', motor.js_de(maestros.SECTOR_POR_CONVENIO_JS))
         .replace('@@INSPECTORES@@', json.dumps(inspectores_de_sha(), ensure_ascii=False))
         .replace('@@GENERAL@@', json.dumps(contenido.GENERAL, ensure_ascii=False, indent=2))
@@ -695,6 +708,7 @@ def construir():
         .replace('@@CALIDAD@@', str(motor.CALIDAD_FOTO))
         .replace('@@RELEVO@@', json.dumps(motor.RELEVO_URL))
         .replace('@@JS@@', "const ESTADOS_HALLAZGO = %s;\n" % json.dumps(contenido.ESTADOS_HALLAZGO, ensure_ascii=False) +
+                           "const EMPRESA_URB_SHA = %s;\nconst RESIDENTE_URB_SHA = %s;\n" % (json.dumps(EMPRESA_URB, ensure_ascii=False), json.dumps(RESIDENTE_URB, ensure_ascii=False)) +
                            "const TIPOS_INCIDENCIA = @@INC_TIPOS@@;\nconst ESTADOS_INCIDENCIA = @@INC_ESTADOS@@;\n" +
                            "const CLAVE_TIPOS_INC = 'garmel_sha_tipos_inc';\nlet _nInc = 0;\n" +
                            "const OBSTACULOS = %s;\n" % json.dumps(contenido.OBSTACULOS, ensure_ascii=False) + J)

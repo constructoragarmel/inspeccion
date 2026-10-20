@@ -59,33 +59,41 @@ function _oficinaPanel(){
   o.innerHTML = '<div class="ofi-cab"><div><b>🖥️ Modo oficina</b> · abra un informe ya enviado desde campo, complételo con teclado y ciérrelo como <b>versión definitiva</b>. La versión de campo se conserva.</div>' +
     '<button type="button" class="ofi-btn" id="ofi-buscar" onclick="oficinaBuscar()">Buscar los informes de ' + _OC_LUGAR.estas + '</button></div>' +
     '<div id="ofi-lista" class="ofi-lista"></div><div id="ofi-estado" class="ofi-estado" style="display:none"></div>';
-  primera.parentNode.insertBefore(o, primera);
+  // v178 (20-oct-2026, Diego Orta): el panel va DESPUÉS de elegir sector y torre (o manzana): primero se dice dónde, después se busca.
+  const lugar = (document.getElementById('torre') || {}).closest ? document.getElementById('torre').closest('.tarjeta') : null;
+  if (lugar && lugar.parentNode) lugar.after(o); else primera.parentNode.insertBefore(o, primera);
   return o;
 }
 function _oficinaMostrar(){ const o = _oficinaPanel(); if (o) o.style.display = _ES_OFICINA ? '' : 'none'; _oficinaEstado(); }
 async function oficinaBuscar(){
   const torre = _ofiTorre(), sector = _ofiSector(), caja = document.getElementById('ofi-lista'), btn = document.getElementById('ofi-buscar');
-  if (!torre || !sector) { caja.innerHTML = '<p class="ofi-aviso">Elija primero el sector y la ' + _OC_LUGAR.una + ', abajo, y vuelva a buscar.</p>'; return; }
-  caja.innerHTML = '<p class="ofi-aviso">⏳ Buscando los informes de ' + _ofiEsc(torre) + ' de los últimos 14 días…</p>';
+  if (!torre || !sector) { caja.innerHTML = '<p class="ofi-aviso">Elija primero el sector y la ' + _OC_LUGAR.una + ', arriba, y vuelva a buscar.</p>'; return; }
+  const sha = (typeof TIPO_INFORME !== 'undefined' && TIPO_INFORME === 'sha');
+  caja.innerHTML = '<p class="ofi-aviso">⏳ Buscando los informes de ' + _ofiEsc(torre) + ' de los últimos 14 días' + (sha ? ' y los que siguen con algo abierto' : '') + '…</p>';
   if (btn) btn.disabled = true;
   try {
-    const r = await _ofiPedir({ accion: 'oficina-lista', sector: sector, torre: torre, dias: 14, pruebas: !!TEST_MODE });
+    // v178 (relevo r70): en SHA también los más viejos que siguen con hallazgos o incidencias sin cerrar.
+    const r = await _ofiPedir({ accion: 'oficina-lista', sector: sector, torre: torre, dias: 14, abiertos: sha, pruebas: !!TEST_MODE });
     _oficinaPintar(r.informes || [], torre);
   } catch (e) { caja.innerHTML = '<p class="ofi-aviso">❌ No se pudo: ' + _ofiEsc(_ofiMensaje(e)) + '</p>'; }
   finally { if (btn) btn.disabled = false; }
 }
 function _oficinaPintar(lista, torre){
   const caja = document.getElementById('ofi-lista');
-  if (!lista.length) { caja.innerHTML = '<p class="ofi-aviso">' + _ofiEsc(torre) + ' no tiene informes enviados en los últimos 14 días.</p>'; return; }
+  const sha = (typeof TIPO_INFORME !== 'undefined' && TIPO_INFORME === 'sha');
+  if (!lista.length) { caja.innerHTML = '<p class="ofi-aviso">' + _ofiEsc(torre) + ' no tiene informes enviados en los últimos 14 días' + (sha ? ' ni otros con algo abierto' : '') + '.</p>'; return; }
   const filas = lista.map(function(x){
     const def = x.definitiva && x.definitiva.por;
-    return '<tr><td>' + _ofiEsc(x.fecha) + '</td><td>' + _ofiEsc(x.lugar || torre) + '</td><td>' + _ofiEsc((x.inspectores || []).join(' · ')) + '</td>' +
+    // v178: en SHA, cuántos hallazgos o incidencias siguen abiertos, y si el informe es de antes de los 14 días.
+    const ab = sha && x.abiertos ? ' <span class="ofi-tag abi">' + x.abiertos + (x.abiertos === 1 ? ' abierto' : ' abiertos') + '</span>' : '';
+    return '<tr' + (x.deAntes ? ' class="ofi-antes"' : '') + '><td>' + _ofiEsc(x.fecha) + (x.deAntes ? '<br><small>de antes</small>' : '') + '</td><td>' + _ofiEsc(x.lugar || torre) + ab + '</td><td>' + _ofiEsc((x.inspectores || []).join(' · ')) + '</td>' +
       '<td>' + (def ? '<span class="ofi-tag def">Definitiva · ' + _ofiEsc(x.definitiva.por) + '</span>' : '<span class="ofi-tag pre">Preliminar</span>') +
       (x.revision > 1 ? ' <small>rev. ' + x.revision + '</small>' : '') + '</td>' +
       '<td style="font-family:monospace;font-size:11px">' + _ofiEsc(x.numero) + '</td>' +
       '<td><button type="button" class="ofi-btn sec" onclick="oficinaAbrir(this.dataset.n)" data-n="' + _ofiEsc(x.numero) + '">Abrir</button></td></tr>';
   }).join('');
   caja.innerHTML = '<table><tr><th>Fecha</th><th>Dónde</th><th>Inspector(es)</th><th>Versión</th><th>N° de informe</th><th></th></tr>' + filas + '</table>' +
+    (sha && lista.some(function(x){ return x.deAntes; }) ? '<p class="ofi-aviso">Los marcados «de antes» tienen más de 14 días y siguen con algo abierto que ningún informe posterior retomó: ábralos para revisar el estatus y cerrarlos si ya se cumplió.</p>' : '') +
     '<p class="ofi-aviso">Al abrir uno, queda en la lista de «Informes» de esta computadora con todo lo que trajo de campo. Lo que cambie aquí no borra nada: al cerrarlo se guarda como una revisión nueva.</p>';
 }
 // Las fotografías vuelven con el nombre con que viajaron (sobreDe): <servicio>-k, apto-i-<apto>-k, minutas-k, inc-i-k…
@@ -318,10 +326,11 @@ function _copiarAplicar(e, f){
   const fuente = JSON.parse(JSON.stringify(e));
   ['convenio', 'estatus', 'residente', 'empresa'].forEach(function(k){ delete fuente[k]; });
   fuente.nro = f.nro; fuente.id = 'copia-' + f.nro;
-  const todos = estadosDeTorres(); const previo = todos[t];
-  todos[t] = fuente; localStorage.setItem(CLAVE_TORRES, JSON.stringify(todos));
+  const k = (typeof _claveMem === 'function') ? _claveMem(t) : t;
+  const todos = estadosDeTorres(); const previo = todos[k];
+  todos[k] = fuente; localStorage.setItem(CLAVE_TORRES, JSON.stringify(todos));
   try { traerHistorial(); }
-  finally { const t2 = estadosDeTorres(); if (previo) t2[t] = previo; else delete t2[t]; localStorage.setItem(CLAVE_TORRES, JSON.stringify(t2)); }
+  finally { const t2 = estadosDeTorres(); if (previo) t2[k] = previo; else delete t2[k]; localStorage.setItem(CLAVE_TORRES, JSON.stringify(t2)); }
   _copiaDe = { nro: f.nro, torre: f.torre, fecha: f.fecha || '' };
   _copiarRotular();
   const caja = document.getElementById('copiar-de'); if (caja) caja.innerHTML = '';

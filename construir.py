@@ -9515,7 +9515,7 @@ s = sustituir(s,
 <script>
 // 188: ninguna casilla la repone el navegador al volver; el formulario recupera el informe él mismo.
 (function(){
-  function apagar(el){ if (el && /^(INPUT|SELECT|TEXTAREA|FORM)$/.test(el.tagName) && el.type !== 'password') el.setAttribute('autocomplete', 'off'); }
+  function apagar(el){ if (el && /^(INPUT|SELECT|TEXTAREA|FORM)$/.test(el.tagName) && el.type !== 'password' && !el.hasAttribute('list')) el.setAttribute('autocomplete', 'off'); }   // con lista (placas) se deja: su sugerencia manda
   function recorrer(n){ if (!n || n.nodeType !== 1) return; apagar(n); if (n.querySelectorAll) n.querySelectorAll('input,select,textarea,form').forEach(apagar); }
   new MutationObserver(function(ms){ ms.forEach(function(m){ m.addedNodes.forEach(recorrer); }); })
     .observe(document.documentElement, { childList: true, subtree: true });
@@ -9634,6 +9634,32 @@ function quitarCopias189(){
 }
 function toggleP(id){""",
  "189b· qué es una copia, y quitarla solo si su original ya se envió")
+
+# ── 190. «Buscar los informes» va después de elegir dónde (20-oct-2026) ─────────────────────────────────────────
+# Diego Orta: la opción de buscar informes anteriores «debería ir después de seleccionar el urbanismo, apartamento, etc.
+# Y así es un poco más intuitivo». En los otros tres formularios el panel va después de la tarjeta del lugar
+# (comun/oficina_copiar_motor.js); aquí, después de la ubicación —torre, piso, apartamento y estatus—, antes de los hitos.
+s = sustituir(s,
+ "Elija primero la torre, abajo en «Identificación del proyecto», y vuelva a buscar.",
+ "Elija primero la torre, arriba en «Identificación del proyecto», y vuelva a buscar.",
+ "190a· el aviso dice «arriba»")
+s = sustituir(s,
+ "function toggleP(id){",
+ """// 190: el panel de oficina, después de la ubicación.
+(function(){
+  const o = document.getElementById('oficina'), e = document.getElementById('estatus');
+  const f = e && e.closest('.field'), rej = f && f.parentElement;
+  if (o && rej) rej.after(o);
+})();
+function toggleP(id){""",
+ "190b· el panel de oficina, después de la ubicación")
+
+# ── 191. Residentes como lista desplegable (20-oct-2026) ─────────────────────────────────────────────────────────
+# Diego Orta: «¿Se puede agregar los residentes como una lista desplegable?». El campo sigue siendo de texto y al tocarlo
+# despliega los residentes de esa contratista en el sector, los que este teléfono ya escribió y los demás del sector. El
+# código es comun/residentes.js, el mismo de servicios, SHA y urbanismo.
+RESIDENTES_JS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "comun", "residentes.js"), encoding="utf-8").read()
+s = sustituir(s, "function toggleP(id){", RESIDENTES_JS + "\nfunction toggleP(id){", "191· residentes como lista desplegable")
 
 open(SALIDA, "w", encoding="utf-8").write(s)
 

@@ -153,6 +153,8 @@ header .nro-hint{font-size:12px;opacity:.85;margin-top:3px}
 .ofi-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap}
 .ofi-tag.pre{background:#fff3e0;color:#8f4b00}
 .ofi-tag.def{background:#e8f5e9;color:#1b5e20}
+.ofi-tag.abi{background:#fff3e0;color:#8f4b00;margin-left:4px}
+.ofi-antes td{background:#fffbf3}
 .ofi-estado{margin-top:10px;padding:10px 12px;border-radius:10px;background:#e8f5e9;border:1.5px solid #a5d6a7;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:13px;line-height:1.35}
 @media print{.oficina{display:none!important}}
 .copiar-boton{margin:8px 0 12px}
@@ -294,7 +296,7 @@ HTML = """<!DOCTYPE html>
 // dejaba en pantalla un informe a medias que se guardaba como copia; aquí la recuperación no lo guarda, pero
 // lo repuesto podía quedar en pantalla tras un informe ya enviado. El formulario recupera él mismo.
 (function(){
-  function apagar(el){ if (el && /^(INPUT|SELECT|TEXTAREA|FORM)$/.test(el.tagName) && el.type !== 'password') el.setAttribute('autocomplete', 'off'); }
+  function apagar(el){ if (el && /^(INPUT|SELECT|TEXTAREA|FORM)$/.test(el.tagName) && el.type !== 'password' && !el.hasAttribute('list')) el.setAttribute('autocomplete', 'off'); }   // con lista (placas) se deja: su sugerencia manda
   function recorrer(n){ if (!n || n.nodeType !== 1) return; apagar(n); if (n.querySelectorAll) n.querySelectorAll('input,select,textarea,form').forEach(apagar); }
   new MutationObserver(function(ms){ ms.forEach(function(m){ m.addedNodes.forEach(recorrer); }); })
     .observe(document.documentElement, { childList: true, subtree: true });
@@ -1228,8 +1230,24 @@ function aprenderItems(){
 // alimenta también desde Drive y Hernán y Oriana verán lo mismo.
 const CLAVE_TORRES = 'garmel_srv_torres';
 const CLAVE_ACTUAL = 'garmel_srv_actual';
+// v178 (20-oct-2026): «Toda la zona» se recuerda POR ZONA. Antes las tres zonas compartían la clave «ZONA» y la visita
+// anterior de una se ofrecía en otra. Una torre o manzana sigue con su nombre: lo ya guardado no cambia.
+function _claveMem(t, c){
+  if (t !== 'ZONA') return t;
+  const conv = (c === undefined) ? (document.getElementById('convenio') || {}).value : c;
+  return 'ZONA|' + (conv || '');
+}
 function estadosDeTorres(){
-  try { return JSON.parse(localStorage.getItem(CLAVE_TORRES) || '{}'); } catch(e){ return {}; }
+  let t = {};
+  try { t = JSON.parse(localStorage.getItem(CLAVE_TORRES) || '{}') || {}; } catch(e){ return {}; }
+  // v178: la memoria de «Toda la zona» de antes vivía en «ZONA», sin zona: pasa a la de su zona, una sola vez.
+  if (t && t.ZONA) {
+    const k = 'ZONA|' + (t.ZONA.convenio || '');
+    if (t.ZONA.convenio && !t[k]) t[k] = t.ZONA;
+    delete t.ZONA;
+    try { localStorage.setItem(CLAVE_TORRES, JSON.stringify(t)); } catch(e){}
+  }
+  return t;
 }
 function anotarEstadoTorre(d){
   if (!d.torre || !d.fecha) return;
@@ -1240,13 +1258,14 @@ function anotarEstadoTorre(d){
                      (d.apartamentos || []).length > 0;
   if (!contestado) return;
   const todos = estadosDeTorres();
-  const previo = todos[d.torre];
+  const clave = d._clave || _claveMem(d.torre, d.convenio);
+  const previo = todos[clave];
   // Manda la fecha de inspección, y a igual fecha el guardado más reciente.
   // Un informe de hoy no puede quedar tapado por uno viejo que se reabra.
   if (previo && previo.id !== d.id &&
       (previo.fecha > d.fecha || (previo.fecha === d.fecha && previo.guardado > d.guardado))) return;
-  todos[d.torre] = {
-    id: d.id, nro: d.nro, fecha: d.fecha, guardado: d.guardado,
+  todos[clave] = {
+    id: d.id, nro: d.nro, fecha: d.fecha, guardado: d.guardado, zonaDe: d.zonaDe || '',
     convenio: d.convenio, estatus: d.estatus, residente: d.residente, empresa: d.empresa,
     noInspeccionados: d.noInspeccionados || [],
     general: (d.general || []).map(g => ({
@@ -1298,9 +1317,11 @@ async function pedirHistorialAlRelevo(){
     if (Array.isArray(d.estatus)) d.estatus = d.estatus[0] || '';
     d.guardado = d.guardado || '';
     if (!d.nro || /^PRUEBA-/.test(d.nro) !== TEST_MODE) return;
-    const antes = JSON.stringify(estadosDeTorres()[t] || null);
+    // v178: la zona del informe que llega es la de la pantalla (puede venir de otra zona que también la afectaba).
+    if (t === 'ZONA') { const cv = document.getElementById('convenio').value; if (d.convenio && d.convenio !== cv) { d.zonaDe = d.convenio; d.empresa = ''; d.residente = ''; } d.convenio = cv; }
+    const antes = JSON.stringify(estadosDeTorres()[_claveMem(t)] || null);
     anotarEstadoTorre(d);
-    if (JSON.stringify(estadosDeTorres()[t] || null) !== antes && formularioEnBlanco()) ofrecerHistorial();
+    if (JSON.stringify(estadosDeTorres()[_claveMem(t)] || null) !== antes && formularioEnBlanco()) ofrecerHistorial();
   } catch (e) {
     // sin señal o relevo lento: la memoria del teléfono ya se ofreció
   } finally { clearTimeout(reloj); if (_pidiendo === pedido) _pidiendo = null; }
@@ -1351,12 +1372,13 @@ function ofrecerHistorial(){
   caja.innerHTML = '';
   if (_cargando) return;
   const t = document.getElementById('torre').value;
-  const e = t ? estadosDeTorres()[t] : null;
+  const e = t ? estadosDeTorres()[_claveMem(t)] : null;
   if (!e || e.id === idActual || !formularioEnBlanco()) return;
   const n = (e.general || []).reduce((s, g) => s + g.items.filter(i => i.sn).length, 0);
   const aptos = (e.apartamentos || []).length;
   caja.innerHTML = '<div class="historial">' +
-    '<div class="t">📋 ' + escapar(t) + ' ya tiene un informe anterior</div>' +
+    '<div class="t">📋 ' + escapar(t === 'ZONA' ? 'Toda la zona' : t) + ' ya tiene un informe anterior</div>' +
+    (e.zonaDe ? '<div class="s">Es el de toda la zona ' + escapar((typeof _nombreZona === 'function') ? _nombreZona(e.zonaDe) : e.zonaDe) + ', que también afecta a esta.</div>' : '') +
     '<div class="s">' + e.nro + ' · ' + fechaLarga(e.fecha) + ' · ' + n + ' ítem(s) contestado(s)' +
     (aptos ? ' · ' + aptos + ' apto(s)' : '') +
     '.<br>¿Arrancar desde lo que se registró ese día y marcar solo lo que cambió?</div>' +
@@ -1378,7 +1400,7 @@ function fechaLarga(f){
 // Todo lo traído queda marcado «visita anterior» hasta que alguien lo toque.
 function traerHistorial(){
   const t = document.getElementById('torre').value;
-  const e = estadosDeTorres()[t];
+  const e = estadosDeTorres()[_claveMem(t)];
   document.getElementById('aviso-historial').innerHTML = '';
   if (!e) return;
   // En las cuatro torres con dos convenios, el que se registró la vez
@@ -2116,6 +2138,11 @@ JS = JS.replace(_ANCLA_SW, UBICACION_JS + "\n" + _ANCLA_SW)
 # funciones del motor, así SHA y urbanismo lo heredan con sus propias reglas de «traer lo anterior».
 OFICINA_COPIAR_JS = open(os.path.join(RAIZ, "comun", "oficina_copiar_motor.js"), encoding="utf-8").read()
 JS = JS.replace(_ANCLA_SW, OFICINA_COPIAR_JS + "\n" + _ANCLA_SW)
+
+# ── Residentes como lista desplegable (v178, 20-oct-2026) ─────────────────────
+# Diego Orta. El código vive en comun/residentes.js y es el mismo de obra (construir.py, cambio 191).
+RESIDENTES_JS = open(os.path.join(RAIZ, "comun", "residentes.js"), encoding="utf-8").read()
+JS = JS.replace(_ANCLA_SW, RESIDENTES_JS + "\n" + _ANCLA_SW)
 
 
 # ══════════════════════════════════════════════════════════════════════════
