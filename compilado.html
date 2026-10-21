@@ -98,6 +98,8 @@ a.doc:hover{text-decoration:underline}
 .av-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
 .av-campos textarea{min-height:70px}
 .av-dif{color:#8f4b00;font-weight:700}
+.av-resumen{display:none;white-space:pre-wrap;font-size:13px;margin-top:8px}
+@media print{.av-campos,.av-ver,.reintentar{display:none!important} .av-resumen{display:block!important} .av-desglose{display:none!important}}
 
 </style>
 </head>
@@ -595,23 +597,49 @@ async function generarContratista(sector, contratista, desde, hasta, quien, clav
   aviso(); const latido = setInterval(() => { if (!$('estado').hidden) { const sc = scrollY; aviso(); window.scrollTo(0, sc); } }, 1000);
   const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 300000);
   try {
-    const res = await Promise.all(torres.map(async t => {
-      const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ clave, accion: 'compilado-semana', tipo: 'obra', sector, torre: t, desde, hasta, prueba: ESPRUEBA }), signal: corte.signal });
-      const j = await r.json();
-      if (!j.ok) throw new Error(j.error === 'Clave incorrecta' ? 'Clave incorrecta' : (j.error || 'El relevo no contestó') + ' (' + t + ')');
-      listas++; return j;
-    }));
-    const insp = {}; res.forEach(w => (w.inspectores || []).forEach(n => insp[n] = true));
-    DATA = { ok: true, modo: 'contratista', tipo: 'obra', sector, sectorNombre: res[0].sectorNombre, contratista, desde, hasta: res[0].hasta || hasta, quien,
-             torres: res, nInformes: res.reduce((a, w) => a + (w.nInformes || 0), 0), inspectores: Object.keys(insp), generado: res[0].generado, conPruebas: res[0].conPruebas };
+    // Una torre que no se puede leer no tumba las demás: se muestran las leídas y esa queda con «Reintentar» (ronda 3 del QC, 21-oct).
+    const res = await Promise.all(torres.map(t => pedirTorre(clave, sector, t, desde, hasta, corte.signal).then(j => { listas++; return j; })));
+    if (res.some(w => w.error === 'Clave incorrecta')) throw new Error('Clave incorrecta');
+    const leidas = res.filter(w => !w.fallo);
+    if (!leidas.length) throw new Error(res.map(w => w.torre + ': ' + w.error).join(' · '));
+    DATA = { ok: true, modo: 'contratista', tipo: 'obra', sector, sectorNombre: leidas[0].sectorNombre, contratista, desde, hasta: leidas[0].hasta || hasta, quien,
+             torres: res, generado: leidas[0].generado, conPruebas: leidas[0].conPruebas };
+    sumarContratista(DATA);
     try { localStorage.setItem('garmel_compilado_semana', JSON.stringify(DATA)); } catch (e) {}
-    estado(''); pintar();
+    const fallas = res.filter(w => w.fallo);
+    estado(fallas.length ? '⚠️ No se pudo leer ' + fallas.map(w => 'la ' + esc(w.torre)).join(', ') + '. Abajo están las demás; toque «Reintentar» en ' + (fallas.length === 1 ? 'esa torre' : 'cada una') + ' antes de enviar.' : '', fallas.length ? 'mal' : '', true);
+    pintar();
   } catch (e) {
     const m = String(e && e.message || e);
     estado(m === 'Clave incorrecta' ? 'La clave guardada en este equipo no es la del relevo. Configúrela otra vez en Inicio.' :
       (/abort/i.test(m) ? 'El relevo tardó demasiado. Pruebe con menos días o vuelva a intentar.' : 'No se pudo armar el compilado: ' + esc(m)), 'mal');
   } finally { clearTimeout(reloj); clearInterval(latido); $('btn-generar').disabled = false; }
+}
+async function pedirTorre(clave, sector, t, desde, hasta, signal) {
+  try {
+    const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave, accion: 'compilado-semana', tipo: 'obra', sector, torre: t, desde, hasta, prueba: ESPRUEBA }), signal });
+    const j = await r.json();
+    if (!j.ok) return { torre: t, fallo: true, error: j.error || 'El relevo no contestó' };
+    return j;
+  } catch (e) { const m = String(e && e.message || e); return { torre: t, fallo: true, error: /abort/i.test(m) ? 'el relevo tardó demasiado' : m }; }
+}
+function sumarContratista(d) {
+  const insp = {}, ok = d.torres.filter(w => !w.fallo);
+  ok.forEach(w => (w.inspectores || []).forEach(n => insp[n] = true));
+  d.nInformes = ok.reduce((a, w) => a + (w.nInformes || 0), 0); d.inspectores = Object.keys(insp);
+}
+async function reintentarTorre(t) {
+  const i = DATA.torres.findIndex(w => w.torre === t), sec = seccionDe(t), b = sec && sec.querySelector('.reintentar');
+  if (i < 0 || !b) return;
+  try { localStorage.setItem(claveBorrador(), JSON.stringify(borradorContratista())); } catch (e) {}
+  b.disabled = true; b.textContent = '⏳ Leyendo la ' + t + '…';
+  const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 240000);
+  const w = await pedirTorre(claveGuardada(), DATA.sector, t, DATA.desde, DATA.hasta, corte.signal); clearTimeout(reloj);
+  DATA.torres[i] = w; sumarContratista(DATA);
+  try { localStorage.setItem('garmel_compilado_semana', JSON.stringify(DATA)); } catch (e) {}
+  const y = scrollY; pintarContratista(DATA, true); window.scrollTo(0, y);
+  if (!DATA.torres.some(x => x.fallo)) estado('');
 }
 function htmlAreas(t, hT) {
   return !t ? '<div class="sin" style="color:#94a3b8">No hubo informe de torre completa en estas fechas.</div>' :
@@ -648,37 +676,45 @@ function htmlAvance(w) {
   h += '<div class="av-campos"><div class="campo"><label for="av-pct-' + id + '">% de avance físico validado</label><input type="text" inputmode="decimal" class="av-pct" id="av-pct-' + id + '" autocomplete="off" placeholder="' + (app !== null ? app + ' (el de la app)' : 'Escriba el %') + '">' +
     '<div class="ayuda">' + (app !== null ? 'Déjelo vacío para quedarse con el de la app. Si pone otro número, diga por qué.' : 'Si escribe un %, diga de dónde sale.') + '</div></div>' +
     '<div class="campo av-motivo-c" hidden><label for="av-mot-' + id + '">¿Por qué es distinto' + (app !== null ? ' del de la app' : '') + '?</label><textarea class="av-motivo" id="av-mot-' + id + '" placeholder="Por ejemplo: la contratista entró con la estructura hecha, o hay partidas que nadie ha medido"></textarea></div>' +
-    '<div class="campo"><label for="av-nota-' + id + '">Nota de la ' + T + ' (opcional)</label><textarea class="av-nota" id="av-nota-' + id + '" placeholder="Lo propio de esta torre que no va en la validación de la contratista"></textarea></div></div></div>';
+    '<div class="campo"><label for="av-nota-' + id + '">Nota de la ' + T + ' (opcional)</label><textarea class="av-nota" id="av-nota-' + id + '" placeholder="Lo propio de esta torre que no va en la validación de la contratista"></textarea></div></div>' +
+    '<div class="av-resumen"></div></div>';   // lo que sale al imprimir, en lugar de los cuadros
   return h;
 }
-function pintarContratista(d) {
+function pintarContratista(d, sinMover) {
   $('titulo').textContent = d.sectorNombre + ' · ' + d.contratista;
   $('sin-informes').hidden = d.nInformes > 0;
   $('sin-informes').textContent = 'No llegó ningún informe de obra de las torres de ' + d.contratista + ' entre el ' + fecha(d.desde) + ' y el ' + fecha(d.hasta) + (d.conPruebas ? ' (ni de prueba)' : '') + '. Revise las fechas o, si es así, escriba abajo qué pasó esta semana.';
   $('membrete').innerHTML = '<div class="linea-semana" id="linea-semana">' + esc(semanaGenerada(d.desde, d.hasta, d.generado, d.quien)) + '</div>' +
     '<div><b>Torres:</b> ' + esc(d.torres.map(w => w.torre).join(', ')) + '</div>' +
-    '<div><b>Informes de la semana:</b> ' + d.nInformes + (d.torres.length > 1 ? ' (' + d.torres.map(w => esc(w.torre) + ': ' + (w.nInformes || 0)).join(' · ') + ')' : '') + '</div>' +
+    '<div><b>Informes de la semana:</b> ' + d.nInformes + (d.torres.length > 1 ? ' (' + d.torres.map(w => esc(w.torre) + ': ' + (w.fallo ? 'sin leer' : (w.nInformes || 0))).join(' · ') + ')' : '') + '</div>' +
     '<div><b>Inspección:</b> ' + (d.inspectores.length ? esc(d.inspectores.join(' · ')) : '—') + '</div>' +
     '<div><b>Valida:</b> ' + esc(d.quien) + '</div>';
   $('bloque-tipo').hidden = true; $('bloque-torre').hidden = true; $('bloque-aptos').hidden = true;
   $('torres-contratista').innerHTML = d.torres.map((w, i) => {
+    if (w.fallo) return '<div class="tarjeta torre-c" data-torre="' + esc(w.torre) + '"><h2>' + (i + 3) + ' · ' + esc(w.torre) + '</h2><div class="aviso" style="margin:0">⚠️ No se pudo leer la ' + esc(w.torre) + ': ' + esc(w.error) + '.<div class="acciones" style="margin-top:10px"><button type="button" class="b2 reintentar" onclick="reintentarTorre(\'' + esc(w.torre) + '\')">↻ Reintentar la ' + esc(w.torre) + '</button></div></div></div>';
     const hs = w.hitos || [];
     return '<div class="tarjeta torre-c" data-torre="' + esc(w.torre) + '"><h2>' + (i + 3) + ' · ' + esc(w.torre) + ' <small>' + (w.nInformes || 0) + ' informe' + (w.nInformes === 1 ? '' : 's') + ' en la semana' + (w.carpeta ? ' · ' + enlace(w.carpeta, 'carpeta') : '') + '</small></h2>' +
       htmlAvance(w) + '<h3>Áreas comunes (informe de torre)</h3>' + htmlAreas(w.torreInforme, hs.filter(h => h.torre)) +
       '<h3>Apartamentos</h3>' + htmlMatriz(w, hs.filter(h => h.apto)) + '<h3>Notas de la semana</h3>' + htmlNotas(w) + '</div>';
   }).join('');
   cargarBorrador();
-  $('resultado').hidden = false; $('estado-envio').hidden = true;
+  $('resultado').hidden = false;
+  if (sinMover) return;
+  $('estado-envio').hidden = true;
   $('resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function seccionDe(t) { return [...document.querySelectorAll('#torres-contratista .torre-c')].find(x => x.dataset.torre === t); }
 function actualizarMotivo(sec) {
   const w = DATA.torres.find(x => x.torre === sec.dataset.torre), v = pctVal(sec.querySelector('.av-pct').value), c = sec.querySelector('.av-motivo-c');
-  c.hidden = !(v === v && esDistinto(v, appDe(w)));
+  const dif = v === v && esDistinto(v, appDe(w));
+  c.hidden = !dif;
+  const r = sec.querySelector('.av-resumen'), nota = sec.querySelector('.av-nota').value.trim(), mot = sec.querySelector('.av-motivo').value.trim();
+  if (r) r.textContent = '% de avance físico validado: ' + (v === null ? (appDe(w) !== null ? appDe(w) + ' % (el de la app)' : 'sin %') : v === v ? v + ' %' : '(no es un número)') +
+    (dif && mot ? '\nPor qué es distinto: ' + mot : '') + (nota ? '\nNota de la ' + w.torre + ': ' + nota : '');
 }
 function borradorContratista() {
   const o = { textos: textos(), torres: {} };
-  (DATA.torres || []).forEach(w => { const sec = seccionDe(w.torre); if (sec) o.torres[w.torre] = { pct: sec.querySelector('.av-pct').value, motivo: sec.querySelector('.av-motivo').value, nota: sec.querySelector('.av-nota').value }; });
+  (DATA.torres || []).forEach(w => { const sec = seccionDe(w.torre); if (sec && sec.querySelector('.av-pct')) o.torres[w.torre] = { pct: sec.querySelector('.av-pct').value, motivo: sec.querySelector('.av-motivo').value, nota: sec.querySelector('.av-nota').value }; });
   return o;
 }
 function cargarBorradorContratista() {
@@ -691,7 +727,7 @@ function cargarBorradorContratista() {
   CAMPOS.forEach(k => { $('t-' + k).value = (src && src.textos && src.textos[k]) || ''; crecer($('t-' + k)); });
   DATA.torres.forEach(w => {
     const sec = seccionDe(w.torre), x = (src && src.torres && src.torres[w.torre]) || {};
-    if (!sec) return;
+    if (!sec || !sec.querySelector('.av-pct')) return;
     sec.querySelector('.av-pct').value = x.pct || ''; sec.querySelector('.av-motivo').value = x.motivo || ''; sec.querySelector('.av-nota').value = x.nota || '';
     actualizarMotivo(sec);
   });
@@ -709,13 +745,14 @@ $('torres-contratista').addEventListener('click', e => {
   d.hidden = !abrir; b.setAttribute('aria-expanded', String(abrir)); b.textContent = abrir ? 'Ocultar la cuenta' : '¿De dónde sale?';
 });
 $('torres-contratista').addEventListener('input', e => {
-  const sec = e.target.closest('.torre-c'); if (!sec || !DATA) return;
-  if (e.target.classList.contains('av-pct')) actualizarMotivo(sec);
+  const sec = e.target.closest('.torre-c'); if (!sec || !DATA || !sec.querySelector('.av-pct')) return;
+  actualizarMotivo(sec);
   try { localStorage.setItem(claveBorrador(), JSON.stringify(borradorContratista())); $('guardado-txt').textContent = 'Borrador guardado en este equipo ✓ ' + new Date().toTimeString().slice(0, 5) + '. Se archiva al tocar «Enviar el compilado».'; } catch (er) {}
   if (ENVIADO) $('btn-enviar').textContent = '📤 Enviar de nuevo (hay cambios sin archivar)';
 });
 async function enviarContratista() {
-  const t = textos(), torres = [];
+  const t = textos(), torres = [], sinLeer = DATA.torres.filter(w => w.fallo).map(w => w.torre);
+  if (sinLeer.length) return mostrarEnvio('Todavía no se pudo leer ' + sinLeer.map(x => 'la ' + esc(x)).join(', ') + ': toque «Reintentar» en ' + (sinLeer.length === 1 ? 'esa torre' : 'cada una') + ' y, cuando aparezca, envíe.', 'mal');
   for (const w of DATA.torres) {
     const sec = seccionDe(w.torre), v = pctVal(sec.querySelector('.av-pct').value), motivo = sec.querySelector('.av-motivo').value.trim(), nota = sec.querySelector('.av-nota').value.trim();
     if (v !== v) { sec.querySelector('.av-pct').focus(); return mostrarEnvio('El % de la ' + esc(w.torre) + ' tiene que ser un número entre 0 y 100.', 'mal'); }

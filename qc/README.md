@@ -917,3 +917,16 @@ cambios, 375 px sin desbordes ni controles chicos). Expectativas vencidas correg
 archivado de Glajos con su % y su nota; otra contratista vacía; 6/6) y `t99` (en obra el rótulo es «Contratista»; 8/8). Regresión del
 compilado a 375 × 812, cada tanda sola: `t83` 11/11, `t84` 10/10, `t95` 6/6, `t96` 9/9, `t98` 3/3, `t111` 4/4, `t117` 6/6; `t80`
 en el menú 1/1. Corridas a la vez en la misma página se pisan (comparten el relevo falso): van de a una.
+**Diez rondas más antes de publicar** (pedido de Stephanie, 21-oct), `t119` (rondas 1 a 5, 17/17) y `t120` (6 a 10, 16/16):
+1 · semana sin informes en ninguna torre (el % de la app sale igual; se valida y se envía); 2 · BZS, siete torres, dos lentas y la T-17
+con 60 apartamentos (dice «n de 7 listas», se leen a la vez —con 2 y 3 s tarda ~3 s—, siete secciones en orden, 15 pisos y 60 filas
+que deslizan dentro de su caja); 3 · una torre que no se puede leer; 4 · los números raros del % («42,0», « 42 % », a menos de 0,05,
+0, 100, negativo, «43,5»); 5 · textos de casi 2.000 caracteres, emojis, comillas y saltos (intactos); 6 · una contratista de una sola
+torre («la T-07», sin desglose en el membrete); 7 · cambiar de contratista y de semana sin mezclar borradores; 8 · el relevo caído y
+lento al enviar, y el doble toque; 9 · etiquetas e id únicos, aria del «¿De dónde sale?», el foco al motivo que falta; 10 · lo que sale
+al imprimir. **Dos arreglos dentro de la v181**: (ronda 3) una torre que el relevo no puede leer ya no tumba el compilado: se ven las
+demás, esa queda con «↻ Reintentar la T-07», el membrete dice «sin leer» y no deja enviar hasta leerla; lo escrito no se pierde al
+reintentar. (Ronda 10) al imprimir los cuadros del % y de la nota no salían; cada torre lleva ahora un resumen para el papel («% de
+avance físico validado: 70 % · Por qué es distinto: … · Nota de la T-08: …»). Mirado también a 320 × 568. El relevo falso suma
+`fallarTorres`, `tardaTorre`, la T-17 con 60 apartamentos y la semana sin informes desde el 1-dic. Regresión después de los
+arreglos: `t78` 24/24, `t79` 7/7, `t97` 6/6, `t99` 8/8, `t83` 11/11 (sola), `t111` 4/4, `t117` 6/6.

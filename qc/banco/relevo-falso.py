@@ -65,6 +65,9 @@ class H(http.server.BaseHTTPRequestHandler):
             # v151: la semana de una torre como la arma el relevo r53 (Compilado.gs). Sin clave buena, 'Clave incorrecta'.
             if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
             if not p.get('sector') or not p.get('torre'): return self._ok({"ok":False,"error":"Faltan sector o torre"})
+            # v181 (rondas de QC del compilado por contratista): una torre que falla, una que tarda, la semana sin informes y una torre de 60.
+            if p.get('torre') in (ESTADO.get('fallarTorres') or []): return self._ok({"ok":False,"error":"No se pudo leer la carpeta de la torre"})
+            if (ESTADO.get('tardaTorre') or {}).get(p.get('torre')): time.sleep((ESTADO.get('tardaTorre') or {}).get(p.get('torre')))
             hitos=[{"id":"hito_cerramientos","numero":"2","nombre":"HITO 2: CERRAMIENTOS","corto":"Albañilería","torre":True,"apto":True},
                    {"id":"hito_servicios","numero":"3","nombre":"HITO 3: INSTALACIÓN DE SERVICIOS","corto":"Servicios","torre":True,"apto":True},
                    {"id":"hito_acabados","numero":"4","nombre":"HITO 4: ACABADOS","corto":"Acabados","torre":True,"apto":True},
@@ -77,6 +80,9 @@ class H(http.server.BaseHTTPRequestHandler):
             notas=[{"numero":a["numero"],"numeroRev":a["numeroRev"],"fecha":a["fecha"],"lugar":a["lugar"],"ambito":"apartamento","inspectores":a["inspectores"],
                     "actividades":"","actividadesHeredada":False,"obs":([] if a["bloque"]=="P02AA1" else [{"hito":"hito_servicios","nombre":"HITO 3: INSTALACIÓN DE SERVICIOS","texto":"Observación de prueba del hito 3 en "+a["apto"]}]),
                     "obsGeneral":"","obsSp":"","foto":None,"pdf":a["pdf"],"copiadoDe":""} for a in aptos]
+            if p.get('torre')=='T-17':   # una torre de 60 apartamentos (15 pisos × A1, A2, B1, B2)
+                aptos=[apto("P%02dA%s"%(pi,ap),"Piso %02d"%pi,ap,{"hito_cerramientos":(pi*7)%101,"hito_servicios":(pi*5)%101,"hito_acabados":None,"hito_ascensor":None},[]) for pi in range(1,16) for ap in ("A1","A2","B1","B2")]
+                notas=[{"numero":a["numero"],"numeroRev":a["numeroRev"],"fecha":a["fecha"],"lugar":a["lugar"],"ambito":"apartamento","inspectores":a["inspectores"],"actividades":"","actividadesHeredada":False,"obs":[],"obsGeneral":"","obsSp":"","foto":None,"pdf":a["pdf"],"copiadoDe":""} for a in aptos]
             torre=None
             if p.get('torre')!='T-02':
                 torre={"numero":"QC-TORRE","numeroRev":"QC-TORRE-r2","bloque":"","fecha":"2026-10-09","piso":"","apto":"","lugar":"Torre completa","inspectores":["Inspector de prueba","Otra inspectora"],
@@ -84,6 +90,7 @@ class H(http.server.BaseHTTPRequestHandler):
                 notas.insert(0,{"numero":"QC-TORRE","numeroRev":"QC-TORRE-r2","fecha":"2026-10-09","lugar":"Torre completa","ambito":"torre","inspectores":torre["inspectores"],
                     "actividades":"Vaciado de losa del piso 3","actividadesHeredada":False,"obs":[],"obsGeneral":"Observación general de prueba de la torre","obsSp":"",
                     "foto":{"id":"x","url":"http://127.0.0.1:8777/qc-foto.jpg","miniatura":"http://127.0.0.1:8777/icon-192.png","hito":"hito_cerramientos"},"pdf":torre["pdf"],"copiadoDe":""})
+            if str(p.get('desde') or '')>='2026-12-01': aptos=[]; notas=[]; torre=None   # una semana sin informes en ninguna torre
             return self._ok({"ok":True,"sector":p['sector'],"sectorNombre":{"EZ":"Ezequiel Zamora","SB":"Simón Bolívar","SR":"Simón Rodríguez"}.get(p['sector'],p['sector']),
                 "torre":p['torre'],"empresa":"EMPRESA DE PRUEBA, C.A.","convenio":"","desde":p.get('desde'),"hasta":p.get('hasta') or '2026-10-13',
                 "hitos":hitos,"torreInforme":torre,"apartamentos":aptos,"notas":notas,"inspectores":["Inspector de prueba","Otra inspectora"],
