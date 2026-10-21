@@ -311,7 +311,7 @@ header .nro-hint{font-size:12px;opacity:.85;margin-top:3px}
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún servicio..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v182</div>
+  <div class="pie" id="pie">● <span id="conexion">en línea</span> · v183</div>
 </div>
 
 <div class="acciones">
@@ -3376,9 +3376,18 @@ document.addEventListener('change', function(e){
   try { el.focus(); if (el.showPicker) el.showPicker(); } catch (er) {}
 }, true);
 // «Siguiente apto.» y «Sig. torre» arrastran la fecha sin preguntar; si no es hoy, se dice.
+// v183 (21-oct-2026, Diego Orta: «cuando cargan información de una inspección anterior la fecha que sale en el informe nuevo sigue
+// siendo la anterior»): solo se arrastra la fecha que el inspector ELIGIÓ y confirmó en esta sesión (cargar seguidos los de un día
+// anterior, el caso del 13-oct). Si la fecha vino de un informe abierto de otro día, el informe nuevo arranca con la de hoy, y se dice.
 function _avisarFechaArrastrada192(){
-  const v = (document.getElementById('fecha') || {}).value || '';
-  if (v && v !== _iso192(_hoy192())) _avisoCorto192('📅 Sigue con la fecha ' + _fechaCorta192(v) + ', no la de hoy.');
+  const el = document.getElementById('fecha'), v = (el || {}).value || '', hoy = _iso192(_hoy192());
+  if (!v || v === hoy) return;
+  if (_fechasOk192[v]) { _avisoCorto192('📅 Sigue con la fecha ' + _fechaCorta192(v) + ', no la de hoy.'); return; }
+  el.value = hoy; el.dataset.antes192 = hoy;
+  _revirtiendo192 = true;
+  try { el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); }
+  finally { _revirtiendo192 = false; }
+  _avisoCorto192('📅 Informe nuevo con la fecha de hoy (' + _fechaCorta192(hoy) + '). El anterior era del ' + _fechaCorta192(v) + '.');
 }
 ['siguienteApartamento', 'siguienteTorre'].forEach(function(n){
   if (typeof window[n] !== 'function') return;

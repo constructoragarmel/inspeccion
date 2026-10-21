@@ -945,3 +945,10 @@ zona», y lo guardado aparece en la torre sola; 7 · el relevo caído al guardar
 regenerar); 8 · aria-label por hallazgo, id únicos, 44 px, sin desborde; 9 · al imprimir sale el estatus como texto; 10 · el
 inspector no envía el compilado ni abre otro tipo. **Un arreglo dentro de la v182**: la página no arrancaba (la lista de «Quién»
 usaba una constante antes de que existiera). Regresión: `t78` 24/24, `t84` 10/10, `t99` 8/8, `t119` 17/17, `t120` 16/16.
+
+## La fecha de un informe nuevo (v183, 21-oct-2026): `t123`
+
+Diego Orta: «cuando cargan información de una inspección anterior la fecha que sale en el informe nuevo sigue siendo la anterior».
+Era abrir en «Informes» uno guardado de otro día y tocar «Siguiente apto.» o «Sig. torre»: el nuevo heredaba esa fecha y solo un aviso
+lo decía. Desde la v183 (`comun/antes_de_enviar.js`, los cuatro formularios) el nuevo arranca con la de hoy y lo dice; solo se arrastra
+la fecha que el inspector eligió y confirmó en esta sesión (el caso de `t114`). `t123` 4/4; regresión `t114` 9/9.
