@@ -293,11 +293,12 @@ async function llenarManzanas() {
     }
   }
   if ($('sector').value !== s || tipoActual() !== 'urbanismo') return;
+  const elegida = sel.value || antes;   // QC de estrés (v184): lo elegido mientras se pedía la lista al relevo no se pierde al repintarla
   sel.innerHTML = '<option value="">— Seleccione manzana —</option>';
   // v174 (16-oct-2026): urbanismo también por todo el urbanismo —todas las manzanas del sector y lo de toda la zona—, como servicios.
   { const o = document.createElement('option'); o.value = 'URBANISMO'; o.textContent = '★ Todo el urbanismo (todas las manzanas y la zona)'; sel.appendChild(o); }
   (MANZANAS[s] || []).forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
-  if ([...sel.options].some(o => o.value === antes)) sel.value = antes;
+  if ([...sel.options].some(o => o.value === elegida)) sel.value = elegida;
 }
 function aplicarTipo() {
   const t = tipoActual();
@@ -864,13 +865,14 @@ try {
 (async function () {
   const de = new URLSearchParams(location.search).get('de');
   if (!de || !TIPOS[de] || de === 'obra') return;
-  let p = null; try { p = JSON.parse(localStorage.getItem('garmel_compilado_desde') || 'null'); localStorage.removeItem('garmel_compilado_desde'); } catch (e) {}
+  let p = null, crudo = null; try { crudo = localStorage.getItem('garmel_compilado_desde'); localStorage.removeItem('garmel_compilado_desde'); } catch (e) {}
+  try { p = JSON.parse(crudo || 'null'); } catch (e) {}   // QC de estrés: un recuerdo roto se borra igual y no tumba la página
   p = p || {};
   if (DATA && DATA.tipo === de && (!p.sector || DATA.sector === p.sector) && (!p.quien || DATA.quien === p.quien)) return;   // la misma semana ya armada: se queda
   if (DATA) otraVez();
   $('tipo').value = de; aplicarTipo();
   if (p.sector) { $('sector').value = p.sector; if (de === 'urbanismo') await llenarManzanas(); else llenarTorres(); if ([...$('torre').options].some(o => o.value === 'URBANISMO')) $('torre').value = 'URBANISMO'; }
-  if (p.quien && [...$('quien').options].some(o => o.value === p.quien)) $('quien').value = p.quien;
+  $('quien').value = p.quien && [...$('quien').options].some(o => o.value === p.quien) ? p.quien : '';   // quien no valida (o nadie): a elegir, nunca el de otra semana
   estado('Viene del formulario de ' + TIPOS[de].nombre + (p.sector ? ': ' + esc($('sector').selectedOptions[0].textContent) + ', todo el urbanismo' : '') + '. Revise las fechas y toque «Generar el compilado».', 'espera', true);
 })();
 

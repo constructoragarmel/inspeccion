@@ -966,3 +966,18 @@ lado de «Inicio». Desde servicios, SHA y urbanismo el compilado se abre ya en 
 44 px. Regresión a 375 × 812: obra `t10` 3/3, `t72` 3/3, `t80` 3/3, `t123` 4/4; servicios `t10` 4/4, `t59` 15/15, `t80` 1/1; SHA
 `t10` 4/4, `t12` 4/4, `t59` 15/15; urbanismo `t10` 4/4, `t11` 27/27, `t59` 15/15; `t80` y `t59` puestas al día con el menú nuevo.
 `t3` da 25/29, igual que con la v183 publicada (expectativas viejas de la tanda, no del menú). Mirado también en la computadora.
+
+## Estrés de fin de día (21-oct-2026, sobre la v184): `t124` a `t127`
+
+Pedido de Stephanie: «haz 10 QC para confirmar que no se haya roto nada … estresa la app lo más posible». 1 obra, 25 apartamentos
+seguidos con «Guardar y otro apto», contadores de la barra, doble toque y relevo lento · 2 obra, tres rechazados, relevo caído y
+reintento sin duplicar · 3 SHA, 15 torres seguidas, contadores, doble toque y relevo lento · 4 «⋯ Más» 30 veces, cuadrícula, «Limpiar
+todo» con «no», «PDF» lo cierra · 5 SHA, la fecha de un informe viejo abierto · 6 el compilado desde un formulario con lo raro (iframes) ·
+7 el estatus de SHA con 80 cambios, guardado lento con doble toque, caído, reintento y validación · 8 los cuatro en 320, 375, 812
+apaisado, 768 y 1280 (iframes desde el menú) · 9 la misma base: barra, cabecera, «Más», funciones, versión, sin errores · 10 las tandas
+de hoy otra vez. **Encontró cuatro cosas, arregladas (v185):** «Limpiar todo» en obra dejaba la fecha vacía (los otros tres ponen la de
+hoy) y el informe no salía en «Enviar todos»; en el compilado, un recuerdo roto de `garmel_compilado_desde` no se borraba; al llegar
+desde urbanismo con otra semana en pantalla quedaba elegido quien validó esa semana y la manzana se perdía porque la lista se repintaba
+al llegar del relevo (ahora se conserva lo elegido); en la computadora los botones de obra medían 35 px y los de los otros tres 44.
+Resultado final: `t124` 8/8, `t125` 11/11, `t126` 13/13, `t127` 7/7; regresión obra 30/30 (t10, t72, t80, t114, t123, t124),
+compilado 103/103 (t78, t99, t119, t120, t121, t122, t126), SHA 34/34, servicios 20/20, urbanismo 46/46.

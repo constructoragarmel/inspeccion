@@ -8370,6 +8370,7 @@ _css_165 = """
 /* 174 · «Inicio» también en escritorio (7-oct-2026): estaba en display:none y solo lo encendía el media query del
    teléfono; en la computadora el formulario de obra no tenía cómo volver al menú (los otros tres sí). */
 .hdr-comp{margin-left:auto!important}
+.hbtn{min-height:44px}   /* v184: 44 px también en la computadora, como en los otros tres (QC de estrés del 21-oct) */
 /* v184: «Más» abierto en el teléfono, en cuadrícula de dos: con un número impar de botones ninguno se estira (base común con los otros tres). */
 @media screen and (max-width:700px), screen and (pointer:coarse){.hdr-sec.abierto{display:grid!important;grid-template-columns:1fr 1fr;flex-direction:initial}}
 .hdr-inicio[aria-label="Inicio"]{margin-left:0!important}
@@ -9119,6 +9120,14 @@ s = sustituir(s,
  "márquelo como «hito no inspeccionado»: no cuenta para el promedio, que no es lo mismo que ponerle cero.",
  "márquelo como «hito no inspeccionado»: queda registrado como no verificado, que no es lo mismo que ponerle cero.",
  "177d· ni el aviso de ámbito", n=3)
+
+# ── v184. «Limpiar todo» deja la fecha de HOY, no en blanco (21-oct-2026) ─────────────────────────────────
+# Lo vio el QC de estrés del 21-oct: al abrir la app la fecha es la de hoy, pero «Limpiar todo» la dejaba vacía y el informe no salía
+# en «Enviar todos» hasta escribirla. Servicios, SHA y urbanismo ya ponían la de hoy (vaciarFormulario): misma base en los cuatro.
+s = sustituir(s,
+ "  document.getElementById('fecha').value = '';\n  document.getElementById('convenio').value = '';",
+ "  { const h = new Date(); document.getElementById('fecha').value = h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0') + '-' + String(h.getDate()).padStart(2, '0'); }\n  document.getElementById('convenio').value = '';",
+ "v184· «Limpiar todo» deja la fecha de hoy")
 
 # ── 178. «Compilado» en «Más» (13-oct-2026) ───────────────────────────────
 # La página «Compilado de la semana» (compilado.html) es con la que la coordinación valida la semana de una torre

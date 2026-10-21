@@ -986,6 +986,7 @@ textarea{font-family:inherit}
 /* 174 · «Inicio» también en escritorio (7-oct-2026): estaba en display:none y solo lo encendía el media query del
    teléfono; en la computadora el formulario de obra no tenía cómo volver al menú (los otros tres sí). */
 .hdr-comp{margin-left:auto!important}
+.hbtn{min-height:44px}   /* v184: 44 px también en la computadora, como en los otros tres (QC de estrés del 21-oct) */
 /* v184: «Más» abierto en el teléfono, en cuadrícula de dos: con un número impar de botones ninguno se estira (base común con los otros tres). */
 @media screen and (max-width:700px), screen and (pointer:coarse){.hdr-sec.abierto{display:grid!important;grid-template-columns:1fr 1fr;flex-direction:initial}}
 .hdr-inicio[aria-label="Inicio"]{margin-left:0!important}
@@ -4632,7 +4633,7 @@ function nuevoFormulario() {
   _idEnEdicion = null;
   if (typeof _oficinaEstado === 'function') { _definitiva = null; _oficinaDe = null; _oficinaEstado(); }
   _abiertoParaEditar = false;
-  document.getElementById('fecha').value = '';
+  { const h = new Date(); document.getElementById('fecha').value = h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0') + '-' + String(h.getDate()).padStart(2, '0'); }
   document.getElementById('convenio').value = '';
   document.getElementById('empresa').value = '';
   document.getElementById('torre').value = '';
