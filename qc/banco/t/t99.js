@@ -8,8 +8,8 @@ const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.d
 const opts = () => [...$('#torre').options].map(o => o.value + '|' + o.textContent);
 sel('tipo', 'urbanismo'); sel('sector', 'EZ'); await hasta(() => [...$('#torre').options].some(o => o.value === 'M-6'), 8000);
 const ou = opts(); sel('tipo', 'sha'); sel('sector', 'EZ'); await esperar(100); const os = opts(); sel('tipo', 'obra'); sel('sector', 'EZ'); await esperar(100); const oo = opts();
-ok('1 · En urbanismo la primera opción es todo el urbanismo (de las manzanas); en SHA, el de las torres; en obra no aparece',
-   ou[1] === 'URBANISMO|★ Todo el urbanismo (todas las manzanas y la zona)' && os[1] === 'URBANISMO|★ Todo el urbanismo (todas las torres y la zona)' && !oo.some(x => x.startsWith('URBANISMO')) && $('#lbl-torre').textContent === 'Torre', ou.slice(0, 3).join(' / '));
+ok('1 · En urbanismo la primera opción es todo el urbanismo (de las manzanas); en SHA, el de las torres; en obra no aparece (desde la v181, obra se elige por contratista)',
+   ou[1] === 'URBANISMO|★ Todo el urbanismo (todas las manzanas y la zona)' && os[1] === 'URBANISMO|★ Todo el urbanismo (todas las torres y la zona)' && !oo.some(x => x.startsWith('URBANISMO')) && $('#lbl-torre').textContent === 'Contratista', ou.slice(0, 3).join(' / '));
 sel('tipo', 'urbanismo'); sel('sector', 'EZ'); await hasta(() => [...$('#torre').options].some(o => o.value === 'URBANISMO'), 8000); sel('torre', 'URBANISMO');
 sel('quien', 'Diego Orta'); Q.escribir($('#desde'), '2026-10-08'); Q.escribir($('#hasta'), '2026-10-15');
 await generar(); await hasta(() => !$('#resultado').hidden, 8000); await esperar(300);

@@ -88,9 +88,36 @@ class H(http.server.BaseHTTPRequestHandler):
                 "torre":p['torre'],"empresa":"EMPRESA DE PRUEBA, C.A.","convenio":"","desde":p.get('desde'),"hasta":p.get('hasta') or '2026-10-13',
                 "hitos":hitos,"torreInforme":torre,"apartamentos":aptos,"notas":notas,"inspectores":["Inspector de prueba","Otra inspectora"],
                 "nInformes":len(notas),"carpeta":"http://127.0.0.1:8777/carpeta","generado":"2026-10-13 10:00",
+                # v181 (relevo r72): el % de avance físico de la app; la T-02 sin presupuesto, como una torre que no lo tiene cargado
+                "avanceApp":({"sinPresupuesto":True,"torre":"EZ-T02"} if p.get('torre')=='T-02' else {"torre":"EZ-"+str(p.get('torre')).replace('-',''),"contratista":"EMPRESA DE PRUEBA","avance":38+len(str(p.get('torre'))) if p.get('torre')!='T-04' else 52,"pesoMedido":31,"apartamentos":3,"lugares":4,"informeTorre":"2026-10-09","ultimo":{"fecha":"2026-10-09","numero":"QC-TORRE"},"provisional":True,"pesosDe":"2026-10-06",
+                   "partidas":[{"codigo":"2.02","nombre":"Frisos","hito":2,"ambito":"Ambos","peso":12.4,"promedio":60,"medidos":3},{"codigo":"3.01","nombre":"Tuberías de aguas blancas","hito":3,"ambito":"Ambos","peso":8.1,"promedio":29,"medidos":2},{"codigo":"9.01","nombre":"Ascensor","hito":9,"ambito":"Torre","peso":10.0,"promedio":None,"medidos":0}]}),
                 "archivado":getattr(H,'compilados',{}).get((p.get('sector'),p.get('torre'),'obra',p.get('desde'),bool(p.get('prueba'))))})
         if p.get('accion')=='compilado-guardar':
             if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
+            if isinstance(p.get('torres'),list) and (p.get('tipo') or 'obra')=='obra':
+                # v181 (relevo r72): el de obra por contratista. Las mismas reglas que _compGuardarContratista.
+                t=p.get('textos') or {}; torres=p.get('torres') or []
+                if not (p.get('coordinadora') or '').strip(): return self._ok({"ok":False,"error":"Falta quién valida"})
+                if not torres: return self._ok({"ok":False,"error":"El compilado no trae ninguna torre"})
+                if not any((t.get(k) or '').strip() for k in ('hitos','exitos','dificultades','otros')) and not any((x.get('nota') or '').strip() for x in torres): return self._ok({"ok":False,"error":"El compilado va sin ningún comentario de la coordinación"})
+                for x in torres:
+                    v=str(x.get('pct') if x.get('pct') is not None else '').strip().replace('%','').replace(',','.')
+                    app=((x.get('semana') or {}).get('avanceApp') or {}).get('avance')
+                    if v:
+                        try: vn=float(v)
+                        except: return self._ok({"ok":False,"error":"El % de la "+x['torre']+" tiene que ser un número entre 0 y 100"})
+                        if vn<0 or vn>100: return self._ok({"ok":False,"error":"El % de la "+x['torre']+" tiene que ser un número entre 0 y 100"})
+                        if not (app is not None and abs(vn-app)<0.05) and not (x.get('motivo') or '').strip(): return self._ok({"ok":False,"error":"Falta por qué el % de la "+x['torre']+" es distinto del de la app"})
+                sig=''.join(ch for ch in str(p.get('contratista') or '').upper().replace('C.A.','').replace('S.A.','').replace('INVERSIONES','').replace('CONSTRUCTORA','') if ch.isalnum())[:16] or 'CONTRATISTA'
+                num=("PRUEBA-" if p.get('prueba') else "")+"CON-"+str(p.get('sector'))+"-"+sig+"-SEM-"+str(p.get('desde') or '')[2:].replace('-','')
+                with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":num,"tipo":"compilado-obra-contratista","ambito":"contratista","fotos":[],"datos":{"textos":t,"coordinadora":p.get('coordinadora'),"desde":p.get('desde'),"hasta":p.get('hasta'),"contratista":p.get('contratista'),"torres":[{"torre":x.get('torre'),"pct":x.get('pct'),"motivo":x.get('motivo'),"nota":x.get('nota'),"nInformes":(x.get('semana') or {}).get('nInformes'),"app":((x.get('semana') or {}).get('avanceApp') or {}).get('avance')} for x in torres]}}, ensure_ascii=False)+"\n")
+                H.compilados=getattr(H,'compilados',{}); antes=False
+                for x in torres:
+                    k=(p.get('sector'),x.get('torre'),'obra',p.get('desde'),bool(p.get('prueba'))); antes=antes or k in H.compilados
+                    v=str(x.get('pct') if x.get('pct') is not None else '').strip()
+                    H.compilados[k]={"textos":t,"coordinadora":p.get('coordinadora'),"guardado":"2026-10-21 10:15","numero":"x","compiladoContratista":num,"contratista":p.get('contratista'),"textosContratista":t,"nota":x.get('nota') or '',
+                                     "avance":{"app":((x.get('semana') or {}).get('avanceApp') or {}).get('avance'),"validado":(float(v.replace(',','.')) if v else None),"motivo":x.get('motivo') or ''}}
+                return self._ok({"ok":True,"numero":num,"archivo":num+".json","url":"http://127.0.0.1:8777/compilado.json","pdf":"http://127.0.0.1:8777/compilado.pdf","torres":[{"torre":x.get('torre')} for x in torres],"reemplazado":antes,"guardado":"2026-10-21 10:15"})
             t=p.get('textos') or {}
             if not any((t.get(k) or '').strip() for k in ('hitos','exitos','dificultades','otros')): return self._ok({"ok":False,"error":"El compilado va sin ningún comentario de la coordinación"})
             if not (p.get('coordinadora') or '').strip(): return self._ok({"ok":False,"error":"Falta quién valida"})

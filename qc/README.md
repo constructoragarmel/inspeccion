@@ -901,3 +901,19 @@ verde. A la vista: obra `t32`, `t33`, `t34`+`t34b`, `t90`, `t93`, `t101`, `t108`
 `t75`, `t91`, `t94`, `t109`; SHA `t12`, `t38`, `t54`, `t74`, `t91`, `t102`, `t109`; urbanismo `t37`, `t55`, `t59`, `t74`, `t85`, `t89`,
 `t91`, `t106`, `t110`: todas en verde. SHA `t6` da 28/30 (la pestaña «Obstáculos» que no esperaba y una reapertura de incidencias) y la
 v179 en la misma corrida 14/30: no es de esta versión.
+
+**v181 (21-oct-2026, construida y sin publicar; va con el relevo r72): el compilado de obra por contratista con el % de avance
+físico** (ADR-0049 del repositorio Garmel, pedido de Diego Orta). En `compilado/pagina.html`: obra se elige por **contratista** (la
+lista dice sus torres: «ALNAVIC, C.A. · T-05, T-06, T-07, T-08»); la página pide la semana de cada torre al relevo a la vez y las pinta
+una debajo de otra (sección 3 en adelante), cada una con su **% de avance físico según la app** (lo medido del presupuesto, pesos
+provisionales, último informe), **«¿De dónde sale?»** con la cuenta partida por partida, el cuadro **«% de avance físico validado»**
+(vacío = el de la app; otro número abre «¿Por qué es distinto del de la app?», obligatorio), una **nota de la torre** opcional, y sus
+áreas comunes, apartamentos y notas. Una sola validación para la contratista. Borrador por contratista y semana; lo archivado vuelve a
+los cuadros; al recargar vuelve todo. Servicios, urbanismo y SHA siguen como estaban. El menú describe el compilado nuevo. El relevo
+falso contesta `avanceApp` (la T-02 sin presupuesto) y archiva como `_compGuardarContratista`. **`t78` reescrita** para obra por
+contratista (24/24: la lista, las cuatro secciones, la torre sin presupuesto, la cuenta, el % igual y distinto, el motivo que falta, el
+% fuera de rango, el borrador, el envío con lo de cada torre, lo archivado al volver a generar, «Otra contratista», servicios sin
+cambios, 375 px sin desbordes ni controles chicos). Expectativas vencidas corregidas: `t79` (obra con Río Limón; 7/7), `t97` (lo
+archivado de Glajos con su % y su nota; otra contratista vacía; 6/6) y `t99` (en obra el rótulo es «Contratista»; 8/8). Regresión del
+compilado a 375 × 812, cada tanda sola: `t83` 11/11, `t84` 10/10, `t95` 6/6, `t96` 9/9, `t98` 3/3, `t111` 4/4, `t117` 6/6; `t80`
+en el menú 1/1. Corridas a la vez en la misma página se pisan (comparten el relevo falso): van de a una.

@@ -80,6 +80,25 @@ a.doc:hover{text-decoration:underline}
   .nota{break-inside:avoid}
 }
 .de-antes{color:#8f4b00;font-weight:600}
+/* v181 (ADR-0049): el compilado de obra por contratista — una sección por torre con su % de avance físico */
+.mz td:first-child,.mz th:first-child{position:sticky;left:0;background:#fff;z-index:1;box-shadow:2px 0 0 #e0e3f0}
+.mz th:first-child{background:#e8eaf6;z-index:2}
+.mz td.piso{position:static}
+.mz .piso-txt{position:sticky;left:8px;display:inline-block}
+.torre-c h2{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.torre-c h2 small{font-size:13px;font-weight:400;color:var(--gris)}
+.torre-c h3{font-size:14px;color:var(--azul);margin:16px 0 6px}
+.avance{border:1.5px solid #9fa8da;background:#f5f6ff;border-radius:10px;padding:12px;margin-bottom:6px}
+.av-app{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:14px}
+.av-num{font-size:26px;font-weight:800;color:var(--azul);line-height:1}
+.av-app .det{flex:1 1 220px;color:#334155}
+.av-app .det small{display:block;color:var(--gris);font-size:12.5px;margin-top:2px}
+.av-desglose{margin-top:10px}
+.av-desglose td.sinm{color:#94a3b8}
+.av-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
+.av-campos textarea{min-height:70px}
+.av-dif{color:#8f4b00;font-weight:700}
+
 </style>
 </head>
 <body>
@@ -92,7 +111,7 @@ a.doc:hover{text-decoration:underline}
 <div id="prueba" hidden class="prueba">🧪 Modo de prueba: el compilado también lee los informes de prueba (PRUEBA-) y lo que se envía queda marcado como PRUEBA.</div>
 
 <div class="tarjeta" id="pedido">
-  <h2>1 · Qué torre y qué semana</h2>
+  <h2 id="h-pedido">1 · Qué torre y qué semana</h2>
   <div class="sub" id="sub-pedido">Se traen todos los informes de obra de esa torre entre las dos fechas: el último de cada apartamento, el último de la torre y las notas de todos.</div>
   <div class="rejilla">
     <div class="campo"><label for="tipo">Qué se compila</label>
@@ -145,7 +164,9 @@ a.doc:hover{text-decoration:underline}
     <div class="leyenda">— sin medir · n/i no inspeccionado · ° avance declarado por el inspector</div>
   </div>
 
-  <div class="tarjeta">
+  <div id="torres-contratista" hidden></div>
+
+  <div class="tarjeta" id="bloque-notas">
     <h2 id="notas-titulo">5 · Notas de la semana</h2>
     <div class="sub">Lo que escribió cada inspector en cada informe, tal cual, con su primera foto.</div>
     <div id="notas"></div>
@@ -156,7 +177,7 @@ a.doc:hover{text-decoration:underline}
   <div class="acciones noprint">
     <button type="button" class="b2" id="btn-enviar" onclick="enviar()">📤 Enviar el compilado</button>
     <button type="button" class="b1" onclick="window.print()">🖨 Imprimir o guardar en PDF</button>
-    <button type="button" class="b1" onclick="otraVez()">↩ Otra torre o semana</button>
+    <button type="button" class="b1" id="btn-otra" onclick="otraVez()">↩ Otra torre o semana</button>
   </div>
   <div class="estado" id="estado-envio" hidden></div>
 </div>
@@ -208,13 +229,19 @@ function llenarTorres() {
   // v171 (15-oct-2026): servicios también por urbanismo —el sector entero: todas las torres y lo de toda la zona—, porque no
   // trabaja por torre en todos los sectores (en Ezequiel Zamora la semana del 8 trajo un solo informe, de toda la zona).
   // v174 (16-oct-2026): SHA también, con la contratista de cada torre, porque sus láminas del informe van por contratista.
+  if (tipoActual() === 'obra') {   // v181 (ADR-0049, pedido de Diego Orta): el compilado de obra va por contratista
+    sel.innerHTML = '<option value="">' + (s ? '— Seleccione contratista —' : '— Elija primero el sector —') + '</option>';
+    contratistasDe(s).forEach(c => { const o = document.createElement('option'); o.value = c.e; o.textContent = c.e + ' · ' + c.torres.join(', '); sel.appendChild(o); });
+    if ([...sel.options].some(o => o.value === antes)) sel.value = antes;
+    return;
+  }
   if (s && (tipoActual() === 'servicios' || tipoActual() === 'sha')) { const o = document.createElement('option'); o.value = 'URBANISMO'; o.textContent = '★ Todo el urbanismo (todas las torres y la zona)'; sel.appendChild(o); }
   TORRES.filter(t => SECTOR_POR_CONVENIO[t.c] === s).forEach(t => { const o = document.createElement('option'); o.value = t.t; o.textContent = t.t + (t.e ? ' · ' + t.e : ''); sel.appendChild(o); });
   if ([...sel.options].some(o => o.value === antes)) sel.value = antes;
 }
 $('sector').addEventListener('change', llenarTorres);
 const TIPOS = {
-  obra: { lbl: 'Torre', nombre: 'obra', sub: 'Se traen todos los informes de obra de esa torre entre las dos fechas: el último de cada apartamento, el último de la torre y las notas de todos.' },
+  obra: { lbl: 'Contratista', nombre: 'obra', sub: 'Se traen los informes de obra de todas las torres de esa contratista entre las dos fechas: por cada torre, el último de cada apartamento, el último de la torre, las notas de todos y su % de avance físico según la app.' },   // v181 (ADR-0049): por contratista
   servicios: { lbl: 'Torre o todo el urbanismo', nombre: 'servicios', sub: 'Se traen los informes de servicios de esa torre entre las dos fechas —o, con «Todo el urbanismo», de todas las torres del sector y de toda la zona—: el último, por ente, con lo listo y lo que falta, y las notas de todos.' },
   urbanismo: { lbl: 'Manzana o todo el urbanismo', nombre: 'urbanismo', sub: 'Se traen los informes de urbanismo de esa manzana entre las dos fechas —o, con «Todo el urbanismo», de todas las manzanas del sector y de toda la zona—: el último, con sus cantidades y camiones, y las notas de todos.' },
   sha: { lbl: 'Torre o todo el urbanismo', nombre: 'SHA', sub: 'Se traen los informes de SHA de esa torre entre las dos fechas —o, con «Todo el urbanismo», de todas las torres y manzanas del sector y de toda la zona, con la contratista de cada una—: todos los hallazgos e incidencias de la semana (cada uno una vez, con su último estatus) y los que seguían abiertos de antes, los recaudos del último informe y las notas de todos.' }
@@ -246,6 +273,8 @@ async function llenarManzanas() {
 function aplicarTipo() {
   const t = tipoActual();
   $('lbl-torre').textContent = TIPOS[t].lbl; $('sub-pedido').textContent = TIPOS[t].sub;
+  $('h-pedido').textContent = t === 'obra' ? '1 · Qué contratista y qué semana' : t === 'urbanismo' ? '1 · Qué manzana y qué semana' : '1 · Qué torre y qué semana';
+  $('btn-otra').textContent = t === 'obra' ? '↩ Otra contratista o semana' : '↩ Otra torre o semana';
   if (t === 'urbanismo') llenarManzanas(); else llenarTorres();
 }
 $('tipo').addEventListener('change', aplicarTipo);
@@ -257,13 +286,14 @@ function claveGuardada() { try { return localStorage.getItem('garmel_clave_envio
 // ── Pedir la semana al relevo ──
 async function generar() {
   const sector = $('sector').value, torre = $('torre').value, desde = $('desde').value, hasta = $('hasta').value, quien = $('quien').value.trim(), tipo = tipoActual();
-  if (!sector || !torre) return estado(tipo === 'urbanismo' ? 'Elija el sector y la manzana.' : 'Elija el sector y la torre.', 'mal');
+  if (!sector || !torre) return estado(tipo === 'urbanismo' ? 'Elija el sector y la manzana.' : tipo === 'obra' ? 'Elija el sector y la contratista.' : 'Elija el sector y la torre.', 'mal');
   if (!desde || !hasta || hasta < desde) return estado('Revise las fechas: la final no puede ser anterior a la de inicio.', 'mal');
   if (!quien) return estado('Elija quién valida este compilado.', 'mal');
   const clave = claveGuardada();
   if (!clave) return estado('Este equipo no tiene la clave de envío. Configúrela en <a href="index.html' + QUERY + '">Inicio</a> y vuelva.', 'mal');
   if (!navigator.onLine) return estado('Sin conexión: el compilado se arma con los informes archivados en Drive y hace falta internet.', 'mal');
   try { localStorage.setItem('garmel_compilado_ultimo', JSON.stringify({ sector, torre, quien, tipo })); } catch (e) {}
+  if (tipo === 'obra') return generarContratista(sector, torre, desde, hasta, quien, clave);
   $('btn-generar').disabled = true; $('resultado').hidden = true;
   const t0 = Date.now(), aviso = () => estado(torre === 'URBANISMO'   // v171: todo el urbanismo recorre las carpetas de servicios de cada torre (v174: o de urbanismo de cada manzana)
     ? '⏳ Leyendo los informes de ' + (tipo === 'urbanismo' ? 'urbanismo de todas las manzanas' : (tipo === 'sha' ? 'SHA' : 'servicios') + ' de todas las torres') + ' de ' + esc($('sector').selectedOptions[0] ? $('sector').selectedOptions[0].textContent : sector) + ' y de toda la zona, del ' + fecha(desde) + ' al ' + fecha(hasta) + '… <b>' + Math.round((Date.now() - t0) / 1000) + ' s</b>. Son varias carpetas: puede pasar de un minuto. No cierre la página.'
@@ -295,6 +325,8 @@ const corto = n => String(n || '').replace(/\s*\(CIV[^)]*\)/, '');
 function enlace(url, txt) { return url ? '<a class="doc" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(txt) + '</a>' : '<span class="sin" title="El PDF de este informe no está en la carpeta">' + esc(txt) + '</span>'; }
 function pintar() {
   const d = DATA; d.tipo = d.tipo || 'obra';
+  $('torres-contratista').hidden = d.modo !== 'contratista'; $('bloque-notas').hidden = d.modo === 'contratista';
+  if (d.modo === 'contratista') return pintarContratista(d);
   const T = TIPOS[d.tipo];
   const urb = d.torre === 'URBANISMO', lugarTxt = urb ? 'todo el urbanismo' : (d.tipo === 'urbanismo' ? 'la manzana ' : 'la ') + d.torre;
   $('titulo').textContent = d.sectorNombre + ' · ' + (urb ? 'Todo el urbanismo' : (d.tipo === 'urbanismo' ? 'Manzana ' : '') + d.torre) + (d.empresa ? ' · ' + d.empresa : '') + (d.tipo === 'obra' ? '' : ' · ' + (d.tipo === 'sha' ? 'SHA' : T.nombre.charAt(0).toUpperCase() + T.nombre.slice(1)));
@@ -377,11 +409,11 @@ function pintarTipo(d) {
   }
   $('tipo-tabla').innerHTML = html; $('tipo-extra').innerHTML = extra;
 }
-function pintarNotas(d) {
-  // Notas
+function pintarNotas(d) { $('notas').innerHTML = htmlNotas(d); }
+function htmlNotas(d) {
   const sinTexto = d.notas.filter(n => !(n.actividades && !n.actividadesHeredada) && !n.obs.length && !n.obsGeneral && !n.obsSp);
   const conTexto = d.notas.filter(n => sinTexto.indexOf(n) < 0);
-  $('notas').innerHTML = (conTexto.length ? conTexto.map(n => {
+  return (conTexto.length ? conTexto.map(n => {
     const txt = [];
     if (n.actividades && !n.actividadesHeredada) txt.push('<div class="obs"><b>Actividades en ejecución:</b> ' + esc(n.actividades) + '</div>');
     (n.obs || []).forEach(o => txt.push('<div class="obs"><b>' + esc(o.nombre.replace(/^HITO\s+\d+:\s*/i, '')) + ':</b> ' + esc(o.texto) + '</div>'));
@@ -396,12 +428,13 @@ function pintarNotas(d) {
 
 // ── Lo que escribe la coordinación ──
 const CAMPOS = ['hitos', 'exitos', 'dificultades', 'otros'];
-function claveBorrador() { return DATA ? 'garmel_compilado_' + (DATA.tipo && DATA.tipo !== 'obra' ? DATA.tipo + '_' : '') + DATA.sector + '_' + DATA.torre + '_' + DATA.desde : ''; }   // por semana (su inicio), no por «hasta»: el jueves cambia la fecha final y el texto del miércoles se perdía
+function claveBorrador() { if (DATA && DATA.modo === 'contratista') return 'garmel_compilado_con_' + DATA.sector + '_' + DATA.contratista + '_' + DATA.desde; return DATA ? 'garmel_compilado_' + (DATA.tipo && DATA.tipo !== 'obra' ? DATA.tipo + '_' : '') + DATA.sector + '_' + DATA.torre + '_' + DATA.desde : ''; }   // por semana (su inicio), no por «hasta»: el jueves cambia la fecha final y el texto del miércoles se perdía
 function textos() { const o = {}; CAMPOS.forEach(k => o[k] = $('t-' + k).value.trim()); return o; }
 // v172 (15-oct-2026): si la semana ya tiene un compilado archivado (`DATA.archivado`, relevo r65) y en este equipo no hay nada escrito,
 // sus textos se cargan en los cuadros: quien valida corrige sobre lo que ya está y lo envía, y el nuevo reemplaza al archivado. Lo
 // escrito en este equipo sin enviar manda sobre lo archivado, y el aviso lo dice.
 function cargarBorrador() {
+  if (DATA && DATA.modo === 'contratista') return cargarBorradorContratista();
   let b = null; try { b = JSON.parse(localStorage.getItem(claveBorrador()) || 'null'); } catch (e) {}
   const a = DATA && DATA.archivado, hayLocal = !!(b && CAMPOS.some(k => String(b[k] || '').trim()));
   const usarArchivado = !hayLocal && !!(a && a.textos && CAMPOS.some(k => String(a.textos[k] || '').trim()));
@@ -419,7 +452,7 @@ function cargarBorrador() {
 }
 function refrescarResumen() { CAMPOS.forEach(k => { const v = $('t-' + k).value.trim(); $('r-' + k).textContent = v || '(sin texto)'; }); }
 function crecer(t) { t.style.height = 'auto'; t.style.height = Math.max(110, t.scrollHeight + 4) + 'px'; }
-CAMPOS.forEach(k => $('t-' + k).addEventListener('input', () => { crecer($('t-' + k)); try { localStorage.setItem(claveBorrador(), JSON.stringify(textos())); $('guardado-txt').textContent = 'Borrador guardado en este equipo ✓ ' + new Date().toTimeString().slice(0, 5) + '. Se archiva al tocar «Enviar el compilado».'; } catch (e) {} refrescarResumen(); if (ENVIADO) $('btn-enviar').textContent = '📤 Enviar de nuevo (hay cambios sin archivar)'; }));
+CAMPOS.forEach(k => $('t-' + k).addEventListener('input', () => { crecer($('t-' + k)); try { localStorage.setItem(claveBorrador(), JSON.stringify(DATA && DATA.modo === 'contratista' ? borradorContratista() : textos())); $('guardado-txt').textContent = 'Borrador guardado en este equipo ✓ ' + new Date().toTimeString().slice(0, 5) + '. Se archiva al tocar «Enviar el compilado».'; } catch (e) {} refrescarResumen(); if (ENVIADO) $('btn-enviar').textContent = '📤 Enviar de nuevo (hay cambios sin archivar)'; }));
 // v171: servicios de todo el urbanismo — una fila por servicio del último informe de cada torre (y de toda la zona).
 function pintarServiciosPorTorre(d, gris) {
   $('tipo-titulo').textContent = '3 · Servicios por ente (último informe de cada torre)';
@@ -480,10 +513,182 @@ function pintarShaPorTorre(d, gris) {
   });
   $('tipo-tabla').innerHTML = html;
 }
+// ── v181 (ADR-0049, 21-oct-2026, pedido de Diego Orta): el compilado de OBRA por contratista ──────────────────────────────────────
+// Se elige la contratista; la página pide la semana de cada una de sus torres al relevo (las llamadas van a la vez) y las pinta una
+// debajo de otra. Una sola validación para la contratista; por torre, su % de avance físico según la app (con «¿De dónde sale?»),
+// un cuadro para validarlo con otro número y su motivo, y una nota opcional. Se archiva uno por contratista (relevo r72).
+function contratistasDe(s) {
+  const por = {};
+  TORRES.filter(t => SECTOR_POR_CONVENIO[t.c] === s && t.e).forEach(t => { (por[t.e] = por[t.e] || []).indexOf(t.t) < 0 && por[t.e].push(t.t); });
+  return Object.keys(por).sort().map(e => ({ e, torres: por[e].sort() }));
+}
+function pctVal(v) { const x = String(v == null ? '' : v).trim().replace('%', '').replace(',', '.'); if (!x) return null; const n = Number(x); return (isNaN(n) || n < 0 || n > 100) ? NaN : Math.round(n * 10) / 10; }
+function appDe(w) { const a = (w && w.avanceApp) || {}; return typeof a.avance === 'number' ? a.avance : null; }
+function esDistinto(v, app) { return v !== null && !(app !== null && Math.abs(v - app) < 0.05); }
+async function generarContratista(sector, contratista, desde, hasta, quien, clave) {
+  const c = contratistasDe(sector).find(x => x.e === contratista), torres = c ? c.torres : [];
+  if (!torres.length) return estado('Esa contratista no tiene torres en este sector.', 'mal');
+  $('btn-generar').disabled = true; $('resultado').hidden = true;
+  const t0 = Date.now(); let listas = 0;
+  const aviso = () => estado('⏳ Leyendo los informes de ' + (torres.length === 1 ? 'la ' + esc(torres[0]) : 'las ' + torres.length + ' torres (' + esc(torres.join(', ')) + ')') + ' de ' + esc(contratista) + ' del ' + fecha(desde) + ' al ' + fecha(hasta) + '… <b>' +
+    (torres.length > 1 ? listas + ' de ' + torres.length + ' listas · ' : '') + Math.round((Date.now() - t0) / 1000) + ' s</b>. Las torres se leen a la vez; una con muchos apartamentos puede pasar de dos minutos. No cierre la página.', 'espera');
+  aviso(); const latido = setInterval(() => { if (!$('estado').hidden) { const sc = scrollY; aviso(); window.scrollTo(0, sc); } }, 1000);
+  const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 300000);
+  try {
+    const res = await Promise.all(torres.map(async t => {
+      const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ clave, accion: 'compilado-semana', tipo: 'obra', sector, torre: t, desde, hasta, prueba: ESPRUEBA }), signal: corte.signal });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error === 'Clave incorrecta' ? 'Clave incorrecta' : (j.error || 'El relevo no contestó') + ' (' + t + ')');
+      listas++; return j;
+    }));
+    const insp = {}; res.forEach(w => (w.inspectores || []).forEach(n => insp[n] = true));
+    DATA = { ok: true, modo: 'contratista', tipo: 'obra', sector, sectorNombre: res[0].sectorNombre, contratista, desde, hasta: res[0].hasta || hasta, quien,
+             torres: res, nInformes: res.reduce((a, w) => a + (w.nInformes || 0), 0), inspectores: Object.keys(insp), generado: res[0].generado, conPruebas: res[0].conPruebas };
+    try { localStorage.setItem('garmel_compilado_semana', JSON.stringify(DATA)); } catch (e) {}
+    estado(''); pintar();
+  } catch (e) {
+    const m = String(e && e.message || e);
+    estado(m === 'Clave incorrecta' ? 'La clave guardada en este equipo no es la del relevo. Configúrela otra vez en Inicio.' :
+      (/abort/i.test(m) ? 'El relevo tardó demasiado. Pruebe con menos días o vuelva a intentar.' : 'No se pudo armar el compilado: ' + esc(m)), 'mal');
+  } finally { clearTimeout(reloj); clearInterval(latido); $('btn-generar').disabled = false; }
+}
+function htmlAreas(t, hT) {
+  return !t ? '<div class="sin" style="color:#94a3b8">No hubo informe de torre completa en estas fechas.</div>' :
+    '<div style="font-size:14px;margin-bottom:8px">Informe ' + enlace(t.pdf, t.numeroRev) + ' del ' + fecha(t.fecha) + ' · ' + esc((t.inspectores || []).join(' · ')) + ' · ' + esc(t.version || '') + '</div>' +
+    '<div class="scroll"><table><tr><th>Hito</th><th class="n">%</th></tr>' +
+    hT.map(h => '<tr><td>' + esc(h.numero + ' · ' + h.corto) + '</td>' + pct(t.pcts[h.id], t.noInsp, h.id, t.declarados) + '</tr>').join('') + '</table></div>';
+}
+function htmlMatriz(w, hA) {
+  if (!(w.apartamentos || []).length) return '<div class="sin" style="color:#94a3b8">No hubo informes de apartamento en estas fechas.</div>';
+  let html = '<tr><th>Apto</th>' + hA.map(h => '<th class="n" title="' + esc(h.nombre) + '">H' + esc(h.numero) + ' ' + esc(h.corto) + '</th>').join('') + '<th>Inspector</th><th>Informe</th></tr>', piso = null;
+  w.apartamentos.forEach(a => {
+    if (a.piso !== piso) { piso = a.piso; html += '<tr><td class="piso" colspan="' + (hA.length + 3) + '"><span class="piso-txt">' + esc(piso || 'Sin piso') + '</span></td></tr>'; }
+    html += '<tr><td><b>' + esc(a.apto || a.bloque) + '</b>' + (a.copiadoDe ? ' <small title="Mediciones a partir de ' + esc(a.copiadoDe) + '">≈</small>' : '') + '</td>' +
+      hA.map(h => pct(a.pcts[h.id], a.noInsp, h.id, a.declarados)).join('') + '<td>' + esc((a.inspectores || []).map(corto).join(', ')) + '</td><td>' + enlace(a.pdf, a.numeroRev) + ' <small>' + fecha(a.fecha) + '</small></td></tr>';
+  });
+  return '<div class="pista">Deslice la tabla hacia la derecha para ver todos los hitos; el apartamento queda fijo.</div><div class="scroll matriz"><table class="mz">' + html + '</table></div>' +
+    '<div class="leyenda">— sin medir · n/i no inspeccionado · ° avance declarado por el inspector</div>';
+}
+function htmlAvance(w) {
+  const a = w.avanceApp || {}, app = appDe(w), T = esc(w.torre), id = String(w.torre).replace(/[^A-Za-z0-9]/g, '');
+  let h = '<div class="avance"><div class="av-app">';
+  if (app !== null) {
+    h += '<span class="av-num">' + app + ' %</span><div class="det"><b>Avance físico según la app</b><small>Medido el ' + a.pesoMedido + ' % del presupuesto' + (a.provisional ? ' · pesos provisionales' : '') +
+      (a.ultimo && a.ultimo.fecha ? ' · último informe: ' + fecha(a.ultimo.fecha) : '') + '</small></div>' +
+      '<button type="button" class="b1 av-ver" aria-expanded="false" aria-controls="av-des-' + id + '">¿De dónde sale?</button></div>';
+    h += '<div class="av-desglose" id="av-des-' + id + '" hidden><div class="sub" style="margin:0 0 6px">Es el avance de la contratista sobre su presupuesto: lo último medido de cada apartamento y de la torre (' + (a.lugares || 0) + ' lugares con informe), ponderado por el peso de cada partida. ' +
+      'Lo que nadie ha medido no cuenta, ni como hecho ni como cero: por eso dice cuánto del presupuesto está medido.' + (a.provisional ? ' Los pesos son provisionales mientras se actualizan los presupuestos.' : '') + '</div>' +
+      '<div class="scroll"><table><tr><th>Código</th><th>Partida</th><th class="n">Peso</th><th class="n">Promedio medido</th><th class="n">Con medición</th></tr>' +
+      (a.partidas || []).map(x => '<tr' + (x.medidos ? '' : ' class="sinm"') + '><td' + (x.medidos ? '' : ' class="sinm"') + '>' + esc(x.codigo) + '</td><td' + (x.medidos ? '' : ' class="sinm"') + ' style="white-space:normal;min-width:160px">' + esc(x.nombre) + '</td><td class="n' + (x.medidos ? '' : ' sinm') + '">' + x.peso + ' %</td><td class="n' + (x.medidos ? '' : ' sinm') + '">' + (x.promedio === null ? 'sin medir' : x.promedio + ' %') + '</td><td class="n' + (x.medidos ? '' : ' sinm') + '">' + x.medidos + ' de ' + (a.lugares || 0) + '</td></tr>').join('') +
+      '</table></div></div>';
+  } else {
+    h += '<div class="det"><b>La app no tiene un % de avance para esta torre</b><small>' + (a.sinPresupuesto ? 'No hay presupuesto cargado para ella.' : a.error ? 'No se pudo calcular: ' + esc(a.error) : 'Todavía no hay mediciones.') + ' Si lo tiene, escríbalo abajo con de dónde sale.</small></div></div>';
+  }
+  h += '<div class="av-campos"><div class="campo"><label for="av-pct-' + id + '">% de avance físico validado</label><input type="text" inputmode="decimal" class="av-pct" id="av-pct-' + id + '" autocomplete="off" placeholder="' + (app !== null ? app + ' (el de la app)' : 'Escriba el %') + '">' +
+    '<div class="ayuda">' + (app !== null ? 'Déjelo vacío para quedarse con el de la app. Si pone otro número, diga por qué.' : 'Si escribe un %, diga de dónde sale.') + '</div></div>' +
+    '<div class="campo av-motivo-c" hidden><label for="av-mot-' + id + '">¿Por qué es distinto' + (app !== null ? ' del de la app' : '') + '?</label><textarea class="av-motivo" id="av-mot-' + id + '" placeholder="Por ejemplo: la contratista entró con la estructura hecha, o hay partidas que nadie ha medido"></textarea></div>' +
+    '<div class="campo"><label for="av-nota-' + id + '">Nota de la ' + T + ' (opcional)</label><textarea class="av-nota" id="av-nota-' + id + '" placeholder="Lo propio de esta torre que no va en la validación de la contratista"></textarea></div></div></div>';
+  return h;
+}
+function pintarContratista(d) {
+  $('titulo').textContent = d.sectorNombre + ' · ' + d.contratista;
+  $('sin-informes').hidden = d.nInformes > 0;
+  $('sin-informes').textContent = 'No llegó ningún informe de obra de las torres de ' + d.contratista + ' entre el ' + fecha(d.desde) + ' y el ' + fecha(d.hasta) + (d.conPruebas ? ' (ni de prueba)' : '') + '. Revise las fechas o, si es así, escriba abajo qué pasó esta semana.';
+  $('membrete').innerHTML = '<div class="linea-semana" id="linea-semana">' + esc(semanaGenerada(d.desde, d.hasta, d.generado, d.quien)) + '</div>' +
+    '<div><b>Torres:</b> ' + esc(d.torres.map(w => w.torre).join(', ')) + '</div>' +
+    '<div><b>Informes de la semana:</b> ' + d.nInformes + (d.torres.length > 1 ? ' (' + d.torres.map(w => esc(w.torre) + ': ' + (w.nInformes || 0)).join(' · ') + ')' : '') + '</div>' +
+    '<div><b>Inspección:</b> ' + (d.inspectores.length ? esc(d.inspectores.join(' · ')) : '—') + '</div>' +
+    '<div><b>Valida:</b> ' + esc(d.quien) + '</div>';
+  $('bloque-tipo').hidden = true; $('bloque-torre').hidden = true; $('bloque-aptos').hidden = true;
+  $('torres-contratista').innerHTML = d.torres.map((w, i) => {
+    const hs = w.hitos || [];
+    return '<div class="tarjeta torre-c" data-torre="' + esc(w.torre) + '"><h2>' + (i + 3) + ' · ' + esc(w.torre) + ' <small>' + (w.nInformes || 0) + ' informe' + (w.nInformes === 1 ? '' : 's') + ' en la semana' + (w.carpeta ? ' · ' + enlace(w.carpeta, 'carpeta') : '') + '</small></h2>' +
+      htmlAvance(w) + '<h3>Áreas comunes (informe de torre)</h3>' + htmlAreas(w.torreInforme, hs.filter(h => h.torre)) +
+      '<h3>Apartamentos</h3>' + htmlMatriz(w, hs.filter(h => h.apto)) + '<h3>Notas de la semana</h3>' + htmlNotas(w) + '</div>';
+  }).join('');
+  cargarBorrador();
+  $('resultado').hidden = false; $('estado-envio').hidden = true;
+  $('resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function seccionDe(t) { return [...document.querySelectorAll('#torres-contratista .torre-c')].find(x => x.dataset.torre === t); }
+function actualizarMotivo(sec) {
+  const w = DATA.torres.find(x => x.torre === sec.dataset.torre), v = pctVal(sec.querySelector('.av-pct').value), c = sec.querySelector('.av-motivo-c');
+  c.hidden = !(v === v && esDistinto(v, appDe(w)));
+}
+function borradorContratista() {
+  const o = { textos: textos(), torres: {} };
+  (DATA.torres || []).forEach(w => { const sec = seccionDe(w.torre); if (sec) o.torres[w.torre] = { pct: sec.querySelector('.av-pct').value, motivo: sec.querySelector('.av-motivo').value, nota: sec.querySelector('.av-nota').value }; });
+  return o;
+}
+function cargarBorradorContratista() {
+  let b = null; try { b = JSON.parse(localStorage.getItem(claveBorrador()) || 'null'); } catch (e) {}
+  const hayLocal = !!(b && (CAMPOS.some(k => String((b.textos || {})[k] || '').trim()) || Object.keys(b.torres || {}).some(t => ['pct', 'motivo', 'nota'].some(k => String(b.torres[t][k] || '').trim()))));
+  const arch = DATA.torres.map(w => w.archivado && w.archivado.compiladoContratista ? w.archivado : null), a = arch.find(Boolean);
+  let src = null;
+  if (hayLocal) src = b;
+  else if (a) { src = { textos: a.textosContratista || {}, torres: {} }; DATA.torres.forEach((w, i) => { const x = arch[i]; if (x) src.torres[w.torre] = { pct: x.avance && x.avance.validado !== null && x.avance.validado !== undefined ? String(x.avance.validado) : '', motivo: (x.avance || {}).motivo || '', nota: x.nota || '' }; }); }
+  CAMPOS.forEach(k => { $('t-' + k).value = (src && src.textos && src.textos[k]) || ''; crecer($('t-' + k)); });
+  DATA.torres.forEach(w => {
+    const sec = seccionDe(w.torre), x = (src && src.torres && src.torres[w.torre]) || {};
+    if (!sec) return;
+    sec.querySelector('.av-pct').value = x.pct || ''; sec.querySelector('.av-motivo').value = x.motivo || ''; sec.querySelector('.av-nota').value = x.nota || '';
+    actualizarMotivo(sec);
+  });
+  const av = $('aviso-archivado');
+  if (a) {
+    av.innerHTML = '📄 <b>Esta semana ya tiene un compilado archivado de la contratista</b> (generado el ' + esc(corta(a.guardado) || '—') + ' por ' + esc(corto(a.coordinadora) || 'sin nombre') + '). ' +
+      (hayLocal ? 'Abajo está lo que usted escribió en este equipo y todavía no envió; si lo envía, <b>reemplaza</b> al archivado.' : 'Sus textos y sus % están cargados: revíselos, corrija lo que haga falta y toque «Enviar el compilado». Lo que envíe <b>reemplaza</b> al archivado, con su nombre.');
+    av.hidden = false;
+  } else { av.hidden = true; av.innerHTML = ''; }
+  refrescarResumen();
+}
+$('torres-contratista').addEventListener('click', e => {
+  const b = e.target.closest('.av-ver'); if (!b) return;
+  const d = $(b.getAttribute('aria-controls')), abrir = d.hidden;
+  d.hidden = !abrir; b.setAttribute('aria-expanded', String(abrir)); b.textContent = abrir ? 'Ocultar la cuenta' : '¿De dónde sale?';
+});
+$('torres-contratista').addEventListener('input', e => {
+  const sec = e.target.closest('.torre-c'); if (!sec || !DATA) return;
+  if (e.target.classList.contains('av-pct')) actualizarMotivo(sec);
+  try { localStorage.setItem(claveBorrador(), JSON.stringify(borradorContratista())); $('guardado-txt').textContent = 'Borrador guardado en este equipo ✓ ' + new Date().toTimeString().slice(0, 5) + '. Se archiva al tocar «Enviar el compilado».'; } catch (er) {}
+  if (ENVIADO) $('btn-enviar').textContent = '📤 Enviar de nuevo (hay cambios sin archivar)';
+});
+async function enviarContratista() {
+  const t = textos(), torres = [];
+  for (const w of DATA.torres) {
+    const sec = seccionDe(w.torre), v = pctVal(sec.querySelector('.av-pct').value), motivo = sec.querySelector('.av-motivo').value.trim(), nota = sec.querySelector('.av-nota').value.trim();
+    if (v !== v) { sec.querySelector('.av-pct').focus(); return mostrarEnvio('El % de la ' + esc(w.torre) + ' tiene que ser un número entre 0 y 100.', 'mal'); }
+    if (esDistinto(v, appDe(w)) && !motivo) { actualizarMotivo(sec); sec.querySelector('.av-motivo').focus(); return mostrarEnvio('Falta por qué el % de la ' + esc(w.torre) + ' es distinto' + (appDe(w) !== null ? ' del de la app (' + appDe(w) + ' %)' : '') + '.', 'mal'); }
+    torres.push({ torre: w.torre, semana: w, pct: v === null ? '' : v, motivo: esDistinto(v, appDe(w)) ? motivo : '', nota });
+  }
+  if (!CAMPOS.some(k => t[k]) && !torres.some(x => x.nota)) { mostrarEnvio('Escriba al menos uno de los cuadros de la validación antes de enviar.', 'mal'); return; }
+  const clave = claveGuardada();
+  if (!clave) return mostrarEnvio('Este equipo no tiene la clave de envío. Configúrela en Inicio.', 'mal');
+  $('btn-enviar').disabled = true; mostrarEnvio('⏳ Archivando el compilado de la contratista y una copia en cada torre…', 'espera');
+  const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 120000);
+  try {
+    const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave, accion: 'compilado-guardar', tipo: 'obra', sector: DATA.sector, contratista: DATA.contratista, desde: DATA.desde, hasta: DATA.hasta,
+        coordinadora: DATA.quien, textos: t, torres, prueba: ESPRUEBA }), signal: corte.signal });
+    const res = await r.json();
+    if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
+    ENVIADO = true; $('btn-enviar').textContent = '📤 Enviar de nuevo';
+    DATA.torres.forEach((w, i) => { w.archivado = { compiladoContratista: res.numero, textosContratista: t, nota: torres[i].nota, avance: { app: appDe(w), validado: torres[i].pct === '' ? null : torres[i].pct, motivo: torres[i].motivo }, coordinadora: DATA.quien, guardado: res.guardado || '' }; });
+    $('aviso-archivado').hidden = true;
+    try { localStorage.setItem('garmel_compilado_semana', JSON.stringify(DATA)); localStorage.removeItem(claveBorrador()); } catch (e) {}
+    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + ' (' + esc(semanaGenerada(DATA.desde, DATA.hasta, res.guardado || hoyIso(), DATA.quien)) + ') en General › Informe › Compilados semanales del sector, con una copia en cada torre (' + esc(DATA.torres.map(w => w.torre).join(', ')) + ')' +
+      (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : '') + '. Planificación lo toma de ahí para el informe semanal. Si cambia algo, toque «Enviar de nuevo»: reemplaza el archivo.', 'bien');
+  } catch (e) {
+    const m = String(e && e.message || e);
+    mostrarEnvio(m === 'Clave incorrecta' ? 'La clave guardada no es la del relevo.' : 'No se pudo archivar: ' + esc(m) + '. Lo escrito sigue guardado en este equipo.', 'mal');
+  } finally { clearTimeout(reloj); $('btn-enviar').disabled = false; }
+}
 let ENVIADO = false;
 
 async function enviar() {
   if (!DATA) return;
+  if (DATA.modo === 'contratista') return enviarContratista();
   const t = textos();
   if (!CAMPOS.some(k => t[k])) { mostrarEnvio('Escriba al menos uno de los cuadros de la validación antes de enviar.', 'mal'); return; }
   const clave = claveGuardada();
@@ -511,11 +716,12 @@ function otraVez() { $('aviso-archivado').hidden = true; $('resultado').hidden =
 // La última semana generada se repinta al abrir (recargar o volver no obliga a esperar otra vez), con aviso.
 try {
   const u = JSON.parse(localStorage.getItem('garmel_compilado_semana') || 'null');
-  if (u && u.ok && u.sector && u.torre) {
+  if (u && u.ok && u.sector && (u.torre || u.modo === 'contratista')) {
+    if (u.modo === 'contratista') u.torre = u.contratista;
     DATA = u; if (u.tipo && TIPOS[u.tipo]) $('tipo').value = u.tipo; aplicarTipo(); $('sector').value = u.sector; if (tipoActual() === 'urbanismo') { MANZANAS[u.sector] = MANZANAS[u.sector] || [u.torre]; llenarManzanas(); } else llenarTorres(); $('torre').value = u.torre; $('desde').value = u.desde; $('hasta').value = u.hasta;
     if (u.quien) { $('quien').value = u.quien; if ($('quien').selectedIndex < 0) $('quien').selectedIndex = 0; }
     pintar(); window.scrollTo(0, 0);
-    estado('Se muestra la semana de ' + (u.torre === 'URBANISMO' ? 'todo el urbanismo' : (u.tipo === 'urbanismo' ? 'la manzana ' : 'la ') + esc(u.torre)) + ' generada el ' + esc(String(u.generado || '').replace(/^(\d{4})-(\d{2})-(\d{2})/, (x, a, m, dd) => dd + '-' + m + '-' + a)) + '. Si hubo informes nuevos desde entonces, toque «Generar el compilado» otra vez.', 'espera', true);
+    estado('Se muestra la semana de ' + (u.modo === 'contratista' ? esc(u.contratista) : u.torre === 'URBANISMO' ? 'todo el urbanismo' : (u.tipo === 'urbanismo' ? 'la manzana ' : 'la ') + esc(u.torre)) + ' generada el ' + esc(String(u.generado || '').replace(/^(\d{4})-(\d{2})-(\d{2})/, (x, a, m, dd) => dd + '-' + m + '-' + a)) + '. Si hubo informes nuevos desde entonces, toque «Generar el compilado» otra vez.', 'espera', true);
   }
 } catch (e) {}
 

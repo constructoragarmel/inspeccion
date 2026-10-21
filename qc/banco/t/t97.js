@@ -34,11 +34,14 @@ Q.escribir($('#t-otros'), 'Escrito en este equipo sin enviar');
 otraVez(); await pedir();
 ok('4 · Lo escrito en este equipo sin enviar manda sobre lo archivado, y el aviso lo dice',
    $('#t-otros').value === 'Escrito en este equipo sin enviar' && /todavía no envió/.test($('#aviso-archivado').textContent), $('#aviso-archivado').textContent.slice(0, 120));
-// 5
-await guardarFalso({ tipo: 'obra', sector: 'SR', torre: 'T-04', desde: '2026-10-08', coordinadora: 'Leidy Villamizar', textos: { hitos: 'Friso base en fachada', exitos: '', dificultades: '', otros: '' } });
-otraVez(); sel('tipo', 'obra'); sel('sector', 'SR'); await esperar(100); sel('torre', 'T-04'); await pedir();
-ok('5 · Obra (una torre) también carga lo archivado', $('#t-hitos').value === 'Friso base en fachada' && /Leidy Villamizar/.test($('#aviso-archivado').textContent), $('#t-hitos').value);
+// 5 (v181, ADR-0049: obra va por contratista) · Glajos en Simón Rodríguez (T-04 y T-43), archivado con su validación, el % y la nota
+await guardarFalso({ tipo: 'obra', sector: 'SR', contratista: 'GLAJOS', desde: '2026-10-08', coordinadora: 'Leidy Villamizar', textos: { hitos: 'Friso base en fachada', exitos: '', dificultades: '', otros: '' },
+  torres: [{ torre: 'T-04', semana: { avanceApp: { avance: 52 } }, pct: '60', motivo: 'Entró con la estructura hecha', nota: 'Andamios en la fachada norte' }, { torre: 'T-43', semana: { avanceApp: { avance: 42 } }, pct: '' }] });
+otraVez(); sel('tipo', 'obra'); sel('sector', 'SR'); await esperar(100); sel('torre', [...$('#torre').options].find(o => /GLAJOS/.test(o.value)).value); await pedir();
+const g4 = [...$$('#torres-contratista .torre-c')].find(x => x.dataset.torre === 'T-04');
+ok('5 · Obra (la contratista) también carga lo archivado: la validación, y en cada torre su % y su nota', $('#t-hitos').value === 'Friso base en fachada' && /Leidy Villamizar/.test($('#aviso-archivado').textContent) &&
+   g4 && g4.querySelector('.av-pct').value === '60' && /estructura hecha/.test(g4.querySelector('.av-motivo').value) && /Andamios/.test(g4.querySelector('.av-nota').value), $('#t-hitos').value);
 // 6
-otraVez(); sel('torre', 'T-07'); await pedir();
-ok('6 · Otra torre sin compilado: cuadros vacíos y sin aviso (no arrastra el de la anterior)', $('#t-hitos').value === '' && $('#aviso-archivado').hidden);
+otraVez(); sel('torre', [...$('#torre').options].find(o => /TSURU/.test(o.value)).value); await pedir();
+ok('6 · Otra contratista sin compilado: cuadros vacíos y sin aviso (no arrastra el de la anterior)', $('#t-hitos').value === '' && $('#aviso-archivado').hidden && $$('#torres-contratista .av-pct').every(x => !x.value));
 localStorage.clear();
