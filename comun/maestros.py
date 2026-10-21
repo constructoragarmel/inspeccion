@@ -255,6 +255,14 @@ COORDINADORES_JS = """const COORDINADORES = [
   {n: "Eduardo Rivero (CIV-169.435)",       a: "Urbanismo"}
 ];"""
 
+# v182 (21-oct-2026, ADR-0050): la inspección de SHA, para el compilado de SHA: abre la semana y actualiza el estatus de cada
+# hallazgo para que la coordinación lo valide. Los tres que firman los informes de SHA (construir-sha.py), con el nombre del padrón.
+INSPECTORES_SHA_JS = """const INSPECTORES_SHA = [
+  "\u00c1ngel S\u00e1nchez (CIV-NC)",
+  "Birmania Rada (CIV-NC)",
+  "V\u00edctor Mendoza (CIV-NC)"
+];"""
+
 # ── Los apartamentos de cada piso, por sector ───────────────────────────────
 #
 # Para que el apartamento sea un desplegable y no un campo libre («A-2» y «A2» no casaban; Planificación, 13-oct-2026).

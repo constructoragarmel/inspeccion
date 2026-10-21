@@ -100,6 +100,14 @@ a.doc:hover{text-decoration:underline}
 .av-dif{color:#8f4b00;font-weight:700}
 .av-resumen{display:none;white-space:pre-wrap;font-size:13px;margin-top:8px}
 @media print{.av-campos,.av-ver,.reintentar{display:none!important} .av-resumen{display:block!important} .av-desglose{display:none!important}}
+/* v182 (ADR-0050): el estatus de hoy de cada hallazgo de SHA — lo propone la inspección de SHA y lo valida la coordinación */
+.est-sel{width:100%;min-width:140px;min-height:44px;font-size:15px;padding:6px 8px;border:1.5px solid var(--borde);border-radius:8px;background:#fff;font-family:inherit;color:inherit}
+.est-nota{display:block;font-size:12px;color:var(--gris);margin-top:3px;white-space:normal}
+.est-nota.prop{color:#8f4b00;font-weight:600}
+tr.est-cambia td{background:#fffbeb}
+.est-txt{display:none}
+#est-sha{margin-top:12px}
+@media print{.est-sel,.est-nota{display:none!important} .est-txt{display:inline!important}}
 
 </style>
 </head>
@@ -123,7 +131,7 @@ a.doc:hover{text-decoration:underline}
     <div class="campo"><label for="torre" id="lbl-torre">Torre</label><select id="torre"><option value="">— Elija primero el sector —</option></select></div>
     <div class="campo"><label for="desde">Desde (inicio del corte)</label><input type="date" id="desde"><div class="ayuda">Por defecto, el jueves anterior: la semana va de jueves a jueves.</div></div>
     <div class="campo"><label for="hasta">Hasta</label><input type="date" id="hasta"></div>
-    <div class="campo"><label for="quien">Quién valida (coordinación)</label><select id="quien"><option value="">— Seleccione —</option></select></div>
+    <div class="campo"><label for="quien" id="lbl-quien">Quién valida (coordinación)</label><select id="quien"><option value="">— Seleccione —</option></select></div>
   </div>
   <div class="acciones"><button type="button" class="b2" id="btn-generar" onclick="generar()">📋 Generar el compilado</button></div>
 </div>
@@ -152,6 +160,11 @@ a.doc:hover{text-decoration:underline}
     <div class="sub" id="tipo-sub"></div>
     <div class="scroll matriz"><table id="tipo-tabla"></table></div>
     <div id="tipo-extra"></div>
+    <div id="est-sha" class="noprint" hidden>
+      <div class="aviso" id="est-aviso" style="margin:0"></div>
+      <div class="acciones" id="est-acciones" hidden><button type="button" class="b2" id="btn-est" onclick="guardarEstatus()">💾 Guardar el estatus para la coordinación</button></div>
+      <div class="estado" id="estado-est" hidden style="margin-top:10px"></div>
+    </div>
   </div>
   <div class="tarjeta" id="bloque-torre">
     <h2>3 · Áreas comunes (informe de torre)</h2>
@@ -184,7 +197,7 @@ a.doc:hover{text-decoration:underline}
   <div class="estado" id="estado-envio" hidden></div>
 </div>
 
-<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v181</div>
+<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v182</div>
 </main>
 
 <script>
@@ -251,6 +264,11 @@ const COORDINADORES = [
   {n: "Miguel E. Ávila (CIV-NC)",         a: "Planificación"},
   {n: "Eduardo Rivero (CIV-169.435)",       a: "Urbanismo"}
 ];
+const INSPECTORES_SHA = [
+  "Ángel Sánchez (CIV-NC)",
+  "Birmania Rada (CIV-NC)",
+  "Víctor Mendoza (CIV-NC)"
+];
 const RELEVO_URL = 'https://script.google.com/macros/s/AKfycbwWgYbgMkNcxwN2gAH89N4EVUe6LO_RXR2IzBBc6mFfgJJNjixd6omK_ElAOSiFH-EqYg/exec';
 const ESPRUEBA = new URLSearchParams(location.search).get('prueba') === '1';
 const QUERY = ESPRUEBA ? '?prueba=1' : '';
@@ -274,7 +292,7 @@ let DATA = null;
 // ── Arranque ──
 if (ESPRUEBA) { $('prueba').hidden = false; $('volver').href = 'index.html?prueba=1'; }
 (function () {
-  const q = $('quien'); COORDINADORES.forEach(c => { const o = document.createElement('option'); o.value = c.n; o.textContent = c.n.replace(/\s*\(CIV[^)]*\)/, '') + ' · ' + c.a; q.appendChild(o); });
+  llenarQuien();
   const hoy = new Date(); hoy.setHours(12, 0, 0, 0);
   const j = new Date(hoy); j.setDate(j.getDate() - 1);
   while (j.getDay() !== 4) j.setDate(j.getDate() - 1);   // el jueves anterior (hoy jueves cuenta como la semana que termina: se toma el de hace 7 días)
@@ -284,6 +302,19 @@ if (ESPRUEBA) { $('prueba').hidden = false; $('volver').href = 'index.html?prueb
   window.addEventListener('online', () => $('conexion').textContent = 'en línea');
   window.addEventListener('offline', () => $('conexion').textContent = 'sin conexión');
 })();
+// v182 (ADR-0050): en SHA, además de la coordinación, la inspección de SHA: actualiza el estatus de cada hallazgo y lo guarda para
+// que la coordinación lo valide al enviar.
+function esInspSha(q) { return INSPECTORES_SHA.indexOf(q) >= 0; }
+function llenarQuien() {
+  const q = $('quien'), antes = q.value, sha = $('tipo').value === 'sha';   // sin TIPOS: se llama al arrancar, antes de que exista
+  q.innerHTML = '<option value="">— Seleccione —</option>';
+  const g1 = sha ? document.createElement('optgroup') : q; if (sha) { g1.label = 'Coordinación · valida y envía'; q.appendChild(g1); }
+  COORDINADORES.forEach(c => { const o = document.createElement('option'); o.value = c.n; o.textContent = c.n.replace(/\s*\(CIV[^)]*\)/, '') + ' · ' + c.a; g1.appendChild(o); });
+  if (sha) { const g2 = document.createElement('optgroup'); g2.label = 'Inspección de SHA · actualiza el estatus'; q.appendChild(g2);
+    INSPECTORES_SHA.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n.replace(/\s*\(CIV[^)]*\)/, '') + ' · Inspección de SHA'; g2.appendChild(o); }); }
+  $('lbl-quien').textContent = sha ? 'Quién (coordinación o inspección de SHA)' : 'Quién valida (coordinación)';
+  if ([...q.options].some(o => o.value === antes)) q.value = antes;
+}
 function iso(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
 function llenarTorres() {
   const s = $('sector').value, sel = $('torre'), antes = sel.value;
@@ -337,6 +368,7 @@ function aplicarTipo() {
   $('lbl-torre').textContent = TIPOS[t].lbl; $('sub-pedido').textContent = TIPOS[t].sub;
   $('h-pedido').textContent = t === 'obra' ? '1 · Qué contratista y qué semana' : t === 'urbanismo' ? '1 · Qué manzana y qué semana' : '1 · Qué torre y qué semana';
   $('btn-otra').textContent = t === 'obra' ? '↩ Otra contratista o semana' : '↩ Otra torre o semana';
+  llenarQuien();
   if (t === 'urbanismo') llenarManzanas(); else llenarTorres();
 }
 $('tipo').addEventListener('change', aplicarTipo);
@@ -350,7 +382,8 @@ async function generar() {
   const sector = $('sector').value, torre = $('torre').value, desde = $('desde').value, hasta = $('hasta').value, quien = $('quien').value.trim(), tipo = tipoActual();
   if (!sector || !torre) return estado(tipo === 'urbanismo' ? 'Elija el sector y la manzana.' : tipo === 'obra' ? 'Elija el sector y la contratista.' : 'Elija el sector y la torre.', 'mal');
   if (!desde || !hasta || hasta < desde) return estado('Revise las fechas: la final no puede ser anterior a la de inicio.', 'mal');
-  if (!quien) return estado('Elija quién valida este compilado.', 'mal');
+  if (!quien) return estado(tipo === 'sha' ? 'Elija quién es: la coordinación que valida o la inspección de SHA que actualiza el estatus.' : 'Elija quién valida este compilado.', 'mal');
+  if (esInspSha(quien) && tipo !== 'sha') return estado('La inspección de SHA solo actualiza el compilado de SHA. Elija quién valida este compilado.', 'mal');
   const clave = claveGuardada();
   if (!clave) return estado('Este equipo no tiene la clave de envío. Configúrela en <a href="index.html' + QUERY + '">Inicio</a> y vuelva.', 'mal');
   if (!navigator.onLine) return estado('Sin conexión: el compilado se arma con los informes archivados en Drive y hace falta internet.', 'mal');
@@ -387,6 +420,7 @@ const corto = n => String(n || '').replace(/\s*\(CIV[^)]*\)/, '');
 function enlace(url, txt) { return url ? '<a class="doc" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(txt) + '</a>' : '<span class="sin" title="El PDF de este informe no está en la carpeta">' + esc(txt) + '</span>'; }
 function pintar() {
   const d = DATA; d.tipo = d.tipo || 'obra';
+  $('validacion').hidden = false; $('btn-enviar').hidden = false; $('est-sha').hidden = true; FR = [];   // v182: el modo de la inspección de SHA no se arrastra a otro compilado
   $('torres-contratista').hidden = d.modo !== 'contratista'; $('bloque-notas').hidden = d.modo === 'contratista';
   if (d.modo === 'contratista') return pintarContratista(d);
   const T = TIPOS[d.tipo];
@@ -398,7 +432,7 @@ function pintar() {
     '<div class="linea-semana" id="linea-semana">' + esc(semanaGenerada(d.desde, d.hasta, d.generado, d.quien)) + '</div>' +
     '<div><b>Informes de la semana:</b> ' + d.nInformes + (d.tipo === 'obra' ? ' (' + d.apartamentos.length + ' apartamento' + (d.apartamentos.length === 1 ? '' : 's') + (d.torreInforme ? ' y la torre' : '') + ')' : '') + '</div>' +
     '<div><b>Inspección:</b> ' + (d.inspectores.length ? esc(d.inspectores.join(' · ')) : '—') + '</div>' +
-    '<div><b>Valida:</b> ' + esc(d.quien) + '</div>' +
+    '<div><b>' + (esInspSha(d.quien) ? 'Actualiza el estatus:' : 'Valida:') + '</b> ' + esc(d.quien) + '</div>' +
     (d.carpeta ? '<div><b>Carpeta:</b> ' + enlace(d.carpeta, 'abrir en Drive') + '</div>' : '');
   if (d.tipo === 'obra') {
     $('bloque-tipo').hidden = true; $('bloque-torre').hidden = false; $('bloque-aptos').hidden = false; $('notas-titulo').textContent = '5 · Notas de la semana';
@@ -407,6 +441,7 @@ function pintar() {
     $('bloque-tipo').hidden = false; $('bloque-torre').hidden = true; $('bloque-aptos').hidden = true; $('notas-titulo').textContent = '4 · Notas de la semana';
     pintarTipo(d);
   }
+  modoSha(d);
   pintarNotas(d);
   cargarBorrador();
   $('resultado').hidden = false; $('estado-envio').hidden = true;
@@ -433,6 +468,7 @@ function pintarObra(d, hA, hT) {
 }
 function pintarTipo(d) {
   const t = d.tipo, u = d.ultimo, gris = '<span style="color:#64748b">—</span>';
+  FR = [];
   if (d.porTorre) return t === 'urbanismo' ? pintarUrbanismoPorManzana(d, gris) : t === 'sha' ? pintarShaPorTorre(d, gris) : pintarServiciosPorTorre(d, gris);   // v171: todo el urbanismo (v174: también urbanismo)
   $('tipo-titulo').textContent = '3 · ' + (t === 'servicios' ? 'Servicios por ente' : t === 'urbanismo' ? 'Partidas con cantidades' : 'Recaudos, frentes e incidencias') + (t === 'sha' ? ' (toda la semana y lo abierto de antes)' : ' (último informe)');   // v178
   if (!u) { $('tipo-sub').textContent = 'No hubo informe en estas fechas.'; $('tipo-tabla').innerHTML = ''; $('tipo-extra').innerHTML = ''; return; }
@@ -462,9 +498,9 @@ function pintarTipo(d) {
   } else {
     const sh = u.sha || {};
     extra += '<div class="obs" style="margin-top:8px"><b>Recaudos:</b> ' + sh.recaudosSi + ' al día, ' + sh.recaudosNo + ' faltan' + ((sh.recaudos || []).length ? ': ' + sh.recaudos.map(r => esc(r.item)).join('; ') : '') + '</div>';
-    html = '<tr><th>Frente de trabajo</th><th>Hallazgo o condición observada</th><th>Acción correctiva / estatus</th></tr>';
-    (sh.frentes || []).forEach(fr => { html += '<tr><td style="white-space:normal;min-width:140px">' + esc(fr.frente) + '</td><td style="white-space:normal;min-width:240px">' + (esc(fr.hallazgo) || gris) + (fr.deAntes ? ' <small class="de-antes">· viene de antes</small>' : '') + '</td><td style="white-space:normal;min-width:140px">' + (esc(fr.estatus) || gris) + '</td></tr>'; });
-    if (!(sh.frentes || []).length) html += '<tr><td colspan="3" style="color:#64748b">Sin frentes en este informe.</td></tr>';
+    html = '<tr><th>Frente de trabajo</th><th>Hallazgo o condición observada</th><th>Acción correctiva / estatus</th><th>Estatus hoy</th></tr>';
+    (sh.frentes || []).forEach(fr => { html += '<tr><td style="white-space:normal;min-width:140px">' + esc(fr.frente) + '</td><td style="white-space:normal;min-width:240px">' + (esc(fr.hallazgo) || gris) + (fr.deAntes ? ' <small class="de-antes">· viene de antes</small>' : '') + '</td><td style="white-space:normal;min-width:140px">' + (esc(fr.estatus) || gris) + '</td>' + celdaEst(d.torre, fr) + '</tr>'; });
+    if (!(sh.frentes || []).length) html += '<tr><td colspan="4" style="color:#64748b">Sin frentes en este informe.</td></tr>';
     if ((sh.incidencias || []).length) extra += '<div class="obs"><b>Incidencias:</b> ' + sh.incidencias.map(x => esc(Object.keys(x).map(k => x[k] ? k + ': ' + x[k] : '').filter(String).join(' · '))).join('<br>') + '</div>';
     if (sh.accion) extra += '<div class="obs"><b>Acción por el rechazo:</b> ' + esc(sh.accion) + (sh.accionDet ? ' — ' + esc(sh.accionDet) : '') + '</div>';
     if ((sh.fotosGenerales || []).length) extra += '<div class="obs"><b>Fotos generales:</b> ' + esc(sh.fotosGenerales.join(' · ')) + '</div>';
@@ -563,14 +599,14 @@ function pintarShaPorTorre(d, gris) {
   if (!d.porTorre.length) { $('tipo-sub').textContent = 'No hubo informes de SHA en estas fechas.'; $('tipo-tabla').innerHTML = ''; return; }
   $('tipo-sub').textContent = d.porTorre.length + (d.porTorre.length === 1 ? ' lugar' : ' lugares') + ' con informe: ' + d.porTorre.map(p => p.torre).join(' · ') + '. El enlace abre el PDF.';
   const ancho = 'style="white-space:normal;min-width:200px"';
-  let html = '<tr><th>Torre</th><th>Contratista</th><th>Recaudos</th><th>Frente de trabajo</th><th>Hallazgo o condición observada</th><th>Acción correctiva / estatus</th></tr>';
+  let html = '<tr><th>Torre</th><th>Contratista</th><th>Recaudos</th><th>Frente de trabajo</th><th>Hallazgo o condición observada</th><th>Acción correctiva / estatus</th><th>Estatus hoy</th></tr>';
   d.porTorre.forEach(p => {
     const sh = p.sha || {}, fr = (sh.frentes || []).length ? sh.frentes : [null];
     fr.forEach((x, i) => {
       html += '<tr><td>' + (i === 0 ? '<b>' + esc(p.torre) + '</b><br><small>' + (p.sinInformeSemana ? '<span class="de-antes">sin informe esta semana</span>' : enlace(p.pdf, p.numeroRev) + ' · ' + fecha(p.fecha) + ((sh.informesSemana || 0) > 1 ? ' · ' + sh.informesSemana + ' informes' : '')) + '</small>' : '') + '</td><td>' + (i === 0 ? esc(p.empresa || '') : '') + '</td><td>' +
         (i === 0 ? (sh.recaudosSi || 0) + ' al día, ' + (sh.recaudosNo || 0) + ' faltan' : '') + '</td>' +
-        (x ? '<td ' + ancho + '>' + (esc(x.frente) || gris) + '</td><td ' + ancho + '>' + (esc(x.hallazgo) || gris) + (x.deAntes ? ' <small class="de-antes">· viene de antes</small>' : '') + '</td><td ' + ancho + '>' + (esc(x.estatus) || gris) + '</td>'
-           : '<td colspan="3" style="color:#64748b;white-space:normal">Sin frentes en este informe.</td>') + '</tr>';
+        (x ? '<td ' + ancho + '>' + (esc(x.frente) || gris) + '</td><td ' + ancho + '>' + (esc(x.hallazgo) || gris) + (x.deAntes ? ' <small class="de-antes">· viene de antes</small>' : '') + '</td><td ' + ancho + '>' + (esc(x.estatus) || gris) + '</td>' + celdaEst(p.torre, x)
+           : '<td colspan="4" style="color:#64748b;white-space:normal">Sin frentes en este informe.</td>') + '</tr>';
     });
   });
   $('tipo-tabla').innerHTML = html;
@@ -786,8 +822,10 @@ let ENVIADO = false;
 async function enviar() {
   if (!DATA) return;
   if (DATA.modo === 'contratista') return enviarContratista();
+  if (esInspSha(DATA.quien)) return mostrarEnvio('El compilado lo envía la coordinación. Usted guarda el estatus con «Guardar el estatus para la coordinación».', 'mal');
   const t = textos();
   if (!CAMPOS.some(k => t[k])) { mostrarEnvio('Escriba al menos uno de los cuadros de la validación antes de enviar.', 'mal'); return; }
+  const estatus = DATA.tipo === 'sha' ? filasEst().filter(f => f.sel.value).map(f => ({ torre: f.torre, frente: f.frente, hallazgo: f.hallazgo, estatus: f.sel.value, antes: f.estatus })) : undefined;   // v182 (ADR-0050)
   const clave = claveGuardada();
   if (!clave) return mostrarEnvio('Este equipo no tiene la clave de envío. Configúrela en Inicio.', 'mal');
   $('btn-enviar').disabled = true; mostrarEnvio('⏳ Archivando el compilado' + (DATA.torre === 'URBANISMO' ? ' de todo el urbanismo…' : ' en la carpeta de la torre…'), 'espera');
@@ -795,17 +833,80 @@ async function enviar() {
   try {
     const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ clave, accion: 'compilado-guardar', tipo: DATA.tipo || 'obra', sector: DATA.sector, torre: DATA.torre, desde: DATA.desde, hasta: DATA.hasta,
-        coordinadora: DATA.quien, textos: t, semana: DATA, prueba: ESPRUEBA }), signal: corte.signal });
+        coordinadora: DATA.quien, textos: t, semana: DATA, estatus, prueba: ESPRUEBA }), signal: corte.signal });
     const res = await r.json();
     if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
+    if (estatus) { filasEst().forEach(f => { f.sel.dataset.inicial = f.sel.value; }); try { localStorage.removeItem(claveEst()); } catch (e) {} }
     ENVIADO = true; $('btn-enviar').textContent = '📤 Enviar de nuevo';
     DATA.archivado = { numero: res.numero, coordinadora: DATA.quien, guardado: res.guardado || '', textos: t }; $('aviso-archivado').hidden = true;   // v172: lo archivado ahora es esto
-    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + ' (' + esc(semanaGenerada(DATA.desde, DATA.hasta, res.guardado || hoyIso(), DATA.quien)) + ')' + (DATA.torre === 'URBANISMO' ? ' en General › ' + (DATA.tipo === 'urbanismo' ? 'Urbanismo' : DATA.tipo === 'sha' ? 'SHA' : 'Servicios') + ' del sector' : ' en la carpeta de la ' + (DATA.tipo === 'urbanismo' ? 'manzana' : 'torre')) + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal. Si cambia algo, toque «Enviar de nuevo»: reemplaza el archivo.', 'bien');
+    mostrarEnvio('✅ Compilado ' + esc(res.numero) + (res.reemplazado ? ' actualizado' : ' archivado') + ' (' + esc(semanaGenerada(DATA.desde, DATA.hasta, res.guardado || hoyIso(), DATA.quien)) + ')' + (DATA.torre === 'URBANISMO' ? ' en General › ' + (DATA.tipo === 'urbanismo' ? 'Urbanismo' : DATA.tipo === 'sha' ? 'SHA' : 'Servicios') + ' del sector' : ' en la carpeta de la ' + (DATA.tipo === 'urbanismo' ? 'manzana' : 'torre')) + (res.estatusValidados ? ', con el estatus de ' + res.estatusValidados + (res.estatusValidados === 1 ? ' hallazgo validado' : ' hallazgos validados') + ' (lo corregido ya no vuelve la semana que viene)' : '') + (res.pdf ? ' (' + enlace(res.pdf, 'PDF') + (res.url ? ' · ' + enlace(res.url, 'datos') : '') + ')' : (res.url ? ' (' + enlace(res.url, 'abrir') + ')' : '')) + '. Planificación lo toma de ahí para el informe semanal. Si cambia algo, toque «Enviar de nuevo»: reemplaza el archivo.', 'bien');
     try { localStorage.removeItem(claveBorrador()); } catch (e) {}
   } catch (e) {
     const m = String(e && e.message || e);
     mostrarEnvio(m === 'Clave incorrecta' ? 'La clave guardada no es la del relevo.' : 'No se pudo archivar: ' + esc(m) + '. Lo escrito sigue guardado en este equipo.', 'mal');
   } finally { clearTimeout(reloj); $('btn-enviar').disabled = false; }
+}
+// ── v182 (ADR-0050, pedido de Diego Orta): el estatus de hoy de cada hallazgo de SHA ──────────────────────────────────────
+// La inspección de SHA abre el compilado, elige el estatus de hoy de cada hallazgo y lo guarda (`sha-estatus-guardar`, relevo r73):
+// es una propuesta. La coordinación genera el mismo compilado y ve la propuesta cargada en «Estatus hoy»; al enviar el compilado lo
+// que quede elegido se valida, y lo validado como «Corregido» ya no vuelve como «viene de antes» ni en el formulario de la próxima
+// visita. Vacío («Sin cambio») es: lo que dijo el inspector en su informe.
+let FR = [];
+const ESTATUS_SHA = ['Pendiente', 'En proceso', 'Corregido'];
+const claveFr = f => (f.torre + '#' + f.frente + '|' + f.hallazgo).toLowerCase().replace(/\s+/g, ' ');
+function claveEst() { return claveBorrador() + '|estatus'; }
+function celdaEst(lugar, x) {
+  if (!x) return '<td></td>';
+  const i = FR.length, prop = x.propuesta, val = x.validado, inicial = (val && val.estatus) || (prop && prop.estatus) || '';
+  FR.push({ torre: lugar, frente: x.frente || '', hallazgo: x.hallazgo || '', estatus: x.estatus || '' });
+  const notas = (val ? '<span class="est-nota">Validado por ' + esc(corto(val.por)) + ' · ' + esc(corta(val.fecha)) + '</span>' : '') +
+    (prop && (!val || prop.estatus !== val.estatus || prop.fecha > val.fecha) ? '<span class="est-nota prop">Propuso ' + esc(corto(prop.por)) + ' · ' + esc(corta(prop.fecha)) + ': ' + esc(prop.estatus) + '</span>' : '');
+  return '<td style="min-width:150px"><select class="est-sel" id="est-' + i + '" data-i="' + i + '" data-inicial="' + esc(inicial) + '" aria-label="Estatus hoy de ' + esc((x.frente || '') + ': ' + (x.hallazgo || '')) + '">' +
+    '<option value="">Sin cambio</option>' + ESTATUS_SHA.map(e => '<option' + (e === inicial ? ' selected' : '') + '>' + e + '</option>').join('') + '</select>' + notas +
+    '<span class="est-txt">' + esc(inicial || '') + '</span></td>';
+}
+function filasEst() { return FR.map((f, i) => Object.assign({}, f, { sel: $('est-' + i) })).filter(f => f.sel); }
+function marcarFila(f) { const tr = f.sel.closest('tr'); if (tr) tr.classList.toggle('est-cambia', !!f.sel.value && f.sel.value !== f.estatus); const tx = f.sel.parentNode.querySelector('.est-txt'); if (tx) tx.textContent = f.sel.value; }
+function modoSha(d) {
+  const sha = d.tipo === 'sha' && d.modo !== 'contratista', insp = sha && esInspSha(d.quien), filas = sha ? filasEst() : [];
+  $('est-sha').hidden = !sha || !filas.length; $('est-acciones').hidden = !insp; $('estado-est').hidden = true;
+  $('validacion').hidden = insp; $('btn-enviar').hidden = insp;
+  if (!sha) return;
+  // Lo que este equipo eligió y no guardó ni envió todavía vuelve encima.
+  let local = null; try { local = JSON.parse(localStorage.getItem(claveEst()) || 'null'); } catch (e) {}
+  filas.forEach(f => { const v = local && local[claveFr(f)]; if (v !== undefined && (v === '' || ESTATUS_SHA.indexOf(v) >= 0)) f.sel.value = v; marcarFila(f); });
+  filas.forEach(f => f.sel.addEventListener('change', () => {
+    marcarFila(f);
+    try { const o = {}; filasEst().forEach(g => { if (g.sel.value !== g.sel.dataset.inicial) o[claveFr(g)] = g.sel.value; }); localStorage.setItem(claveEst(), JSON.stringify(o)); } catch (e) {}
+    if (ENVIADO && !insp) $('btn-enviar').textContent = '📤 Enviar de nuevo (hay cambios sin archivar)';
+  }));
+  const nProp = filas.filter(f => f.sel.dataset.inicial && f.sel.dataset.inicial !== f.estatus).length;
+  $('est-aviso').innerHTML = insp
+    ? '🦺 <b>Usted actualiza el estatus.</b> En «Estatus hoy» elija cómo está cada hallazgo hoy y toque «Guardar el estatus para la coordinación». No cambia los informes: la coordinación lo revisa y lo valida al enviar el compilado. Lo que valide como «Corregido» ya no le volverá a salir.'
+    : (nProp ? '🦺 <b>La inspección de SHA propuso ' + nProp + (nProp === 1 ? ' cambio' : ' cambios') + ' de estatus</b>: están cargados en «Estatus hoy» y resaltados. Revíselos; al enviar el compilado quedan validados, y lo «Corregido» ya no vuelve la semana que viene.'
+            : '«Estatus hoy»: si un hallazgo cambió, elíjalo antes de enviar. Al enviar queda validado; lo «Corregido» ya no vuelve la semana que viene ni en la próxima visita.');
+}
+async function guardarEstatus() {
+  if (!DATA || !esInspSha(DATA.quien)) return;
+  const cambios = filasEst().filter(f => f.sel.value !== f.sel.dataset.inicial).map(f => ({ torre: f.torre, frente: f.frente, hallazgo: f.hallazgo, estatus: f.sel.value, antes: f.estatus }));
+  const e = $('estado-est'), msg = (t, c) => { e.hidden = false; e.className = 'estado ' + c; e.innerHTML = t; e.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
+  if (!cambios.length) return msg('No cambió el estatus de ningún hallazgo. Elija el de hoy en «Estatus hoy» y vuelva a tocar el botón.', 'mal');
+  const clave = claveGuardada();
+  if (!clave) return msg('Este equipo no tiene la clave de envío. Configúrela en Inicio.', 'mal');
+  $('btn-est').disabled = true; msg('⏳ Guardando el estatus de ' + cambios.length + (cambios.length === 1 ? ' hallazgo…' : ' hallazgos…'), 'espera');
+  const corte = new AbortController(), reloj = setTimeout(() => corte.abort(), 60000);
+  try {
+    const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ clave, accion: 'sha-estatus-guardar', sector: DATA.sector, por: DATA.quien, cambios, prueba: ESPRUEBA }), signal: corte.signal });
+    const res = await r.json();
+    if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
+    filasEst().forEach(f => { f.sel.dataset.inicial = f.sel.value; });
+    try { localStorage.removeItem(claveEst()); } catch (x) {}
+    msg('✅ Guardado el estatus de ' + cambios.length + (cambios.length === 1 ? ' hallazgo' : ' hallazgos') + '. La coordinación lo verá al generar el compilado de SHA y lo valida al enviarlo.', 'bien');
+  } catch (x) {
+    const m = String(x && x.message || x);
+    msg(m === 'Clave incorrecta' ? 'La clave guardada no es la del relevo.' : (/abort/i.test(m) ? 'El relevo tardó demasiado.' : 'No se pudo guardar: ' + esc(m)) + ' Lo elegido sigue en este equipo: vuelva a intentar.', 'mal');
+  } finally { clearTimeout(reloj); $('btn-est').disabled = false; }
 }
 function mostrarEnvio(txt, clase) { const e = $('estado-envio'); e.hidden = false; e.className = 'estado ' + clase; e.innerHTML = txt; e.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
 function otraVez() { $('aviso-archivado').hidden = true; $('resultado').hidden = true; DATA = null; ENVIADO = false; $('btn-enviar').textContent = '📤 Enviar el compilado'; $('guardado-txt').textContent = 'Se guarda solo en este equipo mientras escribe; se archiva al tocar «Enviar el compilado».'; try { localStorage.removeItem('garmel_compilado_semana'); } catch (e) {} window.scrollTo({ top: 0, behavior: 'smooth' }); }

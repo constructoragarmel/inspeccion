@@ -3,11 +3,17 @@ S=os.path.dirname(os.path.abspath(__file__))
 # v168 (cambio 184): `colgar: N` archiva el envío y tarda N s en contestar (como el relevo real con muchas fotos);
 # `perder: True` lee el cuerpo, no archiva nada y tarda `colgar` s en cerrar sin contestar (el cuerpo no llegó).
 ESTADO={'tipos':['inspeccion','servicios','sha','urbanismo'],'caido':False,'fallar':[],'lento':0,'colgar':0,'perder':False,'clave':'qc'}
+def shaClave(lugar,x):
+    import re as _re
+    l=str(lugar or '').strip()
+    l='Toda la zona' if (not l or l.upper() in ('ZONA','TODA LA ZONA')) else l.upper()
+    return _re.sub(r'\s+',' ',(l+'#'+str(x.get('frente') or '')+'|'+str(x.get('hallazgo') or '')).lower()).strip()
 class H(http.server.BaseHTTPRequestHandler):
     historial={}
     obra={}
     obraApto={}
     oficina={}   # v133: lo archivado por número, con revisión, datos y fotos (modo oficina)
+    shaEst={}    # v182 (relevo r73, ADR-0050): {(sector, lugar#frente|hallazgo): {inspector, validado}}
     def _ok(self,obj,code=200):
         b=json.dumps(obj,ensure_ascii=False).encode()
         self.send_response(code); self.send_header('Content-Type','application/json'); self.send_header('Access-Control-Allow-Origin','*')
@@ -23,12 +29,27 @@ class H(http.server.BaseHTTPRequestHandler):
         n=int(self.headers.get('Content-Length',0)); raw=self.rfile.read(n)
         if self.path.startswith('/control'):
             ESTADO.update(json.loads(raw or b'{}'))
-            if ESTADO.get('borrar'): H.historial.clear(); H.obra.clear(); H.obraApto.clear(); H.oficina.clear(); getattr(H,'compilados',{}).clear(); open(S+'/envios.jsonl','w').close(); ESTADO['borrar']=False
+            if ESTADO.get('borrar'): H.historial.clear(); H.obra.clear(); H.obraApto.clear(); H.oficina.clear(); getattr(H,'compilados',{}).clear(); H.shaEst.clear(); open(S+'/envios.jsonl','w').close(); ESTADO['borrar']=False
             return self._ok({'ok':True,'estado':ESTADO})
         if ESTADO['caido']:
             self.close_connection=True; return
         if ESTADO['lento']: time.sleep(ESTADO['lento'])
         p=json.loads(raw or b'{}')
+        if p.get('accion')=='sha-estatus-guardar':
+            # Como el relevo r73: la propuesta del inspector de SHA, por hallazgo; vacío la retira.
+            if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
+            if p.get('sector') not in ('EZ','SB','SR'): return self._ok({"ok":False,"error":"Sector desconocido: "+str(p.get('sector'))})
+            if not (p.get('por') or '').strip(): return self._ok({"ok":False,"error":"Falta quién actualiza el estatus"})
+            cs=p.get('cambios') or []
+            for c in cs:
+                if (c.get('estatus') or '') not in ('','Pendiente','En proceso','Corregido'): return self._ok({"ok":False,"error":"Estatus desconocido: "+str(c.get('estatus'))})
+            for c in cs:
+                k=(p['sector'],shaClave(c.get('torre'),c)); e=H.shaEst.get(k,{})
+                if c.get('estatus'): e['inspector']={"estatus":c['estatus'],"antes":c.get('antes',''),"por":p['por'],"cuando":"2026-10-21 16:00","fecha":"2026-10-21"}
+                else: e.pop('inspector',None)
+                H.shaEst[k]=e
+            with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":"SHA-ESTATUS-"+p['sector'],"tipo":"sha-estatus","ambito":"sector","fotos":[],"datos":{"por":p['por'],"cambios":cs,"prueba":bool(p.get('prueba'))}},ensure_ascii=False)+"\n")
+            return self._ok({"ok":True,"guardados":len(cs),"guardado":"2026-10-21 16:00"})
         if p.get('accion')=='compilado-manzanas':
             if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
             return self._ok({"ok":True,"sector":p.get('sector'),"manzanas":["M-1 L1","M-5","M-6"] if p.get('sector')=='EZ' else []})
@@ -40,7 +61,7 @@ class H(http.server.BaseHTTPRequestHandler):
             if t=='servicios': ult["entes"]=[{"ente":"PDVSA Gas","servicios":[{"id":"srv_gas","nombre":"PDVSA / GAS DOMÉSTICO","total":5,"si":3,"no":2,"na":0,"sinResponder":0,"faltan":[{"item":"Regulación secundaria","obs":"sin válvula"},{"item":"Prueba de hermeticidad","obs":""}],"obs":"Gas en proceso","noInsp":False}]},
                 {"ente":"Hidroven","servicios":[{"id":"srv_agua","nombre":"AGUA POTABLE","total":4,"si":4,"no":0,"na":0,"sinResponder":0,"faltan":[],"obs":"","noInsp":False},{"id":"srv_pluviales","nombre":"AGUAS PLUVIALES","total":3,"si":0,"no":0,"na":0,"sinResponder":3,"faltan":[],"obs":"","noInsp":True}]}]
             elif t=='urbanismo': ult["actividades"]="Bote de material y desmalezamiento"; ult["secciones"]=[{"id":"urb_preliminares","nombre":"OBRAS PRELIMINARES","items":[{"nombre":"Bote de material","cant":"449","pr":"","ud":"m³","obs":"","camiones":2,"viajes":5,"m3":82,"maquinaria":"Retroexcavadora de prueba"}],"obs":""},{"id":"urb_drenaje","nombre":"DRENAJE","items":[],"obs":"Sin avance esta semana"}]
-            else: ult["sha"]={"recaudosSi":6,"recaudosNo":2,"recaudos":[{"item":"Registro Mercantil","obs":""},{"item":"RIF","obs":""}],"frentes":[{"frente":"Albañilería piso 3","hallazgo":"Trabajador sin casco","estatus":"Pendiente"}],"incidencias":[{"tipo":"Leve","descripcion":"Corte en la mano"}],"accion":"","accionDet":"","fotosGenerales":["Trabajador sin EPP"]}
+            else: ult["sha"]={"recaudosSi":6,"recaudosNo":2,"recaudos":[{"item":"Registro Mercantil","obs":""},{"item":"RIF","obs":""}],"frentes":[{"frente":"Albañilería piso 3","hallazgo":"Trabajador sin casco","estatus":"Pendiente"},{"frente":"Área de winches","hallazgo":"Gancho ordinario en vez de mosquetón","estatus":"En proceso","deAntes":True}],"incidencias":[{"tipo":"Leve","descripcion":"Corte en la mano"}],"accion":"","accionDet":"","fotosGenerales":["Trabajador sin EPP"]}
             porTorre=None
             if t=='servicios' and p.get('torre')=='URBANISMO':
                 # Como el relevo r64: todo el urbanismo, el último informe de cada torre y el de toda la zona.
@@ -55,6 +76,11 @@ class H(http.server.BaseHTTPRequestHandler):
             if porTorre and t=='servicios': notas=notas+[dict(notas[0],numero='SRV-QC-ZONA-261009-OP',numeroRev='SRV-QC-ZONA-261009-OP',lugar='SERVICIOS de toda la zona')]
             if porTorre and t=='sha': notas=notas+[dict(notas[0],numero='SHA-QC-ZONA-261009-VM',numeroRev='SHA-QC-ZONA-261009-VM',lugar='SHA de toda la zona')]
             if porTorre and t=='urbanismo': notas=notas+[dict(notas[0],numero='URB-QC-ZONA-261009-GB',numeroRev='URB-QC-ZONA-261009-GB',lugar='Urbanismo de toda la zona')]
+            if t=='sha':   # v182: como el relevo r73, cada frente con la propuesta del inspector y lo validado
+                anot=lambda fr,lug: [dict(x,**{k2:v2 for k2,v2 in H.shaEst.get((p['sector'],shaClave(lug,x)),{}).items() if k2 in ('inspector','validado')}) for x in fr]
+                ren=lambda l: [dict({k3:v3 for k3,v3 in x.items() if k3 not in ('inspector','validado')},**({'propuesta':x['inspector']} if x.get('inspector') else {}),**({'validado':x['validado']} if x.get('validado') else {})) for x in l]
+                ult["sha"]=dict(ult["sha"],frentes=ren(anot(ult["sha"]["frentes"],p['torre'])))
+                if porTorre: porTorre=[dict(pt,sha=dict(pt['sha'],frentes=ren(anot(pt['sha']['frentes'],pt['torre'])))) for pt in porTorre]
             r=dict({"ok":True,"tipo":t,"sector":p['sector'],"sectorNombre":{"EZ":"Ezequiel Zamora","SB":"Simón Bolívar","SR":"Simón Rodríguez"}.get(p['sector'],p['sector']),"torre":p['torre'],"empresa":"EMPRESA DE PRUEBA, C.A.","desde":p.get('desde'),"hasta":p.get('hasta') or '2026-10-13',
                 "ultimo":ult,"notas":notas,"inspectores":["Inspector de prueba"],"nInformes":1,"carpeta":"http://127.0.0.1:8777/carpeta","conPruebas":bool(p.get('prueba')),"generado":"2026-10-13 10:00"})
             if porTorre: r.update({"porTorre":porTorre,"nInformes":len(notas),"empresa":"","torre":"URBANISMO"})
@@ -128,10 +154,15 @@ class H(http.server.BaseHTTPRequestHandler):
             t=p.get('textos') or {}
             if not any((t.get(k) or '').strip() for k in ('hitos','exitos','dificultades','otros')): return self._ok({"ok":False,"error":"El compilado va sin ningún comentario de la coordinación"})
             if not (p.get('coordinadora') or '').strip(): return self._ok({"ok":False,"error":"Falta quién valida"})
-            with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":"COMPILADO-"+str(p.get('torre')),"tipo":"compilado-"+str(p.get('tipo') or 'obra'),"ambito":"torre","fotos":[],"datos":{"textos":t,"coordinadora":p.get('coordinadora'),"desde":p.get('desde'),"hasta":p.get('hasta'),"nInformes":(p.get('semana') or {}).get('nInformes')}}, ensure_ascii=False)+"\n")
+            est=p.get('estatus') or []
+            for c in est:
+                if (c.get('estatus') or '') not in ('Pendiente','En proceso','Corregido'): return self._ok({"ok":False,"error":"Estatus desconocido: "+str(c.get('estatus'))})
+            for c in est:   # v182: como el relevo r73, lo que queda elegido en «Estatus hoy» se valida al enviar
+                k=(p.get('sector'),shaClave(c.get('torre'),c)); e=H.shaEst.get(k,{}); e['validado']={"estatus":c['estatus'],"antes":c.get('antes',''),"por":p.get('coordinadora'),"cuando":"2026-10-21 17:00","fecha":"2026-10-21"}; H.shaEst[k]=e
+            with open(S+'/envios.jsonl','a') as f: f.write(json.dumps({"t":time.time(),"bytes":n,"numero":"COMPILADO-"+str(p.get('torre')),"tipo":"compilado-"+str(p.get('tipo') or 'obra'),"ambito":"torre","fotos":[],"datos":{"textos":t,"coordinadora":p.get('coordinadora'),"desde":p.get('desde'),"hasta":p.get('hasta'),"nInformes":(p.get('semana') or {}).get('nInformes'),"estatus":est}}, ensure_ascii=False)+"\n")
             H.compilados=getattr(H,'compilados',{}); k=(p.get('sector'),p.get('torre'),p.get('tipo') or 'obra',p.get('desde'),bool(p.get('prueba'))); antes=k in H.compilados
             H.compilados[k]={"textos":t,"coordinadora":p.get('coordinadora'),"guardado":"2026-10-15 16:40","numero":"x"}   # como el relevo r65: lo archivado por semana
-            return self._ok({"ok":True,"numero":("PRUEBA-" if p.get('prueba') else "")+{"servicios":"SRV-","urbanismo":"URB-","sha":"SHA-"}.get(p.get('tipo'),"")+str(p.get('sector'))+"-"+str(p.get('torre')).replace('-','')+"-SEM-"+str(p.get('desde') or '')[2:].replace('-',''),"archivo":"x.json","url":"http://127.0.0.1:8777/compilado.json","pdf":"http://127.0.0.1:8777/compilado.pdf","reemplazado":antes,"guardado":"2026-10-13 10:05"})
+            return self._ok({"ok":True,"numero":("PRUEBA-" if p.get('prueba') else "")+{"servicios":"SRV-","urbanismo":"URB-","sha":"SHA-"}.get(p.get('tipo'),"")+str(p.get('sector'))+"-"+str(p.get('torre')).replace('-','')+"-SEM-"+str(p.get('desde') or '')[2:].replace('-',''),"archivo":"x.json","url":"http://127.0.0.1:8777/compilado.json","pdf":"http://127.0.0.1:8777/compilado.pdf","reemplazado":antes,"guardado":"2026-10-13 10:05","estatusValidados":len(est)})
         if p.get('accion')=='aplica':
             # Como el relevo r28: qué subpartidas están en el presupuesto de la torre (solo códigos).
             if p.get('torre') in ('T-17','T-18'): return self._ok({"ok":True,"sinPresupuesto":True,"codigos":None})

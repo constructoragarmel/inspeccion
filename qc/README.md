@@ -930,3 +930,18 @@ reintentar. (Ronda 10) al imprimir los cuadros del % y de la nota no salían; ca
 avance físico validado: 70 % · Por qué es distinto: … · Nota de la T-08: …»). Mirado también a 320 × 568. El relevo falso suma
 `fallarTorres`, `tardaTorre`, la T-17 con 60 apartamentos y la semana sin informes desde el 1-dic. Regresión después de los
 arreglos: `t78` 24/24, `t79` 7/7, `t97` 6/6, `t99` 8/8, `t83` 11/11 (sola), `t111` 4/4, `t117` 6/6.
+
+## El estatus de SHA desde el compilado (v182, 21-oct-2026, ADR-0050): `t121` y `t122`
+
+Pedido de Diego Orta: la inspección de SHA actualiza el estatus de cada hallazgo en el compilado y la coordinación lo valida al
+enviar; lo validado como «Corregido» ya no vuelve. Diez rondas en `compilado.html?prueba=1` a 375 × 812, con el relevo falso que
+ahora contesta `sha-estatus-guardar`, anota cada frente con `propuesta` y `validado` y valida lo que llega en `estatus` al enviar
+(la muestra de SHA suma un segundo frente, «Área de winches», que viene de antes). `t121` (13/13): 1 · en SHA «Quién» separa la
+coordinación de la inspección de SHA (tres inspectores) y el inspector no ve validación ni «Enviar»; 2 · guardar sin cambios no
+manda, lo que cambia se resalta y queda en el equipo, se guarda solo lo cambiado con quién, lugar y el estatus del informe; 3 · la
+coordinación ve lo propuesto cargado, resaltado, con quién y cuándo; 4 · al enviar se valida, y al volver dice quién lo validó;
+5 · volver a obra no arrastra el modo del inspector. `t122` (12/12): 6 · todo el urbanismo, cada cambio con su torre o «Toda la
+zona», y lo guardado aparece en la torre sola; 7 · el relevo caído al guardar (lo dice, lo elegido sigue en el equipo y vuelve al
+regenerar); 8 · aria-label por hallazgo, id únicos, 44 px, sin desborde; 9 · al imprimir sale el estatus como texto; 10 · el
+inspector no envía el compilado ni abre otro tipo. **Un arreglo dentro de la v182**: la página no arrancaba (la lista de «Quién»
+usaba una constante antes de que existiera). Regresión: `t78` 24/24, `t84` 10/10, `t99` 8/8, `t119` 17/17, `t120` 16/16.
