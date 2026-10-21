@@ -69,12 +69,39 @@ CSS = """
 [hidden]{display:none !important}
 body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--fondo);
      color:var(--texto);margin:0;padding:0 0 140px;font-size:15px;line-height:1.45}
-header{background:var(--azul);color:#fff;padding:12px 236px 12px 14px;position:sticky;top:0;z-index:30}
-header .inicio{position:absolute;right:12px;top:9px;color:#fff;text-decoration:none;font-size:13px;font-weight:700;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:0 10px;min-height:44px;display:flex;align-items:center;gap:4px}
+/* v184 (21-oct-2026, Stephanie: «la base estructural de los formularios debería ser igual»): la cabecera y la barra son las de
+   inspección de obra —mismas clases, colores y sitio—. Arriba, el título con «📋 Compilado» y «🏠 Inicio»; debajo, las acciones:
+   en pantalla grande en una fila, en el teléfono abajo, al alcance del pulgar, con el resto detrás de «⋯ Más». */
+header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:12px 16px;position:sticky;top:0;z-index:200;box-shadow:0 3px 14px rgba(0,0,0,.3)}
+.hdr-tit{display:flex;align-items:flex-start;gap:8px}
+.hdr-txt{flex:1 1 auto;min-width:0}
+.hdr-boton{display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:0 12px;border:1.5px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-weight:700;white-space:nowrap;cursor:pointer;text-decoration:none;font-family:inherit;flex:0 0 auto}
+.hdr-btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.hdr-sec{display:contents}
+.hdr-btns .hbtn-mas{display:none}
+.hbtn{padding:8px 14px;border:1.5px solid transparent;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;letter-spacing:.2px;min-height:44px;font-family:inherit}
+.hbtn-save{background:#fff;color:#1a237e;border-color:#fff}
+.hbtn-nuevo{background:#1565c0;color:#fff;border-color:#64b5f6}
+.hbtn-send{background:#e8f5e9;color:#1b5e20;border-color:#66bb6a}
+.hbtn-send:hover,.hbtn-send:active{background:#2e7d32;color:#fff;border-color:#2e7d32}
+.hbtn-nuevo2,.hbtn-saved-list{background:#e8eaf6;color:#1a237e;border-color:#c5cae9}
+.hbtn-pdf{background:#eceff1;color:#37474f;border-color:#cfd8dc}
+.hbtn-mas{background:transparent;color:#fff;border-color:rgba(255,255,255,.55)}
+@media screen and (max-width:700px), screen and (pointer:coarse){
+  header{padding:8px 12px}
+  header h1{font-size:13px;line-height:1.3}
+  .hdr-boton .txt-ini{display:none}
+  .hdr-boton.inicio{min-width:44px;justify-content:center;padding:0}
+  .hdr-btns{position:fixed;left:0;right:0;bottom:0;z-index:900;background:#1a237e;padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px rgba(0,0,0,.28);margin:0;gap:6px}
+  .hdr-btns > .hbtn{flex:1 1 21%;min-width:0;flex-direction:column;gap:2px;padding:6px 4px;font-size:12px;line-height:1.15;text-align:center;min-height:52px;justify-content:center}
+  .hdr-btns > .hbtn span{white-space:normal}
+  .hdr-btns .hbtn-mas{display:flex}
+  .hdr-sec{display:none;width:100%;gap:6px}
+  .hdr-sec.abierto{display:grid;grid-template-columns:1fr 1fr}
+  .hdr-sec .hbtn{justify-content:center;font-size:12.5px}
+}
 header h1{margin:0;font-size:15px;font-weight:700;letter-spacing:.3px}
-/* v184 (21-oct-2026, Diego Orta): «📋 Compilado» a la vista, al lado de «Inicio», como en obra; en el teléfono «Inicio» queda en 🏠. */
-header .compilado{position:absolute;right:112px;top:9px;color:#fff;font-size:13px;font-weight:700;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:0 10px;min-height:44px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:inherit}
-@media (max-width:520px){header{padding-right:178px} header .compilado{right:66px} header .inicio .txt{display:none} header .inicio{min-width:44px;justify-content:center}}
+
 header .nro{font-size:12px;opacity:.85;margin-top:3px;font-variant-numeric:tabular-nums}
 .envoltorio{max-width:900px;margin:0 auto;padding:12px}
 .tarjeta{background:#fff;border-radius:10px;padding:14px;margin-bottom:12px;
@@ -104,7 +131,7 @@ textarea{min-height:64px;resize:vertical}
 .rot-campo{display:block;font-size:12.5px;font-weight:600;color:#475569;margin:8px 0 4px}
 .rot-obs{font-size:13.5px;color:#1e293b;margin-top:14px}
 /* «Entendido · ocultar» se ve igual, pero el dedo tiene 44 px donde caer (5-oct-2026). */
-@media screen and (max-width:700px), screen and (pointer:coarse){ .ley-ocultar{padding:14px 8px!important;margin:-8px -6px!important} }
+@media screen and (max-width:700px), screen and (pointer:coarse){ .ley-ocultar{padding:14px 8px!important;margin:-8px -6px!important;min-height:44px} }
 .act-pista{font-size:12.5px;color:#64748b;margin:2px 0 6px;line-height:1.35}
 .pestanas{display:flex;gap:8px;margin:12px 0}
 .pestanas button{flex:1;min-height:44px;border:none;border-radius:8px;font-weight:700;
@@ -195,11 +222,12 @@ header .nro-hint{font-size:12px;opacity:.85;margin-top:3px}
 .acciones .mas{flex:0 0 48px;font-size:20px}
 .acciones button{flex:1;min-height:48px;border:none;border-radius:8px;font-weight:700;font-size:14px}
 .b1{background:#e2e8f0;color:#334155}.b2{background:var(--azul);color:#fff}
-.pie{text-align:center;font-size:12px;color:#64748b;padding:6px}
+.pie{font-size:11px;font-weight:700;color:#bcc6e0;align-self:center;margin-left:4px}   /* v184: como en obra, en la barra */
+@media screen and (max-width:700px), screen and (pointer:coarse){.pie{width:100%;text-align:left;margin:0;font-size:12px;color:#fff;opacity:.9}}
 .fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:8px}
 .foto{border:1px solid var(--borde);border-radius:6px;padding:6px;background:#fff}
 .foto img{width:100%;height:80px;object-fit:cover;border-radius:4px}
-.foto button{width:100%;min-height:32px;margin-top:4px;border:none;border-radius:4px;
+.foto button{width:100%;min-height:44px;margin-top:4px;border:none;border-radius:4px;
       background:#fee2e2;color:#991b1b;font-size:12px;font-weight:600}
 .aviso{background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:10px;
       font-size:13px;margin-bottom:10px}
@@ -312,13 +340,28 @@ HTML = """<!DOCTYPE html>
 </head>
 <body>
 <header>
-  <h1>INSPECCIÓN DE SERVICIOS PÚBLICOS</h1>
-  <div class="nro" id="nro">—</div>
-  <div class="nro-hint" id="nro-hint" hidden>El número del informe se arma solo al elegir sector, torre e inspector.</div>
-  <!-- Skarlet (21-sep): un botón para salir del formulario y volver a la página
-       principal. Guarda antes de irse: lo escrito en los últimos 2 s no se pierde. -->
-  <button type="button" class="compilado" onclick="irAlCompiladoDe()" title="La semana de su sector ya armada con los informes de la app">📋 Compilado</button>
-  <a class="inicio" href="./index.html" onclick="irAlMenu(event)" title="Guarda el informe y vuelve a la página principal" aria-label="Inicio">🏠 <span class="txt">Inicio</span></a>
+  <div class="hdr-tit">
+    <div class="hdr-txt">
+      <h1>INSPECCIÓN DE SERVICIOS PÚBLICOS</h1>
+      <div class="nro" id="nro">—</div>
+      <div class="nro-hint" id="nro-hint" hidden>El número del informe se arma solo al elegir sector, torre e inspector.</div>
+    </div>
+    <!-- v184: «Compilado» e «Inicio» arriba, como en obra. Inicio guarda antes de irse (Skarlet, 21-sep). -->
+    <button type="button" class="hdr-boton compilado" onclick="irAlCompiladoDe()" title="La semana de su sector ya armada con los informes de la app">📋 <span>Compilado</span></button>
+    <a class="hdr-boton inicio" href="./index.html" onclick="irAlMenu(event)" title="Guarda el informe y vuelve a la página principal" aria-label="Inicio">🏠 <span class="txt-ini">Inicio</span></a>
+  </div>
+  <div class="hdr-btns">
+    <button type="button" class="hbtn hbtn-nuevo" onclick="siguienteTorre()" title="Guarda este informe y prepara el de la siguiente torre, conservando inspector, fecha y estatus">➡️ <span id="lbl-siguiente">Guardar y otra torre</span></button>
+    <button type="button" class="hbtn hbtn-saved-list" onclick="abrirInformes()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 <span>Informes</span><b id="cnt"></b></button>
+    <button type="button" class="hbtn hbtn-send" onclick="enviar()" title="Manda a Drive todos los pendientes. Hasta entonces viven solo aquí">📤 <span>Enviar</span><b id="cnt-pend"></b></button>
+    <button type="button" class="hbtn hbtn-mas" id="btn-mas" onclick="toggleMasAcciones()" title="Resto de las acciones">⋯ <span>Más</span></button>
+    <span class="pie" id="pie">● <span id="conexion">en línea</span> · @@VERSION@@</span>
+    <div class="hdr-sec" id="fila-mas">
+      <button type="button" class="hbtn hbtn-pdf" onclick="vistaPrevia()" title="Muestra el informe como saldrá en el PDF, sin enviarlo">🖨️ <span>PDF</span></button>
+      <button type="button" class="hbtn hbtn-save" onclick="guardar(true)" title="Guarda en este teléfono. Se guarda solo a los 2 segundos y cada 30">💾 <span>Guardar</span></button>
+      <button type="button" class="hbtn hbtn-nuevo2" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 <span>Limpiar todo</span></button>
+    </div>
+  </div>
 </header>
 
 <div class="envoltorio">
@@ -383,25 +426,8 @@ HTML = """<!DOCTYPE html>
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún servicio..."></textarea>
   </div>
 
-  <div class="pie" id="pie">● <span id="conexion">en línea</span> · @@VERSION@@</div>
 </div>
 
-<div class="acciones">
-  <!-- Lo que se usa de pie va a la vista; Guardar y Nuevo, detrás del «⋯»,
-       como en inspección: cinco botones no caben en 375 px sin achicarse. -->
-  <div class="fila-mas" id="fila-mas" hidden>
-    <button type="button" class="b1" onclick="vistaPrevia()" title="Muestra el informe como saldrá en el PDF, sin enviarlo">👁 Vista previa</button>
-    <button type="button" class="b1" onclick="guardar(true)" title="Guarda en este teléfono. Se guarda solo a los 2 segundos y cada 30">💾 Guardar</button>
-    <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
-    <button type="button" class="b1" onclick="irAlCompiladoDe()" title="La semana de una torre ya armada con los informes de la app, para que la coordinación la valide">📋 Compilado</button>
-  </div>
-  <div class="fila-principal">
-    <button type="button" class="b1" onclick="siguienteTorre()" title="Guarda este informe y prepara el de la siguiente torre, conservando inspector, fecha y estatus">➡️ Sig. torre</button>
-    <button type="button" class="b1" onclick="abrirInformes()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 Informes<br><small id="cnt">0</small></button>
-    <button type="button" class="b2" onclick="enviar()" title="Manda a Drive todos los pendientes. Hasta entonces viven solo aquí">📤 Enviar</button>
-    <button type="button" class="b1 mas" onclick="const f=document.getElementById('fila-mas');f.hidden=!f.hidden" title="Resto de las acciones">⋯</button>
-  </div>
-</div>
 <div id="modal-informes" hidden></div>
 
 <script>
@@ -1468,8 +1494,16 @@ function buscarOCrearItem(sid, it){
   return addItem(sid, nombre, false, !!(memoriaItems()[sid] || []).find(x => normalizar(x) === n));
 }
 function actualizarContador(){
-  const n = listaGuardada().filter(x => !x.enviado).length;
-  document.getElementById('cnt').textContent = n;
+  // v184: como en obra, «Informes (n)» con los que hay en el teléfono y «Enviar (n)» con los que faltan por enviar.
+  const l = listaGuardada(), n = l.filter(x => !x.enviado).length;
+  document.getElementById('cnt').textContent = l.length ? ' (' + l.length + ')' : '';
+  const p = document.getElementById('cnt-pend'); if (p) p.textContent = n ? ' (' + n + ')' : '';
+}
+function toggleMasAcciones(){
+  const caja = document.getElementById('fila-mas'), btn = document.getElementById('btn-mas');
+  if (!caja) return;
+  const abierto = caja.classList.toggle('abierto');
+  if (btn) btn.querySelector('span').textContent = abierto ? 'Menos' : 'Más';
 }
 function abrirInformes(){
   const l = listaGuardada();
@@ -1976,7 +2010,7 @@ function _vpCargar(){
 
 // Sin `id`: lo que está en pantalla, guardado o no. Con `id`: un informe guardado.
 async function vistaPrevia(id){
-  const mas = document.getElementById('fila-mas'); if (mas) mas.hidden = true;
+  const mas = document.getElementById('fila-mas'); if (mas && mas.classList.contains('abierto')) toggleMasAcciones();
   let d, grupos;
   if (id){
     cerrarInformes();

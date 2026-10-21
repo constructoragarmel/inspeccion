@@ -17,7 +17,7 @@ const ancho = window.innerWidth;
 
 await nuevo();
 const primero = $('#fila-mas button');
-ok('1 · «👁 Vista previa» es el primer botón detrás del «⋯»', !!primero && /Vista previa/.test(primero.textContent) && /vistaPrevia\(\)/.test(primero.getAttribute('onclick')), primero ? primero.textContent.trim() : 'sin botón');
+ok('1 · «🖨️ PDF» (la vista previa, v184: mismo nombre que en obra) es el primer botón detrás del «⋯»', !!primero && /PDF/.test(primero.textContent) && /vistaPrevia\(\)/.test(primero.getAttribute('onclick')), primero ? primero.textContent.trim() : 'sin botón');
 
 Q.dialogos.length = 0;
 await vistaPrevia(); await esperar(200);

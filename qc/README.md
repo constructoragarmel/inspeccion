@@ -952,3 +952,17 @@ Diego Orta: «cuando cargan información de una inspección anterior la fecha qu
 Era abrir en «Informes» uno guardado de otro día y tocar «Siguiente apto.» o «Sig. torre»: el nuevo heredaba esa fecha y solo un aviso
 lo decía. Desde la v183 (`comun/antes_de_enviar.js`, los cuatro formularios) el nuevo arranca con la de hoy y lo dice; solo se arrastra
 la fecha que el inspector eligió y confirmó en esta sesión (el caso de `t114`). `t123` 4/4; regresión `t114` 9/9.
+
+## La misma base en los cuatro formularios (v184, 21-oct-2026)
+
+Pedido de Diego Orta (el compilado de SHA lo hace la inspección de SHA, y en SHA el botón estaba escondido) y criterio de Stephanie:
+«la base estructural de los formularios debería ser igual … que la experiencia de usuario sea buena para todos por igual». Servicios,
+SHA y urbanismo pasan a la cabecera y la barra de obra: mismas clases, colores y sitio. Arriba, el título con «📋 Compilado» y «🏠»
+(en el teléfono «Inicio» queda en el ícono); debajo, «➡️ Guardar y otro apto / otra torre / otra manzana», «📁 Informes (n)», «📤 Enviar
+(n)» y «⋯ Más» (abajo en el teléfono, en una fila en la computadora); detrás de «Más», «🖨️ PDF», «💾 Guardar» y «🧹 Limpiar todo» (más
+«📊 Proyectadas» en urbanismo), en cuadrícula de dos; «● en línea · vNNN» en la barra. En obra, «Compilado» sale de «Más» y sube al
+lado de «Inicio». Desde servicios, SHA y urbanismo el compilado se abre ya en su tipo, con el sector, todo el urbanismo y quien firma
+(`?de=` y `garmel_compilado_desde`). Arreglos de la misma base: «Entendido · ocultar» (42 px) y «Eliminar» foto del motor (32 px) a
+44 px. Regresión a 375 × 812: obra `t10` 3/3, `t72` 3/3, `t80` 3/3, `t123` 4/4; servicios `t10` 4/4, `t59` 15/15, `t80` 1/1; SHA
+`t10` 4/4, `t12` 4/4, `t59` 15/15; urbanismo `t10` 4/4, `t11` 27/27, `t59` 15/15; `t80` y `t59` puestas al día con el menú nuevo.
+`t3` da 25/29, igual que con la v183 publicada (expectativas viejas de la tanda, no del menú). Mirado también en la computadora.

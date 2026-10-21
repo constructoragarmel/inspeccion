@@ -8357,7 +8357,7 @@ _css_165 = """
   .no-insp-tgl{min-height:44px;display:inline-flex!important;align-items:center;padding:0 10px!important;font-size:12.5px!important;white-space:nowrap}
   /* El «?» y «Entendido · ocultar» se ven igual, pero el dedo tiene 44 px donde caer. */
   .ayuda-btn{width:44px!important;height:44px!important;border:9px solid transparent!important;background-clip:padding-box!important;box-shadow:inset 0 0 0 1.5px #9fa8da;margin:-9px -1px -9px -1px!important}
-  .ley-ocultar{padding:14px 8px!important;margin:-8px -6px!important}
+  .ley-ocultar{padding:14px 8px!important;margin:-8px -6px!important;min-height:44px}
   /* 166 · La barra, en una fila de cuatro como en los otros formularios. */
   .hdr-btns > .hbtn{flex:1 1 21%!important;min-width:0;flex-direction:column;gap:2px;padding:6px 4px!important;font-size:12px!important;line-height:1.15;text-align:center;min-height:52px}
   .hdr-btns > .hbtn span{white-space:normal}
@@ -8369,6 +8369,11 @@ _css_165 = """
 }
 /* 174 · «Inicio» también en escritorio (7-oct-2026): estaba en display:none y solo lo encendía el media query del
    teléfono; en la computadora el formulario de obra no tenía cómo volver al menú (los otros tres sí). */
+.hdr-comp{margin-left:auto!important}
+/* v184: «Más» abierto en el teléfono, en cuadrícula de dos: con un número impar de botones ninguno se estira (base común con los otros tres). */
+@media screen and (max-width:700px), screen and (pointer:coarse){.hdr-sec.abierto{display:grid!important;grid-template-columns:1fr 1fr;flex-direction:initial}}
+.hdr-inicio[aria-label="Inicio"]{margin-left:0!important}
+@media screen and (max-width:700px), screen and (pointer:coarse){.hdr-inicio .txt-ini{display:none} .hdr-inicio[aria-label="Inicio"]{min-width:44px;padding:0;justify-content:center}}
 .hdr-inicio{display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:0 12px;margin-left:auto;border:1.5px solid rgba(255,255,255,.55);border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-weight:700;white-space:nowrap;cursor:pointer}
 @media print{.hdr-inicio{display:none!important}}
 </style>
@@ -8391,7 +8396,10 @@ s = s.replace(_inicio_166, _limpiar_166.replace("    <button", "      <button", 
 cambios.append("166a· la barra: Guardar y siguiente · Informes · Enviar · Más")
 s = sustituir(s, '<div><h1 id="hdr-title">',
               '<div style="display:flex;align-items:center;gap:10px;flex:1 1 auto"><button type="button" class="hdr-inicio solo-pantalla" onclick="irAlMenu()" '
-              'title="Guarda el informe y vuelve a la página que elige formulario" style="order:2">🏠 Inicio</button><div style="min-width:0"><h1 id="hdr-title">',
+              'title="Guarda el informe y vuelve a la página que elige formulario" style="order:3" aria-label="Inicio">🏠 <span class="txt-ini">Inicio</span></button>'
+              # v184 (21-oct-2026): «Compilado» arriba, al lado de «Inicio», igual que en servicios, SHA y urbanismo (base común).
+              '<button type="button" class="hdr-inicio solo-pantalla hdr-comp" onclick="irAlCompilado()" '
+              'title="La semana ya armada con los informes de la app" style="order:2">📋 <span>Compilado</span></button><div style="min-width:0"><h1 id="hdr-title">',
               "166b· «Inicio» arriba, a la vista")
 s = sustituir(s, '<p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div>',
               '<p id="hdr-sub">Sistema GARMEL · Evaluación de Avance por Hitos</p></div></div>', "166c· cierre de la cabecera")
@@ -9118,9 +9126,8 @@ s = sustituir(s,
 # servicios, SHA y urbanismo (motor). Guarda antes de salir y conserva el modo de prueba.
 s = sustituir(s,
  '    <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Borra todo lo escrito en este informe y deja el formulario en blanco. Los informes ya guardados no se tocan">\U0001f9f9 <span>Limpiar todo</span></button>\n',
- '    <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Borra todo lo escrito en este informe y deja el formulario en blanco. Los informes ya guardados no se tocan">\U0001f9f9 <span>Limpiar todo</span></button>\n'
- '    <button class="hbtn hbtn-compilado" onclick="irAlCompilado()" title="La semana de una torre ya armada con los informes de la app, para que la coordinaci\u00f3n la valide">\U0001f4cb <span>Compilado</span></button>\n',
- "178a\u00b7 bot\u00f3n «Compilado» junto a «Limpiar todo»")
+ '    <button class="hbtn hbtn-nuevo2" onclick="nuevoFormulario()" title="Borra todo lo escrito en este informe y deja el formulario en blanco. Los informes ya guardados no se tocan">\U0001f9f9 <span>Limpiar todo</span></button>\n',
+ "178a\u00b7 (v184: «Compilado» ya no va en «Más»: está arriba, al lado de «Inicio»)")
 s = sustituir(s,
  "function irAlMenu(){\n",
  "function irAlCompilado(){\n"

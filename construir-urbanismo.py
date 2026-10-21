@@ -122,12 +122,12 @@ H = sustituir(H, """  <div class="tarjeta">
 _min.group(0).replace("Si en la visita se firmó una minuta", "Si en la visita se firmó una minuta") + """  <div class="tarjeta">
     <label style="font-weight:600;font-size:13px;color:#475569">Observación general</label>
     <textarea id="obs_general" placeholder="Lo que no cabe en ninguna sección..."></textarea>""", "6b· minutas, justo antes de la observación general")
-H = sustituir(H, "➡️ Sig. torre", "➡️ Sig. manzana", "7· botón")
+H = sustituir(H, "<span id=\"lbl-siguiente\">Guardar y otra torre</span>", "<span id=\"lbl-siguiente\">Guardar y otra manzana</span>", "7· botón")
 # 7c · El botón interno de Planificación (respuesta 4 de Skarlet): detrás del
 # «⋯», enciende y apaga el campo «Proyectado» sin cambiar de enlace.
-H = sustituir(H, """    <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>""",
-"""    <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
-    <button type="button" class="b1" onclick="alternarPlanificacion()" title="Muestra u oculta el campo de cantidad proyectada, que carga Planificación">📊 Proyectadas</button>""", "7c· botón de Planificación")
+H = sustituir(H, """      <button type="button" class="hbtn hbtn-nuevo2" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 <span>Limpiar todo</span></button>""",
+"""      <button type="button" class="hbtn hbtn-nuevo2" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 <span>Limpiar todo</span></button>
+      <button type="button" class="hbtn hbtn-pdf" onclick="alternarPlanificacion()" title="Muestra u oculta el campo de cantidad proyectada, que carga Planificación">📊 <span>Proyectadas</span></button>""", "7c· botón de Planificación")
 H = sustituir(H, 'title="Guarda este informe y prepara el de la siguiente torre, conservando inspector, fecha y estatus"',
                  'title="Guarda este informe y prepara el de la siguiente manzana, conservando inspector, fecha y estatus"', "7b· pie de botón")
 
