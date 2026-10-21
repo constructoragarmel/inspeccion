@@ -859,6 +859,21 @@ try {
   }
 } catch (e) {}
 
+// v184 (21-oct-2026, Diego Orta): desde servicios, SHA o urbanismo, «📋 Compilado» llega con el tipo, el sector y quién ya elegidos
+// (en SHA, el inspector que actualiza el estatus: ADR-0050), y «Todo el urbanismo». Si en pantalla había otra semana, se suelta.
+(async function () {
+  const de = new URLSearchParams(location.search).get('de');
+  if (!de || !TIPOS[de] || de === 'obra') return;
+  let p = null; try { p = JSON.parse(localStorage.getItem('garmel_compilado_desde') || 'null'); localStorage.removeItem('garmel_compilado_desde'); } catch (e) {}
+  p = p || {};
+  if (DATA && DATA.tipo === de && (!p.sector || DATA.sector === p.sector) && (!p.quien || DATA.quien === p.quien)) return;   // la misma semana ya armada: se queda
+  if (DATA) otraVez();
+  $('tipo').value = de; aplicarTipo();
+  if (p.sector) { $('sector').value = p.sector; if (de === 'urbanismo') await llenarManzanas(); else llenarTorres(); if ([...$('torre').options].some(o => o.value === 'URBANISMO')) $('torre').value = 'URBANISMO'; }
+  if (p.quien && [...$('quien').options].some(o => o.value === p.quien)) $('quien').value = p.quien;
+  estado('Viene del formulario de ' + TIPOS[de].nombre + (p.sector ? ': ' + esc($('sector').selectedOptions[0].textContent) + ', todo el urbanismo' : '') + '. Revise las fechas y toque «Generar el compilado».', 'espera', true);
+})();
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(function(){ /* sin copia local */ });
   navigator.serviceWorker.addEventListener('message', e => {

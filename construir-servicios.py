@@ -69,9 +69,12 @@ CSS = """
 [hidden]{display:none !important}
 body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--fondo);
      color:var(--texto);margin:0;padding:0 0 140px;font-size:15px;line-height:1.45}
-header{background:var(--azul);color:#fff;padding:12px 96px 12px 14px;position:sticky;top:0;z-index:30}
+header{background:var(--azul);color:#fff;padding:12px 236px 12px 14px;position:sticky;top:0;z-index:30}
 header .inicio{position:absolute;right:12px;top:9px;color:#fff;text-decoration:none;font-size:13px;font-weight:700;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:0 10px;min-height:44px;display:flex;align-items:center;gap:4px}
 header h1{margin:0;font-size:15px;font-weight:700;letter-spacing:.3px}
+/* v184 (21-oct-2026, Diego Orta): «📋 Compilado» a la vista, al lado de «Inicio», como en obra; en el teléfono «Inicio» queda en 🏠. */
+header .compilado{position:absolute;right:112px;top:9px;color:#fff;font-size:13px;font-weight:700;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:0 10px;min-height:44px;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:inherit}
+@media (max-width:520px){header{padding-right:178px} header .compilado{right:66px} header .inicio .txt{display:none} header .inicio{min-width:44px;justify-content:center}}
 header .nro{font-size:12px;opacity:.85;margin-top:3px;font-variant-numeric:tabular-nums}
 .envoltorio{max-width:900px;margin:0 auto;padding:12px}
 .tarjeta{background:#fff;border-radius:10px;padding:14px;margin-bottom:12px;
@@ -314,7 +317,8 @@ HTML = """<!DOCTYPE html>
   <div class="nro-hint" id="nro-hint" hidden>El número del informe se arma solo al elegir sector, torre e inspector.</div>
   <!-- Skarlet (21-sep): un botón para salir del formulario y volver a la página
        principal. Guarda antes de irse: lo escrito en los últimos 2 s no se pierde. -->
-  <a class="inicio" href="./index.html" onclick="irAlMenu(event)" title="Guarda el informe y vuelve a la página principal">🏠 Inicio</a>
+  <button type="button" class="compilado" onclick="irAlCompiladoDe()" title="La semana de su sector ya armada con los informes de la app">📋 Compilado</button>
+  <a class="inicio" href="./index.html" onclick="irAlMenu(event)" title="Guarda el informe y vuelve a la página principal" aria-label="Inicio">🏠 <span class="txt">Inicio</span></a>
 </header>
 
 <div class="envoltorio">
@@ -389,7 +393,7 @@ HTML = """<!DOCTYPE html>
     <button type="button" class="b1" onclick="vistaPrevia()" title="Muestra el informe como saldrá en el PDF, sin enviarlo">👁 Vista previa</button>
     <button type="button" class="b1" onclick="guardar(true)" title="Guarda en este teléfono. Se guarda solo a los 2 segundos y cada 30">💾 Guardar</button>
     <button type="button" class="b1" onclick="nuevoInforme()" title="Deja el formulario en blanco. Los informes guardados no se tocan">🧹 Nuevo</button>
-    <button type="button" class="b1" onclick="guardar(true);location.href='./compilado.html'+(TEST_MODE?'?prueba=1':'')" title="La semana de una torre ya armada con los informes de la app, para que la coordinación la valide">📋 Compilado</button>
+    <button type="button" class="b1" onclick="irAlCompiladoDe()" title="La semana de una torre ya armada con los informes de la app, para que la coordinación la valide">📋 Compilado</button>
   </div>
   <div class="fila-principal">
     <button type="button" class="b1" onclick="siguienteTorre()" title="Guarda este informe y prepara el de la siguiente torre, conservando inspector, fecha y estatus">➡️ Sig. torre</button>
@@ -534,6 +538,16 @@ function irAlMenu(ev){
   if (ev) ev.preventDefault();
   try { guardar(false); } catch(e){}
   location.href = './index.html' + (TEST_MODE ? '?prueba=1' : '');
+}
+// v184 (21-oct-2026, Diego Orta): el compilado se abre ya en este tipo, con el sector del informe, todo el urbanismo y quien firma
+// (en SHA, el inspector actualiza el estatus ahí: ADR-0050). La página lo toma de `garmel_compilado_desde` y de `?de=`.
+function irAlCompiladoDe(){
+  try { guardar(false); } catch(e){}
+  try {
+    const conv = (document.getElementById('convenio') || {}).value || '', ins = document.querySelector('#inspectores select');
+    localStorage.setItem('garmel_compilado_desde', JSON.stringify({ tipo: TIPO_INFORME, sector: (typeof SECTOR_POR_CONVENIO !== 'undefined' && SECTOR_POR_CONVENIO[conv]) || '', quien: ins ? ins.value : '' }));
+  } catch(e){}
+  location.href = './compilado.html?de=' + TIPO_INFORME + (TEST_MODE ? '&prueba=1' : '');
 }
 
 // ── Modo de prueba ────────────────────────────────────────────────────────
