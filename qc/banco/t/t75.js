@@ -48,5 +48,9 @@ const despues9 = [...document.querySelectorAll('#copiar-de .f')].some(x => x.tex
 ok('9 · ' + C + ' (' + (ES_URB ? 'otra manzana' : 'otra contratista') + ') ' + (ES_URB ? 'aparece entre las del sector' : 'no sale de entrada; con «Buscar también en las demás torres del sector» aparece'), ES_URB ? (antes9 || despues9) : (!antes9 && !!bs && /demás torres del sector \(\d+\)/.test(txt9) && despues9), txt9 + ' · antes ' + antes9 + ' · después ' + despues9);
 document.querySelector('#copiar-de .cerrar').click(); await esperar(200);
 contestar(1); await esperar(900);
-ok('10 · Con algo contestado el botón no se ofrece', !document.getElementById('btn-copiar-de'), '');
+// v186: con pocas respuestas (un cuarto de los ítems o menos) se ofrece «Completar lo vacío…»; con más, no.
+const b10 = document.getElementById('btn-copiar-de');
+ok('10 · Con una respuesta se ofrece «Completar lo vacío con…» (v186)', !!b10 && /Completar lo vac/.test(b10.textContent), b10 ? b10.textContent : 'sin botón');
+contestar(Math.ceil(document.querySelectorAll('[id^="items-"] .item').length / 2)); await esperar(900);
+ok('10b · Con la mitad de los ítems contestados el botón no se ofrece', !document.getElementById('btn-copiar-de'), '');
 window.fetch = _fetch; nuevoInforme(); await esperar(200); localStorage.setItem(CLAVE_LISTA, '[]'); localStorage.removeItem(CLAVE_TORRES);

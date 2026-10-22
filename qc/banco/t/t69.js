@@ -66,5 +66,9 @@ const grupos11 = [...document.querySelectorAll('#copiar-de .g')].map(g => g.text
 ok('11 · La T-07 (otra contratista) no sale de entrada; con «Buscar también en las demás torres del sector» aparece bajo «otras torres del sector»', !!bsec && !antes11 && !sinSector && !!bs11 && /demás torres del sector \(\d+\)/.test(txt11) && grupos11.some(g => /otras torres del sector/.test(g)) && conSector, txt11 + ' · antes ' + sinSector + ' · después ' + conSector + ' · ' + grupos11.join(' | '));
 document.querySelector('#copiar-de .cerrar').click(); await esperar(200);
 mide(fila('hito_estructura', '1.01'), '900', '100'); await esperar(1000);
-ok('10 · Con algo medido el botón no se ofrece', !document.getElementById('btn-copiar-de'), document.getElementById('copiar-de').innerHTML.slice(0, 60));
+// v186: con pocos datos (un cuarto de las filas o menos) se ofrece «Completar lo vacío…»; con más, no.
+const b10 = document.getElementById('btn-copiar-de');
+ok('10 · Con una fila medida se ofrece «Completar lo vacío con otro informe de torre…» (v186)', !!b10 && /Completar lo vac/.test(b10.textContent), b10 ? b10.textContent : 'sin botón');
+{ const prs = [...document.querySelectorAll('input[id^="pr_"]')]; prs.slice(0, Math.ceil(prs.length / 2)).forEach(e => { e.value = '1'; e.dispatchEvent(new Event('input', { bubbles: true })); }); } await esperar(1000);
+ok('10b · Con la mitad de las filas medidas el botón no se ofrece', !document.getElementById('btn-copiar-de'), document.getElementById('copiar-de').innerHTML.slice(0, 60));
 window.fetch = _fetch; nuevoFormulario(); await esperar(200); localStorage.removeItem('garmel_reports_list');

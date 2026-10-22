@@ -1650,6 +1650,8 @@ function fechaLarga(f){
 // Trae respuestas, observaciones y apartamentos del último informe de la
 // torre. NO trae fotografías —son de aquel día— ni la observación general.
 // Todo lo traído queda marcado «visita anterior» hasta que alguien lo toque.
+// v186: mientras se completa lo vacío con otra torre (oficina_copiar_motor.js), lo que ya tiene respuesta no se toca.
+var _ocSoloVacios = false;
 function traerHistorial(){
   const t = document.getElementById('torre').value;
   const e = estadosDeTorres()[_claveMem(t)];
@@ -1672,16 +1674,17 @@ function traerHistorial(){
     (g.items || []).forEach(it => {
       const el = buscarOCrearItem(g.id, it);
       if (!el) return;
+      if (_ocSoloVacios && _ocItemConDato(el)) return;
       ponerSN(el, it.sn);
       el.querySelector('textarea').value = it.obs || '';
       if (it.sn || it.obs){ el.classList.add('heredado'); el.dataset.heredado = it.heredado || e.nro; }
     });
     const obs = document.querySelector('#srv-' + g.id + ' .obs-srv');
-    if (obs && g.obs){ obs.value = g.obs; obs.dataset.heredado = e.nro; }
+    if (obs && g.obs && !(_ocSoloVacios && (obs.value || '').trim())){ obs.value = g.obs; obs.dataset.heredado = e.nro; }
     if ((g.items || []).some(i => i.sn || i.obs) || g.obs) plegar(g.id, true);
   });
   (e.noInspeccionados || []).forEach(sid => { const b = document.getElementById('srv-' + sid);
-    if (b && !b.classList.contains('no-inspeccionado')){ toggleNoInsp(sid); b.dataset.heredadoNI = '1'; } });
+    if (b && !b.classList.contains('no-inspeccionado') && !(_ocSoloVacios && [...b.querySelectorAll('.item')].some(_ocItemConDato))){ toggleNoInsp(sid); b.dataset.heredadoNI = '1'; } });
   (e.apartamentos || []).forEach(a => {
     addApartamento({ apto: a.apto, piso: a.piso, campos: a.campos, fotos: [] });
     const fila = document.querySelector('#filas-apto .fila-apto:last-child');
@@ -3015,11 +3018,26 @@ function _copiarCandidatas(todasDelSector){
   });
   return out;
 }
+// v186 (22-oct-2026, como en obra): también sale en un informe con pocas respuestas —un cuarto de los ítems o menos—,
+// abierto desde «Informes» o ya enviado. Entonces se llama «Completar lo vacío…» y solo llena lo que no tiene respuesta;
+// las filas de la lista (hallazgos, apartamentos) solo se traen si la lista está vacía.
+function _ocItemConDato(el){
+  if (typeof valorSN === 'function' && valorSN(el)) return true;
+  return [...el.querySelectorAll('textarea, input')].some(function(x){
+    return !x.classList.contains('nombre-libre') && !/^(checkbox|radio|file|hidden|button)$/i.test(x.type || '') && String(x.value || '').trim() !== '';
+  });
+}
+function _ocPocosDatos(){
+  const items = [...document.querySelectorAll('.item')];
+  const con = items.filter(_ocItemConDato).length + document.querySelectorAll('#filas-apto .fila-apto').length;
+  return con > 0 && con * 4 <= items.length;
+}
+function _ocCompletando(){ try { return !formularioEnBlanco(); } catch (e) { return false; } }
 function _copiarPuede(){
   if (typeof _cargando !== 'undefined' && _cargando) return false;
   if (!_ofiTorre() || !_ofiSector()) return false;
   if (_copiaDe) return false;
-  try { return formularioEnBlanco(); } catch (e) { return false; }
+  try { return formularioEnBlanco() || _ocPocosDatos(); } catch (e) { return false; }
 }
 function _copiarCaja(){
   let c = document.getElementById('copiar-de');
@@ -3035,7 +3053,7 @@ function _copiarPintarBoton(){
   const caja = _copiarCaja(); if (!caja) return;
   if (!_copiarPuede()) { caja.innerHTML = ''; return; }
   if (caja.querySelector('.copiar-panel')) return;
-  const rotulo = '📋 Copiar de ' + _OC_LUGAR.otra + '…';
+  const rotulo = (_ocCompletando() ? '📋 Completar lo vacío con ' : '📋 Copiar de ') + _OC_LUGAR.otra + '…';
   // Una sola tarjeta: si la propuesta de la visita anterior está a la vista, el botón va dentro de ella.
   const avisoBotones = document.querySelector('#aviso-historial .historial .b');
   if (avisoBotones) {
@@ -3088,8 +3106,9 @@ function _copiarPintarGrupo(lista, titulo, fuentes){
 async function _copiarAbrirPanel(){
   const caja = _copiarCaja(); if (!caja || !_copiarPuede()) return;
   const t = _ofiTorre(), hermanas = _copiarCandidatas(false), resto = _copiarCandidatas(true);
-  caja.innerHTML = '<div class="copiar-panel"><div class="t">Copiar las respuestas de ' + _ofiEsc(_OC_LUGAR.otra) + '</div>' +
-    '<div class="s">Se traen las respuestas y observaciones de cada ítem, marcadas hasta que usted las confirme en sitio o las corrija. Las fotos y la observación general no se copian. No se puede enviar con respuestas copiadas sin confirmar.</div>' +
+  const completar = _ocCompletando();
+  caja.innerHTML = '<div class="copiar-panel"><div class="t">' + (completar ? 'Completar lo vacío con ' : 'Copiar las respuestas de ') + _ofiEsc(_OC_LUGAR.otra) + '</div>' +
+    '<div class="s">' + (completar ? 'Solo se llena lo que no tiene respuesta: lo que usted ya anotó no se toca. ' : '') + 'Se traen las respuestas y observaciones de cada ítem, marcadas hasta que usted las confirme en sitio o las corrija. Las fotos y la observación general no se copian. No se puede enviar con respuestas copiadas sin confirmar.</div>' +
     '<div class="lista"><p class="s">⏳ Buscando en este teléfono y en el archivo…</p></div>' +
     '<button type="button" class="cerrar">Cerrar</button></div>';
   caja.querySelector('.cerrar').onclick = function(){ caja.innerHTML = ''; _copiarPintarBoton(); };
@@ -3149,11 +3168,15 @@ function _copiarAplicar(e, f){
   const fuente = JSON.parse(JSON.stringify(e));
   ['convenio', 'estatus', 'residente', 'empresa'].forEach(function(k){ delete fuente[k]; });
   fuente.nro = f.nro; fuente.id = 'copia-' + f.nro;
+  const completar = _ocCompletando();
+  if (completar && document.querySelectorAll('#filas-apto .fila-apto').length) fuente.apartamentos = [];   // v186: la lista ya tiene filas
+  if (completar) fuente.noInspeccionados = (fuente.noInspeccionados || []).filter(function(sid){ const b = document.getElementById('srv-' + sid); return !b || ![...b.querySelectorAll('.item')].some(_ocItemConDato); });
   const k = (typeof _claveMem === 'function') ? _claveMem(t) : t;
   const todos = estadosDeTorres(); const previo = todos[k];
   todos[k] = fuente; localStorage.setItem(CLAVE_TORRES, JSON.stringify(todos));
+  _ocSoloVacios = completar;
   try { traerHistorial(); }
-  finally { const t2 = estadosDeTorres(); if (previo) t2[k] = previo; else delete t2[k]; localStorage.setItem(CLAVE_TORRES, JSON.stringify(t2)); }
+  finally { _ocSoloVacios = false; const t2 = estadosDeTorres(); if (previo) t2[k] = previo; else delete t2[k]; localStorage.setItem(CLAVE_TORRES, JSON.stringify(t2)); }
   _copiaDe = { nro: f.nro, torre: f.torre, fecha: f.fecha || '' };
   _copiarRotular();
   const caja = document.getElementById('copiar-de'); if (caja) caja.innerHTML = '';
@@ -3220,7 +3243,7 @@ function _copiarAvisoBloqueo(d){
     const d = listaGuardada().find(function(x){ return x.id === id; });
     if (d && idActual === d.id) {
       _definitiva = d.definitiva || null; _oficinaDe = d.oficina || null; _copiaDe = d.copiadoDe || null;
-      _copiarRotular(); _oficinaEstado();
+      _copiarRotular(); _oficinaEstado(); _copiarProgramar();
     }
     return r;
   };

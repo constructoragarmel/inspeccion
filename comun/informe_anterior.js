@@ -17,6 +17,13 @@ function _hayMediciones(){
     function(e){ return String(e.value || '').trim() !== ''; });
 }
 
+// v186 (22-oct-2026, Mariana Rojas): «Completar lo vacío con otro apartamento» copia en un informe que ya tiene
+// pocos datos sin tocar lo medido. Mientras dura esa copia, _traerMediciones salta las filas que ya tienen algo.
+var _copiarSoloVacias = false;
+function _filaConDato(rid){
+  return ['pr_', 'ej_', 'pm_', 'sn_'].some(function(p){ const e = document.getElementById(p + rid); return !!e && String(e.value || '').trim() !== ''; });
+}
+
 function _aptoActual(){
   return String((document.getElementById('apto') || {}).value || '').trim().toUpperCase();
 }
@@ -145,6 +152,7 @@ function _traerMediciones(partidas, soloHay){
       const rid = pid + '_' + i;
       const pr = document.getElementById('pr_' + rid), ej = document.getElementById('ej_' + rid);
       if (!pr && !ej) return;
+      if (!soloHay && _copiarSoloVacias && _filaConDato(rid)) return;   // v186: lo medido no se toca
       if (soloHay) {
         if (!_esConteo(pid, i) || !String(item.pr || '').trim()) return;
         pr.value = item.pr; recalcRow(pr); n++;

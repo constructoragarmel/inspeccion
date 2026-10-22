@@ -464,11 +464,13 @@ setSiNo = function(btn){
 const _traerMedicionesBase153 = _traerMediciones;
 _traerMediciones = function(partidas, soloHay){
   const filas = [];
-  if (!soloHay && !_hayMediciones()) Object.keys(partidas || {}).forEach(function(pid){
+  // v186: al completar lo vacío se marcan solo las filas que estaban vacías; lo ya medido queda como estaba.
+  if (!soloHay && (!_hayMediciones() || _copiarSoloVacias)) Object.keys(partidas || {}).forEach(function(pid){
     const arr = partidas[pid];
     if (pid.slice(-6) === '_extra' || !Array.isArray(arr)) return;
     arr.forEach(function(item, i){
       if (!item || item.fueraDeAmbito || !_aplica(pid, i) || !_filaDe(pid + '_' + i)) return;
+      if (_copiarSoloVacias && _filaConDato(pid + '_' + i)) return;
       if (['pr', 'ej', 'sn', 'pct'].some(function(k){ return String(item[k] || '').trim() !== ''; })) filas.push(pid + '_' + i);
     });
   });

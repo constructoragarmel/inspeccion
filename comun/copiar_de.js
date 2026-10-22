@@ -102,13 +102,27 @@ async function _copiarPedir(cuerpo){
   finally { clearTimeout(reloj); }
 }
 
+// v186 (22-oct-2026, pedido de Diego Orta por Mariana Rojas): el botón también sale en un informe que ya tiene pocos
+// datos —un cuarto de las filas o menos—, incluido uno abierto desde «Informes» o ya enviado. Entonces se llama
+// «Completar lo vacío…» y solo llena las filas vacías: lo medido no se toca ni se marca. Con más datos no se ofrece.
+function _copiarPocosDatos(){
+  const filas = {};
+  document.querySelectorAll('input[id^="pr_"], input[id^="ej_"], input[id^="pm_"], input[id^="sn_"]').forEach(function(e){
+    const rid = e.id.slice(3); if (!(rid in filas)) filas[rid] = false;
+    if (String(e.value || '').trim() !== '') filas[rid] = true;
+  });
+  const total = Object.keys(filas).length, con = Object.keys(filas).filter(function(k){ return filas[k]; }).length;
+  return con > 0 && con * 4 <= total;
+}
+function _copiarCompletando(){ return _hayMediciones(); }
+
 function _copiarPuede(){
-  if (typeof _abiertoParaEditar !== 'undefined' && _abiertoParaEditar) return false;
   if (formType !== 'detallado') return false;
   const t = getTorreActual();
   if (!t || t === '—' || getSectorActual() === 'XX') return false;
   if (ambito !== 'torre' && (!(document.getElementById('piso') || {}).value || !_aptoActual())) return false;
-  if (_hayMediciones() || _copiaDe) return false;
+  if (_copiaDe) return false;
+  if (_hayMediciones() && !_copiarPocosDatos()) return false;
   return true;
 }
 
@@ -122,7 +136,7 @@ function _copiarPintarBoton(){
   if (!caja) return;
   if (!_copiarPuede()) { caja.innerHTML = ''; return; }
   if (caja.querySelector('.copiar-panel')) return;   // ya está abierto el panel
-  const rotulo = '📋 Copiar de otro ' + (ambito === 'torre' ? 'informe de torre' : 'apartamento') + '…';
+  const rotulo = (_copiarCompletando() ? '📋 Completar lo vacío con otro ' : '📋 Copiar de otro ') + (ambito === 'torre' ? 'informe de torre' : 'apartamento') + '…';
   // QC de UX del 7-oct-2026: si la tarjeta de la visita anterior está a la vista, el botón va dentro de ella (una sola
   // oferta con sus opciones), y aquí no se pinta nada.
   const avisoBotones = document.querySelector('#aviso-anterior .aviso-anterior .b');
@@ -144,8 +158,10 @@ async function _copiarAbrirPanel(){
   if (!caja || !_copiarPuede()) return;
   const torres = _copiarTorresCandidatas();
   const t = torres[0];
-  caja.innerHTML = '<div class="copiar-panel"><div class="t">Copiar las mediciones de otro ' + (ambito === 'torre' ? 'informe de torre' : 'apartamento') + '</div>' +
-    '<div class="s">Se traen las cantidades y los estados, marcados hasta que usted los confirme en sitio o los corrija. ' +
+  const completar = _copiarCompletando();
+  caja.innerHTML = '<div class="copiar-panel"><div class="t">' + (completar ? 'Completar lo vacío con otro ' : 'Copiar las mediciones de otro ') + (ambito === 'torre' ? 'informe de torre' : 'apartamento') + '</div>' +
+    '<div class="s">' + (completar ? 'Solo se llenan las filas vacías: lo que usted ya midió no se toca. ' : '') +
+    'Se traen las cantidades y los estados, marcados hasta que usted los confirme en sitio o los corrija. ' +
     'Fotos, evaluación y observaciones no se copian. No se puede enviar con filas copiadas sin confirmar.</div>' +
     '<div class="lista"><p class="s">⏳ Buscando informes de los últimos 14 días…</p></div>' +
     '<button type="button" class="cerrar">Cerrar</button></div>';
@@ -226,8 +242,8 @@ async function _copiarElegir(f, boton){
 
 function _copiarAplicar(f, partidas){
   const caja = document.getElementById('copiar-de');
-  _copiaOrigenActivo = f;
-  try { _traerMediciones(partidas, false); } finally { _copiaOrigenActivo = null; }
+  _copiaOrigenActivo = f; _copiarSoloVacias = _hayMediciones();
+  try { _traerMediciones(partidas, false); } finally { _copiaOrigenActivo = null; _copiarSoloVacias = false; }
   _copiaDe = { nro: f.nro, torre: f.torre, piso: f.piso || '', apto: f.apto || '', fecha: f.fecha || '' };
   if (typeof _uso !== 'undefined') _uso.anterior = 'copiado de ' + f.nro;
   if (caja) caja.innerHTML = '';
@@ -293,6 +309,7 @@ loadDraftData = function(index){
       });
     });
     const caja = document.getElementById('copiar-de'); if (caja) caja.innerHTML = '';
+    _copiarProgramar();   // v186: un informe abierto con pocos datos también ofrece completar lo vacío
   } catch (e) { if (window.console) console.warn('copiar de: al abrir el borrador', e); }
   return r;
 };

@@ -981,3 +981,18 @@ desde urbanismo con otra semana en pantalla quedaba elegido quien validó esa se
 al llegar del relevo (ahora se conserva lo elegido); en la computadora los botones de obra medían 35 px y los de los otros tres 44.
 Resultado final: `t124` 8/8, `t125` 11/11, `t126` 13/13, `t127` 7/7; regresión obra 30/30 (t10, t72, t80, t114, t123, t124),
 compilado 103/103 (t78, t99, t119, t120, t121, t122, t126), SHA 34/34, servicios 20/20, urbanismo 46/46.
+
+## Completar lo vacío con otro apartamento o torre (v186, 22-oct-2026, sin publicar): `t128` y `t129`
+
+Pedido de Diego Orta por Mariana Rojas: al reabrir un informe ya enviado con un solo dato, el botón de copiar no salía (solo
+salía con el formulario en blanco y nunca en un informe abierto desde «Informes»). Ahora sale también si hay **un cuarto de las
+filas (o de los ítems) o menos** con dato, se llama **«Completar lo vacío con…»** y **solo llena lo vacío**: lo ya anotado queda
+igual y sin marca. En servicios, SHA y urbanismo las filas de la lista (hallazgos, apartamentos) solo se traen si la lista está
+vacía. Lo demás no cambia: las filas copiadas quedan «≈ Copiado de» y no se envía sin confirmarlas.
+
+- `t128` (obra, 375 px) **9/9**: reabierto y ya enviado con una fila → «Completar lo vacío con otro apartamento…»; la fila propia
+  (9 y 9) queda igual y sin marca, las dos vacías se llenan marcadas; el dato lleva `copiadoDe` solo en las copiadas; no se envía
+  sin confirmar; confirmadas, sale; con la mitad medida no se ofrece; nada se sale.
+- `t129` (servicios, SHA y urbanismo, 375 px) **6/6 en los tres**: lo mismo con respuestas Sí/No (o cantidades en urbanismo).
+- `t69` y `t75` cambian la comprobación 10 a la regla nueva (con una fila: «Completar lo vacío»; con la mitad: nada):
+  **13/13** en obra y **11/11** en servicios, SHA y urbanismo. Regresión de la visita anterior: `t26` 5/5 y `t29` 5/5.

@@ -1438,6 +1438,8 @@ function fechaLarga(f){
 // Trae respuestas, observaciones y apartamentos del último informe de la
 // torre. NO trae fotografías —son de aquel día— ni la observación general.
 // Todo lo traído queda marcado «visita anterior» hasta que alguien lo toque.
+// v186: mientras se completa lo vacío con otra torre (oficina_copiar_motor.js), lo que ya tiene respuesta no se toca.
+var _ocSoloVacios = false;
 function traerHistorial(){
   const t = document.getElementById('torre').value;
   const e = estadosDeTorres()[_claveMem(t)];
@@ -1460,16 +1462,17 @@ function traerHistorial(){
     (g.items || []).forEach(it => {
       const el = buscarOCrearItem(g.id, it);
       if (!el) return;
+      if (_ocSoloVacios && _ocItemConDato(el)) return;
       ponerSN(el, it.sn);
       el.querySelector('textarea').value = it.obs || '';
       if (it.sn || it.obs){ el.classList.add('heredado'); el.dataset.heredado = it.heredado || e.nro; }
     });
     const obs = document.querySelector('#srv-' + g.id + ' .obs-srv');
-    if (obs && g.obs){ obs.value = g.obs; obs.dataset.heredado = e.nro; }
+    if (obs && g.obs && !(_ocSoloVacios && (obs.value || '').trim())){ obs.value = g.obs; obs.dataset.heredado = e.nro; }
     if ((g.items || []).some(i => i.sn || i.obs) || g.obs) plegar(g.id, true);
   });
   (e.noInspeccionados || []).forEach(sid => { const b = document.getElementById('srv-' + sid);
-    if (b && !b.classList.contains('no-inspeccionado')){ toggleNoInsp(sid); b.dataset.heredadoNI = '1'; } });
+    if (b && !b.classList.contains('no-inspeccionado') && !(_ocSoloVacios && [...b.querySelectorAll('.item')].some(_ocItemConDato))){ toggleNoInsp(sid); b.dataset.heredadoNI = '1'; } });
   (e.apartamentos || []).forEach(a => {
     addApartamento({ apto: a.apto, piso: a.piso, campos: a.campos, fotos: [] });
     const fila = document.querySelector('#filas-apto .fila-apto:last-child');
