@@ -1,4 +1,4 @@
-// ── 194. «Ver PDF» en el buscador de informes, sin traerlo al formulario (27-oct-2026) ───────────────────────────
+// ── 194. «Ver PDF» en el buscador de informes, sin traerlo al formulario, y buscar por apartamento (27-oct-2026) ───────────────────────────
 // Diego Orta, 27-oct: «debería haber una opción de ver el pdf sin que se cargue en el formulario porque entonces ahí se
 // crea un borrador». En el panel de oficina («Buscar los informes de esta torre»), cada informe archivado lleva ahora
 // «📄 Ver PDF» junto a «Abrir para corregir». Ver PDF le pide al relevo (r74, accion 'oficina-pdf') el PDF de la última
@@ -65,7 +65,42 @@
     });
     return r;
   };
+  // 194b · Buscar por apartamento (Diego Orta, 27-oct: «por torre/apartamento»): sobre la lista de la torre, un filtro que deja
+  // solo las filas que tienen todo lo escrito (piso, apartamento, inspector, fecha o número; sin importar acentos ni mayúsculas),
+  // y cuántos días hacia atrás buscar (14, 30 o 60; el relevo no da más de 60).
+  let _ofiDias = 14;
+  const _norm = function(t){ return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
+  if (MOTOR) { const _b = _ofiPedir; _ofiPedir = function(c){ if (c && c.accion === 'oficina-lista') c.dias = _ofiDias; return _b.apply(this, arguments); }; }
+  else { const _b = _oficinaPedir; _oficinaPedir = function(c){ if (c && c.accion === 'oficina-lista') c.dias = _ofiDias; return _b.apply(this, arguments); }; }
+  window._ofiFiltrar194 = function(){
+    const caja = document.getElementById('ofi-lista'), q = _norm((document.getElementById('ofi-filtro') || {}).value).split(/\s+/).filter(Boolean);
+    let n = 0, v = 0;
+    caja.querySelectorAll('table tr').forEach(function(tr, i){
+      if (i === 0) return; n++;
+      const t = _norm(tr.innerText), ve = q.every(function(x){ return t.indexOf(x) >= 0; });
+      tr.style.display = ve ? '' : 'none'; if (ve) v++;
+    });
+    const c = document.getElementById('ofi-cuenta'); if (c) c.textContent = q.length ? v + ' de ' + n : n + ' informe' + (n === 1 ? '' : 's');
+  };
+  const _pintarFiltro = _oficinaPintar;
+  _oficinaPintar = function(){
+    const r = _pintarFiltro.apply(this, arguments);
+    const caja = document.getElementById('ofi-lista'), tabla = caja.querySelector('table');
+    if (_ofiDias !== 14) caja.querySelectorAll('p.ofi-aviso').forEach(function(p){ p.innerHTML = p.innerHTML.replace('últimos 14 días', 'últimos ' + _ofiDias + ' días'); });
+    const f = document.createElement('div'); f.className = 'ofi-filtro';
+    f.innerHTML = (tabla ? '<input type="search" id="ofi-filtro" placeholder="Filtrar: piso, apto, inspector, fecha o número" oninput="_ofiFiltrar194()" autocomplete="off">' +
+      '<span id="ofi-cuenta"></span>' : '') +
+      '<label>Buscar en los últimos <select id="ofi-dias" onchange="_ofiDiasCambio194(this.value)">' +
+      [14, 30, 60].map(function(d){ return '<option value="' + d + '"' + (d === _ofiDias ? ' selected' : '') + '>' + d + '</option>'; }).join('') + '</select> días</label>';
+    caja.insertBefore(f, caja.firstChild);
+    if (tabla) _ofiFiltrar194();
+    return r;
+  };
+  window._ofiDiasCambio194 = function(v){ _ofiDias = parseInt(v, 10) || 14; oficinaBuscar(); };
+
   const st = document.createElement('style');
-  st.textContent = '.ofi-lista td:last-child{white-space:nowrap}.ofi-btn.ofi-ver{margin-right:6px}.ofi-pdf a{font-weight:700}';
+  st.textContent = '.ofi-lista td:last-child{white-space:nowrap}.ofi-btn.ofi-ver{margin-right:6px}.ofi-pdf a{font-weight:700}' +
+    '.ofi-filtro{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:0 0 8px}.ofi-filtro input{flex:1 1 220px;min-width:0;min-height:44px;padding:8px 10px;border:1px solid #c7d2fe;border-radius:8px;font-size:15px;box-sizing:border-box}' +
+    '.ofi-filtro select{min-height:44px;font-size:15px}.ofi-filtro #ofi-cuenta{font-size:12px;color:#5a6672}.ofi-filtro label{font-size:13px}';
   document.head.appendChild(st);
 })();
