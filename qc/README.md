@@ -997,7 +997,7 @@ vacía. Lo demás no cambia: las filas copiadas quedan «≈ Copiado de» y no s
 - `t69` y `t75` cambian la comprobación 10 a la regla nueva (con una fila: «Completar lo vacío»; con la mitad: nada):
   **13/13** en obra y **11/11** en servicios, SHA y urbanismo. Regresión de la visita anterior: `t26` 5/5 y `t29` 5/5.
 
-## «📄 Ver PDF» en el buscador de informes (cambio 194, 27-oct-2026, sin publicar): `t130`
+## «📄 Ver PDF» en el buscador de informes (v187, cambio 194, 27-oct-2026; relevo r74, Versión 61): `t130`
 
 Pedido de Diego Orta: en el panel de oficina, «Abrir» traía el informe archivado a «Informes» y lo dejaba como borrador
 aunque solo se quisiera mirar. Cada fila lleva ahora **«📄 Ver PDF»**, que pide al relevo (**r74**, `oficina-pdf`) el PDF de
