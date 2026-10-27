@@ -3109,7 +3109,12 @@ function _copiarLocales(torres){
 }
 async function _copiarDelArchivo(torres){
   if (!torres.length || !navigator.onLine) return { ok: true, fuentes: [] };
-  try { const r = await _ofiPedir({ accion: 'copiar-fuentes', sector: _ofiSector(), torres: torres.slice(0, 8), dias: 14 }); return { ok: true, fuentes: r.fuentes || [] }; }
+  // v188: de a dos torres en paralelo, como en obra: ocho torres en una sola consulta pasaban de lo que espera el teléfono.
+  try { const gs = []; torres.slice(0, 8).forEach(function(t, i){ if (i % 2 === 0) gs.push([]); gs[gs.length - 1].push(t); });
+        const rs = await Promise.all(gs.map(function(g){ return _ofiPedir({ accion: 'copiar-fuentes', sector: _ofiSector(), torres: g, dias: 14 }); }));
+        const fuentes = []; rs.forEach(function(r){ (r.fuentes || []).forEach(function(f){ fuentes.push(f); }); });
+        fuentes.sort(function(a, b){ const ka = (a.fecha || '') + a.nro, kb = (b.fecha || '') + b.nro; return ka < kb ? 1 : (ka > kb ? -1 : 0); });
+        return { ok: true, fuentes: fuentes }; }
   catch (e) { return { ok: false, error: _ofiMensaje(e), fuentes: [] }; }
 }
 function _copiarJuntar(locales, delArchivo){

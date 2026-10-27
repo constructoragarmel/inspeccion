@@ -6368,11 +6368,11 @@ function _copiarTorresDelSector(){
   return out;
 }
 
-// Al archivo se le piden las torres de seis en seis, en paralelo: una sola consulta con 33 torres tardaría más de lo que
+// Al archivo se le piden las torres de dos en dos (v188; antes de seis), en paralelo: una sola consulta con 33 torres tardaría más de lo que
 // espera el teléfono.
 async function _copiarPedirFuentes(torres){
   const grupos = [];
-  for (let i = 0; i < torres.length; i += 6) grupos.push(torres.slice(i, i + 6));
+  for (let i = 0; i < torres.length; i += 2) grupos.push(torres.slice(i, i + 2));   // v188: de a dos (antes seis)
   const rs = await Promise.all(grupos.map(function(g){
     return _copiarPedir({ accion: 'copiar-fuentes', torres: g, ambito: ambito, vista: (typeof vista !== 'undefined') ? (vista || '') : '', dias: 14 });
   }));
@@ -6417,7 +6417,10 @@ async function _copiarPedir(cuerpo){
   if (!clave) return { ok: false, error: 'Este teléfono no tiene la clave: solo se ven los informes guardados aquí.' };
   if (!navigator.onLine) return { ok: false, error: 'Sin señal: solo se ven los informes guardados en este teléfono.' };
   const corte = new AbortController();
-  const reloj = setTimeout(function(){ corte.abort(); }, 12000);
+  // v188 (27-oct-2026, Diego Orta: en T-01 a T-04 «no se traía la información de otras torres»): 12 s no alcanzaban —cuatro
+  // torres con muchos informes tardaban 26 s en el relevo— y el teléfono cortaba sin decir nada útil. Ahora 40 s, y las
+  // torres se piden de a dos (_copiarPedirFuentes).
+  const reloj = setTimeout(function(){ corte.abort(); }, 40000);
   try {
     const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(Object.assign({ clave: clave, sector: getSectorActual(), prueba: !!TEST_MODE }, cuerpo)), signal: corte.signal });
