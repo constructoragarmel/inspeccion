@@ -9706,6 +9706,12 @@ s = sustituir(s, "function toggleP(id){", VER_PDF_JS + "\nfunction toggleP(id){"
 TITULOS_JS = maestros.TITULO_INSPECTOR_JS + "\n" + open(os.path.join(RAIZ, "comun", "titulos.js"), encoding="utf-8").read()
 s = sustituir(s, "function toggleP(id){", TITULOS_JS + "\nfunction toggleP(id){", "195· el título de cada inspector")
 
+# ── 196. Lo que ya llegó al 100 % queda cerrado en la visita siguiente (27-oct-2026) ─────────────────────────────────
+# Pedido de los inspectores por Diego Orta: por partida, con «🔓 Habilitar» y sin pedir confirmación. comun/cerrado_100.js;
+# solo obra (los otros tres no miden porcentaje por partida). Va después del 151 (el informe anterior), que envuelve.
+CERRADO_100_JS = open(os.path.join(RAIZ, "comun", "cerrado_100.js"), encoding="utf-8").read()
+s = sustituir(s, "function toggleP(id){", CERRADO_100_JS + "\nfunction toggleP(id){", "196· lo que llegó al 100 % queda cerrado")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

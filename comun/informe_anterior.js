@@ -107,7 +107,10 @@ async function _ofrecerAnterior(){
   }
   if (mismo) {
     const quien = ambito === 'torre' ? 'Esta torre' : 'Este apartamento';
+    // 196 (comun/cerrado_100.js): lo que ya estaba al 100 % se trae solo y queda cerrado.
+    const n100 = (typeof _cerrar100 === 'function') ? _cerrar100(mismo) : 0;
     _pintarAvisoAnterior(caja, quien + ' ya tiene un informe (' + (mismo.fecha || 'sin fecha') + ', ' + origen + ').',
+      (n100 ? '✅ ' + n100 + ' partida' + (n100 === 1 ? '' : 's') + ' que ya estaba' + (n100 === 1 ? '' : 'n') + ' al 100 % quedan cerradas (🔓 para corregirlas). ' : '') +
       '¿Traer sus mediciones? Así solo corrige lo que cambió. La evaluación B/R/M, las fotos y las observaciones se hacen de nuevo.',
       'Traer mediciones', function(){ _traerMediciones(mismo.partidas, false); });
   } else if (deLaTorre && ambito !== 'torre') {
