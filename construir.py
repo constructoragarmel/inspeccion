@@ -9693,6 +9693,13 @@ s = sustituir(s,
  ANTES_DE_ENVIAR_JS + "\n" + PANTALLA_ENCENDIDA_JS + "\nif ('serviceWorker' in navigator) {\n  window.addEventListener('load', function(){\n    navigator.serviceWorker.register('sw.js')",
  "192· fecha que no es hoy, apartamento a medias y nada medido · 193· pantalla encendida al enviar")
 
+# ── 194. «Ver PDF» en el buscador de informes, sin traerlo al formulario (27-oct-2026) ───────────────────────────────
+# Diego Orta: abrir un informe archivado para mirarlo lo dejaba como borrador. El buscador del panel de oficina lleva
+# «📄 Ver PDF», que trae del relevo (r74) el PDF archivado y lo abre aparte. El código es comun/ver_pdf.js, el mismo de
+# servicios, SHA y urbanismo; va después del 169 (el panel) y del 190, que ya están arriba.
+VER_PDF_JS = open(os.path.join(RAIZ, "comun", "ver_pdf.js"), encoding="utf-8").read()
+s = sustituir(s, "function toggleP(id){", VER_PDF_JS + "\nfunction toggleP(id){", "194· «Ver PDF» en el buscador de informes")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

@@ -996,3 +996,18 @@ vacía. Lo demás no cambia: las filas copiadas quedan «≈ Copiado de» y no s
 - `t129` (servicios, SHA y urbanismo, 375 px) **6/6 en los tres**: lo mismo con respuestas Sí/No (o cantidades en urbanismo).
 - `t69` y `t75` cambian la comprobación 10 a la regla nueva (con una fila: «Completar lo vacío»; con la mitad: nada):
   **13/13** en obra y **11/11** en servicios, SHA y urbanismo. Regresión de la visita anterior: `t26` 5/5 y `t29` 5/5.
+
+## «📄 Ver PDF» en el buscador de informes (cambio 194, 27-oct-2026, sin publicar): `t130`
+
+Pedido de Diego Orta: en el panel de oficina, «Abrir» traía el informe archivado a «Informes» y lo dejaba como borrador
+aunque solo se quisiera mirar. Cada fila lleva ahora **«📄 Ver PDF»**, que pide al relevo (**r74**, `oficina-pdf`) el PDF de
+la última revisión y lo abre en otra pestaña, y **«Abrir para corregir»**, que hace lo de antes. El código es
+`comun/ver_pdf.js`, el mismo en los cuatro formularios; el relevo falso contesta `oficina-pdf` con un PDF mínimo.
+
+- `t130` en los cuatro, a 375 px: **11/11 en obra, servicios, SHA y urbanismo**. Pide con número, torre y tipo; abre la pestaña
+  dentro del toque (si no, el navegador la bloquea) y deja en el panel «abrir el PDF» y «descargarlo»; no toca «Informes» ni la
+  pantalla; la segunda vez no vuelve a pedirlo; un número sin PDF lo dice y cierra la pestaña; «Abrir para corregir» sigue igual.
+- Regresión del modo oficina: `t66` (obra) **10/10** y `t74` (servicios) **10/10**.
+- **Las copias de borradores al volver de WhatsApp no se reprodujeron** (Leidy Villamizar y las dos Génesis, v186): volver con la
+  pestaña descargada, con la fecha de hoy o de ayer, deja un solo borrador y lo recupera. Se pide la lista de esos teléfonos con
+  «📤 Mandar la lista a la oficina» (cambio 187) antes de tocar el guardado.

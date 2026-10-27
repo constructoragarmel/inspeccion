@@ -187,6 +187,15 @@ class H(http.server.BaseHTTPRequestHandler):
             v=H.oficina.get(p.get('numero'))
             if not v or v.get('tipo')!=p.get('tipo'): return self._ok({"ok":False,"error":"No hay un informe archivado con el número "+str(p.get('numero'))})
             return self._ok({"ok":True,"tipo":p.get('tipo'),"nro":p.get('numero'),"torre":v['datos'].get('torre'),"fecha":v['datos'].get('fecha',''),"revision":v['rev'],"datos":v['datos']})
+        if p.get('accion')=='oficina-pdf':
+            # Como el relevo r74 (Oficina.gs): el PDF de la última revisión, en base64; echa el tipo como las otras consultas.
+            v=H.oficina.get(p.get('numero'))
+            if not v or (v.get('tipo') or None)!=(p.get('tipo') or None): return self._ok({"ok":False,"error":"No encuentro el PDF de "+str(p.get('numero'))+" en "+str(p.get('torre'))+"."})
+            import base64
+            nom=p.get('numero')+('-r%d'%v['rev'] if v['rev']>1 else '')
+            pdf=('%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 100]>>endobj\n% '+nom+'\ntrailer<</Root 1 0 R>>\n%%EOF\n').encode()
+            ESTADO.setdefault('pdfs',[]).append(p.get('numero'))
+            return self._ok({"ok":True,"tipo":p.get('tipo'),"numero":p.get('numero'),"revision":v['rev'],"archivo":nom+'.pdf',"pdf":base64.b64encode(pdf).decode()})
         if p.get('accion')=='oficina-lista' and p.get('tipo') in ('servicios','sha','urbanismo'):
             l=[{"numero":k,"revision":v['rev'],"fecha":v['datos'].get('fecha',''),"lugar":v['datos'].get('torre',''),"inspectores":v['datos'].get('inspectores',[]),"definitiva":v['datos'].get('definitiva')}
                for k,v in H.oficina.items() if v.get('tipo')==p.get('tipo') and v['datos'].get('torre')==p.get('torre')]

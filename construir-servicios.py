@@ -2207,6 +2207,10 @@ JS = JS.replace(_ANCLA_SW, ANTES_DE_ENVIAR_JS + "\n" + _ANCLA_SW)
 # Y el teléfono no se duerme mientras envía (Diego Orta, 20-oct-2026; obra, cambio 193): comun/pantalla_encendida.js.
 PANTALLA_ENCENDIDA_JS = open(os.path.join(RAIZ, "comun", "pantalla_encendida.js"), encoding="utf-8").read()
 JS = JS.replace(_ANCLA_SW, PANTALLA_ENCENDIDA_JS + "\n" + _ANCLA_SW)
+# Y «📄 Ver PDF» en el buscador de informes, sin traerlo al formulario (Diego Orta, 27-oct-2026; obra, cambio 194):
+# comun/ver_pdf.js, después de oficina_copiar_motor.js, cuyo _oficinaPintar envuelve.
+VER_PDF_JS = open(os.path.join(RAIZ, "comun", "ver_pdf.js"), encoding="utf-8").read()
+JS = JS.replace(_ANCLA_SW, VER_PDF_JS + "\n" + _ANCLA_SW)
 
 
 # ══════════════════════════════════════════════════════════════════════════
