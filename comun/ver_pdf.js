@@ -33,7 +33,8 @@
       let x = urls[numero];
       if (!x) {
         aviso.textContent = '⏳ Trayendo el PDF de ' + numero + '…';
-        const r = await pedir({ accion: 'oficina-pdf', sector: sector(), torre: torre(), numero: numero });
+        // `nro` y no `numero`, a propósito: un relevo sin la acción contesta «Faltan numero…» en vez de archivar algo (como el 184).
+        const r = await pedir({ accion: 'oficina-pdf', sector: sector(), torre: torre(), nro: numero });
         if (!r.pdf) throw new Error('El relevo no devolvió el PDF. Puede que todavía no tenga la versión r74: avise a Planificación.');
         x = urls[numero] = { url: URL.createObjectURL(_blobDe(r.pdf)), archivo: r.archivo };
       }

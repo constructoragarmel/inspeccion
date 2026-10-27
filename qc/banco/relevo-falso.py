@@ -189,6 +189,7 @@ class H(http.server.BaseHTTPRequestHandler):
             return self._ok({"ok":True,"tipo":p.get('tipo'),"nro":p.get('numero'),"torre":v['datos'].get('torre'),"fecha":v['datos'].get('fecha',''),"revision":v['rev'],"datos":v['datos']})
         if p.get('accion')=='oficina-pdf':
             # Como el relevo r74 (Oficina.gs): el PDF de la última revisión, en base64; echa el tipo como las otras consultas.
+            p['numero']=p.get('nro')
             v=H.oficina.get(p.get('numero'))
             if not v or (v.get('tipo') or None)!=(p.get('tipo') or None): return self._ok({"ok":False,"error":"No encuentro el PDF de "+str(p.get('numero'))+" en "+str(p.get('torre'))+"."})
             import base64

@@ -57,7 +57,7 @@ const pedidos = []; const _fetch = window.fetch; window.fetch = function(u, o){ 
 const antesLista = localStorage.getItem(CL), antesPantalla = OBRA ? JSON.stringify(getFormData().torre) : (document.getElementById('torre') || {}).value;
 ver.click(); await hasta(() => !!$('#ofi-lista .ofi-pdf a'), 8000, 100);
 const p2 = pedidos[0] || {};
-ok('2 · Pide «oficina-pdf» con el número y la torre' + (OBRA ? '' : ' y el tipo'), pedidos.length === 1 && p2.numero === NRO && p2.torre === LUGAR && (OBRA || p2.tipo === TIPO_INFORME), JSON.stringify(p2).slice(0, 160));
+ok('2 · Pide «oficina-pdf» con el número y la torre' + (OBRA ? '' : ' y el tipo'), pedidos.length === 1 && p2.nro === NRO && !('numero' in p2) && p2.torre === LUGAR && (OBRA || p2.tipo === TIPO_INFORME), JSON.stringify(p2).slice(0, 160));
 ok('3 · Abre una pestaña y la lleva al PDF', W.abiertas === 1 && /^blob:/.test(W.destino), W.abiertas + ' · ' + W.destino);
 const a4 = [...document.querySelectorAll('#ofi-lista .ofi-pdf a')];
 ok('4 · Deja en el panel «abrir el PDF» y «descargarlo»', a4.length === 2 && a4[0].href === W.destino && /\.pdf$/.test(a4[1].getAttribute('download') || ''), a4.map(a => a.textContent + ' ' + (a.getAttribute('download') || '')).join(' | '));
