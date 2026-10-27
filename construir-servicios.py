@@ -2211,6 +2211,9 @@ JS = JS.replace(_ANCLA_SW, PANTALLA_ENCENDIDA_JS + "\n" + _ANCLA_SW)
 # comun/ver_pdf.js, después de oficina_copiar_motor.js, cuyo _oficinaPintar envuelve.
 VER_PDF_JS = open(os.path.join(RAIZ, "comun", "ver_pdf.js"), encoding="utf-8").read()
 JS = JS.replace(_ANCLA_SW, VER_PDF_JS + "\n" + _ANCLA_SW)
+# Y el título de cada inspector en los desplegables (obra, cambio 195): comun/titulos.js con los títulos de comun/maestros.py.
+TITULOS_JS = maestros.TITULO_INSPECTOR_JS + "\n" + open(os.path.join(RAIZ, "comun", "titulos.js"), encoding="utf-8").read()
+JS = JS.replace(_ANCLA_SW, TITULOS_JS + "\n" + _ANCLA_SW)
 
 
 # ══════════════════════════════════════════════════════════════════════════

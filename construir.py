@@ -9700,6 +9700,12 @@ s = sustituir(s,
 VER_PDF_JS = open(os.path.join(RAIZ, "comun", "ver_pdf.js"), encoding="utf-8").read()
 s = sustituir(s, "function toggleP(id){", VER_PDF_JS + "\nfunction toggleP(id){", "194· «Ver PDF» en el buscador de informes")
 
+# ── 195. El título de cada inspector en los desplegables (27-oct-2026) ──────────────────────────────────────────────
+# Pedido de los inspectores por Diego Orta: «Ing. Fulano», «Arq. Fulano», como los residentes. Los títulos están en
+# comun/maestros.py (de la hoja de cargos); el código, en comun/titulos.js, el mismo de servicios, SHA y urbanismo.
+TITULOS_JS = maestros.TITULO_INSPECTOR_JS + "\n" + open(os.path.join(RAIZ, "comun", "titulos.js"), encoding="utf-8").read()
+s = sustituir(s, "function toggleP(id){", TITULOS_JS + "\nfunction toggleP(id){", "195· el título de cada inspector")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

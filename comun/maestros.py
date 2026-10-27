@@ -174,6 +174,44 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Yenddy Sierra (CIV-307.772)"
 ];"""
 
+# v188 (27-oct-2026, pedido de los inspectores por Diego Orta: que salgan «Ing. Fulano», «Arq. Fulano», como los residentes).
+# El título de cada inspector del padrón, según la columna «Estudios» de la hoja de cargos (GESTIÓN HUMANA, «Ciudad Tiuna -
+# Cargos, Funciones y Responsabilidades», leída el 27-oct): Ingeniero… → Ing., Arquitecto → Arq., TSU… → TSU. Es solo lo que se
+# MUESTRA (desplegables y PDF): el valor guardado no cambia, así las iniciales del número y los informes viejos siguen igual.
+# Al agregar a alguien al padrón, agregar aquí su título.
+TITULO_INSPECTOR = {
+    "Alejandro Bastidas": "Ing.",
+    "Ángel Sánchez": "TSU",
+    "Birmania Rada": "TSU",
+    "Carlos J. Colmenares": "Ing.",
+    "Charbel Abdul": "Ing.",
+    "Christian Fricke": "Arq.",
+    "Cleidy Chacón": "Arq.",
+    "Diego Orta": "Ing.",
+    "Diego Rosales": "Ing.",
+    "Edenil Narváez": "Ing.",
+    "Eduardo Rivero": "Ing.",
+    "Gabriel Barrios": "TSU",
+    "Gabriel Jelenkovic": "Ing.",
+    "Génesis Cordobés": "Ing.",
+    "Génesis Márquez": "Ing.",
+    "Girlenys Lacruz": "Ing.",
+    "Hernán Escobar": "Ing.",
+    "Katherine Correia": "Ing.",
+    "Leidy Villamizar": "Ing.",
+    "Lizeira Aragort": "Ing.",
+    "Manuel Madrid": "Arq.",
+    "Mariana Rojas": "Arq.",
+    "Martha Azcarate": "Ing.",
+    "Miguel E. Ávila": "TSU",
+    "Oriana Plaza": "Ing.",
+    "Selehidy Rivero": "Ing.",
+    "Skarlet Gómez": "Ing.",
+    "Víctor Mendoza": "TSU",
+    "Yenddy Sierra": "Ing."
+}
+TITULO_INSPECTOR_JS = "const TITULO_INSPECTOR = " + __import__("json").dumps(TITULO_INSPECTOR, ensure_ascii=False) + ";"
+
 # ── Cómo se llaman de verdad las contratistas ──────────────────────────────
 #
 # Se aplica al final, sobre el HTML ya construido, para no tener que corregir el
