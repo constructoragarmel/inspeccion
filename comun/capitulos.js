@@ -25,7 +25,7 @@
     });
     const n = document.getElementById('cap-nota-h3'); if (n) n.remove();
   }
-  function construir(){
+  let construir = function(){
     const main = document.getElementById('main-content'), b3 = document.getElementById('p_' + H3), tb3 = document.getElementById('tbody_' + H3);
     if (!main || !b3 || !tb3 || b3.style.display === 'none') return;
     const tabla3 = tb3.closest('table');
@@ -63,7 +63,7 @@
     nota.textContent = 'Las partidas de este hito están arriba, en los capítulos de sanitarias, eléctricas y gas. Aquí quedan su porcentaje, sus fotografías y su observación.';
     const cuerpo3 = b3.querySelector('.p-body'); if (cuerpo3) cuerpo3.insertBefore(nota, cuerpo3.firstChild);
     let k = 0; tb3.querySelectorAll('tr').forEach(function(tr){ const num = tr.querySelector('td.n'); if (num && tr.style.display !== 'none') num.textContent = String(++k); });
-  }
+  };
   const _ordenarBase197 = _ordenarPantalla;
   _ordenarPantalla = function(){
     deshacer();
@@ -72,8 +72,23 @@
     return r;
   };
   window._capitulosDeshacer197 = deshacer;
+  // Si el hito 3 se marca «no inspeccionado», sus filas en los capítulos se ven igual que su bloque: atenuadas y con aviso.
+  function pintarNoInsp(){
+    const on = typeof hitosNoInspeccionados !== 'undefined' && !!hitosNoInspeccionados[H3];
+    document.querySelectorAll('.capitulo tbody[id^="capt_"]').forEach(function(tb){
+      const caja = tb.closest('table').parentElement; caja.classList.toggle('cap-noinsp', on);
+      let a = caja.querySelector('.cap-noinsp-aviso');
+      if (on && !a) { a = document.createElement('div'); a.className = 'cap-noinsp-aviso'; a.textContent = '⊘ El hito 3 está marcado «no inspeccionado»: estas filas no cuentan en esta visita.'; caja.insertBefore(a, caja.firstChild); }
+      if (!on && a) a.remove();
+    });
+  }
+  const _pintarNIBase197 = _pintarNoInspeccionado;
+  _pintarNoInspeccionado = function(pid){ const r = _pintarNIBase197.apply(this, arguments); if (pid === H3) pintarNoInsp(); return r; };
+  const _construirSin = construir;
+  construir = function(){ _construirSin(); pintarNoInsp(); };
   const st = document.createElement('style');
   st.textContent = '.capitulo>.p-body{padding:6px 0 4px}.capitulo>.p-body>.partida{margin:8px 6px 4px}.cap-sub{font-size:12px;font-weight:800;color:#37474f;padding:8px 12px 4px;text-transform:uppercase;letter-spacing:.3px}' +
-    '.cap-nota{margin:10px 16px 0;padding:8px 10px;border-radius:8px;background:#fff8e1;color:#5d4037;font-size:12px;line-height:1.35}';
+    '.cap-nota{margin:10px 16px 0;padding:8px 10px;border-radius:8px;background:#fff8e1;color:#5d4037;font-size:12px;line-height:1.35}' +
+    '.cap-noinsp table{opacity:.45;pointer-events:none}.cap-noinsp-aviso{margin:4px 12px 6px;font-size:12px;font-weight:700;color:#8f4b00}';
   document.head.appendChild(st);
 })();

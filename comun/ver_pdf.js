@@ -11,6 +11,7 @@
   const torre = function(){ return MOTOR ? _ofiTorre() : getTorreActual(); };
   const sector = function(){ return MOTOR ? _ofiSector() : getSectorActual(); };
   const urls = {};   // un PDF ya traído no se vuelve a pedir en esta sesión
+  const enCamino = {};   // QC1 (estrés): dos toques seguidos esperan el mismo pedido, no hacen dos
 
   function _blobDe(b64){
     const bin = atob(b64), n = bin.length, u = new Uint8Array(n);
@@ -33,10 +34,13 @@
       let x = urls[numero];
       if (!x) {
         aviso.textContent = '⏳ Trayendo el PDF de ' + numero + '…';
-        // `nro` y no `numero`, a propósito: un relevo sin la acción contesta «Faltan numero…» en vez de archivar algo (como el 184).
-        const r = await pedir({ accion: 'oficina-pdf', sector: sector(), torre: torre(), nro: numero });
-        if (!r.pdf) throw new Error('El relevo no devolvió el PDF. Puede que todavía no tenga la versión r74: avise a Planificación.');
-        x = urls[numero] = { url: URL.createObjectURL(_blobDe(r.pdf)), archivo: r.archivo };
+        if (!enCamino[numero]) enCamino[numero] = (async function(){
+          // `nro` y no `numero`, a propósito: un relevo sin la acción contesta «Faltan numero…» en vez de archivar algo (como el 184).
+          const r = await pedir({ accion: 'oficina-pdf', sector: sector(), torre: torre(), nro: numero });
+          if (!r.pdf) throw new Error('El relevo no devolvió el PDF. Puede que todavía no tenga la versión r74: avise a Planificación.');
+          return (urls[numero] = { url: URL.createObjectURL(_blobDe(r.pdf)), archivo: r.archivo });
+        })().finally(function(){ delete enCamino[numero]; });
+        x = await enCamino[numero];
       }
       _enlace(aviso, numero, x.url, x.archivo);
       if (w) w.location.href = x.url;
@@ -77,7 +81,8 @@
     let n = 0, v = 0;
     caja.querySelectorAll('table tr').forEach(function(tr, i){
       if (i === 0) return; n++;
-      const t = _norm(tr.innerText), ve = q.every(function(x){ return t.indexOf(x) >= 0; });
+      if (tr.dataset.q === undefined) tr.dataset.q = _norm(tr.textContent.replace(/\s+/g, ' '));   // QC2: una vez por fila, no en cada letra
+      const t = tr.dataset.q, ve = q.every(function(x){ return t.indexOf(x) >= 0; });
       tr.style.display = ve ? '' : 'none'; if (ve) v++;
     });
     const c = document.getElementById('ofi-cuenta'); if (c) c.textContent = q.length ? v + ' de ' + n : n + ' informe' + (n === 1 ? '' : 's');
@@ -101,6 +106,6 @@
   const st = document.createElement('style');
   st.textContent = '.ofi-lista td:last-child{white-space:nowrap}.ofi-btn.ofi-ver{margin-right:6px}.ofi-pdf a{font-weight:700}' +
     '.ofi-filtro{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:0 0 8px}.ofi-filtro input{flex:1 1 220px;min-width:0;min-height:44px;padding:8px 10px;border:1px solid #c7d2fe;border-radius:8px;font-size:15px;box-sizing:border-box}' +
-    '.ofi-filtro select{min-height:44px;font-size:15px}.ofi-filtro #ofi-cuenta{font-size:12px;color:#5a6672}.ofi-filtro label{font-size:13px}';
+    '#oficina .ofi-btn{min-height:44px}.ofi-filtro select{min-height:44px;font-size:15px}.ofi-filtro #ofi-cuenta{font-size:12px;color:#5a6672}.ofi-filtro label{font-size:13px}';
   document.head.appendChild(st);
 })();
