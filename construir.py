@@ -9712,6 +9712,13 @@ s = sustituir(s, "function toggleP(id){", TITULOS_JS + "\nfunction toggleP(id){"
 CERRADO_100_JS = open(os.path.join(RAIZ, "comun", "cerrado_100.js"), encoding="utf-8").read()
 s = sustituir(s, "function toggleP(id){", CERRADO_100_JS + "\nfunction toggleP(id){", "196· lo que llegó al 100 % queda cerrado")
 
+# ── 197. El apartamento por capítulos, como un presupuesto (27-oct-2026) ──────────────────────────────────────────────
+# Pedido de Génesis Márquez por Diego Orta. Solo pantalla: las filas del hito 3 pasan a los capítulos de sanitarias,
+# eléctricas (con voz y data) y gas, cada uno con su hito de accesorios detrás. Los hitos, el % y el cobro no cambian
+# (ADR-0004). comun/capitulos.js envuelve el 170 (_ordenarPantalla).
+CAPITULOS_JS = open(os.path.join(RAIZ, "comun", "capitulos.js"), encoding="utf-8").read()
+s = sustituir(s, "function toggleP(id){", CAPITULOS_JS + "\nfunction toggleP(id){", "197· el apartamento por capítulos")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
