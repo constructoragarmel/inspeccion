@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: d8f02fa429
+// Huella de la fuente: 2547f9d081
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -1272,7 +1272,7 @@ function _pdfSeccionUrbanismo(g, fotos, noInspeccionado) {
   } else {
     html += '<table width="100%" border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;border-color:#bbb">' +
       '<tr bgcolor="#eef0f7" style="font-weight:bold"><td width="4%">#</td><td width="30%">Partida</td>' +
-      '<td width="14%" align="right">Ejecutado</td><td width="12%" align="right">Proyectado</td><td width="8%" align="center">Avance</td>' +
+      '<td width="14%" align="right">Ejecutado acumulado</td><td width="12%" align="right">Proyectado</td><td width="8%" align="center">Avance</td>' +
       '<td width="8%" align="center">Calidad</td><td>Observación</td></tr>';
     items.forEach(function (it, k) {
       var c = parseFloat(it.cant), pr = parseFloat(it.pr);
@@ -1281,7 +1281,8 @@ function _pdfSeccionUrbanismo(g, fotos, noInspeccionado) {
         '<td>' + (k + 1) + '</td>' +
         '<td>' + _pdfEsc(it.nombre) + (it.agregado ? ' <span style="font-size:8px;color:#666">(agregada en campo)</span>' : '') +
                  (it.heredado ? ' <span style="font-size:8px">(visita anterior, sin revisar)</span>' : '') + '</td>' +
-        '<td align="right">' + (it.cant ? _pdfEsc(it.cant) + ' ' + _pdfEsc(it.ud || '') : '—') + '</td>' +
+        '<td align="right">' + (it.cant ? _pdfEsc(it.cant) + ' ' + _pdfEsc(it.ud || '') : '—') +
+          (it.hoy ? '<br><span style="font-size:8px;color:#1a237e">hoy ' + _pdfEsc(it.hoy) + ' ' + _pdfEsc(it.ud || '') + '</span>' : '') + '</td>' +
         '<td align="right">' + (it.pr ? _pdfEsc(it.pr) + ' ' + _pdfEsc(it.ud || '') : '—') + '</td>' +
         '<td align="center">' + av + '</td>' +
         '<td align="center"><b>' + (PDF_CALIDAD[it.sn] || '—') + '</b></td>' +
@@ -1315,7 +1316,7 @@ function _pdfMaquinariaUrbanismo(it) {
   return '<tr><td></td><td colspan="6" style="font-size:9px;color:#334155"><b>Maquinaria que oper\u00f3:</b> ' + _pdfEsc(m) + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: 'd8f02fa429',
+    huella: '2547f9d081',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];

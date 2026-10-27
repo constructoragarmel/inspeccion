@@ -142,6 +142,8 @@ C = sustituir(C, ".fila-apto.heredado{border-left:4px solid #f59e0b}",
 .cant-fila .ud{font-weight:700;color:#475569;min-width:44px;text-align:center}
 .cant-fila select.ud-sel{flex:0 0 96px}
 .cant-fila .et{font-size:12px;color:#475569;flex:0 0 78px}
+.cant-fila input[readonly]{background:#f1f5f9;color:#0f172a;font-weight:700}
+.cant-fila.ant-fila input{font-size:14px}.cant-fila .ud-ant{min-width:44px}
 .proy{display:none}
 body.plan .proy{display:flex}
 body.plan .item{border-color:#1a237e}
@@ -295,7 +297,8 @@ J = sustituir(J, r"""    '<div class="sino">' +
       '<button type="button" onclick="marcarSN(this,\'NO\')">NO</button>' +
       '<button type="button" onclick="marcarSN(this,\'NA\')">N/A</button>' +
     '</div>' +""",
-r"""    '<div class="cant-fila"><span class="et">Ejecutado</span><input type="text" inputmode="decimal" class="cant" placeholder="Cantidad a la fecha" oninput="numero(this); marcar()">' + ud + '</div>' +
+r"""    hoyHtml(sid, nombre, ud) +
+    '<div class="cant-fila acum"><span class="et">' + (diario(sid, nombre) ? 'Acumulado' : 'Ejecutado') + '</span><input type="text" inputmode="decimal" class="cant" placeholder="' + (diario(sid, nombre) ? 'Anterior + hoy' : 'Cantidad a la fecha') + '"' + (diario(sid, nombre) ? ' readonly tabindex="-1"' : '') + ' oninput="numero(this); marcar()">' + ud + '</div>' +
     '<div class="cant-fila proy"><span class="et">Proyectado</span><input type="text" inputmode="decimal" class="pr" placeholder="Cantidad proyectada" oninput="numero(this); marcar()"><span class="avance"></span></div>' +
     camionesHtml(sid, nombre) + maquinariaHtml(sid, nombre) +
     '<div class="sino">' +
@@ -347,6 +350,12 @@ function unidadLeida(it){
 // viajes ya están dentro del acumulado y contarlos otra vez lo inflaría.
 function ponerCant(el, it, heredando){
   el.querySelector('.cant').value = it.cant || '';
+  { const h = el.querySelector('.hoy'), a = el.querySelector('.ant');   // v188
+    if (h && a) {
+      if (heredando) { a.value = it.cant || ''; h.value = ''; }
+      else { h.value = it.hoy || ''; a.value = it.anterior !== undefined ? it.anterior : (it.hoy ? '' : (it.cant || '')); }
+      recalcHoy(el);
+    } }
   el.querySelector('.pr').value = it.pr || '';
   const s = el.querySelector('.ud-sel'); if (s && it.ud) s.value = it.ud;
   if (!heredando) ponerCamiones(el, it);
@@ -368,6 +377,29 @@ function actualizarAvance(it){
   a.textContent = (p > 0 && c >= 0) ? Math.round(c / p * 100) + '%' : '';
 }
 function actualizarAvances(){ document.querySelectorAll('.item').forEach(actualizarAvance); }
+
+// ── v188 · Lo del día y el acumulado (27-oct-2026, Diego Orta con Gabriel Barrios) ──────────────────────────────
+// «El reporte que ellos hagan es lo que retiran en el día, y que se vaya sumando»: cada partida lleva «Hoy» (lo de esta
+// visita) y «Anterior» (el acumulado de la visita anterior, que llega solo al heredar y se puede corregir), y el
+// «Acumulado» se calcula: anterior + hoy. El dato sigue llevando `cant` = acumulado —el PDF, el compilado y Smartsheet
+// lo leen igual— y suma `hoy` y `anterior`. Un borrador viejo (sin `hoy`) abre con su cantidad como anterior. En «Bote
+// de material» lo de hoy ya lo dan los camiones (v163) y queda como estaba.
+function diario(sid, nombre){ return (CAMIONES_CALCULAN[sid] || []).indexOf(nombre) < 0; }
+function hoyHtml(sid, nombre, ud){
+  if (!diario(sid, nombre)) return '';
+  return '<div class="cant-fila hoy-fila"><span class="et">Hoy</span><input type="text" inputmode="decimal" class="hoy" placeholder="Lo ejecutado hoy" oninput="numero(this); recalcHoy(this); marcar()">' + ud + '</div>' +
+    '<div class="cant-fila ant-fila"><span class="et">Anterior</span><input type="text" inputmode="decimal" class="ant" placeholder="0" oninput="numero(this); recalcHoy(this); marcar()"><span class="ud-ant"></span></div>';
+}
+function recalcHoy(el){
+  const it = el.classList && el.classList.contains('item') ? el : el.closest('.item'); if (!it) return;
+  const h = it.querySelector('.hoy'), a = it.querySelector('.ant'), c = it.querySelector('.cant'); if (!h || !a || !c) return;
+  c.value = (h.value || a.value) ? redondear((parseFloat(a.value) || 0) + (parseFloat(h.value) || 0)) : '';
+  actualizarAvance(it);
+}
+function hoyDe(it){
+  const h = it.querySelector('.hoy'), a = it.querySelector('.ant'); if (!h || !a) return {};
+  const o = {}; if (h.value.trim()) o.hoy = h.value.trim(); if (a.value.trim()) o.anterior = a.value.trim(); return o;
+}
 
 // ── Camiones (Skarlet, 24-sep) ─────────────────────────────────────────────
 // En «Bote de material» se anota cada camión de la visita: placa, m³ que carga
@@ -550,7 +582,7 @@ J = sustituir(J, """  if (g.querySelector('.si-on')) return 'SI';
 
 # 14 · La cantidad viaja, se restaura, se hereda y cuenta como contenido.
 J = sustituir(J, "      obs: (it.querySelector('textarea').value || '').trim(),\n",
-                 "      obs: (it.querySelector('textarea').value || '').trim(),\n      cant: (it.querySelector('.cant').value || '').trim(),\n      pr: (it.querySelector('.pr').value || '').trim(),\n      ud: unidadLeida(it),\n      ...camionesDe(it),\n      ...maquinariaDe(it),\n", "14a· datos")
+                 "      obs: (it.querySelector('textarea').value || '').trim(),\n      cant: (it.querySelector('.cant').value || '').trim(),\n      ...hoyDe(it),\n      pr: (it.querySelector('.pr').value || '').trim(),\n      ud: unidadLeida(it),\n      ...camionesDe(it),\n      ...maquinariaDe(it),\n", "14a· datos")
 # 14a' · Una proyectada que vino de la visita anterior no es «sin revisar»: es la
 # meta, y sigue vigente. El ítem que solo trae proyectado no viaja con la marca
 # de heredado —el relevo la imprime en ámbar como «sin revisar» (r22)—.
@@ -560,7 +592,7 @@ J = sustituir(J, "    .filter(i => !i.agregado || i.sn || i.obs),", "    .filter
 J = sustituir(J, "        ponerSN(el, it.sn);\n        el.querySelector('textarea').value = it.obs || '';",
                  "        ponerSN(el, it.sn);\n        el.querySelector('textarea').value = it.obs || '';\n        ponerCant(el, it);", "14c· restaurar", n=1)
 J = sustituir(J, "      ponerSN(el, it.sn);\n      el.querySelector('textarea').value = it.obs || '';\n      if (it.sn || it.obs){ el.classList.add('heredado');",
-                 "      ponerSN(el, it.sn);\n      el.querySelector('textarea').value = it.obs || '';\n      ponerCant(el, it, true);\n      if (!(it.sn || it.obs || it.cant) && it.pr) el.classList.add('her-pr');\n      if (it.sn || it.obs || it.cant || it.pr){ el.classList.add('heredado');", "14d· heredar con cantidad")
+                 "      ponerSN(el, it.sn);\n      el.querySelector('textarea').value = it.obs || '';\n      ponerCant(el, it, true);\n      if (!(it.sn || it.obs) && (it.cant || it.pr)) el.classList.add('her-pr');   // v188: el acumulado heredado es el punto de partida, no «sin revisar»\n      if (it.sn || it.obs || it.cant || it.pr){ el.classList.add('heredado');", "14d· heredar con cantidad")
 J = sustituir(J, "        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs,",
                  "        nombre: i.nombre, agregado: i.agregado, sn: i.sn, obs: i.obs, cant: i.cant, pr: i.pr, ud: i.ud,\n"
                  "        // los camiones (placa y m³, sin viajes) y la lista de la visita anterior: de aquí salen la\n"
@@ -588,7 +620,7 @@ J = sustituir(J, "function actualizarCuentas(){\n", "function actualizarCuentas(
 # nueva arrancaba con los números de la anterior como si fueran de hoy (QC del
 # 21-sep). Se sueltan los cuatro.
 J = sustituir(J, "  document.querySelectorAll('.item.heredado').forEach(it => {\n    ponerSN(it, ''); it.querySelector('textarea').value = '';",
-                 "  document.querySelectorAll('.item.heredado').forEach(it => {\n    ponerSN(it, ''); it.querySelector('textarea').value = '';\n    it.querySelector('.cant').value = ''; it.querySelector('.pr').value = ''; const us = it.querySelector('.ud-sel'); if (us) us.value = ''; actualizarAvance(it); it.classList.remove('her-pr');", "14n· soltar cantidades heredadas")
+                 "  document.querySelectorAll('.item.heredado').forEach(it => {\n    ponerSN(it, ''); it.querySelector('textarea').value = '';\n    it.querySelector('.cant').value = ''; it.querySelector('.pr').value = ''; { const h = it.querySelector('.hoy'), a = it.querySelector('.ant'); if (h) h.value = ''; if (a) a.value = ''; } const us = it.querySelector('.ud-sel'); if (us) us.value = ''; actualizarAvance(it); it.classList.remove('her-pr');", "14n· soltar cantidades heredadas")
 J = sustituir(J, "  if (it && it.classList.contains('heredado')){ it.classList.remove('heredado'); delete it.dataset.heredado; }",
                  "  if (it && it.classList.contains('heredado')){ it.classList.remove('heredado', 'her-pr'); delete it.dataset.heredado; }", "14o· tocar quita la marca de proyectado heredado")
 
