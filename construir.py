@@ -9719,6 +9719,13 @@ s = sustituir(s, "function toggleP(id){", CERRADO_100_JS + "\nfunction toggleP(i
 CAPITULOS_JS = open(os.path.join(RAIZ, "comun", "capitulos.js"), encoding="utf-8").read()
 s = sustituir(s, "function toggleP(id){", CAPITULOS_JS + "\nfunction toggleP(id){", "197· el apartamento por capítulos")
 
+# ── 198. «Repetir en otros apartamentos» (27-oct-2026) ────────────────────────────────────────────────────────────────
+# Génesis Márquez juntó un piso entero en un informe («A10B10C10…») por no llenar diez iguales. Se llena uno y se guarda
+# una copia por apartamento marcado, cada una con su número. comun/repetir_aptos.js; solo obra (los otros tres no llevan
+# apartamento). Va después del 181 (el desplegable de apartamento, donde se pone el botón) y del 153 (fotos en IndexedDB).
+REPETIR_JS = open(os.path.join(RAIZ, "comun", "repetir_aptos.js"), encoding="utf-8").read()
+s = sustituir(s, "function toggleP(id){", REPETIR_JS + "\nfunction toggleP(id){", "198· repetir en otros apartamentos")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

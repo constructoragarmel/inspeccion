@@ -1039,3 +1039,17 @@ sin quitar comprobaciones: `t19` (11 secciones fijas) 26/26 y `t67` (capítulos 
 
 Regresión de lo que tocaba: `t26` 5/5, `t128` 9/9, `t69` 13/13, `t75` 11/11, `t66` 10/10, `t74` 10/10, `t78` 24/24.
 **Falta la prueba contra el relevo real (r75) después de desplegarlo.**
+
+## «🔁 Repetir en otros apartamentos» (cambio 198, 27-oct-2026, sin publicar): `t138` y `e6`
+
+Génesis Márquez juntó en T-04 de Simón Rodríguez un piso entero en un informe («A10B10C10…»). El botón, bajo el
+apartamento y solo en ámbito apartamento, guarda el de pantalla y una copia por cada apartamento marcado (con lista) o
+escrito (sin lista), con su número, sus fotos en IndexedDB y `repetidoDe`. Quedan en «Informes» para enviar.
+
+- `t138` (10/10): el botón y su lugar; la lista sin el de pantalla; tres copias con número, apartamento y lo medido; fotos
+  aparte; no repite lo que ya existe; lo escrito sin lista; abrir una copia; «Enviar todos» manda cada una con su foto;
+  en blanco o sin apartamento lo dice; 375 px y 44 px.
+- `e6` (6/6): treinta copias con tres fotos en 161 ms; treinta y uno no; repetir uno abierto desde la oficina deja
+  borradores limpios; lo escrito raro se limpia como el campo (la «/» también separa) y no cuela HTML; editar el original
+  no toca las copias; dos toques a «Guardar» no duplican.
+- Regresión: `t137` 10/10 (capítulos) y `t108` 4/4 («Guardar y otro apto» y «Enviar todos»).
