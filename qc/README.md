@@ -1011,3 +1011,31 @@ la última revisión y lo abre en otra pestaña, y **«Abrir para corregir»**, 
 - **Las copias de borradores al volver de WhatsApp no se reprodujeron** (Leidy Villamizar y las dos Génesis, v186): volver con la
   pestaña descargada, con la fecha de hoy o de ayer, deja un solo borrador y lo recupera. Se pide la lista de esos teléfonos con
   «📤 Mandar la lista a la oficina» (cambio 187) antes de tocar el guardado.
+
+## Lo de la reunión de obra del 26-oct (v188, sin publicar; relevo r75): `t131` a `t137` y 20 rondas de estrés (`e1` a `e5`)
+
+Pedidos de Diego Orta, Génesis Márquez y Gabriel Barrios (ADR-0052 a 0055 en Garmel). Nuevas: `t131` urbanismo, partidas de Gabriel y
+Telecomunicaciones/Gas fijas (9/9, dos vueltas) · `t132` buscador por apartamento y 14/30/60 días (7/7 en los cuatro) · `t133` títulos de
+los inspectores (6/6 en los cuatro) · `t134` matriz del compilado con «de antes» (7/7) · `t135` urbanismo con «Hoy», «Anterior» y
+acumulado (10/10) · `t136` lo que llegó al 100 % queda cerrado (9/9) · `t137` el apartamento por capítulos (10/10). Ajustadas a lo nuevo
+sin quitar comprobaciones: `t19` (11 secciones fijas) 26/26 y `t67` (capítulos en vez del orden de la ADR-0046) 7/7. **`t4` falla 12 de
+23 igual antes y después del cambio** (tanda del 21-sep que quedó vieja; comparado contra la v187 armada aparte).
+
+**Las 20 rondas de estrés** (pedido de Stephanie: «20 QC de todo lo que se construyó, proceso entero»):
+- `e1` QC1 a QC6, obra, **16/16**: Ver PDF con el relevo lento, caído y tocado dos veces (encontró que dos toques hacían dos pedidos:
+  ahora esperan el mismo); filtro con 120 informes, acentos y un nombre con HTML (encontró 460 ms por filtrar: ahora guarda el texto de
+  cada fila, < 400 ms); títulos con «OTRO»; capítulos con 20 cambios de ámbito y hito 3 «no inspeccionado» (encontró que sus filas en
+  los capítulos seguían activas: ahora se atenúan y lo dicen); cerrado al 100 % desde el ARCHIVO con 10 cambios rápidos de
+  apartamento; el proceso entero. Encontró además botones de 40 px en el panel de oficina: ahora 44.
+- `e2` QC7 a QC11, urbanismo, **8/8** (con recarga en medio): coma decimal, letras, números grandes, cambio de manzana, camiones de
+  registro con el día, tres visitas encadenadas (10 → 15 → 17,5), «Gas» a mano con fotos (no se absorbe), Planificación con proyectado.
+- `e3` QC12 a QC14 en servicios, SHA y urbanismo, **8/8 en cada uno**: buscador con el relevo caído y lento, 60 días, tres toques a
+  Ver PDF, copiar de ocho torres de a dos con el relevo tardando 6 s, títulos.
+- `e4` QC15 y QC17, obra, **6/6**: cerrado + capítulos + copiar + imprimir juntos; **300 acciones al azar sin un error de JavaScript**.
+- `e5` QC16, compilado, **5/5**: 60 apartamentos (30 de antes) en < 300 ms, nombres raros como texto, todo de antes, siete torres.
+- QC18 y QC19, el estrés de fin de día con todo lo nuevo: `t124` obra 8/8, `t125` SHA 11/11, `t126` compilado 13/13, `t127` los cuatro
+  formularios en cinco tamaños 7/7.
+- QC20, repaso final de `t130` a `t137` y `t67` en sus páginas con el código final: todo en verde.
+
+Regresión de lo que tocaba: `t26` 5/5, `t128` 9/9, `t69` 13/13, `t75` 11/11, `t66` 10/10, `t74` 10/10, `t78` 24/24.
+**Falta la prueba contra el relevo real (r75) después de desplegarlo.**
