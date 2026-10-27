@@ -109,6 +109,7 @@ tr.est-cambia td{background:#fffbeb}
 #est-sha{margin-top:12px}
 @media print{.est-sel,.est-nota{display:none!important} .est-txt{display:inline!important}}
 
+tr.de-antes td{color:#64748b;background:#f8fafc}.antes-tag{color:#8f4b00;font-weight:700;font-size:11px}
 </style>
 </head>
 <body>
@@ -384,20 +385,26 @@ function pintar() {
   $('resultado').hidden = false; $('estado-envio').hidden = true;
   $('resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+// r75 (27-oct-2026, Diego Orta): la matriz trae todos los apartamentos con su último informe; los que no tuvieron visita en la
+// semana van «de antes», en gris y con su fecha, como lo abierto de antes en SHA.
+function subAptos(d) {
+  const a = d.apartamentos || [], antes = a.filter(x => x.deAntes).length;
+  return 'El último informe de cada apartamento: ' + (a.length - antes) + ' de esta semana' + (antes ? ' y ' + antes + ' de antes (en gris, con su fecha)' : '') + '. El enlace abre el PDF.';
+}
 function pintarObra(d, hA, hT) {
   // Áreas comunes
   const t = d.torreInforme;
   $('torre-bloque').innerHTML = !t ? '<div class="sin" style="color:#94a3b8">No hubo informe de torre completa en estas fechas.</div>' :
-    '<div style="font-size:14px;margin-bottom:8px">Informe ' + enlace(t.pdf, t.numeroRev) + ' del ' + fecha(t.fecha) + ' · ' + esc(t.inspectores.join(' · ')) + ' · ' + esc(t.version) + '</div>' +
+    '<div style="font-size:14px;margin-bottom:8px">' + (t.deAntes ? '<span class="antes-tag">De antes · sin informe de torre esta semana</span><br>' : '') + 'Informe ' + enlace(t.pdf, t.numeroRev) + ' del ' + fecha(t.fecha) + ' · ' + esc(t.inspectores.join(' · ')) + ' · ' + esc(t.version) + '</div>' +
     '<div class="scroll"><table><tr><th>Hito</th><th class="n">%</th></tr>' +
     hT.map(h => '<tr><td>' + esc(h.numero + ' · ' + h.corto) + '</td>' + pct(t.pcts[h.id], t.noInsp, h.id, t.declarados) + '</tr>').join('') + '</table></div>';
   // Matriz
-  $('apto-sub').textContent = d.apartamentos.length ? 'El último informe de cada apartamento en la semana; el enlace abre el PDF.' : 'No hubo informes de apartamento en estas fechas.';
+  $('apto-sub').textContent = d.apartamentos.length ? subAptos(d) : 'No hay informes de apartamento de esta torre.';
   let html = '<tr><th>Apto</th>' + hA.map(h => '<th class="n" title="' + esc(h.nombre) + '">H' + esc(h.numero) + ' ' + esc(h.corto) + '</th>').join('') + '<th>Inspector</th><th>Informe</th></tr>';
   let piso = null;
   d.apartamentos.forEach(a => {
     if (a.piso !== piso) { piso = a.piso; html += '<tr><td class="piso" colspan="' + (hA.length + 3) + '"><span class="piso-txt">' + esc(piso || 'Sin piso') + '</span></td></tr>'; }
-    html += '<tr><td><b>' + esc(a.apto || a.bloque) + '</b>' + (a.copiadoDe ? ' <small title="Mediciones a partir de ' + esc(a.copiadoDe) + '">≈</small>' : '') + '</td>' +
+    html += '<tr' + (a.deAntes ? ' class="de-antes"' : '') + '><td><b>' + esc(a.apto || a.bloque) + '</b>' + (a.copiadoDe ? ' <small title="Mediciones a partir de ' + esc(a.copiadoDe) + '">≈</small>' : '') + (a.deAntes ? '<br><small class="antes-tag">de antes</small>' : '') + '</td>' +
       hA.map(h => pct(a.pcts[h.id], a.noInsp, h.id, a.declarados)).join('') +
       '<td>' + esc(a.inspectores.map(corto).join(', ')) + '</td><td>' + enlace(a.pdf, a.numeroRev) + ' <small>' + fecha(a.fecha) + '</small></td></tr>';
   });
@@ -616,19 +623,19 @@ async function reintentarTorre(t) {
 }
 function htmlAreas(t, hT) {
   return !t ? '<div class="sin" style="color:#94a3b8">No hubo informe de torre completa en estas fechas.</div>' :
-    '<div style="font-size:14px;margin-bottom:8px">Informe ' + enlace(t.pdf, t.numeroRev) + ' del ' + fecha(t.fecha) + ' · ' + esc((t.inspectores || []).join(' · ')) + ' · ' + esc(t.version || '') + '</div>' +
+    '<div style="font-size:14px;margin-bottom:8px">' + (t.deAntes ? '<span class="antes-tag">De antes · sin informe de torre esta semana</span><br>' : '') + 'Informe ' + enlace(t.pdf, t.numeroRev) + ' del ' + fecha(t.fecha) + ' · ' + esc((t.inspectores || []).join(' · ')) + ' · ' + esc(t.version || '') + '</div>' +
     '<div class="scroll"><table><tr><th>Hito</th><th class="n">%</th></tr>' +
     hT.map(h => '<tr><td>' + esc(h.numero + ' · ' + h.corto) + '</td>' + pct(t.pcts[h.id], t.noInsp, h.id, t.declarados) + '</tr>').join('') + '</table></div>';
 }
 function htmlMatriz(w, hA) {
-  if (!(w.apartamentos || []).length) return '<div class="sin" style="color:#94a3b8">No hubo informes de apartamento en estas fechas.</div>';
+  if (!(w.apartamentos || []).length) return '<div class="sin" style="color:#94a3b8">No hay informes de apartamento de esta torre.</div>';
   let html = '<tr><th>Apto</th>' + hA.map(h => '<th class="n" title="' + esc(h.nombre) + '">H' + esc(h.numero) + ' ' + esc(h.corto) + '</th>').join('') + '<th>Inspector</th><th>Informe</th></tr>', piso = null;
   w.apartamentos.forEach(a => {
     if (a.piso !== piso) { piso = a.piso; html += '<tr><td class="piso" colspan="' + (hA.length + 3) + '"><span class="piso-txt">' + esc(piso || 'Sin piso') + '</span></td></tr>'; }
-    html += '<tr><td><b>' + esc(a.apto || a.bloque) + '</b>' + (a.copiadoDe ? ' <small title="Mediciones a partir de ' + esc(a.copiadoDe) + '">≈</small>' : '') + '</td>' +
+    html += '<tr' + (a.deAntes ? ' class="de-antes"' : '') + '><td><b>' + esc(a.apto || a.bloque) + '</b>' + (a.copiadoDe ? ' <small title="Mediciones a partir de ' + esc(a.copiadoDe) + '">≈</small>' : '') + (a.deAntes ? '<br><small class="antes-tag">de antes</small>' : '') + '</td>' +
       hA.map(h => pct(a.pcts[h.id], a.noInsp, h.id, a.declarados)).join('') + '<td>' + esc((a.inspectores || []).map(corto).join(', ')) + '</td><td>' + enlace(a.pdf, a.numeroRev) + ' <small>' + fecha(a.fecha) + '</small></td></tr>';
   });
-  return '<div class="pista">Deslice la tabla hacia la derecha para ver todos los hitos; el apartamento queda fijo.</div><div class="scroll matriz"><table class="mz">' + html + '</table></div>' +
+  return '<div class="sub">' + esc(subAptos(w)) + '</div><div class="pista">Deslice la tabla hacia la derecha para ver todos los hitos; el apartamento queda fijo.</div><div class="scroll matriz"><table class="mz">' + html + '</table></div>' +
     '<div class="leyenda">— sin medir · n/i no inspeccionado · ° avance declarado por el inspector</div>';
 }
 function htmlAvance(w) {

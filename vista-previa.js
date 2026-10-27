@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: f22a89188d
+// Huella de la fuente: d8f02fa429
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -419,6 +419,15 @@ function _pdfTh(ancho, texto, alineado) {
          ' bgcolor="#eef0f7" style="' + PDF_CABECERA + '">' + texto + '</th>';
 }
 var PDF_ANCHO_FOTO = 170;
+var PDF_TITULO_INSPECTOR = {"Alejandro Bastidas": "Ing.", "\u00c1ngel S\u00e1nchez": "TSU", "Birmania Rada": "TSU", "Carlos J. Colmenares": "Ing.", "Charbel Abdul": "Ing.", "Christian Fricke": "Arq.", "Cleidy Chac\u00f3n": "Arq.", "Diego Orta": "Ing.", "Diego Rosales": "Ing.", "Edenil Narv\u00e1ez": "Ing.", "Eduardo Rivero": "Ing.", "Gabriel Barrios": "TSU", "Gabriel Jelenkovic": "Ing.", "G\u00e9nesis Cordob\u00e9s": "Ing.", "G\u00e9nesis M\u00e1rquez": "Ing.", "Girlenys Lacruz": "Ing.", "Hern\u00e1n Escobar": "Ing.", "Katherine Correia": "Ing.", "Leidy Villamizar": "Ing.", "Lizeira Aragort": "Ing.", "Manuel Madrid": "Arq.", "Mariana Rojas": "Arq.", "Martha Azcarate": "Ing.", "Miguel E. \u00c1vila": "TSU", "Oriana Plaza": "Ing.", "Selehidy Rivero": "Ing.", "Skarlet G\u00f3mez": "Ing.", "V\u00edctor Mendoza": "TSU", "Yenddy Sierra": "Ing."};
+function _pdfInspectores(d) {
+  return ((d && d.inspectores) || []).map(function (v) {
+    v = String(v || '');
+    if (!v || /^(Ing|Arq|TSU)\b/i.test(v)) return v;
+    var t = PDF_TITULO_INSPECTOR[v.replace(/\s*\(CIV[^)]*\)\s*$/, '').replace(/^\s+|\s+$/g, '')];
+    return t ? t + ' ' + v : v;
+  });
+}
 var PDF_ALTO_GARMEL = 52;
 var PDF_ALTO_MINHVI = 46;
 function pdfDelInforme(p) {
@@ -498,7 +507,7 @@ function _pdfIdentificacion(p, d) {
     ['Apartamento', d.apto],
     ['Empresa ejecutora', d.empresa],
     ['Ingeniero(s) residente(s)', (d.residentes || []).join(' \u00b7 ')],
-    ['Ingeniero(s) inspector(es)', (d.inspectores || []).join(' \u00b7 ')],
+    ['Ingeniero(s) inspector(es)', _pdfInspectores(d).join(' \u00b7 ')],
     ['Estatus de la obra', (d.estatus || []).join(' \u00b7 ')],
     ['Versi\u00f3n', _versionDelInforme(d)]   // r47: preliminar (campo) o definitiva (cerrada en oficina)
   ];
@@ -701,7 +710,7 @@ function _pdfObservacionGeneral(d, sinActividades) {
          '</table>';
 }
 function _pdfFirmas(p, d, tituloInspector) {
-  var insp = (d.inspectores || []);
+  var insp = _pdfInspectores(d);
   var res = (d.residentes || []);
   var col = function (titulo, nombre) {
     return '<td width="50%" valign="bottom" style="padding:26px 14px 0">' +
@@ -976,7 +985,7 @@ function _pdfIdentificacionServicios(p, d) {
     [_pdfEtiquetaLugar(p, 'Torre'), _pdfLugar(p)],
     ['Empresa ejecutora', d.empresa],
     ['Ingeniero(s) residente(s)', (d.residentes || []).join(' \u00b7 ')],
-    ['Ingeniero(s) inspector(es)', (d.inspectores || []).join(' \u00b7 ')],
+    ['Ingeniero(s) inspector(es)', _pdfInspectores(d).join(' \u00b7 ')],
     ['Versi\u00f3n', _versionDelInforme(d)],   // r50: preliminar (campo) o definitiva (cerrada en oficina)
     ['Estatus de la obra', (d.estatus || []).join(' \u00b7 ')],
     ['Apartamentos visitados', String((d.apartamentos || []).length)]
@@ -1129,7 +1138,7 @@ function _pdfIdentificacionSha(p, d) {
     [_pdfEtiquetaLugar(p, 'Torre'), _pdfLugar(p)],
     ['Empresa ejecutora', d.empresa],
     ['Ingeniero(s) residente(s)', (d.residentes || []).join(' \u00b7 ')],
-    ['Inspector(es) SHA', (d.inspectores || []).join(' \u00b7 ')],
+    ['Inspector(es) SHA', _pdfInspectores(d).join(' \u00b7 ')],
     ['Versi\u00f3n', _versionDelInforme(d)],   // r50: preliminar (campo) o definitiva (cerrada en oficina)
     ['Estatus general de la inspecci\u00f3n', (d.estatus || []).join(' \u00b7 ') || '\u2014'],
     ['Hallazgos de campo', String((d.apartamentos || []).length)],
@@ -1192,7 +1201,7 @@ function _pdfIncidencia(x, p, d, fotos, n) {
           '<td width="22%" bgcolor="#eef0f7" style="font-weight:bold">Empresa</td><td>' + _pdfEsc(d.empresa || '') + '</td></tr>' +
       '<tr><td bgcolor="#eef0f7" style="font-weight:bold">Fecha del accidente</td><td>' + _pdfEsc(x.fecha || '\u2014') + '</td>' +
           '<td bgcolor="#eef0f7" style="font-weight:bold">Ing. residente</td><td>' + _pdfEsc((d.residentes || []).join(' \u00b7 ')) + '</td></tr>' +
-      '<tr><td bgcolor="#eef0f7" style="font-weight:bold">Inspector SHA</td><td colspan="3">' + _pdfEsc((d.inspectores || []).join(' \u00b7 ')) + '</td></tr>' +
+      '<tr><td bgcolor="#eef0f7" style="font-weight:bold">Inspector SHA</td><td colspan="3">' + _pdfEsc(_pdfInspectores(d).join(' \u00b7 ')) + '</td></tr>' +
       '<tr><td bgcolor="#eef0f7" style="font-weight:bold">Tipo de accidente</td><td colspan="3"><b>' + (_pdfEsc(x.tipo) || '\u2014') + '</b></td></tr>' +
       '<tr><td bgcolor="#eef0f7" style="font-weight:bold">Notas de campo</td><td colspan="3">' + (_pdfTexto(x.notas) || '\u2014') + '</td></tr>' +
       '<tr><td bgcolor="#eef0f7" style="font-weight:bold">Acciones a tomar</td><td colspan="3">' + (_pdfTexto(x.acciones) || '\u2014') + '</td></tr>' +
@@ -1235,7 +1244,7 @@ function _pdfIdentificacionUrbanismo(p, d) {
     [_pdfEtiquetaLugar(p, 'Manzana / lote'), _pdfLugar(p)],
     ['Empresa ejecutora', d.empresa],
     ['Ingeniero(s) residente(s)', (d.residentes || []).join(' · ')],
-    ['Inspector(es)', (d.inspectores || []).join(' · ')],
+    ['Inspector(es)', _pdfInspectores(d).join(' · ')],
     ['Versi\u00f3n', _versionDelInforme(d)],   // r50: preliminar (campo) o definitiva (cerrada en oficina)
     ['Estatus de la obra', (d.estatus || []).join(' · ') || '—'],
     ['Secciones no inspeccionadas', noInsp.length ? noInsp.join(' · ') : 'ninguna'],
@@ -1306,7 +1315,7 @@ function _pdfMaquinariaUrbanismo(it) {
   return '<tr><td></td><td colspan="6" style="font-size:9px;color:#334155"><b>Maquinaria que oper\u00f3:</b> ' + _pdfEsc(m) + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: 'f22a89188d',
+    huella: 'd8f02fa429',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];
