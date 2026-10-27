@@ -95,7 +95,7 @@ H = sustituir(H, """  <div class="tarjeta">
 """  <div class="tarjeta" id="agregar-seccion">
     <label style="font-weight:600;font-size:13px;color:#475569">¿Falta una sección?</label>
     <div style="display:flex;gap:8px;margin-top:6px">
-      <input type="text" id="ns-nombre" placeholder="Nombre de la sección (ej.: Gas, Telecomunicaciones)" style="flex:1">
+      <input type="text" id="ns-nombre" placeholder="Nombre de la sección (ej.: Señalización)" style="flex:1">
       <button type="button" class="btn-add" style="width:auto;padding:0 14px" onclick="agregarSeccion()">＋ Agregar</button>
     </div>
   </div>
@@ -624,7 +624,7 @@ function agregarSeccion(){
   if (!nombre){ alert('Escriba el nombre de la sección.'); return; }
   const id = 'urb_x_' + limpiar(nombre).toLowerCase();
   if (GENERAL.some(g => g.id === id)){ alert('Esa sección ya existe.'); return; }
-  if (RETIRADA.test(id)){ alert('Obras Preliminares ya es la sección 1: agregue ahí la partida que falte.'); return; }
+  if (RETIRADA.test(id)){ const d = GENERAL.find(g => g.id === destinoRetirada(id)); alert((d ? String(d.nombre).replace(/^\d+\.\s*/, '') : 'Esa sección') + ' ya es una sección fija: agregue ahí la partida que falte.'); return; }
   // Lo que hay en pantalla se guarda ANTES de sumar la sección (guardar lee
   // GENERAL y la sección aún no está pintada), se vuelve a pintar todo y se
   // reabre: pintar una sección sola exigiría partir el motor en dos.
@@ -651,8 +651,9 @@ function asegurarSecciones(general){
   let nuevas = false;
   (general || []).forEach(g => {
     if (!g || !RETIRADA.test(g.id || '') || (g.fotos || []).length) return;
-    let t = general.find(x => x && x.id === 'urb_preliminares');
-    if (!t){ t = { id: 'urb_preliminares', nombre: '', items: [], obs: '', fotos: [] }; general.push(t); }
+    const dest = destinoRetirada(g.id);
+    let t = general.find(x => x && x.id === dest);
+    if (!t){ t = { id: dest, nombre: '', items: [], obs: '', fotos: [] }; general.push(t); }
     t.items = (t.items || []).concat(g.items || []);
     if ((g.obs || '').trim()) t.obs = [t.obs, g.obs].filter(x => (x || '').trim()).join('\n');
     g.items = []; g.obs = ''; g.retirada = true;
@@ -791,7 +792,8 @@ def construir():
         .replace('@@RESIDENTE_POR_EMPRESA@@', json.dumps(contenido.RESIDENTE_POR_EMPRESA, ensure_ascii=False))
         .replace('@@CAMIONES_CALCULAN@@', json.dumps(contenido.CAMIONES_CALCULAN, ensure_ascii=False))
         .replace('@@MAQUINARIA@@', json.dumps(contenido.MAQUINARIA, ensure_ascii=False))
-        .replace('@@RETIRADAS@@', json.dumps(contenido.RETIRADAS)))
+        .replace('@@RETIRADAS@@', json.dumps(contenido.RETIRADAS))
+        .replace('@@ABSORBIDAS@@', json.dumps([[k, v] for k, v in contenido.ABSORBIDAS.items()], ensure_ascii=False)))
 
     # v167: el residente de la contratista se propone donde antes quedaba en blanco; lo recordado por manzana manda.
     for viejo, nuevo in [
@@ -832,7 +834,11 @@ const RESIDENTE_POR_EMPRESA = @@RESIDENTE_POR_EMPRESA@@;
 function residenteDe(e){ return (typeof RESIDENTE_POR_EMPRESA !== 'undefined' && RESIDENTE_POR_EMPRESA[e]) || ''; }
 const CAMIONES_CALCULAN = @@CAMIONES_CALCULAN@@;
 const MAQUINARIA = @@MAQUINARIA@@;
-const RETIRADA = new RegExp(@@RETIRADAS@@, 'i');
+const RETIRADA_PRELIM = new RegExp(@@RETIRADAS@@, 'i');
+// v188: las absorbidas (Gas, Telecomunicaciones) se retiran igual, pero lo suyo va a su sección fija.
+const ABSORBIDAS = (@@ABSORBIDAS@@).map(function(x){ return [new RegExp(x[0], 'i'), x[1]]; });
+const RETIRADA = { test: function(id){ return RETIRADA_PRELIM.test(id) || ABSORBIDAS.some(function(x){ return x[0].test(id); }); } };
+function destinoRetirada(id){ const a = ABSORBIDAS.find(function(x){ return x[0].test(id); }); return a ? a[1] : 'urb_preliminares'; }
 """
 
 if __name__ == "__main__":

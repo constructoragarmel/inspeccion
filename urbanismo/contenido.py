@@ -67,21 +67,23 @@ GENERAL = [
     # corren un número. Los id no cambian: los informes guardados siguen
     # encontrando sus secciones. En «Bote de material» se anotan los camiones
     # de la visita (ver CAMIONES).
+    # v188 (27-oct-2026, Gabriel Barrios por Diego Orta): «Demolición de pavimento» en m³ (la unidad la confirmó Diego) y el
+    # «Colchón de arena» en cada tendido de servicio: drenaje, acueductos, aguas servidas, telecomunicaciones y gas.
     _sec("urb_preliminares", "1. OBRAS PRELIMINARES", [
-        ("Desmalezamiento", "m²"), ("Movimiento de tierra", "m³"), ("Bote de material", "m³")]),
+        ("Desmalezamiento", "m²"), ("Movimiento de tierra", "m³"), ("Bote de material", "m³"), ("Demolición de pavimento", "m³")]),
     _sec("urb_drenaje", "2. DRENAJE", [
-        ("Topografía", "m"), ("Excavación", "m³"), ("Canalización", "m"), ("Tanquilla", "und")]),
+        ("Topografía", "m"), ("Excavación", "m³"), ("Canalización", "m"), ("Tanquilla", "und"), ("Colchón de arena", "m³")]),
     _sec("urb_estructura", "3. ESTRUCTURA", [
         ("Excavación / Movimiento de tierra", "m³"), ("Acero de refuerzo", "kg"),
         ("Concreto", "m³"), ("Encofrado", "m²")]),
     _sec("urb_acueductos", "4. ACUEDUCTOS", [
-        ("Topografía", "m"), ("Excavación", "m³"), ("Canalizaciones", "m"), ("Captación", "und")]),
+        ("Topografía", "m"), ("Excavación", "m³"), ("Canalizaciones", "m"), ("Captación", "und"), ("Colchón de arena", "m³")]),
     _sec("urb_electricidad", "5. ELECTRICIDAD", [
         ("Puntos cableados", "und"), ("Canalización", "m"), ("Tuberías", "m"),
         ("Tanquillas", "und"), ("Postes de luminaria", "und")]),
     _sec("urb_aguas_servidas", "6. AGUAS SERVIDAS", [
         ("Topografía", "m"), ("Excavación", "m³"), ("Canalización", "m"),
-        ("Tanquillas", "und"), ("Colectores", "m")]),
+        ("Tanquillas", "und"), ("Colectores", "m"), ("Colchón de arena", "m³")]),
     _sec("urb_vialidad", "7. VIALIDAD", [
         ("Topografía", "m"), ("Escarificación", "m²"), ("Suministro y colocación", "m³"),
         ("Carpeta de rodamiento", "m²"), ("Brocales", "m"), ("Aceras", "m²"),
@@ -91,6 +93,11 @@ GENERAL = [
     _sec("urb_paisajismo", "9. PAISAJISMO", [
         ("Topografía", "m"), ("Jardinería", "m²"), ("Sistema de riego", "m"),
         ("Iluminación", "und"), ("Mobiliario urbano", "und"), ("Caminerías", "m²")]),
+    # v188: dos secciones que los inspectores venían agregando a mano en el teléfono («Gas», «Telecomunicaciones»).
+    _sec("urb_telecomunicaciones", "10. TELECOMUNICACIONES", [
+        ("Topografía", "m"), ("Excavación", "m³"), ("Canalización", "m"), ("Tanquillas", "und"), ("Colchón de arena", "m³")]),
+    _sec("urb_gas", "11. GAS", [
+        ("Topografía", "m"), ("Excavación", "m³"), ("Canalización", "m"), ("Casetas", "und"), ("Colchón de arena", "m³")]),
 ]
 
 RENOMBRADOS = {}
@@ -114,6 +121,10 @@ MAQUINARIA = {"urb_preliminares": ["Desmalezamiento", "Movimiento de tierra", "B
 # malez» se iban también «Control de malezas» u «Obras preliminares de
 # vialidad», que son secciones legítimas (QC de estrés del 24-sep).
 RETIRADAS = r"^urb_x_(obras)?preliminar(es)?$|^urb_x_de?s?malez(amiento|ado)s?$"
+# v188: las agregadas a mano que ahora son fijas pero NO van a Obras Preliminares: lo suyo pasa a su sección fija.
+# Hay informes archivados con `urb_x_gas` y `urb_x_telecomunicaciones` (27-oct-2026).
+ABSORBIDAS = {r"^urb_x_gas(es)?$": "urb_gas",
+              r"^urb_x_telecomunicaci(o|ó)n(es)?$|^urb_x_telecom$": "urb_telecomunicaciones"}
 
 # Calidad de cada partida, como en inspección de obra: B / R / M y N-A.
 CALIDADES = [("B", "Bueno"), ("R", "Regular"), ("M", "Malo"), ("NA", "No aplica")]

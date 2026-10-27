@@ -397,7 +397,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
   <div class="tarjeta" id="agregar-seccion">
     <label style="font-weight:600;font-size:13px;color:#475569">¿Falta una sección?</label>
     <div style="display:flex;gap:8px;margin-top:6px">
-      <input type="text" id="ns-nombre" placeholder="Nombre de la sección (ej.: Gas, Telecomunicaciones)" style="flex:1">
+      <input type="text" id="ns-nombre" placeholder="Nombre de la sección (ej.: Señalización)" style="flex:1">
       <button type="button" class="btn-add" style="width:auto;padding:0 14px" onclick="agregarSeccion()">＋ Agregar</button>
     </div>
   </div>
@@ -437,7 +437,8 @@ const GENERAL = [
     "items": [
       "Desmalezamiento",
       "Movimiento de tierra",
-      "Bote de material"
+      "Bote de material",
+      "Demolición de pavimento"
     ]
   },
   {
@@ -447,7 +448,8 @@ const GENERAL = [
       "Topografía",
       "Excavación",
       "Canalización",
-      "Tanquilla"
+      "Tanquilla",
+      "Colchón de arena"
     ]
   },
   {
@@ -467,7 +469,8 @@ const GENERAL = [
       "Topografía",
       "Excavación",
       "Canalizaciones",
-      "Captación"
+      "Captación",
+      "Colchón de arena"
     ]
   },
   {
@@ -489,7 +492,8 @@ const GENERAL = [
       "Excavación",
       "Canalización",
       "Tanquillas",
-      "Colectores"
+      "Colectores",
+      "Colchón de arena"
     ]
   },
   {
@@ -526,6 +530,28 @@ const GENERAL = [
       "Mobiliario urbano",
       "Caminerías"
     ]
+  },
+  {
+    "id": "urb_telecomunicaciones",
+    "nombre": "10. TELECOMUNICACIONES",
+    "items": [
+      "Topografía",
+      "Excavación",
+      "Canalización",
+      "Tanquillas",
+      "Colchón de arena"
+    ]
+  },
+  {
+    "id": "urb_gas",
+    "nombre": "11. GAS",
+    "items": [
+      "Topografía",
+      "Excavación",
+      "Canalización",
+      "Casetas",
+      "Colchón de arena"
+    ]
   }
 ];
 const RENOMBRADOS = {};
@@ -549,13 +575,17 @@ const EMPRESA_POR_SECTOR = {"Convenio Bielorrusos": "ADDISON", "Convenio Rusos":
 const CLAVE_MANZANAS = 'garmel_urb_manzanas';
 const CLAVE_SECCIONES = 'garmel_urb_secciones';
 const UNIDADES = ["m", "m²", "m³", "und", "kg", "glb", "ha", "ton"];
-const UNIDAD_DE = {"urb_preliminares": {"Desmalezamiento": "m²", "Movimiento de tierra": "m³", "Bote de material": "m³"}, "urb_drenaje": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquilla": "und"}, "urb_estructura": {"Excavación / Movimiento de tierra": "m³", "Acero de refuerzo": "kg", "Concreto": "m³", "Encofrado": "m²"}, "urb_acueductos": {"Topografía": "m", "Excavación": "m³", "Canalizaciones": "m", "Captación": "und"}, "urb_electricidad": {"Puntos cableados": "und", "Canalización": "m", "Tuberías": "m", "Tanquillas": "und", "Postes de luminaria": "und"}, "urb_aguas_servidas": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquillas": "und", "Colectores": "m"}, "urb_vialidad": {"Topografía": "m", "Escarificación": "m²", "Suministro y colocación": "m³", "Carpeta de rodamiento": "m²", "Brocales": "m", "Aceras": "m²", "Demarcación": "m", "Transporte y maquinaria": "glb"}, "urb_camineria": {"Topografía / Trazo": "m", "Excavación y conformación": "m³", "Pavimento / Acabado": "m²"}, "urb_paisajismo": {"Topografía": "m", "Jardinería": "m²", "Sistema de riego": "m", "Iluminación": "und", "Mobiliario urbano": "und", "Caminerías": "m²"}};
+const UNIDAD_DE = {"urb_preliminares": {"Desmalezamiento": "m²", "Movimiento de tierra": "m³", "Bote de material": "m³", "Demolición de pavimento": "m³"}, "urb_drenaje": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquilla": "und", "Colchón de arena": "m³"}, "urb_estructura": {"Excavación / Movimiento de tierra": "m³", "Acero de refuerzo": "kg", "Concreto": "m³", "Encofrado": "m²"}, "urb_acueductos": {"Topografía": "m", "Excavación": "m³", "Canalizaciones": "m", "Captación": "und", "Colchón de arena": "m³"}, "urb_electricidad": {"Puntos cableados": "und", "Canalización": "m", "Tuberías": "m", "Tanquillas": "und", "Postes de luminaria": "und"}, "urb_aguas_servidas": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquillas": "und", "Colectores": "m", "Colchón de arena": "m³"}, "urb_vialidad": {"Topografía": "m", "Escarificación": "m²", "Suministro y colocación": "m³", "Carpeta de rodamiento": "m²", "Brocales": "m", "Aceras": "m²", "Demarcación": "m", "Transporte y maquinaria": "glb"}, "urb_camineria": {"Topografía / Trazo": "m", "Excavación y conformación": "m³", "Pavimento / Acabado": "m²"}, "urb_paisajismo": {"Topografía": "m", "Jardinería": "m²", "Sistema de riego": "m", "Iluminación": "und", "Mobiliario urbano": "und", "Caminerías": "m²"}, "urb_telecomunicaciones": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Tanquillas": "und", "Colchón de arena": "m³"}, "urb_gas": {"Topografía": "m", "Excavación": "m³", "Canalización": "m", "Casetas": "und", "Colchón de arena": "m³"}};
 const CAMIONES = {"urb_preliminares": ["Desmalezamiento", "Movimiento de tierra", "Bote de material"]};
 const RESIDENTE_POR_EMPRESA = {"ADDISON": "Ing. Paola Saa", "PROCODIMA, C.A.": "Ing. Gustavo Guillén", "RACAR INGENIEROS, C.A.": "Ing. Nelson Socorro"};
 function residenteDe(e){ return (typeof RESIDENTE_POR_EMPRESA !== 'undefined' && RESIDENTE_POR_EMPRESA[e]) || ''; }
 const CAMIONES_CALCULAN = {"urb_preliminares": ["Bote de material"]};
 const MAQUINARIA = {"urb_preliminares": ["Desmalezamiento", "Movimiento de tierra", "Bote de material"]};
-const RETIRADA = new RegExp("^urb_x_(obras)?preliminar(es)?$|^urb_x_de?s?malez(amiento|ado)s?$", 'i');
+const RETIRADA_PRELIM = new RegExp("^urb_x_(obras)?preliminar(es)?$|^urb_x_de?s?malez(amiento|ado)s?$", 'i');
+// v188: las absorbidas (Gas, Telecomunicaciones) se retiran igual, pero lo suyo va a su sección fija.
+const ABSORBIDAS = ([["^urb_x_gas(es)?$", "urb_gas"], ["^urb_x_telecomunicaci(o|ó)n(es)?$|^urb_x_telecom$", "urb_telecomunicaciones"]]).map(function(x){ return [new RegExp(x[0], 'i'), x[1]]; });
+const RETIRADA = { test: function(id){ return RETIRADA_PRELIM.test(id) || ABSORBIDAS.some(function(x){ return x[0].test(id); }); } };
+function destinoRetirada(id){ const a = ABSORBIDAS.find(function(x){ return x[0].test(id); }); return a ? a[1] : 'urb_preliminares'; }
 
 // ── Cascada: la torre manda ───────────────────────────────────────────────
 // Cuatro torres (T-04, T-07, T-12, T-13) están en el maestro DOS VECES, con dos
@@ -4131,7 +4161,7 @@ function agregarSeccion(){
   if (!nombre){ alert('Escriba el nombre de la sección.'); return; }
   const id = 'urb_x_' + limpiar(nombre).toLowerCase();
   if (GENERAL.some(g => g.id === id)){ alert('Esa sección ya existe.'); return; }
-  if (RETIRADA.test(id)){ alert('Obras Preliminares ya es la sección 1: agregue ahí la partida que falte.'); return; }
+  if (RETIRADA.test(id)){ const d = GENERAL.find(g => g.id === destinoRetirada(id)); alert((d ? String(d.nombre).replace(/^\d+\.\s*/, '') : 'Esa sección') + ' ya es una sección fija: agregue ahí la partida que falte.'); return; }
   // Lo que hay en pantalla se guarda ANTES de sumar la sección (guardar lee
   // GENERAL y la sección aún no está pintada), se vuelve a pintar todo y se
   // reabre: pintar una sección sola exigiría partir el motor en dos.
@@ -4158,8 +4188,9 @@ function asegurarSecciones(general){
   let nuevas = false;
   (general || []).forEach(g => {
     if (!g || !RETIRADA.test(g.id || '') || (g.fotos || []).length) return;
-    let t = general.find(x => x && x.id === 'urb_preliminares');
-    if (!t){ t = { id: 'urb_preliminares', nombre: '', items: [], obs: '', fotos: [] }; general.push(t); }
+    const dest = destinoRetirada(g.id);
+    let t = general.find(x => x && x.id === dest);
+    if (!t){ t = { id: dest, nombre: '', items: [], obs: '', fotos: [] }; general.push(t); }
     t.items = (t.items || []).concat(g.items || []);
     if ((g.obs || '').trim()) t.obs = [t.obs, g.obs].filter(x => (x || '').trim()).join('\n');
     g.items = []; g.obs = ''; g.retirada = true;

@@ -7,8 +7,8 @@ if (!sessionStorage.getItem('t19')){
   localStorage.setItem('garmel_urb_secciones', JSON.stringify([
     { id: 'urb_x_obraspreliminares', nombre: '9. OBRAS PRELIMINARES', items: [] },
     { id: 'urb_x_demalezamiento', nombre: '10. DEMALEZAMIENTO', items: [] },
-    { id: 'urb_x_gas', nombre: '11. GAS', items: [] }]));
-  localStorage.setItem('garmel_urb_items', JSON.stringify({ urb_x_obraspreliminares: ['Desmalezamiento'], urb_x_gas: ['Tubería'] }));
+    { id: 'urb_x_senalizacion', nombre: '11. SEÑALIZACIÓN', items: [] }]));
+  localStorage.setItem('garmel_urb_items', JSON.stringify({ urb_x_obraspreliminares: ['Desmalezamiento'], urb_x_senalizacion: ['Postes'] }));
   sessionStorage.setItem('t19', '1');
   location.reload();
   throw 'recargando: vuelva a correr t19';
@@ -18,15 +18,16 @@ Q.aceptar = true;
 const items = sid => $$('#items-' + sid + ' .item');
 
 // 1. contenido y retiro
-ok('Obras Preliminares es la 1 y el resto corre un número', GENERAL.slice(0, 9).map(g => g.nombre).join('|') ===
-   '1. OBRAS PRELIMINARES|2. DRENAJE|3. ESTRUCTURA|4. ACUEDUCTOS|5. ELECTRICIDAD|6. AGUAS SERVIDAS|7. VIALIDAD|8. CAMINERÍA|9. PAISAJISMO', GENERAL.map(g => g.nombre).join('|'));
-ok('Sus tres partidas con unidad', items('urb_preliminares').map(i => i.querySelector('.nombre').textContent + ' ' + i.querySelector('.ud').textContent).join('|') ===
-   'Desmalezamiento m²|Movimiento de tierra m³|Bote de material m³');
+// v188: once fijas (Telecomunicaciones y Gas, 10 y 11); la sección propia del teléfono pasa a ser la 12.
+ok('Obras Preliminares es la 1 y el resto corre un número', GENERAL.slice(0, 11).map(g => g.nombre).join('|') ===
+   '1. OBRAS PRELIMINARES|2. DRENAJE|3. ESTRUCTURA|4. ACUEDUCTOS|5. ELECTRICIDAD|6. AGUAS SERVIDAS|7. VIALIDAD|8. CAMINERÍA|9. PAISAJISMO|10. TELECOMUNICACIONES|11. GAS', GENERAL.map(g => g.nombre).join('|'));
+ok('Sus cuatro partidas con unidad (v188: Demolición de pavimento)', items('urb_preliminares').map(i => i.querySelector('.nombre').textContent + ' ' + i.querySelector('.ud').textContent).join('|') ===
+   'Desmalezamiento m²|Movimiento de tierra m³|Bote de material m³|Demolición de pavimento m³');
 ok('Las secciones de Gabriel ya no están, ni en pantalla ni recordadas', !GENERAL.some(g => /^urb_x_(obras|dema)/.test(g.id)) &&
    !/obraspre|demalez/.test(localStorage.getItem('garmel_urb_secciones') + localStorage.getItem('garmel_urb_items')), localStorage.getItem('garmel_urb_secciones'));
-ok('Una sección propia se queda y se renumera: «10. GAS»', GENERAL[9] && GENERAL[9].id === 'urb_x_gas' && GENERAL[9].nombre === '10. GAS', GENERAL[9] && GENERAL[9].nombre);
+ok('Una sección propia se queda y se renumera: «12. SEÑALIZACIÓN»', GENERAL[11] && GENERAL[11].id === 'urb_x_senalizacion' && GENERAL[11].nombre === '12. SEÑALIZACIÓN', GENERAL[11] && GENERAL[11].nombre);
 $('#ns-nombre').value = 'Obras preliminares'; agregarSeccion();
-ok('Agregar a mano «Obras preliminares» se rechaza y remite a la 1', GENERAL.length === 10 && /sección 1/.test(Q.dialogos.join()), Q.dialogos.join(' / '));
+ok('Agregar a mano «Obras preliminares» se rechaza y remite a la fija', GENERAL.length === 12 && /OBRAS PRELIMINARES ya es una secci.n fija/.test(Q.dialogos.join()), Q.dialogos.join(' / '));
 ok('Las tres partidas de «Obras preliminares» llevan camiones (v163) y ninguna otra', $$('.camiones').length === 3 && items('urb_preliminares').slice(0, 3).every(i => i.querySelector('.camiones')));
 
 // 2. camiones
@@ -76,7 +77,7 @@ const pre = items('urb_preliminares');
 ok('Lo de «9. OBRAS PRELIMINARES» cae en la 1: Desmalezamiento en la fija', pre[0].querySelector('.cant').value === '500' && pre[0].querySelector('textarea').value === 'lote norte');
 ok('Una partida propia pasa como agregada', pre.some(i => i.dataset.fijo === '0' && i.querySelector('.nombre-libre').value === 'Limpieza de sitio' && i.querySelector('.cant').value === '3'));
 ok('La nota de la sección también pasa', $('#srv-urb_preliminares .obs-srv').value === 'nota prelim');
-ok('Y la sección retirada no vuelve', GENERAL.length === 10 && !/obraspre/.test(localStorage.getItem('garmel_urb_secciones')));
+ok('Y la sección retirada no vuelve', GENERAL.length === 12 && !/obraspre/.test(localStorage.getItem('garmel_urb_secciones')));
 
 // 4. visita siguiente: pasa el acumulado, no los camiones
 nuevoInforme();
@@ -88,7 +89,7 @@ estadosDeTorres = () => ({ 'M-5': { nro: 'URB-EZ-M5-260923-GB', general: [
 try { traerHistorial(); } finally { estadosDeTorres = orig; }
 const b3 = items('urb_preliminares')[2];
 ok('Heredado: el acumulado 147.5, sin camiones', b3.querySelector('.cant').value === '147.5' && b3.querySelectorAll('.camion').length === 0 && b3.classList.contains('heredado'));
-ok('Heredado de la sección retirada cae en la 1', items('urb_preliminares')[0].querySelector('.cant').value === '800' && GENERAL.length === 10);
+ok('Heredado de la sección retirada cae en la 1', items('urb_preliminares')[0].querySelector('.cant').value === '800' && GENERAL.length === 12);
 b3.querySelector('.camiones .btn-add').click();
 Q.escribir(b3.querySelector('.camion .m3'), '8'); Q.escribir(b3.querySelector('.camion .placa'), 'B2');
 ok('Un camión sobre el heredado: 147.5 + 8, y deja de ser heredado', b3.querySelector('.cant').value === '155.5' && b3.querySelector('.base').value === '147.5' && !b3.classList.contains('heredado'), b3.querySelector('.cant').value);
