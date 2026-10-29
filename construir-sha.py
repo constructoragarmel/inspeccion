@@ -545,7 +545,7 @@ J = sustituir(J, "  if (d.estatus === 'Rechazado' && !d.accion) f.push('la acci\
 
 
 # 21 · Desmontaje de obstáculos (v113), pedido por Skarlet el 2-oct-2026. Una cuarta pestaña con cinco filas FIJAS
-# (sha/contenido.py): torres grúa, chatarra, camiones y maquinaria averiados, ascensores de carga y andamios. En
+# (sha/contenido.py): torres grúa, chatarra, camiones y maquinaria averiados, ascensores de carga y pasarelas (eran «andamios»: Ángel, 29-oct). En
 # cada una, lo retirado a la fecha (acumulado) y lo que queda; la chatarra, en % retirado a criterio del inspector.
 # Observación por fila y fotos del bloque. Como es acumulado, al traer la visita anterior de la torre vienen sus
 # valores para actualizarlos; no cuentan como «sin revisar» (un acumulado que no cambió sigue siendo cierto).

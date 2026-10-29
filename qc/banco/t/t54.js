@@ -20,7 +20,7 @@ verPanel('d'); await esperar(50);
 const filas = $$('#panel-d .fila-obst'), nombres = filas.map(f => f.querySelector('.nombre').textContent);
 ok('1 · La cuarta pestaña es «Obstáculos» y trae las cinco filas en su orden; la chatarra pide un % y las demás, retirado y queda',
    $('#tab-d').textContent === 'Obstáculos' && $('#panel-d').classList.contains('on') && !$('#panel-a').classList.contains('on') &&
-   nombres.join('|') === 'Torres grúa|Chatarra|Camiones y maquinaria averiados|Ascensores de carga|Andamios' &&
+   nombres.join('|') === 'Torres grúa|Chatarra|Camiones y maquinaria averiados|Ascensores de carga|Pasarelas' &&
    !!fila('chatarra').querySelector('.obst-pct') && !fila('chatarra').querySelector('.obst-ret') &&
    ['gruas', 'vehiculos', 'ascensores_carga', 'andamios'].every(i => fila(i).querySelector('.obst-ret') && fila(i).querySelector('.obst-queda')), nombres.join(' · '));
 

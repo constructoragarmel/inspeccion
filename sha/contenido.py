@@ -133,7 +133,7 @@ OBSTACULOS = [
     {"id": "chatarra", "nombre": "Chatarra", "mide": "pct"},
     {"id": "vehiculos", "nombre": "Camiones y maquinaria averiados", "mide": "cant"},
     {"id": "ascensores_carga", "nombre": "Ascensores de carga", "mide": "cant"},
-    {"id": "andamios", "nombre": "Andamios", "mide": "cant"},
+    {"id": "andamios", "nombre": "Pasarelas", "mide": "cant"},
 ]
 
 def total_items():
