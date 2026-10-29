@@ -1053,3 +1053,27 @@ escrito (sin lista), con su número, sus fotos en IndexedDB y `repetidoDe`. Qued
   borradores limpios; lo escrito raro se limpia como el campo (la «/» también separa) y no cuela HTML; editar el original
   no toca las copias; dos toques a «Guardar» no duplican.
 - Regresión: `t137` 10/10 (capítulos) y `t108` 4/4 («Guardar y otro apto» y «Enviar todos»).
+
+## La planilla de avance por torre (cambio 199) y las fotos generales de los apartamentos (cambio 200), 29-oct-2026, sin publicar: `t139` y `t140`
+
+ADR-0056 (Garmel). La planilla pone la torre en una tabla con el último % de cada apartamento en gris; cada apartamento que
+cambia sale como un informe normal en «Informes». Lo anterior lo da el relevo r79 (`planilla`); el relevo falso (v190) lo
+contesta con lo sembrado (`/control {sembrarAvance}`) y lo actualiza con cada envío de obra, como `actualizarAvanceTorre`.
+
+- `t139` (30/30 a 375 px, a la vista): sin cabecera (torre, inspector, estatus) no abre; abre con lo del archivo en gris, 12 pisos
+  × 4, y «·» donde no hay dato; los 4 apartamentos se ven sin deslizar; teclado (105 no pasa, «lo mismo» no baja a nadie, ↶ deshace
+  la fila, la baja se marca); lo cerrado al 100 % pide 🔓; guardar arma dos informes con el número del día y todas las subpartidas
+  (pct, estado sobre 100, Sí/No, fuera de ámbito, la nota, el estatus); «Enviar todos» los manda y al reabrir lo gris es lo nuevo;
+  abrir uno en el formulario muestra el % de una fila de conteo y no lo pierde; oficina (lo raro se rechaza, Enter baja, pegar de
+  Excel, hoja impresa vieja con ⚠️ y «La pasa» obligatoria); sin señal usa lo guardado y recupera lo sin guardar; un informe sin
+  enviar del mismo apartamento y día no se pisa; ninguna hoja se corta; la guía tiene las 50.
+- `t140` (7/7 a 375 px): la tarjeta solo en torre; dos fotos y el texto en el borrador (IndexedDB) y al reabrir; «Enviar todos» las
+  manda como «aptosgen-N» con `obsAptosGen`; en apartamento no viajan.
+- La impresión, comprobada en PDF con Chrome desde la app: 10 hojas en carta horizontal y la guía en 2 verticales. Dos estilos del
+  formulario se metían: toda tabla con 640 px de mínimo (la planilla salía sin los apartamentos a 375 px) y, al imprimir, el ancho
+  de cada columna por su posición (44 % la segunda). Los dos se anulan dentro de `#planilla`.
+- Regresión (Chrome sin ventana, comparada con la v189 en el mismo banco): iguales en `t112`, `t114`, `t116`, `t123`, `t128`, `t136`,
+  `t137`, `t21`, `t23`, `t26`, `t31`, `t33`, `t35`, `t39`, `t42`, `t43`, `t47`, `t49`, `t50`, `t52`, `t56`, `t67`, `t69`, `t71`, `t82`,
+  `t87`, `t90`, `t92` (las que fallan sin ventana fallan igual en la v189). `t47` encontró el botón de la planilla metido entre los
+  del ámbito: va después de «Estructura». `t62` sin ventana pierde las minutas al reabrir solo con este cambio; en el navegador
+  real da 9/9 (el reloj virtual corta la carga de IndexedDB). `t138` 10/10 en el navegador.

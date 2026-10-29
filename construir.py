@@ -9726,6 +9726,93 @@ s = sustituir(s, "function toggleP(id){", CAPITULOS_JS + "\nfunction toggleP(id)
 REPETIR_JS = open(os.path.join(RAIZ, "comun", "repetir_aptos.js"), encoding="utf-8").read()
 s = sustituir(s, "function toggleP(id){", REPETIR_JS + "\nfunction toggleP(id){", "198· repetir en otros apartamentos")
 
+# ── 199. La planilla de avance por torre (29-oct-2026, ADR-0056) ─────────────────────────────────────────────────────────
+# La torre entera en una tabla, con el último % de cada apartamento en gris: se toca solo lo que avanzó, en el teléfono o
+# pasando una hoja impresa en la computadora; la hoja y la guía de subpartidas se imprimen desde aquí. Cada apartamento que
+# cambia sale como un informe normal en «Informes». comun/planilla.js; lo anterior lo da el relevo r79 (`planilla`). Solo
+# obra: servicios, SHA y urbanismo no tienen apartamentos. Después del 198 y del 153 (envuelve _traerMediciones).
+PLANILLA_JS = open(os.path.join(RAIZ, "comun", "planilla.js"), encoding="utf-8").read()
+s = sustituir(s, "function toggleP(id){", PLANILLA_JS + "\nfunction toggleP(id){", "199· planilla de avance por torre")
+
+# ── 200. «Fotos generales de los apartamentos» en el informe de torre (29-oct-2026, ADR-0056) ──────────────────────────────
+# Con la planilla ya no se piden fotos por apartamento (Dirección, por Diego Orta): van unas pocas, representativas, en el
+# informe de TORRE, más las de algún detalle. Es un grupo de fotos más, como las minutas (163 y 183): `aptosgen`, viaja como
+# «aptosgen-N», con un texto de qué muestran (`obsAptosGen`), y el relevo r79 lo imprime después de los hitos. Solo en
+# ámbito torre.
+_FOTOS_APTOSGEN = "".join(
+    '\n      <div class="foto-slot" id="fslot_aptosgen_%d"><span>🏠<br>Foto %d</span><img id="fimg_aptosgen_%d" style="display:none">'
+    '<input type="file" accept="image/*" onchange="loadFoto(\'aptosgen\',%d,this)">'
+    '<button class="foto-remove" onclick="removeFoto(\'aptosgen\',%d)">✕</button></div>' % (i, i + 1, i, i, i) for i in range(6))
+s = sustituir(s,
+ "<!-- MINUTAS DE CAMPO (163) -->",
+ "<!-- FOTOS GENERALES DE LOS APARTAMENTOS (200) -->\n<div class=\"content\" id=\"aptosgen-wrap\" style=\"display:none\">\n<div class=\"obs-card\" id=\"aptosgen-card\">\n"
+ "  <h3>Fotos generales de los apartamentos<span class=\"solo-pantalla\" style=\"font-weight:400;color:#666\"> (máx. 6)</span></h3>\n"
+ "  <p class=\"act-pista solo-pantalla\">Con la planilla de avance ya no se piden fotos por apartamento. Ponga aquí unas pocas, representativas, y las de algún detalle que quiera destacar. Diga qué apartamento es cada una.</p>\n"
+ "  <textarea id=\"obs_aptosgen\" aria-label=\"Qué muestran las fotos generales\" style=\"width:100%;min-height:70px;box-sizing:border-box;font-size:16px\" placeholder=\"Ej.: 1 y 2, piso 5 A1: cerámica terminada · 3, piso 8 B2: filtración en el baño\"></textarea>\n"
+ "  <div class=\"foto-sec\" style=\"margin:0\">\n"
+ "    <label class=\"btn-camara solo-pantalla\">📷 Tomar foto<input type=\"file\" accept=\"image/*\" capture=\"environment\" onchange=\"tomarFotoCamara('aptosgen', this)\"></label>\n"
+ "    <div class=\"foto-grid\" id=\"fotos_aptosgen\">" + _FOTOS_APTOSGEN + "\n    </div>\n"
+ "  </div>\n</div>\n</div>\n\n<!-- MINUTAS DE CAMPO (163) -->",
+ "200a· la tarjeta, antes de las minutas")
+s = sustituir(s,
+ "  // 163: las minutas de campo son un grupo de fotos más.\n",
+ "  // 200: las fotos generales de los apartamentos, solo en el informe de torre.\n"
+ "  d.fotos.aptosgen = ambito === 'torre' ? [0,1,2,3,4,5].map(fi=>{\n"
+ "    const im = document.getElementById('fimg_aptosgen_' + fi);\n"
+ "    return (im && im.src && im.src.indexOf('data:') === 0) ? im.src : '';\n"
+ "  }) : [];\n"
+ "  d.obsAptosGen = ambito === 'torre' ? ((document.getElementById('obs_aptosgen') || {}).value || '') : '';\n"
+ "  // 163: las minutas de campo son un grupo de fotos más.\n",
+ "200b· viajan con las fotos del informe")
+s = sustituir(s,
+ "  if(d.fotos && d.fotos.minutas){\n"
+ "    d.fotos.minutas.forEach((src,fi)=>{ if(src && src !== 'idb') _pintarFoto('minutas', fi, src); });\n"
+ "  }\n",
+ "  if(d.fotos && d.fotos.minutas){\n"
+ "    d.fotos.minutas.forEach((src,fi)=>{ if(src && src !== 'idb') _pintarFoto('minutas', fi, src); });\n"
+ "  }\n"
+ "  if(d.fotos && d.fotos.aptosgen){\n"
+ "    d.fotos.aptosgen.forEach((src,fi)=>{ if(src && src !== 'idb') _pintarFoto('aptosgen', fi, src); });\n"
+ "  }\n"
+ "  { const _oag = document.getElementById('obs_aptosgen'); if (_oag) _oag.value = d.obsAptosGen || ''; }\n",
+ "200c· se reponen al abrir un borrador")
+s = sustituir(s,
+ "  if (libre < 0){ alert(pid === 'minutas' ? 'Ya hay 6 hojas de minuta. Quite una para tomar otra.' :",
+ "  if (libre < 0){ alert(pid === 'minutas' ? 'Ya hay 6 hojas de minuta. Quite una para tomar otra.' : pid === 'aptosgen' ? 'Ya hay 6 fotos generales. Quite una para tomar otra.' :",
+ "200d· el aviso del tope")
+s = sustituir(s,
+ "// Devuelve la lista de campos obligatorios que faltan, según el ámbito.\nfunction camposFaltantes(){",
+ "// 200: las fotos generales de los apartamentos van en el sobre como «aptosgen-N», solo desde el informe de torre.\n"
+ "const _fotosParaEnviarBase200 = _fotosParaEnviar;\n"
+ "_fotosParaEnviar = function(){\n"
+ "  const out = _fotosParaEnviarBase200.apply(this, arguments);\n"
+ "  if (ambito === 'torre') [0,1,2,3,4,5].forEach(function(fi){ const im = document.getElementById('fimg_aptosgen_' + fi);\n"
+ "    if (im && im.src && im.src.indexOf('data:') === 0) out.push({ nombre: 'aptosgen-' + (fi + 1), dato: im.src }); });\n"
+ "  return out;\n"
+ "};\n"
+ "// El bloque es fijo (como el de las minutas): se vacía al empezar otro informe y solo se ve en el de torre.\n"
+ "function _aptosGenLimpiar(){\n"
+ "  for (let fi = 0; fi < 6; fi++){\n"
+ "    const img = document.getElementById('fimg_aptosgen_' + fi), slot = document.getElementById('fslot_aptosgen_' + fi);\n"
+ "    if (!img || !slot) continue;\n"
+ "    img.removeAttribute('src'); img.style.display = 'none';\n"
+ "    const sp = slot.querySelector('span'); if (sp) sp.style.display = '';\n"
+ "    const inp = slot.querySelector('input'); if (inp) inp.value = '';\n"
+ "  }\n"
+ "  const o = document.getElementById('obs_aptosgen'); if (o) o.value = '';\n"
+ "}\n"
+ "function _aptosGenVer(){ const w = document.getElementById('aptosgen-wrap'); if (w) w.style.display = (typeof ambito !== 'undefined' && ambito === 'torre') ? '' : 'none'; }\n"
+ "const _initAppContentBase200 = initAppContent;\n"
+ "initAppContent = function(){ const r = _initAppContentBase200.apply(this, arguments); _aptosGenLimpiar(); _aptosGenVer(); return r; };\n"
+ "const _setAmbitoBase200 = setAmbito;\n"
+ "setAmbito = function(){ const r = _setAmbitoBase200.apply(this, arguments); _aptosGenVer(); return r; };\n"
+ "window.addEventListener('beforeprint', function(){\n"
+ "  const c = document.getElementById('aptosgen-wrap');\n"
+ "  if (c && ambito === 'torre') c.classList.toggle('vacio-impresion', ![0,1,2,3,4,5].some(fi => { const im = document.getElementById('fimg_aptosgen_' + fi); return im && im.src && im.src.indexOf('data:') === 0; }) && !String((document.getElementById('obs_aptosgen') || {}).value || '').trim());\n"
+ "});\n"
+ "// Devuelve la lista de campos obligatorios que faltan, según el ámbito.\nfunction camposFaltantes(){",
+ "200e· viajan, se vacían y solo se ven en torre")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

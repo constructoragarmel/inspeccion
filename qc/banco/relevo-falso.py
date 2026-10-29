@@ -8,11 +8,14 @@ def shaClave(lugar,x):
     l=str(lugar or '').strip()
     l='Toda la zona' if (not l or l.upper() in ('ZONA','TODA LA ZONA')) else l.upper()
     return _re.sub(r'\s+',' ',(l+'#'+str(x.get('frente') or '')+'|'+str(x.get('hallazgo') or '')).lower()).strip()
+# Los códigos de la lista v2 por hito, para leer los % de un informe como el relevo (v190).
+CODIGOS={"hito_estructura": ["1.01", "1.02", "1.03", "1.04", "1.05", "1.06"], "hito_cerramientos": ["2.01", "2.02", "2.03"], "hito_servicios": ["3.01", "3.02", "3.03", "3.04", "3.05", "3.06", "3.07", "3.08", "3.09", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15", "3.16", "3.17", "3.18", "3.19", "3.20", "3.21"], "hito_acabados": ["4.01", "4.02", "4.03", "4.04", "4.05", "4.06", "4.07", "4.08", "4.09", "4.10", "4.11", "4.12", "4.13"], "hito_puertas": ["5.01", "5.02", "5.03", "5.04", "5.05", "5.06", "5.07", "5.08", "5.09"], "hito_ventanas": ["6.01", "6.02"], "hito_acc_sanitarios": ["7.01", "7.02", "7.03", "7.04", "7.05", "7.08", "7.09"], "hito_acc_electricos": ["8.01", "8.02", "8.03", "8.04", "8.05", "8.06", "8.07", "8.08", "8.09"], "hito_ascensor": ["9.01", "9.02", "9.03", "9.04", "9.05", "9.06"], "hito_exteriores": ["10.01", "10.02", "10.03", "10.04", "10.05", "10.06", "10.07", "10.08", "10.09"], "hito_pruebas": ["11.01", "11.02", "11.03", "11.04"], "hito_contra_incendio": ["12.02", "12.03"]}
 class H(http.server.BaseHTTPRequestHandler):
     historial={}
     obra={}
     obraApto={}
     oficina={}   # v133: lo archivado por número, con revisión, datos y fotos (modo oficina)
+    avance={}    # v190 (relevo r79, ADR-0056): {(sector, torre, prueba): {P03AA1: {nro, fecha, piso, apto, pcts}}}, como avance-torre.json
     shaEst={}    # v182 (relevo r73, ADR-0050): {(sector, lugar#frente|hallazgo): {inspector, validado}}
     def _ok(self,obj,code=200):
         b=json.dumps(obj,ensure_ascii=False).encode()
@@ -28,8 +31,11 @@ class H(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         n=int(self.headers.get('Content-Length',0)); raw=self.rfile.read(n)
         if self.path.startswith('/control'):
-            ESTADO.update(json.loads(raw or b'{}'))
-            if ESTADO.get('borrar'): H.historial.clear(); H.obra.clear(); H.obraApto.clear(); H.oficina.clear(); getattr(H,'compilados',{}).clear(); H.shaEst.clear(); open(S+'/envios.jsonl','w').close(); ESTADO['borrar']=False
+            c=json.loads(raw or b'{}')
+            if 'sembrarAvance' in c:   # v190: lo que ya había en el archivo de una torre, para la planilla
+                x=c.pop('sembrarAvance'); H.avance[(x['sector'],x['torre'],bool(x.get('prueba',True)))]=x['informes']
+            ESTADO.update(c)
+            if ESTADO.get('borrar'): H.historial.clear(); H.obra.clear(); H.obraApto.clear(); H.oficina.clear(); getattr(H,'compilados',{}).clear(); H.shaEst.clear(); H.avance.clear(); open(S+'/envios.jsonl','w').close(); ESTADO['borrar']=False
             return self._ok({'ok':True,'estado':ESTADO})
         if ESTADO['caido']:
             self.close_connection=True; return
@@ -230,6 +236,11 @@ class H(http.server.BaseHTTPRequestHandler):
             v=H.oficina.get(p.get('numero'))
             if not v: return self._ok({"ok":False,"error":"No hay un informe archivado con el número "+str(p.get('numero'))})
             return self._ok({"ok":True,"numero":p.get('numero'),"revision":v['rev'],"datos":v['datos'],"fotos":v['fotos']})
+        if p.get('accion')=='planilla':
+            # Como el relevo r79: el avance-torre.json de la torre, solo apartamentos.
+            if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
+            if not p.get('sector') or not p.get('torre'): return self._ok({"ok":False,"error":"Faltan sector o torre"})
+            return self._ok({"ok":True,"torre":p['sector']+'-'+p['torre'].replace('-',''),"informes":H.avance.get((p['sector'],p['torre'],bool(p.get('prueba'))),{})})
         if p.get('accion')=='historial' and p.get('tipo')=='obra':
             # Como el relevo r27: el último de ese apartamento (o de torre) y el último de un apartamento de la torre.
             b=(p.get('bloque') or 'TORRE').upper()
@@ -255,6 +266,30 @@ class H(http.server.BaseHTTPRequestHandler):
             prev=H.oficina.get(p['numero']); rev=(prev['rev']+1) if prev else 1
             H.oficina[p['numero']]={'rev':rev,'t':time.time(),'datos':p['datos'],'tipo':p.get('tipo'),'fotos':[{'nombre':x.get('nombre'),'dato':x.get('dato')} for x in (p.get('fotos') or []) if x and x.get('dato')]}
         d=p.get('datos') or {}
+        if not p.get('tipo') and d.get('lista')=='v2':   # v190: como actualizarAvanceTorre, el último % de cada apartamento
+            import re as _r
+            mm=_r.search(r'-(P\d{2}A[^-]*)-\d{6}-',p['numero'].upper())
+            if mm:
+                def _pf(r):
+                    if not r or r.get('fueraDeAmbito') or str(r.get('ev') or '')=='N/A': return None
+                    if str(r.get('pct') or '').strip()!='':
+                        try: return max(0,min(100,int(float(str(r['pct']).replace(',','.')))))
+                        except: pass
+                    try: pr=float(r.get('pr') or 0)
+                    except: pr=0
+                    try: ej=float(r.get('ej') or 0)
+                    except: ej=0
+                    if pr>0: return min(100,int(ej/pr*100))
+                    return 0 if str(r.get('ej'))=='0' else None
+                pc={}
+                for pid,filas in (d.get('partidas') or {}).items():
+                    if pid.endswith('_extra') or not isinstance(filas,list): continue
+                    for i,r in enumerate(filas):
+                        v=_pf(r); c=(CODIGOS.get(pid) or [None]*99)[i] if i<len(CODIGOS.get(pid) or []) else None
+                        if v is not None and c: pc[c]=v
+                sec=p['numero'].upper().replace('PRUEBA-','').split('-')[0]; k=(sec,d.get('torre'),p['numero'].upper().startswith('PRUEBA-'))
+                av=H.avance.setdefault(k,{}); ant=av.get(mm.group(1))
+                if not ant or str(d.get('fecha',''))>=str(ant.get('fecha','')): av[mm.group(1)]={'nro':p['numero'],'fecha':d.get('fecha',''),'piso':d.get('piso',''),'apto':d.get('apto',''),'pcts':pc}
         if not p.get('tipo') and d.get('lista')=='v2':
             import re
             m=re.search(r'-(P\d{2}A[^-]*|ESTR)-\d{6}-',p['numero'].upper())
