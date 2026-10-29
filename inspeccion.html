@@ -1563,10 +1563,10 @@ function _pintarConexion(){
   const el = document.getElementById('estado-conexion');
   if(!el) return;
   if(navigator.onLine){
-    el.textContent = '● en línea · v189';
+    el.textContent = '● en línea · v190';
     el.style.color = '#e8f5e9';
   } else {
-    el.textContent = '● sin señal · v189 — el informe queda guardado aquí';
+    el.textContent = '● sin señal · v190 — el informe queda guardado aquí';
     el.style.color = '#ffe9c7';
   }
 }
@@ -4214,7 +4214,8 @@ function _conTitulo195(v){
     return out;
   }
   const claveDe = function(nro){ const m = String(nro || '').toUpperCase().match(/-(P\d{2}A[^-]*)-\d{6}-/); return m ? m[1] : null; };
-  const bloque = function(p, a){ const av = String(a || '').toUpperCase(); return 'P' + pad(p) + 'A' + (/^\d+$/.test(av) ? av.padStart(2, '0') : av); };
+  // Limpio como el número del formulario (_limpiar): «1 lateral» → «1LATERAL», la clave que guarda el archivo.
+  const bloque = function(p, a){ const av = _limpiar(a); return 'P' + pad(p) + 'A' + (/^\d+$/.test(av) ? av.padStart(2, '0') : av); };
   // La planta baja es el piso 00 del número (ADR-0016) y «Planta Baja» en el desplegable del formulario.
   const nomPiso = function(p){ return p === 0 ? 'Planta Baja' : 'Piso ' + pad(p); };
   const corPiso = function(p){ return p === 0 ? 'PB' : 'P' + pad(p); };
@@ -4262,7 +4263,7 @@ function _conTitulo195(v){
     for (let p = P.pisoMin; p <= maxP; p++) {
       const deEste = [];
       if (lista && p > 0) lista.forEach(function(a){ deEste.push(a); });
-      Object.keys(P.prev).forEach(function(k){ const m = k.match(/^P(\d{2})A(.+)$/); if (m && +m[1] === p) { const a = P.prev[k].apto || m[2]; if (deEste.indexOf(String(a).toUpperCase()) < 0) deEste.push(String(a).toUpperCase()); } });
+      Object.keys(P.prev).forEach(function(k){ const m = k.match(/^P(\d{2})A(.+)$/); if (m && +m[1] === p) { const a = String(P.prev[k].apto || m[2]).trim().toUpperCase(); if (deEste.indexOf(a) < 0) deEste.push(a); } });
       (P.extra || []).forEach(function(x){ if (x.p === p && deEste.indexOf(x.a) < 0) deEste.push(x.a); });
       deEste.forEach(function(a, i){ const k = bloque(p, a); if (vistos[k]) return; vistos[k] = true; out.push({ p: p, a: a, k: k, i: i }); });
     }

@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: 2547f9d081
+// Huella de la fuente: 39eeee9696
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -465,11 +465,22 @@ function _pdfHtml(p) {
       (PDF_SIN_CUENTAS ? _pdfNotaSinCuentas() : _pdfAvancePresupuesto(av, d, HS)) +
       (huboAlgunPct ? '' : _pdfAvisoSinProyectada()) +
       cuerpo +
+      _pdfAptosGenerales(p, d) +
       _pdfObservacionesPorHito(d, HS, noInsp) +
       _pdfObservacionGeneral(d) +
       _pdfFirmas(p, d) +
       _pdfMinutas(p) +
     '</body></html>';
+}
+function _pdfAptosGenerales(p, d) {
+  var fotos = (_pdfFotosPorHito(p)['aptosgen'] || []).slice().sort(function (a, b) { return a.num - b.num; });
+  if (!fotos.length) return '';
+  var t = String((d || {}).obsAptosGen || '').trim();
+  return '<table width="100%" cellpadding="4" cellspacing="0" style="margin-top:14px;page-break-inside:avoid"><tr>' +
+           '<td style="color:#1a237e;font-weight:bold;font-size:12px;border-bottom:2px solid #1a237e">FOTOS GENERALES DE LOS APARTAMENTOS (' + fotos.length + ')</td>' +
+         '</tr></table>' +
+         (t ? '<div style="font-size:10px;margin:6px 0">' + _pdfEsc(t).replace(/\n/g, '<br>') + '</div>' : '') +
+         _pdfFotos(fotos);
 }
 function _pdfMembrete(p, d, titulo) {
   titulo = titulo || 'INFORME DE GERENCIA T\u00c9CNICA DE INSPECCI\u00d3N';
@@ -1316,7 +1327,7 @@ function _pdfMaquinariaUrbanismo(it) {
   return '<tr><td></td><td colspan="6" style="font-size:9px;color:#334155"><b>Maquinaria que oper\u00f3:</b> ' + _pdfEsc(m) + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: '2547f9d081',
+    huella: '39eeee9696',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];
