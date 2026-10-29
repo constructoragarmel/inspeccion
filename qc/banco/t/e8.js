@@ -127,6 +127,18 @@ abrirPlanilla(); await hasta(listo, 15000);
 ok('QC9e · Al reabrir, los apartamentos agregados siguen ahí', E().P.aptos.length === n9, E().P.aptos.length + ' / ' + n9);
 cerrarPlanilla();
 
+// Nombres como los del archivo real de Simón Rodríguez (29-oct, r79 contra lo real): «1 lateral», «1b tipo 2 centro ».
+await Q.relevo({ sembrarAvance: { sector: 'SR', torre: 'T-12', prueba: true, informes: {
+  P01A1LATERAL: { nro: 'PRUEBA-SR-T12-P01A1LATERAL-261007-GM', fecha: '2026-10-07', piso: 'Piso 01', apto: '1 lateral', pcts: { '3.01': 40 } },
+  P01A1BTIPO2CENTRO: { nro: 'PRUEBA-SR-T12-P01A1BTIPO2CENTRO-261007-GM', fecha: '2026-10-07', piso: 'Piso 01', apto: '1b tipo 2 centro ', pcts: { '3.01': 25 } } } } });
+await cabecera({ convenio: 'Convenio Rusos', torre: 'T-12' }); abrirPlanilla(); await hasta(() => listo() && E().P.origenPrev === 'del archivo', 15000);
+await ir({ vista: 'tel', piso: 1, hitoSel: 'hito_servicios' });
+const lat = E().P.aptos.find(x => x.k === 'P01A1LATERAL'), cen = E().P.aptos.find(x => x.k === 'P01A1BTIPO2CENTRO');
+ok('QC9f · Nombres con espacios del archivo real («1 lateral», «1b tipo 2 centro »): misma clave que el número, su gris y un número sin espacios',
+   !!lat && !!cen && E().P.aptos.length === 2 && celda('P01A1LATERAL', '3.01').textContent.trim() === '40' && _plNroPara(1, lat.a) === 'PRUEBA-SR-T12-P01A1LATERAL-' + hoy6 + '-' + _plNroPara(1, 'A1').split('-').pop(),
+   E().P.aptos.map(x => x.k + '=' + x.a).join(' | ') + ' · ' + (lat ? _plNroPara(1, lat.a) : ''));
+cerrarPlanilla();
+
 // ── QC10 · ocho por piso (SB J-09) ──
 localStorage.setItem('garmel_reports_list', '[]');
 await cabecera({ convenio: 'Convenio Chinos', torre: 'J-09' });
