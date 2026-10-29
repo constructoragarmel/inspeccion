@@ -1077,3 +1077,46 @@ contesta con lo sembrado (`/control {sembrarAvance}`) y lo actualiza con cada en
   `t87`, `t90`, `t92` (las que fallan sin ventana fallan igual en la v189). `t47` encontró el botón de la planilla metido entre los
   del ámbito: va después de «Estructura». `t62` sin ventana pierde las minutas al reabrir solo con este cambio; en el navegador
   real da 9/9 (el reloj virtual corta la carga de IndexedDB). `t138` 10/10 en el navegador.
+
+**Las 20 rondas de estrés de la planilla** (29-oct-2026, pedido de Stephanie: «20 QC de lo nuevo … como si fuera una inspectora en
+campo y en oficina; que no se repita ningún error de antes»). En `inspeccion.html?prueba=1`, a la vista, con la v190 armada:
+- `e7` QC1 a QC5 **25/25**: el primer uso de punta a punta (8 apartamentos con «lo mismo», «Enviar ahora», nada suelto en
+  «Informes», ningún aviso de «falta»); abrirla desde torre, estructura, un apartamento copiado y un informe viejo reabierto; un
+  apartamento ya enviado hoy; dos toques en todo; el «atrás» de Android.
+- `e8` QC6 a QC10 **24/24**: relevo lento, colgado (corta a los 12 s), caído y con la respuesta perdida; lo sin guardar al día
+  siguiente y la baja por otro informe que llegó entretanto; el teléfono sin espacio; los dos equipos en la misma torre; Simón
+  Rodríguez sin lista (120 apartamentos de una vez); SB J-09 con 8 por piso.
+- `e9` QC11 a QC15 **36/36**: el teclado a fondo (105 cambios, 100 deshacer); la oficina con 2.400 casillas (206 ms) y lo raro de
+  Excel; la hoja impresa y «La pasa»; bajas y descartar; el informe abierto y corregido en el formulario.
+- `e10` QC16, QC17 y QC19 **17/17**: el recorrido hasta el relevo (fotos generales, la séptima, quitar una); imprimir 15, 40 y 8 por
+  piso; 300 toques al azar sin un error.
+- `e11` QC18 **5/5 en 320×568, 360×740, 375×812, 414×896, 812×375, 768×1024 y 1280×800**.
+- `pdf/t79planilla.js` (QC16 del lado del relevo, con el código real en Chrome, justo después de `e10`) **13/13**: el PDF del
+  apartamento con cada % de la planilla, el avance y el compilado leen lo mismo, las fotos generales después de los hitos y
+  escapadas, la consulta `planilla`, y el avance bajo candado.
+- La impresión de verdad (Chrome a PDF desde la app): hojas en carta horizontal (10 cómodas, 5 «toda la torre», 15 compactas en
+  J-09) y la guía en 2 verticales, sin cortes.
+- QC20, la regresión con el código final: `t139` 30/30, `t140` 7/7, `t124` 8/8, `t128` 9/9, `t136` 9/9, `t137` 10/10, `t138` 10/10,
+  `t26` 5/5, `t69` 13/13, `t62` 9/9 (en el navegador), `t108` 4/4. `t47` 8/11: las tres esperan la fecha «261001» de cuando se
+  escribió; desde la v183 un informe nuevo trae la de hoy (ESTR, iniciales, ámbito y vista salen bien).
+
+**Encontraron once cosas, arregladas:** (1) el número salía con «ESTR» si la planilla se abría desde Estructura, y con el de un
+informe reabierto si no se recalculaba: ahora se arma con las piezas de la cabecera, como `updateNroInforme`; (2) abierta desde
+Torre, el texto de las fotos generales y la marca «copiado de» se colaban en cada apartamento; (3) un apartamento enviado hoy por la
+misma inspectora se reemplazaba sin avisar (el relevo lo guarda como -r2 y pasa a ser el último, sin las fotos del de la mañana):
+ahora lo dice y pide confirmarlo; (4) el «atrás» de Android salía de la página: ahora cierra la hoja de abajo y después la
+planilla, y su propio «atrás» al cerrar se cuenta para que, si llega tarde, no cierre la que se volvió a abrir; (5) en las torres
+sin lista no se podían agregar apartamentos desde el teléfono, y de a uno: ahora «＋ Apartamentos» está en las dos vistas, con
+varios nombres y un rango de pisos (la planta baja es el piso 0); (6) con lo guardado y el relevo lento se esperaba hasta 12 s:
+ahora abre al instante con lo guardado y se pone al día al llegar; (7) «La pasa» solo se pedía guardando desde la pestaña de la
+oficina, y el origen del informe dependía de la pestaña abierta: ahora los dos dependen de dónde se escribió; (8) lo escrito en una
+casilla de la oficina sin salir de ella no contaba al guardar; (9) «0,5» y «1.000» pegados de Excel entraban como 1 %: ahora se
+rechazan; (10) un informe de la planilla corregido en el formulario perdía la marca de la planilla (origen, quién la pasó, la
+hoja impresa); (11) «toda la torre en una hoja» se cortaba con 60 apartamentos: ahora llega hasta 48. Además: la barra de arriba
+deja de estar fija con el teléfono apaisado (le quedaban 177 px a la tabla), «← Formulario» cabe junto al título, y el % de una
+fila con cantidades redondea como el relevo. En el relevo (r79), el avance de la torre se escribe bajo candado.
+
+**Lo que se miró de los errores de antes:** borradores duplicados al volver de WhatsApp (QC7, QC4), dos toques que duplican (QC4),
+botones de menos de 44 px y tablas que se salen a 375 (QC10, QC18), «falta: estatus» al enviar (QC1), el ancho de columnas al
+imprimir (QC17 y el PDF), números a medias (QC2), filas copiadas o heredadas que viajan (QC2), lo cerrado al 100 % (QC11), acentos,
+comillas y HTML (QC11, QC16), relevo lento o caído (QC6), teléfono sin espacio (QC7), y lo de torre que se cuela en apartamento (QC2).

@@ -4174,7 +4174,7 @@ function _conTitulo195(v){
   const CORTO = { hito_cerramientos: 'Cerramientos', hito_servicios: 'Servicios', hito_acabados: 'Acabados', hito_puertas: 'Puertas',
                   hito_ventanas: 'Ventanas', hito_acc_sanitarios: 'Sanitarios', hito_acc_electricos: 'Eléctricos', hito_pruebas: 'Pruebas' };
   const MAX_DESHACER = 100, MAX_COLS = 14;
-  const TAMANOS = { comoda: { filas: 24, txt: 'Cómoda para escribir' }, compacta: { filas: 40, txt: 'Compacta' }, toda: { filas: 60, txt: 'Toda la torre en una hoja (letra chica)' } };
+  const TAMANOS = { comoda: { filas: 24, txt: 'Cómoda para escribir' }, compacta: { filas: 40, txt: 'Compacta' }, toda: { filas: 48, txt: 'Toda la torre en una hoja (letra chica)' } };   // con más de 48 filas la hoja se corta y no se puede escribir
 
   // ── la lista: las subpartidas que se miden por apartamento ──
   function lista(){
@@ -4202,7 +4202,7 @@ function _conTitulo195(v){
     const pr = parseFloat(r.pr); let ej = parseFloat(r.ej);
     if (!(pr > 0)) { const sn = String(r.sn || '').toUpperCase(); if (sn === 'SÍ' || sn === 'SI') return 100; if (sn === 'NO') return 0; return (String(r.ej).trim() === '0' || String(r.pr).trim() === '0') ? 0 : null; }
     if (isNaN(ej) || ej < 0) ej = 0;
-    return Math.min(100, Math.floor(ej / pr * 100));
+    return Math.min(100, Math.round(ej / pr * 100));   // redondea como _pdfPctFila del relevo
   }
   function pctsDe(d){
     const out = {};
@@ -4215,14 +4215,16 @@ function _conTitulo195(v){
   }
   const claveDe = function(nro){ const m = String(nro || '').toUpperCase().match(/-(P\d{2}A[^-]*)-\d{6}-/); return m ? m[1] : null; };
   const bloque = function(p, a){ const av = String(a || '').toUpperCase(); return 'P' + pad(p) + 'A' + (/^\d+$/.test(av) ? av.padStart(2, '0') : av); };
+  // La planta baja es el piso 00 del número (ADR-0016) y «Planta Baja» en el desplegable del formulario.
+  const nomPiso = function(p){ return p === 0 ? 'Planta Baja' : 'Piso ' + pad(p); };
+  const corPiso = function(p){ return p === 0 ? 'PB' : 'P' + pad(p); };
 
   // ── el estado de la planilla abierta ──
   let P = null, est = { N: {}, C: {} }, pila = [], vista = 'tel', piso = 1, hitoSel = 'hito_servicios', tamano = 'comoda';
   const enPapel = {}, abiertos = { hito_servicios: true };
   const CLAVE = function(){ return 'garmel_planilla_' + P.sector + '|' + P.torre; };
   function guardarBorrador(){ try {
-    if (Object.keys(est.N).length || Object.keys(est.C).length) localStorage.setItem(CLAVE(), JSON.stringify({ est: est, pasa: P.pasa, impresa: P.impresa, extra: P.extra, pisos: P.pisosElegido || 0 }));
-    else localStorage.setItem(CLAVE(), JSON.stringify({ est: { N: {}, C: {} }, pasa: P.pasa, impresa: P.impresa, extra: P.extra, pisos: P.pisosElegido || 0 }));
+    localStorage.setItem(CLAVE(), JSON.stringify({ est: est, pasa: P.pasa, impresa: P.impresa, extra: P.extra, pisos: P.pisosElegido || 0, oficina: !!P.oficina }));
   } catch (e) {} }
   function leerBorrador(){ try { return JSON.parse(localStorage.getItem(CLAVE()) || 'null'); } catch (e) { return null; } }
   function antesDeCambiar(){ pila.push(JSON.stringify(est)); if (pila.length > MAX_DESHACER) pila.shift(); }
@@ -4239,9 +4241,11 @@ function _conTitulo195(v){
     const t = String(raw == null ? '' : raw).trim().toLowerCase();
     if (t === '') return '';
     if (sino) { if (/^(s|si|sí|x|✓|1|100|hecha)$/.test(t)) return 100; if (/^(n|no|0|-|—)$/.test(t)) return 0; return null; }
+    // «75%», « 80 », «60,4». No: «0,5» (una fracción de Excel sin formato de %), «1.000» (miles), negativos ni texto.
     const m = t.replace(/\s|%/g, '').replace(',', '.');
-    if (!/^\d{1,3}(\.\d+)?$/.test(m)) return null;
-    const v = Math.round(parseFloat(m)); return v >= 0 && v <= 100 ? v : null;
+    if (!/^\d{1,3}(\.\d{1,2})?$/.test(m)) return null;
+    const f = parseFloat(m); if (f > 0 && f < 1) return null;
+    const v = Math.round(f); return v >= 0 && v <= 100 ? v : null;
   };
 
   // ── los apartamentos de la torre ──
@@ -4252,10 +4256,12 @@ function _conTitulo195(v){
     (P.extra || []).forEach(function(x){ maxP = Math.max(maxP, x.p); });
     if (!maxP) maxP = lista ? 15 : 1;
     P.pisos = maxP;
+    // La planta baja solo aparece si ya tiene algo: un informe o un apartamento agregado.
+    P.pisoMin = (Object.keys(P.prev).some(function(k){ return /^P00A/.test(k); }) || (P.extra || []).some(function(x){ return x.p === 0; })) ? 0 : 1;
     const out = [], vistos = {};
-    for (let p = 1; p <= maxP; p++) {
+    for (let p = P.pisoMin; p <= maxP; p++) {
       const deEste = [];
-      if (lista) lista.forEach(function(a){ deEste.push(a); });
+      if (lista && p > 0) lista.forEach(function(a){ deEste.push(a); });
       Object.keys(P.prev).forEach(function(k){ const m = k.match(/^P(\d{2})A(.+)$/); if (m && +m[1] === p) { const a = P.prev[k].apto || m[2]; if (deEste.indexOf(String(a).toUpperCase()) < 0) deEste.push(String(a).toUpperCase()); } });
       (P.extra || []).forEach(function(x){ if (x.p === p && deEste.indexOf(x.a) < 0) deEste.push(x.a); });
       deEste.forEach(function(a, i){ const k = bloque(p, a); if (vistos[k]) return; vistos[k] = true; out.push({ p: p, a: a, k: k, i: i }); });
@@ -4299,7 +4305,8 @@ function _conTitulo195(v){
 
   // ── abrir ──
   window.abrirPlanilla = async function(){
-    if (typeof formType !== 'undefined' && formType !== 'detallado') { alert('La planilla es del formulario de obra.'); return; }
+    if (atrasPendiente) await atrasPendiente;   // se acaba de cerrar: que el historial termine de volver antes de entrar otra vez
+    if (P && raiz && !raiz.hidden) return;   // dos toques al botón: una sola planilla
     const d = getFormData(), falta = [];
     const torre = getTorreActual(), sector = getSectorActual();
     if (!torre || torre === '—' || torre === 'SIN-REG') falta.push('la torre');
@@ -4310,31 +4317,63 @@ function _conTitulo195(v){
     if (falta.length) { alert('Para abrir la planilla, primero elija en la cabecera ' + falta.join(', ') + '. Se ponen una sola vez y valen para todos los apartamentos.'); return; }
     if (d.fecha > HOY()) { alert('La fecha de la cabecera es futura (' + fechaLarga(d.fecha) + '). Corríjala antes de abrir la planilla.'); return; }
     prepararLista();
-    P = { sector: sector, torre: torre, cab: d, prev: {}, aptos: [], pisos: 0, extra: [], pasa: '', impresa: '', origenPrev: '' };
+    // La cabecera se usa tal cual en cada informe: lo que es de otro informe (el de torre, una copia) no viaja.
+    ['obsAptosGen', 'copiadoDe', 'fotos', 'fotobs', 'enviado', 'editadoTras', 'oficina', 'definitiva', 'fotosEnIdb', 'repetidoDe', 'separadoDe', 'planilla', 'uso'].forEach(function(c){ delete d[c]; });
+    const mio = P = { sector: sector, torre: torre, cab: d, prev: {}, aptos: [], pisos: 0, extra: [], pasa: '', impresa: '', origenPrev: '', oficina: false };
     est = { N: {}, C: {} }; pila = [];
     const b = leerBorrador();
-    if (b) { if (b.est) est = b.est; P.pasa = b.pasa || ''; P.impresa = b.impresa || ''; P.extra = b.extra || []; P.pisosElegido = b.pisos || 0; }
+    if (b) { if (b.est) est = b.est; P.pasa = b.pasa || ''; P.impresa = b.impresa || ''; P.extra = b.extra || []; P.pisosElegido = b.pisos || 0; P.oficina = !!b.oficina; }
     LISTA.forEach(function(h){ if (!(h.id in enPapel)) enPapel[h.id] = true; });
     if (!LISTA.some(function(h){ return h.id === hitoSel; })) hitoSel = LISTA[0].id;
     vista = innerWidth >= 900 ? 'tabla' : 'tel';
-    montar();
+    montar(); entrarAlHistorial();
     pintarCargando();
-    // Primero lo guardado (sirve sin señal); después el archivo, si contesta.
+    // Primero lo guardado (sirve sin señal) y se puede trabajar ya; el archivo, si contesta, lo pone al día.
     let guardado = null; try { guardado = JSON.parse(localStorage.getItem('garmel_planilla_prev_' + P.sector + '|' + P.torre) || 'null'); } catch (e) {}
     P.prev = mezclar(guardado ? guardado.informes : null);
     P.origenPrev = guardado ? 'guardado el ' + fechaLarga(guardado.fecha) : 'solo de este teléfono';
-    armarAptos(); piso = Math.min(Math.max(1, piso), P.pisos);
+    armarAptos(); piso = Math.min(Math.max(P.pisoMin, piso), P.pisos);
+    const recuperado = function(){ const r = resumen(); return r.ks.length ? '↩︎ Se recuperó lo que había quedado sin guardar: ' + r.n + ' casilla(s) en ' + r.ks.length + ' apartamento(s).' : ''; };
+    const yaHayAlgo = !!guardado || Object.keys(P.prev).length > 0;
+    if (yaHayAlgo && navigator.onLine && localStorage.getItem('garmel_clave_envio')) { P.aviso = '🔄 Actualizando con el archivo; mientras tanto lo gris es ' + P.origenPrev + '. ' + recuperado(); mostrar(vista); }
     const del = await traerArchivo();
-    if (!P) return;
+    if (P !== mio) return;
     if (del) {
       try { localStorage.setItem('garmel_planilla_prev_' + P.sector + '|' + P.torre, JSON.stringify({ fecha: HOY(), informes: del })); } catch (e) {}
       P.prev = mezclar(del); P.origenPrev = 'del archivo';
     }
-    armarAptos(); piso = Math.min(Math.max(1, piso), P.pisos);
-    const r = resumen();
-    P.aviso = (del ? '' : '📵 Sin conexión con el archivo: lo gris es ' + P.origenPrev + '. ') + (r.ks.length ? '↩︎ Se recuperó lo que había quedado sin guardar: ' + r.n + ' casilla(s) en ' + r.ks.length + ' apartamento(s).' : '');
-    mostrar(vista);
+    armarAptos(); piso = Math.min(Math.max(P.pisoMin, piso), P.pisos);
+    P.aviso = (del ? '' : '📵 Sin conexión con el archivo: lo gris es ' + P.origenPrev + '. ') + recuperado();
+    refrescar();
   };
+  // Repinta sin perder lo que se está escribiendo en la tabla de la oficina.
+  function refrescar(){
+    const a = document.activeElement; let foco = null;
+    if (a && a.classList && a.classList.contains('pl-pc') && raiz && raiz.contains(a)) { escribir(a); foco = [a.dataset.k, a.dataset.c]; }
+    mostrar(vista);
+    if (foco) { const i = document.querySelector('#pl-cuerpo input.pl-pc[data-k="' + foco[0] + '"][data-c="' + foco[1] + '"]'); if (i) i.focus(); }
+  }
+  // El «atrás» del teléfono (Android) cierra primero la hoja de abajo y después la planilla, sin salir de la página.
+  // Al cerrar con «← Formulario» la planilla pide su propio «atrás». Ese «atrás» puede llegar tarde (con el teléfono ocupado),
+  // cuando ya se volvió a abrir: se cuenta y se ignora siempre, llegue cuando llegue. Abrir espera a que llegue (como mucho 600 ms).
+  let enHistorial = false, propios = 0, atrasPendiente = null, finAtras = null;
+  function entrarAlHistorial(){ if (enHistorial) return; try { history.pushState({ planilla: 1 }, ''); enHistorial = true; } catch (e) {} }
+  const soltarEspera = function(){ if (finAtras) { const f = finAtras; finAtras = null; atrasPendiente = null; f(); } };
+  function salirDelHistorial(){
+    enHistorial = false;
+    atrasPendiente = new Promise(function(res){ finAtras = res; });
+    setTimeout(soltarEspera, 600);
+    try { propios++; history.back(); } catch (e) { propios--; soltarEspera(); }
+  }
+  addEventListener('popstate', function(){
+    if (propios > 0) { propios--; soltarEspera(); return; }   // el «atrás» que pidió la planilla al cerrarse
+    if (!enHistorial) return;
+    enHistorial = false;
+    if (!P || !raiz || raiz.hidden) return;
+    const f = document.getElementById('pl-fondo');
+    if (f && !f.hidden) { cerrarSheet(); entrarAlHistorial(); return; }
+    cerrarPlanilla(true);
+  });
   window._plEstado = function(){ return { P: P, est: est, pila: pila, vista: vista, piso: piso, hitoSel: hitoSel, tamano: tamano, LISTA: LISTA }; };
   window._plIr = function(o){ if (o.piso) piso = o.piso; if (o.hitoSel) hitoSel = o.hitoSel; if (o.tamano) tamano = o.tamano; if (o.abrir) abiertos[o.abrir] = true; if (o.enPapel) Object.keys(o.enPapel).forEach(function(k){ enPapel[k] = o.enPapel[k]; }); mostrar(o.vista || vista); };
 
@@ -4344,7 +4383,7 @@ function _conTitulo195(v){
     raiz = document.getElementById('planilla');
     if (!raiz) { raiz = document.createElement('div'); raiz.id = 'planilla'; document.body.appendChild(raiz); }
     raiz.innerHTML =
-      '<div class="pl-top"><div class="pl-fila"><button type="button" class="pl-volver" id="pl-volver">← Volver al formulario</button>' +
+      '<div class="pl-top"><div class="pl-fila"><button type="button" class="pl-volver" id="pl-volver" title="Volver al formulario">← Formulario</button>' +
       '<div class="pl-tit"><b>📋 Planilla de avance</b><span>' + esc(P.sector) + ' · ' + esc(P.torre) + ' · ' + esc(P.cab.empresa || '') + '</span></div></div>' +
       '<div class="pl-cab">Visita del <b>' + esc(fechaLarga(P.cab.fecha)) + '</b> · ' + esc((P.cab.inspectores || []).join(', ')) + ' · ' + esc((P.cab.estatus || []).join(', ')) + ' <span class="pl-nota">(se cambian en el formulario)</span></div>' +
       '<nav class="pl-tabs" role="tablist">' +
@@ -4356,15 +4395,17 @@ function _conTitulo195(v){
       '<div class="pl-toast" id="pl-toast" role="status" aria-live="polite" hidden></div>' +
       '<div class="pl-fondo" id="pl-fondo" hidden><div class="pl-sheet" id="pl-sheet" role="dialog" aria-modal="true"></div></div>';
     raiz.hidden = false; document.body.classList.add('pl-abierta');
-    raiz.querySelectorAll('.pl-tabs button').forEach(function(b){ b.onclick = function(){ mostrar(b.dataset.v); }; });
+    raiz.querySelectorAll('.pl-tabs button').forEach(function(b){ b.onclick = function(){ confirmarFoco(); mostrar(b.dataset.v); }; });
     raiz.querySelector('#pl-volver').onclick = cerrarPlanilla;
     raiz.querySelector('#pl-undo').onclick = deshacer;
     raiz.querySelector('#pl-rev').onclick = revisar;
     raiz.querySelector('#pl-fondo').addEventListener('click', function(e){ if (e.target.id === 'pl-fondo') cerrarSheet(); });
   }
-  function cerrarPlanilla(){
+  function cerrarPlanilla(desdeAtras){
     if (!raiz) return;
-    guardarBorrador();
+    if (desdeAtras !== true && enHistorial) salirDelHistorial();
+    if (!P) { raiz.hidden = true; return; }
+    confirmarFoco(); guardarBorrador();
     raiz.hidden = true; raiz.innerHTML = ''; document.body.classList.remove('pl-abierta', 'pl-imp-hojas', 'pl-imp-guia');
     const r = resumen(); P = null;
     if (r.ks.length && typeof showToast === 'function') showToast('📋 La planilla queda guardada en este teléfono sin enviar (' + r.n + ' casilla(s)). Ábrala otra vez para revisarla y guardarla.', 'ok');
@@ -4395,16 +4436,16 @@ function _conTitulo195(v){
   function pintarTel(){
     const cuerpo = document.getElementById('pl-cuerpo');
     const conCambios = function(p){ return P.aptos.some(function(x){ return x.p === p && (est.N[x.k] || est.C[x.k]); }); };
-    let opts = ''; for (let p = 1; p <= P.pisos; p++) opts += '<option value="' + p + '">Piso ' + pad(p) + (conCambios(p) ? ' •' : '') + '</option>';
+    let opts = ''; for (let p = P.pisoMin; p <= P.pisos; p++) opts += '<option value="' + p + '">' + nomPiso(p) + (conCambios(p) ? ' •' : '') + '</option>';
     const aptos = P.aptos.filter(function(x){ return x.p === piso; });
     const h = LISTA.find(function(x){ return x.id === hitoSel; });
-    let t = '<div class="pl-piso"><button type="button" id="pl-ant" aria-label="Piso anterior"' + (piso <= 1 ? ' disabled' : '') + '>‹</button><select id="pl-psel" aria-label="Piso">' + opts + '</select><button type="button" id="pl-sig" aria-label="Piso siguiente"' + (piso >= P.pisos ? ' disabled' : '') + '>›</button></div>' +
+    let t = '<div class="pl-piso"><button type="button" id="pl-ant" aria-label="Piso anterior"' + (piso <= P.pisoMin ? ' disabled' : '') + '>‹</button><select id="pl-psel" aria-label="Piso">' + opts + '</select><button type="button" id="pl-sig" aria-label="Piso siguiente"' + (piso >= P.pisos ? ' disabled' : '') + '>›</button></div>' +
       '<div class="pl-chips" role="group" aria-label="Hito">' + LISTA.map(function(x){
         const n = aptos.reduce(function(a, y){ return a + x.subs.filter(function(s){ return nuevo(y.k, s.c); }).length; }, 0);
         return '<button type="button" data-h="' + x.id + '" aria-pressed="' + (x.id === hitoSel) + '">H' + x.num + ' ' + esc(x.corto) + (n ? '<span class="pl-cnt">' + n + '</span>' : '') + '</button>'; }).join('') + '</div>';
-    if (!aptos.length) t += '<p class="pl-lead">Este piso no tiene apartamentos en la lista. Agréguelos en «💻 En la oficina».</p>';
+    if (!aptos.length) t += '<p class="pl-lead">' + (P.aptos.length ? 'Este piso' : 'Esta torre') + ' no tiene apartamentos en la lista. Agréguelos aquí: se pueden poner varios y en varios pisos de una vez.</p>';
     else {
-      t += '<div class="pl-gw"><table class="pl-g' + (aptos.length > 4 ? ' ancho' : '') + '"><thead><tr><th scope="col">Piso ' + pad(piso) + '</th>' + aptos.map(function(x){
+      t += '<div class="pl-gw"><table class="pl-g' + (aptos.length > 4 ? ' ancho' : '') + '"><thead><tr><th scope="col">' + nomPiso(piso) + '</th>' + aptos.map(function(x){
         return '<th scope="col"><button type="button" class="pl-apto' + (est.C[x.k] ? ' tiene' : '') + '" data-com="' + x.k + '">' + esc(x.a) + '<small>' + (est.C[x.k] ? 'nota' : '+ nota') + '</small></button></th>'; }).join('') + '</tr></thead><tbody>';
       h.subs.forEach(function(s){
         t += '<tr><th scope="row"><button type="button" class="pl-ay" data-ay="' + s.c + '"><span>' + s.c + (s.sino ? ' · sí / no' : '') + '</span>' + esc(s.n) + '</button></th>';
@@ -4417,9 +4458,12 @@ function _conTitulo195(v){
       });
       t += '</tbody></table></div><div class="pl-ley"><span><i class="g"></i>Lo último (gris)</span><span><i class="d"></i>Ya en 100 %</span><span><i class="c"></i>Cambiado hoy</span><span><i class="b"></i>Bajó: revisar</span><span>· sin dato</span></div>';
     }
+    // Torres sin lista (Simón Rodríguez): los apartamentos se agregan desde el teléfono, no solo en la oficina.
+    t += '<div class="pl-ib"><button type="button" class="pl-btn" id="pl-mas">＋ Apartamentos</button></div>';
     cuerpo.innerHTML = t;
+    document.getElementById('pl-mas').onclick = agregarApto;
     const sel = document.getElementById('pl-psel'); sel.value = piso; sel.onchange = function(){ piso = +sel.value; pintarTel(); };
-    document.getElementById('pl-ant').onclick = function(){ if (piso > 1) { piso--; pintarTel(); } };
+    document.getElementById('pl-ant').onclick = function(){ if (piso > P.pisoMin) { piso--; pintarTel(); } };
     document.getElementById('pl-sig').onclick = function(){ if (piso < P.pisos) { piso++; pintarTel(); } };
     cuerpo.querySelectorAll('.pl-chips button').forEach(function(b){ b.onclick = function(){ hitoSel = b.dataset.h; pintarTel(); }; });
     cuerpo.querySelectorAll('.pl-c').forEach(function(b){ b.onclick = function(){ tocar(b.dataset.k, b.dataset.c); }; });
@@ -4431,7 +4475,7 @@ function _conTitulo195(v){
   function tocar(k, c){
     if (!nuevo(k, c) && prev(k, c) >= 100) {
       const s = SUBS[c], x = aptoDe(k);
-      abrirSheet('<h3>' + s.c + ' ' + esc(s.n) + '</h3><p class="pl-sub">Piso ' + pad(x.p) + ' · ' + esc(x.a) + '</p><p>✅ Ya estaba al 100 % y quedó cerrada. Ábrala solo si hay que corregirla.</p>' +
+      abrirSheet('<h3>' + s.c + ' ' + esc(s.n) + '</h3><p class="pl-sub">' + nomPiso(x.p) + ' · ' + esc(x.a) + '</p><p>✅ Ya estaba al 100 % y quedó cerrada. Ábrala solo si hay que corregirla.</p>' +
         '<div class="pl-acc"><button type="button" class="pl-btn" id="pl-c100-no" autofocus>Dejarla así</button><button type="button" class="pl-btn" id="pl-c100-si">🔓 Corregir</button></div>');
       document.getElementById('pl-c100-no').onclick = cerrarSheet;
       document.getElementById('pl-c100-si').onclick = function(){ teclado(k, c); };
@@ -4443,7 +4487,7 @@ function _conTitulo195(v){
     const s = SUBS[c], x = aptoDe(k), antes = prev(k, c);
     const otros = P.aptos.filter(function(y){ return y.p === x.p && y.k !== k; });
     let buf = nuevo(k, c) ? String(est.N[k][c]) : '', fresco = true;
-    abrirSheet('<h3>' + s.c + ' ' + esc(s.n) + '</h3><p class="pl-sub">Piso ' + pad(x.p) + ' · ' + esc(x.a) + ' · antes: <b>' + (antes === null ? 'sin dato' : fmt(c, antes) + (s.sino ? '' : ' %')) + '</b></p>' +
+    abrirSheet('<h3>' + s.c + ' ' + esc(s.n) + '</h3><p class="pl-sub">' + nomPiso(x.p) + ' · ' + esc(x.a) + ' · antes: <b>' + (antes === null ? 'sin dato' : fmt(c, antes) + (s.sino ? '' : ' %')) + '</b></p>' +
       (s.sino ? '<div class="pl-sino"><button type="button" data-v="0" aria-pressed="' + (valor(k, c) === 0) + '">No hecha</button><button type="button" data-v="100" aria-pressed="' + (valor(k, c) >= 100) + '">Sí, hecha</button></div>'
         : '<div class="pl-disp" id="pl-kd" aria-live="polite"></div><div class="pl-kw" id="pl-kw"></div>' +
           '<div class="pl-rap">' + [0, 25, 50, 75, 100].map(function(v){ return '<button type="button" data-r="' + v + '">' + v + '</button>'; }).join('') + '</div>' +
@@ -4451,7 +4495,9 @@ function _conTitulo195(v){
           '<button type="button" class="sm" data-x="borrar">Borrar</button><button type="button" data-d="0">0</button><button type="button" class="sm" data-x="igual">Igual que antes</button></div>') +
       (otros.length ? '<label class="pl-todos"><input type="checkbox" id="pl-kt"> Lo mismo en ' + (otros.length > 4 ? 'los otros ' + otros.length + ' apartamentos' : otros.map(function(y){ return esc(y.a); }).join(', ')) + ' de este piso</label>' : '') +
       '<div class="pl-acc"><button type="button" class="pl-btn" id="pl-kno">Cancelar</button>' + (s.sino ? '' : '<button type="button" class="pl-btn pri" id="pl-ksi">Listo</button>') + '</div>');
+    let hecho = false;
     const guardar = function(v){
+      if (hecho) return; hecho = true;
       antesDeCambiar(); poner(k, c, v);
       const t = document.getElementById('pl-kt'), saltados = [];
       if (t && t.checked && v !== '') otros.forEach(function(y){ const vy = valor(y.k, c); if (vy !== null && v < vy) saltados.push(y.a + ' (' + fmt(c, vy) + ')'); else poner(y.k, c, v); });
@@ -4478,7 +4524,7 @@ function _conTitulo195(v){
   }
   function comentario(k){
     const x = aptoDe(k);
-    abrirSheet('<h3>Nota · Piso ' + pad(x.p) + ' · ' + esc(x.a) + '</h3><p class="pl-sub">Opcional y sin límite. Va en las observaciones del informe de este apartamento.</p>' +
+    abrirSheet('<h3>Nota · ' + nomPiso(x.p) + ' · ' + esc(x.a) + '</h3><p class="pl-sub">Opcional y sin límite. Va en las observaciones del informe de este apartamento.</p>' +
       '<textarea id="pl-ct" autofocus aria-label="Nota">' + esc(est.C[k] || '') + '</textarea><div class="pl-acc"><button type="button" class="pl-btn" id="pl-cno">Cancelar</button><button type="button" class="pl-btn pri" id="pl-csi">Listo</button></div>');
     document.getElementById('pl-cno').onclick = cerrarSheet;
     document.getElementById('pl-csi').onclick = function(){ const v = document.getElementById('pl-ct').value.trim(); antesDeCambiar(); if (v) est.C[k] = v; else delete est.C[k]; cerrarSheet(); guardarBorrador(); repintar(); };
@@ -4504,7 +4550,7 @@ function _conTitulo195(v){
     let t = '<div class="pl-ocab"><label>La pasa<input id="pl-pasa" type="text" autocomplete="off" placeholder="Nombre de quien la pasa" value="' + esc(P.pasa) + '"></label>' +
       '<label>Hoja impresa el<input id="pl-impresa" type="date" value="' + esc(P.impresa) + '"></label>' +
       '<label>Pisos de la torre<input id="pl-npisos" type="number" min="1" max="40" inputmode="numeric" value="' + P.pisos + '"></label>' +
-      '<button type="button" class="pl-btn" id="pl-mas">＋ Apartamento</button><button type="button" class="pl-btn pri" id="pl-airimp">🖨 Imprimir hojas para obra</button></div>' +
+      '<button type="button" class="pl-btn" id="pl-mas">＋ Apartamentos</button><button type="button" class="pl-btn pri" id="pl-airimp">🖨 Imprimir hojas para obra</button></div>' +
       '<p class="pl-lead">Si viene de una hoja impresa, ponga quién la pasa y la fecha de la hoja. Enter baja al apartamento siguiente; Tab va a la derecha. Se puede pegar un bloque copiado de Excel.</p>' +
       (nPost ? '<div class="pl-post">⚠️ <b>' + nPost + ' apartamento(s) tuvieron otro informe después de que se imprimió la hoja</b> (marcados con ⚠️). La hoja trae un número más viejo: si el de la hoja es menor, no lo baje sin revisar.</div>' : '') +
       '<div class="pl-tw"><table class="pl-o"><thead><tr><th class="esq" rowspan="2" scope="col">Piso · apto</th>';
@@ -4513,7 +4559,7 @@ function _conTitulo195(v){
     LISTA.forEach(function(h){ if (abiertos[h.id]) h.subs.forEach(function(s){ t += '<th scope="col" title="' + esc(s.n) + '"' + (fueraPresupuesto(s.c) ? ' class="opc"' : '') + '>' + s.c + '</th>'; }); else t += '<th scope="col">prom.</th>'; });
     t += '</tr></thead><tbody>';
     P.aptos.forEach(function(x, r){
-      t += '<tr' + (x.i === 0 && x.p > 1 ? ' class="np"' : '') + '><th scope="row">' + (posterior(x.k) ? '<span title="Otro informe del ' + esc(fechaLarga(P.prev[x.k].fecha)) + '">⚠️</span> ' : '') + 'P' + pad(x.p) + ' · ' + esc(x.a) + '</th>';
+      t += '<tr' + (x.i === 0 && x.p > P.pisoMin ? ' class="np"' : '') + '><th scope="row">' + (posterior(x.k) ? '<span title="Otro informe del ' + esc(fechaLarga(P.prev[x.k].fecha)) + '">⚠️</span> ' : '') + corPiso(x.p) + ' · ' + esc(x.a) + '</th>';
       let col = 0;
       LISTA.forEach(function(h){
         if (abiertos[h.id]) h.subs.forEach(function(s){
@@ -4542,7 +4588,7 @@ function _conTitulo195(v){
       });
       i.addEventListener('paste', function(e){ pegar(e, i); });
     });
-    cuerpo.querySelectorAll('input.pl-com').forEach(function(i){ i.addEventListener('change', function(){ const v = i.value.trim(); antesDeCambiar(); if (v) est.C[i.dataset.com] = v; else delete est.C[i.dataset.com]; guardarBorrador(); barra(); }); });
+    cuerpo.querySelectorAll('input.pl-com').forEach(function(i){ i.addEventListener('change', function(){ const v = i.value.trim(); antesDeCambiar(); if (v) est.C[i.dataset.com] = v; else delete est.C[i.dataset.com]; P.oficina = true; guardarBorrador(); barra(); }); });
     barra();
   }
   function fueraPresupuesto(c){ const p = (typeof _presupuestoTorre !== 'undefined') ? _presupuestoTorre : null; return !!(p && p.codigos && p.torre === P.sector + '-' + P.torre && !p.codigos[c]); }
@@ -4550,8 +4596,8 @@ function _conTitulo195(v){
     const k = i.dataset.k, c = i.dataset.c, raw = i.value;
     if (String(raw).trim() === textoInput(k, c)) return;
     const v = _plLeerValor(raw, SUBS[c].sino);
-    if (v === null) { i.className = 'pl-pc mal'; aviso('«' + String(raw).trim().slice(0, 12) + '» no es un % válido (0 a 100' + (SUBS[c].sino ? ', o sí / no' : '') + '). Quedó como estaba.'); i.value = textoInput(k, c); setTimeout(function(){ i.className = claseInput(k, c); }, 1800); return; }
-    antesDeCambiar(); poner(k, c, v); guardarBorrador();
+    if (v === null) { i.className = 'pl-pc mal'; aviso('«' + String(raw).trim().slice(0, 12) + '» no es un % válido (0 a 100' + (SUBS[c].sino ? ', o sí / no' : '') + '). Quedó como estaba.'); i.value = textoInput(k, c); setTimeout(function(){ if (P && i.isConnected) i.className = claseInput(k, c); }, 1800); return; }
+    antesDeCambiar(); poner(k, c, v); P.oficina = true; guardarBorrador();
     i.value = textoInput(k, c); i.className = claseInput(k, c);
     if (baja(k, c)) aviso('Baja de ' + fmt(c, prev(k, c)) + ' a ' + fmt(c, est.N[k][c]) + ': queda marcada para revisar.');
     barra();
@@ -4570,29 +4616,40 @@ function _conTitulo195(v){
       if (v === null) { malos++; return; } if (v === '') return;
       poner(dst.dataset.k, dst.dataset.c, v); ok++;
     }); });
+    if (ok) P.oficina = true;
     guardarBorrador(); pintarTabla();
     aviso('Se pegaron ' + ok + ' casilla' + (ok === 1 ? '' : 's') + (malos ? '; ' + malos + ' no eran % válidos y se dejaron como estaban' : '') + (fuera ? '; ' + fuera + ' quedaban fuera de la tabla (abra el hito o revise desde dónde pegó)' : '') + '.');
   }
   function agregarApto(){
-    abrirSheet('<h3>＋ Apartamento</h3><p class="pl-sub">Para un apartamento que no está en la lista de la torre.</p>' +
-      '<div class="pl-ocab"><label>Piso<input id="pl-np" type="number" min="1" max="40" inputmode="numeric" value="' + piso + '"></label><label>Apartamento<input id="pl-na" type="text" autocapitalize="characters" autocomplete="off" placeholder="Ej: B10"></label></div>' +
+    abrirSheet('<h3>＋ Apartamentos</h3><p class="pl-sub">Los que no están en la lista de la torre. Se pueden poner varios, separados por espacio o coma, y en varios pisos de una vez. La planta baja es el piso 0.</p>' +
+      '<div class="pl-ocab"><label>Del piso<input id="pl-np" type="number" min="0" max="40" inputmode="numeric" value="' + piso + '"></label><label>al piso<input id="pl-np2" type="number" min="0" max="40" inputmode="numeric" value="' + piso + '"></label></div>' +
+      '<div class="pl-ocab"><label style="flex:1">Apartamentos<input id="pl-na" type="text" autocapitalize="characters" autocomplete="off" placeholder="Ej: A1 A2 B1 B2"></label></div>' +
       '<div class="pl-acc"><button type="button" class="pl-btn" id="pl-nno">Cancelar</button><button type="button" class="pl-btn pri" id="pl-nsi">Agregar</button></div>');
     document.getElementById('pl-nno').onclick = cerrarSheet;
     document.getElementById('pl-nsi').onclick = function(){
-      const p = parseInt(document.getElementById('pl-np').value, 10), a = (typeof _limpiar === 'function' ? _limpiar(document.getElementById('pl-na').value) : String(document.getElementById('pl-na').value).trim().toUpperCase());
-      if (!(p >= 1 && p <= 40) || !a) { aviso('Ponga el piso (1 a 40) y el apartamento.'); return; }
-      if (P.aptos.some(function(x){ return x.k === bloque(p, a); })) { aviso('P' + pad(p) + ' · ' + a + ' ya está en la planilla.'); return; }
-      P.extra.push({ p: p, a: a }); armarAptos(); guardarBorrador(); cerrarSheet(); pintarTabla(); aviso('Se agregó P' + pad(p) + ' · ' + a + '.');
+      const p1 = parseInt(document.getElementById('pl-np').value, 10), p2v = parseInt(document.getElementById('pl-np2').value, 10), p2 = isNaN(p2v) ? p1 : p2v;
+      const nombres = _aptosEscritos(document.getElementById('pl-na').value, '');
+      if (!(p1 >= 0 && p1 <= 40) || !(p2 >= p1 && p2 <= 40) || !nombres.length) { aviso('Ponga los pisos (0 a 40, el primero no mayor que el segundo) y al menos un apartamento.'); return; }
+      const nuevos = [];
+      for (let p = p1; p <= p2; p++) nombres.forEach(function(a){ if (!P.aptos.some(function(x){ return x.k === bloque(p, a); }) && !nuevos.some(function(x){ return x.p === p && x.a === a; })) nuevos.push({ p: p, a: a }); });
+      if (P.aptos.length + nuevos.length > 600) { aviso('Serían ' + (P.aptos.length + nuevos.length) + ' apartamentos: como mucho 600 por planilla.'); return; }
+      const ya = (p2 - p1 + 1) * nombres.length - nuevos.length;
+      if (!nuevos.length) { aviso(ya === 1 ? 'Ese apartamento ya está en la planilla.' : 'Esos apartamentos ya están en la planilla.'); return; }
+      P.extra = P.extra.concat(nuevos); P.pisosElegido = Math.max(P.pisosElegido || 0, p2); armarAptos();
+      if (!P.aptos.some(function(x){ return x.p === piso; })) piso = nuevos[0].p;
+      guardarBorrador(); cerrarSheet(); repintar();
+      aviso('Se agregaron ' + nuevos.length + ' apartamento' + (nuevos.length === 1 ? '' : 's') + (ya ? ' (' + ya + ' ya estaban)' : '') + '.');
     };
   }
+
 
   // ── 🖨 imprimir ──
   const cabe = function(t){ return t !== 'toda' || P.aptos.length <= TAMANOS.toda.filas; };
   function tramos(){
-    const n = P.pisos, porPiso = Math.max(1, P.porPiso || Math.ceil(P.aptos.length / Math.max(1, n)));
+    const n = P.pisos - P.pisoMin + 1, porPiso = Math.max(1, P.porPiso || Math.ceil(P.aptos.length / Math.max(1, n)));
     const max = tamano === 'toda' ? n : Math.max(1, Math.floor(TAMANOS[tamano].filas / porPiso));
     const partes = Math.ceil(n / max), paso = Math.ceil(n / partes), out = [];
-    for (let a = 1; a <= n; a += paso) out.push([a, Math.min(n, a + paso - 1)]);
+    for (let a = P.pisoMin; a <= P.pisos; a += paso) out.push([a, Math.min(P.pisos, a + paso - 1)]);
     return out;
   }
   function grupos(){
@@ -4606,7 +4663,7 @@ function _conTitulo195(v){
     let t = '<p class="pl-lead">Carta horizontal, para llevar a obra. Lo gris es el último % de cada casilla; lo que ya está en 100 % sale sombreado: ahí no hay nada que anotar.</p>' +
       '<div class="pl-ctrl" role="group" aria-label="Hitos">' + LISTA.map(function(h){ return '<label><input type="checkbox" data-h="' + h.id + '"' + (enPapel[h.id] ? ' checked' : '') + '> H' + h.num + ' ' + esc(h.corto) + '</label>'; }).join('') + '</div>' +
       '<div class="pl-ctrl" role="group" aria-label="Tamaño"><span>Tamaño de la hoja:</span>' + Object.keys(TAMANOS).map(function(k){
-        const n = k === 'toda' ? P.pisos : (function(){ const s = tamano; tamano = k; const x = tramos()[0]; tamano = s; return x[1] - x[0] + 1; })();
+        const n = k === 'toda' ? P.pisos - P.pisoMin + 1 : (function(){ const s = tamano; tamano = k; const x = tramos()[0]; tamano = s; return x[1] - x[0] + 1; })();
         return '<label' + (cabe(k) ? '' : ' title="No caben ' + P.aptos.length + ' apartamentos en una hoja"') + '><input type="radio" name="pl-tam" value="' + k + '"' + (k === tamano ? ' checked' : '') + (cabe(k) ? '' : ' disabled') + '> ' + TAMANOS[k].txt + (cabe(k) ? ' · ' + n + ' piso' + (n === 1 ? '' : 's') : ' · no cabe') + '</label>'; }).join('') + '</div>' +
       '<div class="pl-ib"><button type="button" class="pl-btn pri" id="pl-imprimir"' + (total ? '' : ' disabled') + '>🖨 Imprimir estas hojas</button><span class="pl-tot">' + (total ? total + ' hoja' + (total === 1 ? '' : 's') : 'Marque al menos un hito.') + '</span></div><div id="pl-hojas">';
     const hoyL = fechaLarga(HOY()); let nh = 0;
@@ -4619,10 +4676,10 @@ function _conTitulo195(v){
         g.map(function(h){ return '<th class="hg" colspan="' + h.subs.length + '">H' + h.num + ' ' + esc(String(h.n).replace(/^HITO \d+: /, '')) + '</th>'; }).join('') + '<th class="hg"></th></tr><tr><th>Piso<br>apto</th>' +
         cols.map(function(s){ return '<th><span class="c">' + s.c + '</span>' + esc(s.n.length > 34 ? s.n.slice(0, 32) + '…' : s.n) + (s.sino ? ' (✓)' : '') + '</th>'; }).join('') + '<th>Observaciones</th></tr></thead><tbody>';
       filas.forEach(function(x, i){
-        tb += '<tr' + (i > 0 && x.p !== filas[i - 1].p ? ' class="np"' : '') + '><th>P' + pad(x.p) + ' ' + esc(x.a) + '</th>' +
+        tb += '<tr' + (i > 0 && x.p !== filas[i - 1].p ? ' class="np"' : '') + '><th>' + corPiso(x.p) + ' ' + esc(x.a) + '</th>' +
           cols.map(function(s){ const v = prev(x.k, s.c); return '<td' + (v >= 100 ? ' class="lleno"' : '') + '><span class="p">' + (v === null ? '' : s.sino ? (v >= 100 ? '✓' : 'No') : v) + '</span></td>'; }).join('') + '<td></td></tr>';
       });
-      t += '<div class="pl-hm"><div class="pl-hoja' + (denso ? ' denso' : '') + '"><div class="h-cab"><h3>Planilla de avance por apartamento · ' + esc(P.sector) + ' ' + esc(P.torre) + ' · ' + esc(P.cab.empresa || '') + '</h3><div class="der">Hitos ' + g.map(function(h){ return h.num; }).join(', ') + ' · Pisos ' + m[0] + ' a ' + m[1] + '<br>Impresa el ' + hoyL + ' · Hoja ' + nh + ' de ' + total + '</div></div>' +
+      t += '<div class="pl-hm"><div class="pl-hoja' + (denso ? ' denso' : '') + '"><div class="h-cab"><h3>Planilla de avance por apartamento · ' + esc(P.sector) + ' ' + esc(P.torre) + ' · ' + esc(P.cab.empresa || '') + '</h3><div class="der">Hitos ' + g.map(function(h){ return h.num; }).join(', ') + ' · Pisos ' + (m[0] === 0 ? 'PB' : m[0]) + ' a ' + m[1] + '<br>Impresa el ' + hoyL + ' · Hoja ' + nh + ' de ' + total + '</div></div>' +
         '<div class="h-campos"><span>Inspector:</span><span>Fecha de la visita:</span><span>Firma:</span></div>' + tb + '</tbody></table>' +
         '<div class="h-pie"><span>Anote el % nuevo solo donde cambió. Lo gris es lo último cargado; lo sombreado ya está en 100 %. Al pasarla, ponga «Hoja impresa el ' + hoyL + '».</span></div></div></div>';
     }); });
@@ -4657,46 +4714,58 @@ function _conTitulo195(v){
     document.getElementById('pl-rev').disabled = !r.ks.length;
     document.getElementById('pl-undo').disabled = !pila.length;
   }
-  // El número del informe de un apartamento: el de la cabecera con su bloque «P03AA1».
-  function nroPara(x){
-    // Con el apartamento en blanco la cabecera trae «…-T07-P--A---261029-AB»; en torre, «…-T07-261029-AB».
-    const m = String(P.cab.nro || '').match(/^(.*?)-(\d{6})-([A-Z0-9]{1,6})$/i);
-    if (!m) return null;
-    const n = m[1].replace(/-P(\d{2}|-+)A.*$/i, '') + '-' + bloque(x.p, x.a) + '-' + m[2] + '-' + m[3];
-    return (typeof _A_MEDIAS189 !== 'undefined' && _A_MEDIAS189.test(n)) ? null : n;
+  // El número del informe de un apartamento, armado como updateNroInforme con las piezas de la cabecera. No se parte el
+  // número que muestra el formulario: desde estructura trae «-ESTR-», y uno reabierto muestra el suyo sin recalcularlo.
+  function inicialesDe(insp){
+    const partes = String((insp || [])[0] || '').replace(/^(ING|ARQ|TSU)\.?\s*/i, '').trim().split(/\s+/);
+    return _limpiar(((partes[0] || '')[0] || '') + ((partes[1] || '')[0] || '')) || '--';
   }
-  window._plNroPara = function(p, a){ return nroPara({ p: p, a: a }); };
+  function nroPara(x, cab, sector, torre){
+    cab = cab || P.cab; sector = sector || P.sector; torre = torre || P.torre;
+    const f = /^\d{4}-\d{2}-\d{2}$/.test(cab.fecha || '') ? cab.fecha.slice(2).replace(/-/g, '') : '------';
+    const n = (TEST_MODE ? 'PRUEBA-' : '') + [sector, normalizaTorre(torre), bloque(x.p, x.a), f, inicialesDe(cab.inspectores)].join('-');
+    return /(^|-)XX-|-T---(-|$)|P--|A--|------|---$/.test(n) ? null : n;
+  }
+  window._plNroPara = function(p, a){ return P ? nroPara({ p: p, a: a }) : nroPara({ p: p, a: a }, getFormData(), getSectorActual(), getTorreActual()); };
   function faltantes(){
     const f = [];
-    if (vista === 'tabla' && P.impresa && !P.pasa) f.push('quién pasa la hoja');
+    if (P.impresa && !P.pasa) f.push('quién pasa la hoja (arriba, en «💻 Oficina»)');
     if (P.impresa && P.cab.fecha < P.impresa) f.push('que la fecha de la visita (' + fechaLarga(P.cab.fecha) + ', en la cabecera) no sea anterior a la hoja impresa (' + fechaLarga(P.impresa) + ')');
     if (P.impresa && P.impresa > HOY()) f.push('una fecha de hoja impresa que no sea futura');
     if (!nroPara({ p: 1, a: 'A1' })) f.push('el número de informe completo en la cabecera (convenio, torre, fecha e inspector)');
     return f;
   }
+  function confirmarFoco(){ const a = document.activeElement; if (a && a.classList && a.classList.contains('pl-pc') && raiz && raiz.contains(a)) escribir(a); }
   function revisar(){
+    confirmarFoco();
     const r = resumen(), falta = faltantes();
     if (!r.ks.length) return;
     if (vista === 'tabla') { const e = document.getElementById('pl-pasa'); if (e && P.impresa && !P.pasa) e.classList.add('err'); }
     const lista = getSavedReports();
     let h = '<h3>Se guardarían ' + r.ks.length + ' informe' + (r.ks.length === 1 ? '' : 's') + '</h3><p class="pl-sub">Uno por apartamento que cambió, con la cabecera del formulario (' + esc(fechaLarga(P.cab.fecha)) + ', ' + esc((P.cab.inspectores || []).join(', ')) + ')' + (P.pasa ? '; la pasó ' + esc(P.pasa) : '') + '. Quedan en «Informes» para enviar.</p>';
     if (falta.length) h += '<div class="pl-faltan">Antes de guardar falta ' + falta.join('; ') + '.</div>';
-    let choques = 0;
+    let choques = 0, correcciones = 0;
     r.ks.forEach(function(k){
       const x = aptoDe(k), cs = est.N[k] ? Object.keys(est.N[k]) : [], nro = nroPara(x);
       const choca = nro && lista.some(function(b){ return b && b.nro === nro && !b.enviado; });
-      if (choca) choques++;
-      h += '<div class="pl-ra"><h4>Piso ' + pad(x.p) + ' · ' + esc(x.a) + '</h4><div class="pl-nro">' + esc(nro || '—') + '</div>' + (choca ? '<div class="pl-faltan">Ya hay un informe de este apartamento con esta fecha en el teléfono, sin enviar. Envíelo o bórrelo primero: este no se guarda.</div>' : '') + '<ul>' +
+      // Mismo número = mismo apartamento, mismo día y misma inspectora: el relevo lo guarda como corrección (-r2) y pasa a
+      // ser el último. Lleva los % de la planilla, no las fotos ni las observaciones del que ya se envió.
+      const enviadoHoy = !choca && nro && (lista.some(function(b){ return b && b.nro === nro && b.enviado; }) || (P.prev[k] && P.prev[k].nro === nro && !P.prev[k].telefono));
+      if (choca) choques++; if (enviadoHoy) correcciones++;
+      h += '<div class="pl-ra"><h4>' + nomPiso(x.p) + ' · ' + esc(x.a) + '</h4><div class="pl-nro">' + esc(nro || '—') + '</div>' +
+        (choca ? '<div class="pl-faltan">Ya hay un informe de este apartamento con esta fecha en el teléfono, sin enviar. Envíelo o bórrelo primero: este no se guarda.</div>' : '') +
+        (enviadoHoy ? '<div class="pl-post">Ya se envió hoy un informe de este apartamento con este número. Este entra como corrección y pasa a ser el último del día: lleva los % de la planilla, pero no las fotos ni las observaciones del que ya se envió (esas quedan en el de antes). Si el de hoy tenía fotos, mejor corríjalo en «Informes».</div>' : '') + '<ul>' +
         cs.map(function(c){ return '<li' + (baja(k, c) ? ' class="b"' : '') + '>' + c + ' ' + esc(SUBS[c].n) + ': ' + (prev(k, c) === null ? 'sin dato' : fmt(c, prev(k, c))) + ' → <b>' + fmt(c, est.N[k][c]) + '</b>' + (baja(k, c) ? ' (baja)' : '') + '</li>'; }).join('') +
         (est.C[k] ? '<li>Nota: ' + esc(est.C[k]) + '</li>' : '') + (!cs.length ? '<li>Solo nota: lleva los mismos % de antes.</li>' : '') + '</ul></div>';
     });
-    if (r.bajas.length) h += '<label class="pl-todos"><input type="checkbox" id="pl-rb"> Confirmo que las ' + r.bajas.length + ' bajas son correcciones</label>';
+    if (r.bajas.length) h += '<label class="pl-todos"><input type="checkbox" id="pl-rb"> Confirmo que ' + (r.bajas.length === 1 ? 'la baja es una corrección' : 'las ' + r.bajas.length + ' bajas son correcciones') + '</label>';
+    if (correcciones) h += '<label class="pl-todos"><input type="checkbox" id="pl-rr"> Entiendo que ' + (correcciones === 1 ? 'el ya enviado hoy queda reemplazado' : 'los ' + correcciones + ' ya enviados hoy quedan reemplazados') + ' por este</label>';
     h += '<div class="pl-acc"><button type="button" class="pl-btn" id="pl-rseg">Seguir editando</button><button type="button" class="pl-btn pri" id="pl-rgua">Guardar</button></div>' +
       '<div class="pl-acc"><button type="button" class="pl-btn peligro" id="pl-rdes">Descartar los cambios</button></div>';
     abrirSheet(h);
-    const g = document.getElementById('pl-rgua'), cb = document.getElementById('pl-rb');
-    const habil = function(){ g.disabled = falta.length > 0 || (cb && !cb.checked) || choques === r.ks.length; };
-    if (cb) cb.onchange = habil; habil();
+    const g = document.getElementById('pl-rgua'), cb = document.getElementById('pl-rb'), cr = document.getElementById('pl-rr');
+    const habil = function(){ g.disabled = falta.length > 0 || (cb && !cb.checked) || (cr && !cr.checked) || choques === r.ks.length; };
+    if (cb) cb.onchange = habil; if (cr) cr.onchange = habil; habil();
     document.getElementById('pl-rseg').onclick = cerrarSheet;
     g.onclick = function(){ if (!g.disabled) { g.disabled = true; guardarTodo(r); } };
     document.getElementById('pl-rdes').onclick = function(){
@@ -4731,22 +4800,21 @@ function _conTitulo195(v){
     const lista = getSavedReports(), hechos = [], saltados = [], base = P.cab, ahora = Date.now();
     r.ks.forEach(function(k, j){
       const x = aptoDe(k), nro = nroPara(x);
-      if (!nro || lista.some(function(b){ return b && b.nro === nro && !b.enviado; })) { saltados.push('P' + pad(x.p) + ' ' + x.a); return; }
+      if (!nro || lista.some(function(b){ return b && b.nro === nro && !b.enviado; })) { saltados.push(corPiso(x.p) + ' ' + x.a); return; }
       const d = JSON.parse(JSON.stringify(base));
-      ['enviado', 'editadoTras', 'oficina', 'definitiva', 'fotosEnIdb', 'repetidoDe', 'separadoDe', 'fotos'].forEach(function(c){ delete d[c]; });
       d.id = 'draft_' + ahora + '_pl' + j; d.formType = 'detallado'; d.lista = VERSION_LISTA; d.ambito = 'apartamento'; d.vista = '';
-      d.piso = 'Piso ' + pad(x.p); d.apto = x.a; d.nro = nro; d.timestamp = new Date().toLocaleString();
+      d.piso = nomPiso(x.p); d.apto = x.a; d.nro = nro; d.timestamp = new Date().toLocaleString();
       d.partidas = partidasPara(k); d.extraRows = {}; d.noInspeccionados = []; d.obs_sp = ''; d.obs_general = est.C[k] || '';
       d.actividades = ''; d.actividadesHeredada = false; d.agentes = [];
       d.fotobs = {}; Object.keys(d.partidas).forEach(function(pid){ if (!/_extra$/.test(pid)) d.fotobs[pid] = ''; });
-      d.planilla = { origen: vista === 'tabla' ? 'oficina' : 'obra', pasa: P.pasa || '', impresa: P.impresa || '', guardada: new Date().toISOString() };
+      d.planilla = { origen: (P.oficina || P.impresa) ? 'oficina' : 'obra', pasa: P.pasa || '', impresa: P.impresa || '', guardada: new Date().toISOString() };
       d.uso = { planilla: true };
       lista.unshift(d); hechos.push({ k: k, nro: nro });
     });
     try { localStorage.setItem('garmel_reports_list', JSON.stringify(lista)); }
     catch (e) { aviso('❌ El teléfono se quedó sin espacio. Envíe o elimine informes y vuelva a guardar: la planilla no se perdió.'); document.getElementById('pl-rgua').disabled = false; return; }
     if (typeof currentEditingIndex !== 'undefined' && currentEditingIndex !== null) currentEditingIndex += hechos.length;
-    hechos.forEach(function(h){ const x = P.prev[h.k] = P.prev[h.k] || { pcts: {} }; x.pcts = Object.assign({}, x.pcts || {}, est.N[h.k] || {}); x.fecha = P.cab.fecha; x.nro = h.nro; delete est.N[h.k]; delete est.C[h.k]; });
+    hechos.forEach(function(h){ const x = P.prev[h.k] = P.prev[h.k] || { pcts: {} }; x.pcts = Object.assign({}, x.pcts || {}, est.N[h.k] || {}); x.fecha = P.cab.fecha; x.nro = h.nro; x.telefono = true; delete est.N[h.k]; delete est.C[h.k]; });
     pila = []; guardarBorrador();
     if (typeof actualizarContadores === 'function') actualizarContadores();
     abrirSheet('<h3>✅ ' + hechos.length + ' informe' + (hechos.length === 1 ? '' : 's') + ' en «Informes»</h3><p class="pl-sub">Se envían con «Enviar todos», como cualquier informe. Sin señal se quedan en el teléfono hasta que vuelva.</p>' +
@@ -4754,7 +4822,7 @@ function _conTitulo195(v){
       '<ul class="pl-nros">' + hechos.map(function(h){ return '<li>' + esc(h.nro) + '</li>'; }).join('') + '</ul>' +
       '<div class="pl-acc"><button type="button" class="pl-btn" id="pl-fseg">Seguir en la planilla</button><button type="button" class="pl-btn pri" id="pl-fenv" autofocus>Enviar ahora</button></div>');
     document.getElementById('pl-fseg').onclick = function(){ cerrarSheet(); repintar(); };
-    document.getElementById('pl-fenv').onclick = function(){ cerrarSheet(); cerrarPlanilla(); if (typeof enviarPendientes === 'function') enviarPendientes(); };
+    document.getElementById('pl-fenv').onclick = function(){ if (this.disabled) return; this.disabled = true; cerrarSheet(); cerrarPlanilla(); if (typeof enviarPendientes === 'function') enviarPendientes(); };
     repintar();
   }
 
@@ -4788,8 +4856,12 @@ function _conTitulo195(v){
   window._plAsegurarPct = asegurarPct;
   // Al abrir un borrador, loadDraftData vuelve a dibujar las filas (initAppContent) y después las llena: el campo se pone
   // entre las dos cosas.
-  let pctPendiente = null;
-  if (typeof loadDraftData === 'function') { const _base199 = loadDraftData; loadDraftData = function(index){ try { const b = getSavedReports()[index]; pctPendiente = b ? b.partidas : null; } catch (e) {} try { return _base199.apply(this, arguments); } finally { pctPendiente = null; } }; }
+  // La marca de la planilla (origen, quién la pasó, la hoja impresa) sigue con el informe aunque se corrija en el formulario;
+  // solo con ese informe: si se separa en otro (otro piso o apartamento), el nuevo no la lleva.
+  let pctPendiente = null, planillaDe = null;
+  if (typeof loadDraftData === 'function') { const _base199 = loadDraftData; loadDraftData = function(index){ try { const b = getSavedReports()[index]; pctPendiente = b ? b.partidas : null; planillaDe = (b && b.planilla) ? { id: b.id, m: b.planilla } : null; } catch (e) {} try { return _base199.apply(this, arguments); } finally { pctPendiente = null; } }; }
+  if (typeof nuevoFormulario === 'function') { const _base199n = nuevoFormulario; nuevoFormulario = function(){ planillaDe = null; return _base199n.apply(this, arguments); }; }
+  if (typeof getFormData === 'function') { const _base199g = getFormData; getFormData = function(){ const d = _base199g.apply(this, arguments); if (d && planillaDe && d.id === planillaDe.id && !d.planilla) d.planilla = planillaDe.m; return d; }; }
   if (typeof initAppContent === 'function') { const _base199i = initAppContent; initAppContent = function(){ const r = _base199i.apply(this, arguments); try { if (pctPendiente) asegurarPct(pctPendiente); } catch (e) {} return r; }; }
   if (typeof _traerMediciones === 'function') { const _base199t = _traerMediciones; _traerMediciones = function(partidas){ try { asegurarPct(partidas); } catch (e) {} return _base199t.apply(this, arguments); }; }
 
@@ -4799,8 +4871,10 @@ function _conTitulo195(v){
     '#planilla{position:fixed;inset:0;z-index:2500;background:#eef2f5;color:#13212c;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 0 120px;font-size:15px}',
     '#planilla[hidden]{display:none}body.pl-abierta{overflow:hidden}',
     '#planilla .pl-top{position:sticky;top:0;z-index:5;background:#1a237e;color:#fff;padding:8px 12px calc(6px);padding-top:calc(8px + env(safe-area-inset-top,0px))}',
-    '#planilla .pl-fila{display:flex;gap:10px;align-items:center;flex-wrap:wrap}',
-    '#planilla .pl-volver{min-height:44px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;font-weight:700;font-size:14px}',
+    '#planilla .pl-fila{display:flex;gap:10px;align-items:center}',
+    // Teléfono apaisado: la barra de arriba se va con el desplazamiento y la tabla tiene la pantalla.
+    '@media (max-height:500px){#planilla .pl-top{position:static}}',
+    '#planilla .pl-volver{flex:0 0 auto;min-height:44px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;font-weight:700;font-size:14px}',
     '#planilla .pl-tit{display:flex;flex-direction:column;line-height:1.2;min-width:0}#planilla .pl-tit b{font-size:17px}#planilla .pl-tit span{font-size:12.5px;opacity:.85}',
     '#planilla .pl-cab{font-size:13px;margin:6px 0 4px;opacity:.95}#planilla .pl-nota{opacity:.7}',
     '#planilla .pl-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-top:4px}',
@@ -4835,7 +4909,7 @@ function _conTitulo195(v){
     '#planilla .pl-ley i.g{background:#eef2f5}#planilla .pl-ley i.d{background:#e6eee8}#planilla .pl-ley i.c{background:#e2eff4;border-color:#1f6f8b}#planilla .pl-ley i.b{background:#fcefe0;border-color:#a6530a}',
     '#planilla .pl-ocab{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin:4px 0}',
     '#planilla .pl-ocab label{display:flex;flex-direction:column;font-size:12px;color:#5a6a77;gap:2px}#planilla .pl-ocab input{min-height:44px;border:1px solid #d3dce3;border-radius:6px;padding:4px 8px;font-size:16px;background:#fff;min-width:0}',
-    '#planilla .pl-ocab input.err{border-color:#b42318;background:#fde8e6}#planilla #pl-npisos{width:90px}',
+    '#planilla .pl-ocab input.err{border-color:#b42318;background:#fde8e6}#planilla #pl-npisos,#planilla #pl-np,#planilla #pl-np2{width:90px}',
     '#planilla .pl-post{margin:6px 0;padding:8px 12px;border-radius:8px;background:#fcefe0;border:1px solid #a6530a;font-size:14px}',
     '#planilla .pl-tw{overflow:auto;max-height:70vh;border:1px solid #d3dce3;border-radius:10px;background:#fff}',
     '#planilla .pl-o{font-size:14px}#planilla .pl-o th,#planilla .pl-o td{border-right:1px solid #d3dce3;border-bottom:1px solid #d3dce3;white-space:nowrap}',
