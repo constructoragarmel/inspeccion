@@ -4658,6 +4658,7 @@ function _conTitulo195(v){
     LISTA.filter(function(h){ return enPapel[h.id]; }).forEach(function(h){ if (n + h.subs.length > MAX_COLS && cur.length) { g.push(cur); cur = []; n = 0; } cur.push(h); n += h.subs.length; });
     if (cur.length) g.push(cur); return g;
   }
+  // En la hoja, un hito de una o dos columnas lleva su nombre corto: el largo no cabe.
   function pintarImp(){
     if (!cabe(tamano)) tamano = 'compacta';
     const tr = tramos(), gs = grupos(), total = gs.length * tr.length;
@@ -4674,7 +4675,7 @@ function _conTitulo195(v){
       const filas = P.aptos.filter(function(x){ return x.p >= m[0] && x.p <= m[1]; });
       const denso = filas.length > 30;
       let tb = '<table><colgroup><col style="width:60px">' + cols.map(function(){ return '<col>'; }).join('') + '<col style="width:120px"></colgroup><thead><tr><th class="hg"></th>' +
-        g.map(function(h){ return '<th class="hg" colspan="' + h.subs.length + '">H' + h.num + ' ' + esc(String(h.n).replace(/^HITO \d+: /, '')) + '</th>'; }).join('') + '<th class="hg"></th></tr><tr><th>Piso<br>apto</th>' +
+        g.map(function(h){ return '<th class="hg" colspan="' + h.subs.length + '">H' + h.num + ' ' + esc(h.subs.length <= 2 ? h.corto : String(h.n).replace(/^HITO \d+: /, '')) + '</th>'; }).join('') + '<th class="hg"></th></tr><tr><th>Piso<br>apto</th>' +
         cols.map(function(s){ return '<th><span class="c">' + s.c + '</span>' + esc(s.n.length > 34 ? s.n.slice(0, 32) + '…' : s.n) + (s.sino ? ' (✓)' : '') + '</th>'; }).join('') + '<th>Observaciones</th></tr></thead><tbody>';
       filas.forEach(function(x, i){
         tb += '<tr' + (i > 0 && x.p !== filas[i - 1].p ? ' class="np"' : '') + '><th>' + corPiso(x.p) + ' ' + esc(x.a) + '</th>' +
