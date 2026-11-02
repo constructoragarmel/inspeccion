@@ -89,6 +89,6 @@ const a5 = await esperarAviso();
 const r = caja().getBoundingClientRect();
 const botones = [...caja().querySelectorAll('button')].map(b => Math.round(b.getBoundingClientRect().height));
 document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
-ok('5 · Torre: ofrece el último informe de torre y lo trae; el aviso cabe en ' + innerWidth + ' px con botones ≥ 44 px',
-   /Esta torre ya tiene un informe/.test(a5) && pct('hito_exteriores_1') === '50%' && r.right <= innerWidth && botones.every(h => h >= 44),
+ok('5 · Torre: trae el último informe de torre (solo desde v203); el aviso cabe en ' + innerWidth + ' px con botones ≥ 44 px',
+   /Esta torre ya tiene un informe|Se trajo lo acumulado de la torre/.test(a5) && pct('hito_exteriores_1') === '50%' && r.right <= innerWidth && botones.every(h => h >= 44),
    'aviso: «' + a5.slice(0, 50) + '» · h12 ' + pct('hito_exteriores_1') + ' · ancho ' + Math.round(r.right) + ' · botones ' + botones.join(','));

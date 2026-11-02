@@ -6011,6 +6011,16 @@ function siguienteApartamento(){
 // las puestas. Nada se trae sin que el inspector lo pida.
 let _anteriorOfrecido = '';
 let _temporizadorAnterior = null;
+// 2-nov-2026 (Planificación, por Leidy en la T-16: «¿no debería venir acumulado cuando se carga la información de la torre?»): en
+// «Torre completa» lo anterior se trae solo —el avance de la torre es acumulado—, marcado fila por fila «De la visita anterior ·
+// Sigue igual» para confirmarlo o corregirlo. Mientras nadie toque nada: si se cambia la torre, se reemplaza por lo de la nueva; y
+// no se guarda como borrador (abrir una torre para mirarla no deja un informe con datos viejos listo para enviar). En apartamento y en
+// «Estructura» sigue la oferta de siempre.
+let _autoTraido = null, _autoTocado = false, _autoTrayendo = false;
+const _autoSinTocar = function(){ return !!_autoTraido && !_autoTocado; };
+const _fechaCorta = function(f){ const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(f || '')); return m ? (+m[3]) + '-' + ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][+m[2] - 1] : (f || 'último'); };
+document.addEventListener('input', function(e){ if (!_autoTrayendo && _autoTraido && e.target && /^(pr|ej|pm|sn)_/.test(e.target.id || '')) _autoTocado = true; }, true);
+document.addEventListener('click', function(e){ if (_autoTraido && e.target && e.target.closest && e.target.closest('.sigue-igual, .ev-btn, .brm, [data-ev]')) _autoTocado = true; }, true);
 
 function _hayMediciones(){
   return Array.prototype.some.call(
@@ -6085,6 +6095,12 @@ async function _ofrecerAnterior(){
   const caja = document.getElementById('aviso-anterior');
   if (!caja) return;
   if (_abiertoParaEditar || formType !== 'detallado') return;
+  // Lo traído solo y sin tocar es de una torre en «Torre completa»: si se cambia la torre (se eligió mal), o se pasa a apartamento o a
+  // «Estructura», se quita, y si corresponde se trae lo de la nueva.
+  if (_autoSinTocar() && _autoTraido.clave !== _claveAnterior() + '|' + vista) {
+    _autoTraido = null; _anteriorOfrecido = ''; caja.innerHTML = ''; caja.dataset.clave = '';
+    if (typeof initAppContent === 'function') initAppContent();
+  }
   const t = getTorreActual();
   if (!t || t === '—') return;
   // Sin zona (la torre existe en dos zonas y no se eligió el convenio) el archivo no sabe dónde buscar.
@@ -6105,6 +6121,18 @@ async function _ofrecerAnterior(){
     if (clave !== _claveAnterior() || _hayMediciones()) return;   // cambió mientras se buscaba
     if (r && r.mismo) { mismo = r.mismo; origen = 'del archivo'; }
     if (!deLaTorre && r && r.deLaTorre) deLaTorre = r.deLaTorre;
+  }
+  if (mismo && ambito === 'torre' && !vista) {
+    const n100 = (typeof _cerrar100 === 'function') ? _cerrar100(mismo) : 0;
+    _autoTrayendo = true; try { _traerMediciones(mismo.partidas, false); } finally { _autoTrayendo = false; }
+    _autoTraido = { clave: clave + '|' + vista, nro: mismo.nro || '' }; _autoTocado = false;
+    caja.dataset.clave = clave;
+    caja.innerHTML = '<div class="aviso-anterior"><div class="t"></div><div class="s"></div><div class="b"><button type="button" class="no">Empezar vacío</button></div></div>';
+    caja.querySelector('.t').textContent = '↺ Se trajo lo acumulado de la torre: el informe del ' + _fechaCorta(mismo.fecha) + ' (' + origen + ').';
+    caja.querySelector('.s').textContent = (n100 ? '✅ ' + n100 + ' partida(s) al 100 % quedan cerradas (🔓 para corregirlas). ' : '') +
+      'Revise fila por fila: «Sigue igual» si no cambió, o corrija lo que avanzó. La evaluación B/R/M, las fotos y las observaciones son de esta visita.';
+    caja.querySelector('.no').onclick = function(){ _autoTraido = null; caja.innerHTML = ''; if (typeof initAppContent === 'function') initAppContent(); if (typeof _copiarProgramar === 'function') _copiarProgramar(); };
+    return;
   }
   if (mismo) {
     const quien = ambito === 'torre' ? 'Esta torre' : 'Este apartamento';
@@ -6186,6 +6214,16 @@ document.addEventListener('change', function(e){
 document.addEventListener('input', function(e){
   if (e.target && e.target.id === 'apto') _programarAnterior();
 }, true);
+
+// Lo traído solo y sin tocar no es «contenido»: ni el autoguardado ni el guardado al salir de la app lo vuelven un borrador.
+(function(){
+  if (typeof getFormData === 'function') { const _g = getFormData; getFormData = function(){ const d = _g.apply(this, arguments); try { if (d) { if (_autoSinTocar()) d._soloTraido = true; else delete d._soloTraido; } } catch (e) {} return d; }; }
+  if (typeof _tieneContenido === 'function') { const _t = _tieneContenido; _tieneContenido = function(d){ if (d && d._soloTraido) return false; return _t.apply(this, arguments); }; }
+  // Un informe nuevo (si se aceptó limpiar) o abierto desde «Informes» empieza sin nada traído solo.
+  if (typeof nuevoFormulario === 'function') { const _n = nuevoFormulario; nuevoFormulario = function(){ const r = _n.apply(this, arguments); if (!_hayMediciones()) { _autoTraido = null; _autoTocado = false; } return r; }; }
+  if (typeof loadDraftData === 'function') { const _l = loadDraftData; loadDraftData = function(){ _autoTraido = null; _autoTocado = false; return _l.apply(this, arguments); }; }
+})();
+window._autoTraidoEstado = function(){ return { traido: _autoTraido, tocado: _autoTocado }; };
 
 function nuevoFormulario() {
   if(!confirm('¿Limpiar todo este informe?\n\nSe borra lo que hay en pantalla: torre, apartamento, personal, estatus, evaluación, observaciones y fotografías.\n\nLos informes que ya están en «Informes» NO se tocan.')) return;

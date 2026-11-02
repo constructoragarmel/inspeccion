@@ -14,7 +14,8 @@ const cabecera = async (fecha) => {
   sel('fecha', fecha); sel('convenio', 'Convenio Bielorrusos'); sel('torre', 'T-16'); await esperar(900);
   { const ins = document.querySelector('.inspector-select'); Q.elegir(ins, [...ins.options].map(o => o.value).filter(Boolean)[0]); await esperar(300); }
   if (!document.querySelector('#estatus .ck-lbl.on')) [...document.querySelectorAll('#estatus .ck-lbl')].find(l => /progreso/.test(l.textContent)).click();
-  const c = document.getElementById('aviso-anterior'); if (c) c.innerHTML = '';
+  // v203: en Torre completa lo anterior llega solo; esta prueba mide «Completar lo vacío» partiendo de cero.
+  const c = document.getElementById('aviso-anterior'); if (c) { const v = c.querySelector('button.no'); if (v && /Empezar vac/.test(v.textContent)) v.click(); c.innerHTML = ''; }
 };
 // Filas de torre con proyectada y ejecutada (las que se ven en «Torre completa»).
 // (Las de los hitos plegados también cuentan: se mira que la fila no esté oculta por el ámbito, no que esté a la vista.)
