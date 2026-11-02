@@ -775,6 +775,12 @@ J = sustituir(J, "      if ((g.items || []).some(i => i.sn || i.obs || (i.agrega
 J = sustituir(J, "    if ((g.items || []).some(i => i.sn || i.obs) || g.obs) plegar(g.id, true);",
                  "    if ((g.items || []).some(i => i.sn || i.obs || i.cant) || g.obs) plegar(g.id, true);", "17j· heredar desplegada con cantidades")
 
+# 18 · Lo COPIADO de otra manzana conserva su marca aunque solo traiga cantidades (2-nov-2026). El 14a' quita la marca a una
+# proyectada heredada de la visita anterior (es la meta y sigue vigente), y un ítem copiado con solo cantidades caía en la misma
+# regla: viajaba sin `heredado` y «Enviar» no veía que estaba sin confirmar (t129, comprobación 4). Copiado, se queda marcado.
+J = sustituir(J, "      heredado: it.classList.contains('her-pr') ? '' : (it.dataset.heredado || '')\n",
+                 "      heredado: (it.classList.contains('her-pr') && !it.classList.contains('copiada')) ? '' : (it.dataset.heredado || '')\n",
+                 "18· lo copiado no pierde la marca")
 
 def manzanas_js():
     filas = []

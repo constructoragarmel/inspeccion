@@ -216,7 +216,8 @@ function _copiarPuede(){
   if (typeof _cargando !== 'undefined' && _cargando) return false;
   if (!_ofiTorre() || !_ofiSector()) return false;
   if (_copiaDe) return false;
-  try { return formularioEnBlanco() || _ocPocosDatos(); } catch (e) { return false; }
+  // 2-nov-2026: como en obra (copiar_de.js), «Completar lo vacío…» se ofrece con cualquier cantidad de datos: solo llena lo vacío.
+  return true;
 }
 function _copiarCaja(){
   let c = document.getElementById('copiar-de');

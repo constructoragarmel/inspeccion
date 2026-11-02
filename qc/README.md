@@ -1211,3 +1211,21 @@ otra, pregunta «Seguir con ellos» o «Descartarlos»; (2) **«Informes» sin e
 
 Regresión con el código final: `e7` a `e24`, `t139`, `t112`, `t101`, `t124`, `t128`, `t136`, `t137`, `t69`, `t26`, `t29`, `t24` y SHA
 `t53` `t57` `t63` `t127` en verde; `e8` 23/25 sin ventana (QC6a y QC6c, tiempos) y 25/25 a la vista.
+
+## 2-nov-2026 · Lo de Leidy (T-16, «Torre completa») y una falla vieja de urbanismo: `e25`
+
+Leidy quería «cargar los datos que ya tenía almacenados y agregar mediciones nuevas» en el informe de torre de la T-16. El relevo
+real contestaba bien (`historial` y `planilla` de la T-16 en 1 a 2 s, probado desde `Correr.gs`); lo que la frenaba era la app:
+«Completar lo vacío con otro informe de torre…» solo salía con un cuarto de las filas o menos, y con 35 de 58 medidas no salía
+nada. Ahora sale con cualquier cantidad (solo llena lo vacío y lo copiado queda por confirmar), en los cuatro formularios, y en
+«Torre completa» se piden 45 días al archivo (14 en apartamento). `e25` 5/5 (sin ventana y a la vista): con 35 de 58 se ofrece,
+pide 45 días, llena solo las 23 vacías, no sale sin confirmar y sale una vez confirmado; y el informe de torre queda guardado al
+salir de la app. Contra la v199: «sin botón». `t128`, `t69`, `t75` (los tres) y `t129` (los tres) cambian su regla («con la mitad
+también se ofrece»): en verde.
+
+**Falla vieja encontrada, arreglada:** en urbanismo, un ítem copiado de otra manzana que solo trae cantidades viajaba sin su marca
+(la regla 14a' para la proyectada heredada) y «Enviar» no veía que estaba sin confirmar: se enviaba (`t129` 4, también en la v199).
+Ahora lo copiado conserva la marca (construir-urbanismo.py, 18).
+
+Ojo con el banco: la corrida A LA VISTA usa `auto-<página>.html`, que solo escribe `headless.py`; `preparar.py` no lo rehace. Después
+de construir, correr algo sin ventana en esa página antes de mirarla a la vista, o se prueba código viejo.

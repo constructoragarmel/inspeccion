@@ -52,5 +52,5 @@ contestar(1); await esperar(900);
 const b10 = document.getElementById('btn-copiar-de');
 ok('10 · Con una respuesta se ofrece «Completar lo vacío con…» (v186)', !!b10 && /Completar lo vac/.test(b10.textContent), b10 ? b10.textContent : 'sin botón');
 contestar(Math.ceil(document.querySelectorAll('[id^="items-"] .item').length / 2)); await esperar(900);
-ok('10b · Con la mitad de los ítems contestados el botón no se ofrece', !document.getElementById('btn-copiar-de'), '');
+ok('10b · Con la mitad de los ítems contestados también se ofrece «Completar lo vacío…» (2-nov-2026)', !!document.getElementById('btn-copiar-de') && /Completar lo vac/.test(document.getElementById('btn-copiar-de').textContent), '');
 window.fetch = _fetch; nuevoInforme(); await esperar(200); localStorage.setItem(CLAVE_LISTA, '[]'); localStorage.removeItem(CLAVE_TORRES);

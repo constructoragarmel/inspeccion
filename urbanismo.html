@@ -1325,7 +1325,7 @@ function datosDelFormulario(){
       ...camionesDe(it),
       ...maquinariaDe(it),
       // De qué informe viene la respuesta, si nadie la tocó hoy. Vacío = de hoy.
-      heredado: it.classList.contains('her-pr') ? '' : (it.dataset.heredado || '')
+      heredado: (it.classList.contains('her-pr') && !it.classList.contains('copiada')) ? '' : (it.dataset.heredado || '')
     }))
     // Un agregado sin respuesta no viaja: ni el que se tocó de más —salía en el
     // PDF como «+ (agregado en campo) —», T-03 del 14-sep— ni el que solo tiene
@@ -3072,7 +3072,8 @@ function _copiarPuede(){
   if (typeof _cargando !== 'undefined' && _cargando) return false;
   if (!_ofiTorre() || !_ofiSector()) return false;
   if (_copiaDe) return false;
-  try { return formularioEnBlanco() || _ocPocosDatos(); } catch (e) { return false; }
+  // 2-nov-2026: como en obra (copiar_de.js), «Completar lo vacío…» se ofrece con cualquier cantidad de datos: solo llena lo vacío.
+  return true;
 }
 function _copiarCaja(){
   let c = document.getElementById('copiar-de');

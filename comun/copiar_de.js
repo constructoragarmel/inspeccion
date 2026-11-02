@@ -49,7 +49,7 @@ async function _copiarPedirFuentes(torres){
   const grupos = [];
   for (let i = 0; i < torres.length; i += 2) grupos.push(torres.slice(i, i + 2));   // v188: de a dos (antes seis)
   const rs = await Promise.all(grupos.map(function(g){
-    return _copiarPedir({ accion: 'copiar-fuentes', torres: g, ambito: ambito, vista: (typeof vista !== 'undefined') ? (vista || '') : '', dias: 14 });
+    return _copiarPedir({ accion: 'copiar-fuentes', torres: g, ambito: ambito, vista: (typeof vista !== 'undefined') ? (vista || '') : '', dias: _copiarDias() });
   }));
   const fuentes = []; let error = '';
   rs.forEach(function(r){ if (r.ok) (r.fuentes || []).forEach(function(f){ fuentes.push(f); }); else if (!error) error = r.error; });
@@ -118,6 +118,11 @@ function _copiarPocosDatos(){
   return con > 0 && con * 4 <= total;
 }
 function _copiarCompletando(){ return _hayMediciones(); }
+// 2-nov-2026 (Leidy, T-16: «cargar los datos que ya tenía y agregar mediciones nuevas»): «Completar lo vacío…» se ofrece con
+// cualquier cantidad de datos, no solo con un cuarto o menos. Llena solo lo vacío y lo copiado queda «≈ Copiado» hasta
+// confirmarlo, así que no pisa nada. Y en «Torre completa» se buscan 45 días (esos informes se hacen más espaciados); en
+// apartamento, 14.
+const _copiarDias = function(){ return ambito === 'torre' ? 45 : 14; };
 
 function _copiarPuede(){
   if (formType !== 'detallado') return false;
@@ -125,7 +130,6 @@ function _copiarPuede(){
   if (!t || t === '—' || getSectorActual() === 'XX') return false;
   if (ambito !== 'torre' && (!(document.getElementById('piso') || {}).value || !_aptoActual())) return false;
   if (_copiaDe) return false;
-  if (_hayMediciones() && !_copiarPocosDatos()) return false;
   return true;
 }
 
@@ -166,7 +170,7 @@ async function _copiarAbrirPanel(){
     '<div class="s">' + (completar ? 'Solo se llenan las filas vacías: lo que usted ya midió no se toca. ' : '') +
     'Se traen las cantidades y los estados, marcados hasta que usted los confirme en sitio o los corrija. ' +
     'Fotos, evaluación y observaciones no se copian. No se puede enviar con filas copiadas sin confirmar.</div>' +
-    '<div class="lista"><p class="s">⏳ Buscando informes de los últimos 14 días…</p></div>' +
+    '<div class="lista"><p class="s">⏳ Buscando informes de los últimos ' + _copiarDias() + ' días…</p></div>' +
     '<button type="button" class="cerrar">Cerrar</button></div>';
   caja.querySelector('.cerrar').onclick = function(){ caja.innerHTML = ''; _copiarPintarBoton(); };
 
@@ -180,7 +184,7 @@ async function _copiarAbrirPanel(){
   if (!r.ok) { const p = document.createElement('p'); p.className = 's'; p.textContent = '⚠️ ' + r.error; lista.appendChild(p); }
   if (!fuentes.length) {
     const p = document.createElement('p'); p.className = 's';
-    p.textContent = 'No hay informes de ' + (ambito === 'torre' ? 'torre' : 'apartamento') + ' de los últimos 14 días en ' +
+    p.textContent = 'No hay informes de ' + (ambito === 'torre' ? 'torre' : 'apartamento') + ' de los últimos ' + _copiarDias() + ' días en ' +
       (torres.length > 1 ? torres.join(', ') : t) + '.';
     lista.appendChild(p);
   }
@@ -200,7 +204,7 @@ async function _copiarAbrirPanel(){
       const f2 = _copiarJuntar(loc2, r2.fuentes);
       bs.remove();
       if (!r2.ok) { const p = document.createElement('p'); p.className = 's'; p.textContent = '⚠️ ' + r2.error; lista.appendChild(p); }
-      if (!f2.length) { const p = document.createElement('p'); p.className = 's'; p.textContent = 'En las demás torres del sector no hay informes de ' + (ambito === 'torre' ? 'torre' : 'apartamento') + ' de los últimos 14 días.'; lista.appendChild(p); return; }
+      if (!f2.length) { const p = document.createElement('p'); p.className = 's'; p.textContent = 'En las demás torres del sector no hay informes de ' + (ambito === 'torre' ? 'torre' : 'apartamento') + ' de los últimos ' + _copiarDias() + ' días.'; lista.appendChild(p); return; }
       _copiarPintarGrupo(lista, 'De otras torres del sector', f2);
     };
     lista.appendChild(bs);

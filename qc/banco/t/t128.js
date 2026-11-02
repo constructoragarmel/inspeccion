@@ -45,10 +45,10 @@ ok('5 · No se envía con filas copiadas sin confirmar', Q.dialogos.some(m => /n
 completar(); Q.dialogos.length = 0; const a6 = envios; await enviarAlRelevo(); await esperar(2500);
 const env = (await Q.envios()).slice(-1)[0] || {};
 ok('6 · Confirmadas, se envía (el número de revisión lo pone el relevo)', envios === a6 + 1 && /T02-P05AA1/.test(env.numero || ''), 'envíos ' + (envios - a6) + ' · ' + (env.numero || '') + ' · ' + Q.dialogos.join(' | ').slice(0, 100));
-// Con muchos datos: nada.
+// Con muchos datos (desde el 2-nov-2026): también se ofrece «Completar lo vacío…», que solo llena lo vacío.
 nuevoFormulario(); await esperar(300); setAmbito('apartamento'); await esperar(200);
 sel('fecha', '2026-10-21'); sel('convenio', 'Convenio Bielorrusos'); sel('torre', 'T-02'); sel('piso', 'Piso 06'); put('apto', 'A1'); await esperar(1200);
 { const prs = [...document.querySelectorAll('input[id^="pr_"]')]; prs.slice(0, Math.ceil(prs.length / 2)).forEach(e => { e.value = '1'; e.dispatchEvent(new Event('input', { bubbles: true })); }); } await esperar(1200);
-ok('6b · Con la mitad de las filas medidas no se ofrece', !document.getElementById('btn-copiar-de'));
+ok('6b · Con la mitad de las filas medidas también se ofrece «Completar lo vacío…» (2-nov-2026)', !!document.getElementById('btn-copiar-de') && /Completar lo vac/.test(document.getElementById('btn-copiar-de').textContent));
 ok('7 · Nada se sale de la pantalla y ningún control baja de 44 px', document.documentElement.scrollWidth <= innerWidth + 1 && Q.chicos().length === 0, Q.chicos().join(' '));
 window.fetch = _fetch; nuevoFormulario(); await esperar(200); localStorage.removeItem('garmel_reports_list');

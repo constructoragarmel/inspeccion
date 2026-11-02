@@ -34,6 +34,6 @@ Q.dialogos.length = 0; const a4 = envios; await enviar(); await esperar(500);
 ok('4 · No se envía con respuestas copiadas sin confirmar', Q.dialogos.some(m => /no se han confirmado/.test(m)) && envios === a4, Q.dialogos.join(' | ').slice(0, 120));
 nuevoInforme(); await esperar(300); cabecera(B, '2026-10-22'); await esperar(1000); if ($('#aviso-historial .no')) { $('#aviso-historial .no').click(); await esperar(300); }
 its().slice(0, Math.ceil(its().length / 2)).forEach(x => responder(x, true)); await esperar(900);
-ok('5 · Con la mitad contestada no se ofrece', !document.getElementById('btn-copiar-de'));
+ok('5 · Con la mitad contestada también se ofrece «Completar lo vacío…» (2-nov-2026)', !!document.getElementById('btn-copiar-de') && /Completar lo vac/.test(document.getElementById('btn-copiar-de').textContent));
 ok('6 · Nada se sale de la pantalla y ningún control baja de 44 px', document.documentElement.scrollWidth <= innerWidth + 1 && Q.chicos().length === 0, Q.chicos().join(' '));
 window.fetch = _fetch; nuevoInforme(); await esperar(200); localStorage.setItem(CLAVE_LISTA, '[]'); localStorage.removeItem(CLAVE_TORRES);
