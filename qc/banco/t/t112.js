@@ -116,7 +116,7 @@ ok('7 · Al abrir el borrador de «B-1» el apartamento queda «B1» y se ve ele
    document.getElementById('apto').value + ' · ' + (s10 && s10.style.display) + ' · ' + (s10 && s10.value));
 
 // 8 · torre sin lista y formas
-const SR = Object.assign(hacer(9, 'A'), { convenio: 'Convenio Rusos', torre: 'T-04' });
+const SR = Object.assign(hacer(9, 'A'), { convenio: 'Convenio Rusos', torre: 'T-38' });   // T-38: sin lista (la T-04 la tiene desde el 2-nov)
 ok('8 · En una torre sin lista «A» pasa; en la T-16 «C1» pasa (forma de la lista) y «4B», «A 1 B» no',
    !_aptoMal192(SR) && !_aptoMal192(hacer(9, 'C1')) && !!_aptoMal192(hacer(9, '4B')) && !!_aptoMal192(hacer(9, 'AB1')) && !_aptoMal192(hacer(9, 'b1')),
    [!!_aptoMal192(SR), !!_aptoMal192(hacer(9, 'C1')), !!_aptoMal192(hacer(9, '4B')), !!_aptoMal192(hacer(9, 'AB1'))].join(','));

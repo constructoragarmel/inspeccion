@@ -104,9 +104,9 @@ await cabecera({ insp: 0 }); abrirPlanilla(); await hasta(() => listo() && E().P
 ok('QC8c · Al volver la primera, ve 75 (lo último del día) en P10 A1', E().P.prev.P10AA1.pcts['3.01'] === 75, JSON.stringify(E().P.prev.P10AA1));
 cerrarPlanilla();
 
-// ── QC9 · una torre sin lista (Simón Rodríguez T-04) ──
+// ── QC9 · una torre sin lista (Simón Rodríguez T-38; la T-04 tiene lista desde el 2-nov) ──
 localStorage.setItem('garmel_reports_list', '[]');
-await cabecera({ convenio: 'Convenio Rusos', torre: 'T-04' });
+await cabecera({ convenio: 'Convenio Rusos', torre: 'T-38' });
 abrirPlanilla(); await hasta(listo, 15000); await ir({ vista: 'tel' });
 ok('QC9a · Sin lista ni informes, en el teléfono dice cómo agregar apartamentos y tiene el botón ahí mismo', /no tiene apartamentos/i.test($('#pl-cuerpo').textContent) && !!$('#pl-mas') && $('#pl-mas').offsetParent !== null);
 tap($('#pl-mas')); await esperar(60);
@@ -121,7 +121,7 @@ const n9 = E().P.aptos.length;
 await ir({ vista: 'tel', piso: 3, hitoSel: 'hito_servicios' }); teclear('P03AC2', '3.01', 40);
 await guardar();
 const b9 = getSavedReports().find(b => /-P03AC2-/.test(b.nro));
-ok('QC9d · El agregado sale como cualquier otro: PRUEBA-SR-T04-P03AC2-…', !!b9 && /^PRUEBA-SR-T04-P03AC2-\d{6}-/.test(b9.nro) && b9.apto === 'C2', b9 && b9.nro);
+ok('QC9d · El agregado sale como cualquier otro: PRUEBA-SR-T38-P03AC2-…', !!b9 && /^PRUEBA-SR-T38-P03AC2-\d{6}-/.test(b9.nro) && b9.apto === 'C2', b9 && b9.nro);
 tap($('#pl-fseg')); cerrarPlanilla();
 abrirPlanilla(); await hasta(listo, 15000);
 ok('QC9e · Al reabrir, los apartamentos agregados siguen ahí', E().P.aptos.length === n9, E().P.aptos.length + ' / ' + n9);

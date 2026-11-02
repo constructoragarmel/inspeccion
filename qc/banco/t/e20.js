@@ -58,23 +58,23 @@ await cabecera('Convenio Rusos', 'T-04'); await abrir();
 _plIr({ vista: 'tel', piso: 7, hitoSel: 'cap_electricas' }); await esperar(150);
 const gw = $('#planilla .pl-gw'); gw.scrollLeft = 9999; gw.scrollTop = 120; await esperar(120);
 const caja = gw.getBoundingClientRect(), fila = $('#planilla .pl-g tbody tr:not(.pl-sep) th').getBoundingClientRect(), esq = $('#planilla .pl-g thead th').getBoundingClientRect();
-const j7 = [...document.querySelectorAll('#planilla .pl-g thead th')].find(t => /J7/.test(t.textContent)).getBoundingClientRect();
-ok('R16 ' + tam + ' · Deslizado a la derecha y abajo: la subpartida sigue pegada a la izquierda, la fila de apartamentos arriba, y se ve J7',
+const j7 = [...document.querySelectorAll('#planilla .pl-g thead th')].find(t => /J07/.test(t.textContent)).getBoundingClientRect();
+ok('R16 ' + tam + ' · Deslizado a la derecha y abajo: la subpartida sigue pegada a la izquierda, la fila de apartamentos arriba, y se ve J07',
    Math.abs(fila.left - caja.left) <= 2 && Math.abs(esq.top - caja.top) <= 2 && j7.right <= caja.right + 1 && j7.left >= fila.right - 2 && gw.scrollLeft > 0,
    'desliz ' + gw.scrollLeft + '/' + (gw.scrollWidth - gw.clientWidth) + ' · fila ' + Math.round(fila.left) + '–' + Math.round(fila.right) + ' caja ' + Math.round(caja.left) + '–' + Math.round(caja.right) + ' · esquina ' + Math.round(esq.top) + '/' + Math.round(caja.top) + ' · J7 ' + Math.round(j7.left) + '–' + Math.round(j7.right));
 { const c = $('#planilla .pl-g thead th').getBoundingClientRect(), arriba = document.elementFromPoint(c.left + 20, c.top + c.height / 2);
   const sep = [...document.querySelectorAll('#planilla .pl-sep span')].map(x => x.getBoundingClientRect()).filter(r => r.bottom > caja.top && r.top < caja.bottom);
   ok('R16d ' + tam + ' · Deslizado: la esquina «Piso» queda encima y los rótulos Instalación / Accesorios siguen a la vista', !!arriba && !!arriba.closest('thead') && sep.every(r => r.left >= caja.left - 1 && r.right <= caja.right + 1) && sep.length >= 1,
      (arriba && (arriba.closest('th') || arriba).textContent.trim().slice(0, 20)) + ' · rótulos ' + sep.map(r => Math.round(r.left)).join(',')); }
-const cj = [...document.querySelectorAll('#planilla .pl-c[data-k="P07AJ7"]')][0]; tap(cj); await esperar(80); tap($('#pl-sheet [data-r="75"]')); tap($('#pl-ksi')); await esperar(80);
-ok('R16b · Cargar J7 deslizado funciona y la casilla sigue a la vista', Object.values(E().est.N.P07AJ7 || {})[0] === 75, JSON.stringify(E().est.N));
+const cj = [...document.querySelectorAll('#planilla .pl-c[data-k="P07AJ07"]')][0]; tap(cj); await esperar(80); tap($('#pl-sheet [data-r="75"]')); tap($('#pl-ksi')); await esperar(80);
+ok('R16b · Cargar J07 deslizado funciona y la casilla sigue a la vista', Object.values(E().est.N.P07AJ07 || {})[0] === 75, JSON.stringify(E().est.N));
 ok('R16c ' + tam + ' · La página no se sale de lado', document.documentElement.scrollWidth <= W + 1);
 _plDeshacer();
 // ── R17 · Oficina: pegar 3 columnas desde la última de «Sanitarias» con «Eléctricas» cerrada ──
 _plIr({ vista: 'tabla' }); await esperar(150);
-const ult = [...document.querySelectorAll('#planilla input.pl-pc[data-k="P03AA3"]')].pop();
+const ult = [...document.querySelectorAll('#planilla input.pl-pc[data-k="P03AA03"]')].pop();
 const dt = new DataTransfer(); dt.setData('text/plain', '10\t20\t30\r\n'); ult.focus(); ult.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); await esperar(100);
-const tocadas = Object.keys(E().est.N.P03AA3 || {});
+const tocadas = Object.keys(E().est.N.P03AA03 || {});
 ok('R17 · Lo que no cabe en las columnas abiertas no cae en un capítulo cerrado: entra 1 y avisa de 2', tocadas.length === 1 && tocadas[0] === ult.dataset.c && /2 quedaban fuera/.test(_plUltimoAviso()), tocadas.join(',') + ' · ' + _plUltimoAviso());
 _plDeshacer();
 cerrarPlanilla(); await esperar(200);

@@ -164,8 +164,25 @@
     // En la planta baja no hay número de piso que poner: solo los nombres fijos.
     return function(p){ if (!p) return fijos.slice(); return pats.map(function(x){ const n = x.ceros ? String(p).padStart(2, '0') : String(p); return x.t === 'f' ? x.r + n : n + x.r; }).concat(fijos); };
   }
+  // La lista de un piso (en la T-04 y la T-43 cambia con el piso: A07 a J07 en el 7).
+  const listaDe = function(p){ return (typeof _aptosDeSector === 'function' && _aptosDeSector(p === 0 ? 'Planta Baja' : 'Piso ' + String(p).padStart(2, '0'))) || null; };
+  // Lo de antes con el nombre de la lista: «C7» del piso 7 es el C07 donde la lista dice así (los informes viejos de la T-04).
+  function empalmar(){
+    Object.keys(P.prev).forEach(function(k){
+      const m = k.match(/^P(\d{2})A(.+)$/); if (!m) return;
+      const p = +m[1], l = listaDe(p); if (!l) return;
+      const a = String(P.prev[k].apto || m[2]).trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (l.indexOf(a) >= 0) return;
+      const sc = function(x){ return String(x).replace(/^([A-Z]+)0+(?=\d)/, '$1'); };
+      const igual = l.filter(function(x){ return sc(x) === sc(a); }); if (igual.length !== 1) return;
+      const nk = bloque(p, igual[0]);
+      if (!P.prev[nk] || String(P.prev[k].fecha || '') > String(P.prev[nk].fecha || '')) P.prev[nk] = Object.assign({}, P.prev[k], { apto: igual[0] });
+      delete P.prev[k];
+    });
+  }
   function armarAptos(){
-    const lista = (typeof _aptosDeSector === 'function' && _aptosDeSector()) || null;
+    const lista = listaDe(1);
+    empalmar();
     let maxP = P.pisosElegido || 0;
     Object.keys(P.prev).forEach(function(k){ const m = k.match(/^P(\d{2})A/); if (m) maxP = Math.max(maxP, +m[1]); });
     (P.extra || []).forEach(function(x){ maxP = Math.max(maxP, x.p); });
@@ -176,7 +193,7 @@
     const out = [], vistos = {};
     for (let p = P.pisoMin; p <= maxP; p++) {
       const deEste = [];
-      if (lista) lista.forEach(function(a){ deEste.push(a); });
+      const lp = listaDe(p); if (lp) lp.forEach(function(a){ deEste.push(a); });
       if (deducidos) deducidos(p).forEach(function(a){ if (deEste.indexOf(a) < 0) deEste.push(a); });
       Object.keys(P.prev).forEach(function(k){ const m = k.match(/^P(\d{2})A(.+)$/); if (m && +m[1] === p) { const a = String(P.prev[k].apto || m[2]).trim().toUpperCase(); if (deEste.indexOf(a) < 0) deEste.push(a); } });
       (P.extra || []).forEach(function(x){ if (x.p === p && deEste.indexOf(x.a) < 0) deEste.push(x.a); });

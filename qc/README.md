@@ -1171,3 +1171,12 @@ Regresión con el código final: `e7` a `e20`, `t139`, `t124`, `t128`, `t136`, `
 verde; `e8` 24/25 sin ventana (QC6c) y 25/25 a la vista; a la vista `t90` 6/6, `t91` 4/4 en servicios, SHA y urbanismo, `t108`
 4/4, `t33` 5/5. Veintiséis tandas viejas que usan «Enviar todos» dan lo mismo que la v196 (`t112` vive el 20-oct, el día que
 reproduce: sus borradores se guardaron el 13).
+
+## 2-nov-2026 · La T-04 y la T-43 con letra + piso (A07 a J07 en el 7)
+
+Matriz de la inspección de la T-04 (por Planificación; la acordó con la de la T-43): una letra por apartamento, A a J (A «Lateral 1»,
+J «Lateral 2»), y el piso con dos cifras. Reemplaza la lista A01–A10 fija que tenía la T-43 desde la v193 (no tenía informes de
+apartamento). `e12` 12/12 (también a la vista a 375): el desplegable cambia con el piso, en PB no hay lista, G03 pasa a G07 al cambiar
+de piso; `e17` con el historial real de la T-04: de 100, 28 ya traían el nombre nuevo y 66 empalman solos («C7» → C07, en la planilla
+y en «Enviar todos»); quedan 6 sueltos en su piso (P01: «1B», «1B tipo 2 centro», «1 lateral», «1 lateral A1»; P02: «C3», «F3»).
+Las tandas que usaban la T-04 como torre sin lista (`e8`, `e14`, `t112`) pasan a la T-38 o la T-39.

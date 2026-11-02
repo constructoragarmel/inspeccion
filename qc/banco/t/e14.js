@@ -16,9 +16,9 @@ const abrirEn = async (convenio, torre) => {
 };
 const delPiso = p => E().P.aptos.filter(x => x.p === p).map(x => x.a).join(',');
 
-// 1 · Letra + piso (como la T-04 de SR): A2 y B2 en el 2, C3 en el 3, J5 en el 5.
-await Q.relevo({ sembrarAvance: { sector: 'SR', torre: 'T-04', prueba: true, informes: inf('SR', 'T-04', [[2, 'A2'], [2, 'B2'], [3, 'C3'], [5, 'J5']]) } });
-await abrirEn('Convenio Rusos', 'T-04');
+// 1 · Letra + piso deducido del historial (como era la T-04 antes de tener lista), en la T-39: A2 y B2 en el 2, C3 en el 3, J5 en el 5.
+await Q.relevo({ sembrarAvance: { sector: 'SR', torre: 'T-39', prueba: true, informes: inf('SR', 'T-39', [[2, 'A2'], [2, 'B2'], [3, 'C3'], [5, 'J5']]) } });
+await abrirEn('Convenio Rusos', 'T-39');
 ok('E14-1 · Letra con su piso: cada piso del 1 al 15 trae A, B, C y J con su número (A10, B10, C10, J10 en el 10)',
    E().P.pisos === 15 && delPiso(0) === '' && delPiso(10) === 'A10,B10,C10,J10' && delPiso(1) === 'A1,B1,C1,J1' && delPiso(5) === 'A5,B5,C5,J5', E().P.pisos + ' · 10: ' + delPiso(10) + ' · 1: ' + delPiso(1));
 _plIr({ vista: 'tel', piso: 12, hitoSel: 'hito_servicios' }); await esperar(120);

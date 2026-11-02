@@ -24,14 +24,14 @@ ok('E16-1 ' + tam + ' · La caja de la tabla termina antes de la barra de abajo 
    'caja ' + Math.round(gw.getBoundingClientRect().top) + '–' + Math.round(gw.getBoundingClientRect().bottom) + ' · barra ' + Math.round(barra.top) + ' · ' + gw.scrollHeight + '/' + gw.clientHeight);
 gw.scrollTop = 99999; await esperar(120);
 const ultima = [...gw.querySelectorAll('tbody tr')].pop().getBoundingClientRect(), cab = th().getBoundingClientRect();
-ok('E16-2 ' + tam + ' · Abajo del todo, la fila de apartamentos sigue pegada arriba de la caja y dice A7', Math.abs(cab.top - gw.getBoundingClientRect().top) <= 2 && /A7/.test(th().textContent), Math.round(cab.top) + ' vs ' + Math.round(gw.getBoundingClientRect().top));
+ok('E16-2 ' + tam + ' · Abajo del todo, la fila de apartamentos sigue pegada arriba de la caja y dice A07', Math.abs(cab.top - gw.getBoundingClientRect().top) <= 2 && /A07/.test(th().textContent), Math.round(cab.top) + ' vs ' + Math.round(gw.getBoundingClientRect().top));
 ok('E16-3 ' + tam + ' · …y la última fila se ve entera, sin quedar bajo la barra', ultima.bottom <= barra.top + 1 && ultima.top >= cab.bottom - 1, Math.round(ultima.top) + '–' + Math.round(ultima.bottom));
 const chips = $('#planilla .pl-chips').getBoundingClientRect(), psel = $('#pl-psel').getBoundingClientRect();
 ok('E16-4 ' + tam + ' · Las pestañas y el piso siguen a la vista (si cabe todo)', $('#planilla').scrollTop > 0 || (chips.top >= 0 && chips.bottom <= H && psel.top >= 0), Math.round(chips.top) + ' · ' + Math.round(psel.top));
 // Tocar una casilla de abajo con la caja desplazada: abre el teclado de esa casilla y guarda.
-const ult = [...gw.querySelectorAll('tbody tr')].pop().querySelector('.pl-c[data-k="P07AJ7"]');
+const ult = [...gw.querySelectorAll('tbody tr')].pop().querySelector('.pl-c[data-k="P07AJ07"]');
 ult.click(); await esperar(80); $('#pl-sheet [data-r="50"]').click(); $('#pl-ksi').click(); await esperar(80);
-ok('E16-5 ' + tam + ' · Cargar la última casilla con la caja abajo funciona (P07 J7)', E().est.N.P07AJ7 && Object.values(E().est.N.P07AJ7)[0] === 50, JSON.stringify(E().est.N));
+ok('E16-5 ' + tam + ' · Cargar la última casilla con la caja abajo funciona (P07 J07)', E().est.N.P07AJ07 && Object.values(E().est.N.P07AJ07)[0] === 50, JSON.stringify(E().est.N));
 // Cambiar de piso y de pestaña recalcula la caja.
 $('#pl-sig').click(); await esperar(150);
 ok('E16-6 ' + tam + ' · Al pasar de piso la caja se rehace y la tabla vuelve arriba', $('#planilla .pl-gw').scrollTop === 0 && $('#planilla .pl-gw').style.maxHeight !== '' && +$('#pl-psel').value === 8);

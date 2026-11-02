@@ -310,8 +310,10 @@ INSPECTORES_SHA_JS = """const INSPECTORES_SHA = [
 # Simón Bolívar (Planificación, 13-oct-2026): la nomenclatura es por par de torres, no por sector; las demás torres del
 # sector (D-08, J-07, J-08) y Simón Rodríguez siguen con el campo libre. Los informes de la J-12 anteriores al 13-oct traen
 # «D2» y «E2»: se abren con el campo libre, no se tocan.
-# T-43 de Simón Rodríguez (Planificación, 2-nov-2026): diez por piso, A01 a A10. La T-04 sigue con el campo libre: sus informes
-# traen letra y piso (A12, J12) y la lista nueva cortaría el historial de cada apartamento.
+# T-04 y T-43 de Simón Rodríguez (Glajos; matriz de la inspección de la T-04, acordada con la de la T-43, por Planificación el
+# 2-nov-2026): diez por piso, una letra por apartamento (A a J; la A es «Lateral 1» y la J «Lateral 2») y el número del piso con
+# dos cifras: en el piso 7, A07 a J07. La lista cambia con el piso: `{ letras, conPiso }` y _listaAptosDelPiso. En la planta baja
+# no hay lista (la matriz va del 01 al 12). Los informes viejos de la T-04 traen «C7»: la planilla y «Enviar todos» los leen como C07.
 APARTAMENTOS_JS = """const APARTAMENTOS_POR_SECTOR = {
   EZ: ['A1', 'A2', 'B1', 'B2']    // Ezequiel Zamora, Planificación 13-oct-2026
 };
@@ -320,6 +322,14 @@ const APARTAMENTOS_POR_TORRE = {
   'SB|J-10': ['E11', 'E12', 'D11', 'D12', 'A1', 'A2', 'C1', 'C2'],
   'SB|J-11': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2'],
   'SB|J-12': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2'],
-  'SR|T-43': ['A01', 'A02', 'A03', 'A04', 'A05', 'A06', 'A07', 'A08', 'A09', 'A10']   // Simón Rodríguez, Planificación 2-nov-2026: diez por piso
-};"""
+  'SR|T-04': { letras: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'], conPiso: true },   // Simón Rodríguez, letra + piso (2-nov-2026)
+  'SR|T-43': { letras: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'], conPiso: true }
+};
+// La lista concreta de un piso: la de siempre, o letra + piso con dos cifras donde la torre va así. Sin piso (o en PB), ninguna.
+function _listaAptosDelPiso(def, piso){
+  if (!def || Array.isArray(def)) return def || null;
+  const p = parseInt(String(piso == null ? '' : piso).replace(/\D/g, ''), 10);
+  if (!(p > 0)) return null;
+  return def.letras.map(function(l){ return l + String(p).padStart(2, '0'); });
+}"""
 

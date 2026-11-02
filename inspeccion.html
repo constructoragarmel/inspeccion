@@ -2352,11 +2352,28 @@ const APARTAMENTOS_POR_TORRE = {
   'SB|J-10': ['E11', 'E12', 'D11', 'D12', 'A1', 'A2', 'C1', 'C2'],
   'SB|J-11': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2'],
   'SB|J-12': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2'],
-  'SR|T-43': ['A01', 'A02', 'A03', 'A04', 'A05', 'A06', 'A07', 'A08', 'A09', 'A10']   // Simón Rodríguez, Planificación 2-nov-2026: diez por piso
+  'SR|T-04': { letras: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'], conPiso: true },   // Simón Rodríguez, letra + piso (2-nov-2026)
+  'SR|T-43': { letras: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'], conPiso: true }
 };
+// La lista concreta de un piso: la de siempre, o letra + piso con dos cifras donde la torre va así. Sin piso (o en PB), ninguna.
+function _listaAptosDelPiso(def, piso){
+  if (!def || Array.isArray(def)) return def || null;
+  const p = parseInt(String(piso == null ? '' : piso).replace(/\D/g, ''), 10);
+  if (!(p > 0)) return null;
+  return def.letras.map(function(l){ return l + String(p).padStart(2, '0'); });
+}
 function _aptosDeSector(){ const z = getSectorActual(), t = (document.getElementById('torre') || {}).value || '';
   if (typeof APARTAMENTOS_POR_TORRE !== 'undefined' && APARTAMENTOS_POR_TORRE[z + '|' + t]) return APARTAMENTOS_POR_TORRE[z + '|' + t];
   return (typeof APARTAMENTOS_POR_SECTOR !== 'undefined' && APARTAMENTOS_POR_SECTOR[z]) || null; }
+const _aptosDeSectorBase202 = _aptosDeSector;
+_aptosDeSector = function(piso){ const def = _aptosDeSectorBase202();
+  return _listaAptosDelPiso(def, piso === undefined ? ((document.getElementById('piso') || {}).value || '') : piso); };
+// Al cambiar de piso, el mismo apartamento en el piso nuevo: G03 pasa a G07 (si no, quedaría como texto libre del otro piso).
+document.addEventListener('change', function(e){ if (!e.target || e.target.id !== 'piso') return;
+  const def = _aptosDeSectorBase202(), inp = document.getElementById('apto');
+  if (def && def.conPiso && inp) { const m = /^([A-Z])\d{2}$/.exec(String(inp.value || '').trim().toUpperCase()), l = _listaAptosDelPiso(def, e.target.value);
+    if (m) { const nuevo = l && l.find(function(x){ return x.charAt(0) === m[1]; }); inp.value = nuevo || ''; } }
+  _aplicarListaApto(); if (typeof updateDocInfo === 'function') updateDocInfo(); });
 function _aplicarListaApto(){
   const inp = document.getElementById('apto'), sel = document.getElementById('apto-sel');
   if (!inp || !sel) return;
@@ -4322,8 +4339,25 @@ function _conTitulo195(v){
     // En la planta baja no hay número de piso que poner: solo los nombres fijos.
     return function(p){ if (!p) return fijos.slice(); return pats.map(function(x){ const n = x.ceros ? String(p).padStart(2, '0') : String(p); return x.t === 'f' ? x.r + n : n + x.r; }).concat(fijos); };
   }
+  // La lista de un piso (en la T-04 y la T-43 cambia con el piso: A07 a J07 en el 7).
+  const listaDe = function(p){ return (typeof _aptosDeSector === 'function' && _aptosDeSector(p === 0 ? 'Planta Baja' : 'Piso ' + String(p).padStart(2, '0'))) || null; };
+  // Lo de antes con el nombre de la lista: «C7» del piso 7 es el C07 donde la lista dice así (los informes viejos de la T-04).
+  function empalmar(){
+    Object.keys(P.prev).forEach(function(k){
+      const m = k.match(/^P(\d{2})A(.+)$/); if (!m) return;
+      const p = +m[1], l = listaDe(p); if (!l) return;
+      const a = String(P.prev[k].apto || m[2]).trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (l.indexOf(a) >= 0) return;
+      const sc = function(x){ return String(x).replace(/^([A-Z]+)0+(?=\d)/, '$1'); };
+      const igual = l.filter(function(x){ return sc(x) === sc(a); }); if (igual.length !== 1) return;
+      const nk = bloque(p, igual[0]);
+      if (!P.prev[nk] || String(P.prev[k].fecha || '') > String(P.prev[nk].fecha || '')) P.prev[nk] = Object.assign({}, P.prev[k], { apto: igual[0] });
+      delete P.prev[k];
+    });
+  }
   function armarAptos(){
-    const lista = (typeof _aptosDeSector === 'function' && _aptosDeSector()) || null;
+    const lista = listaDe(1);
+    empalmar();
     let maxP = P.pisosElegido || 0;
     Object.keys(P.prev).forEach(function(k){ const m = k.match(/^P(\d{2})A/); if (m) maxP = Math.max(maxP, +m[1]); });
     (P.extra || []).forEach(function(x){ maxP = Math.max(maxP, x.p); });
@@ -4334,7 +4368,7 @@ function _conTitulo195(v){
     const out = [], vistos = {};
     for (let p = P.pisoMin; p <= maxP; p++) {
       const deEste = [];
-      if (lista) lista.forEach(function(a){ deEste.push(a); });
+      const lp = listaDe(p); if (lp) lp.forEach(function(a){ deEste.push(a); });
       if (deducidos) deducidos(p).forEach(function(a){ if (deEste.indexOf(a) < 0) deEste.push(a); });
       Object.keys(P.prev).forEach(function(k){ const m = k.match(/^P(\d{2})A(.+)$/); if (m && +m[1] === p) { const a = String(P.prev[k].apto || m[2]).trim().toUpperCase(); if (deEste.indexOf(a) < 0) deEste.push(a); } });
       (P.extra || []).forEach(function(x){ if (x.p === p && deEste.indexOf(x.a) < 0) deEste.push(x.a); });
@@ -7959,6 +7993,10 @@ function _revisarApto192(apto, lista){
   if (lista.indexOf(v) >= 0) return null;
   const limpio = v.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]/g, '');
   if (lista.indexOf(limpio) >= 0) return { normal: limpio };
+  // «C7» donde la lista dice «C07» (T-04, letra + piso con dos cifras): el mismo, con o sin ceros a la izquierda.
+  const sinCeros = function(x){ return String(x).replace(/^([A-Z]+)0+(?=\d)/, '$1'); };
+  const igual = lista.filter(function(x){ return sinCeros(x) === sinCeros(limpio); });
+  if (igual.length === 1) return { normal: igual[0] };
   if (/^[A-Z0-9]+$/.test(v) && lista.map(_formaApto192).indexOf(_formaApto192(v)) >= 0) return null;
   return { mal: true, lista: lista };
 }
@@ -8011,8 +8049,9 @@ const _MARCA_VACIO192 = '⛔ Vacío, no se envía: no tiene nada medido. Si no s
 if (typeof getFormData === 'function' && typeof getSavedReports === 'function' && typeof enviarPendientes === 'function') {
   const _aptosDe192 = function(b){
     const z = (typeof SECTOR_POR_CONVENIO !== 'undefined' && SECTOR_POR_CONVENIO[b.convenio]) || '', t = b.torre || '';
-    if (typeof APARTAMENTOS_POR_TORRE !== 'undefined' && APARTAMENTOS_POR_TORRE[z + '|' + t]) return APARTAMENTOS_POR_TORRE[z + '|' + t];
-    return (typeof APARTAMENTOS_POR_SECTOR !== 'undefined' && APARTAMENTOS_POR_SECTOR[z]) || null;
+    const def = (typeof APARTAMENTOS_POR_TORRE !== 'undefined' && APARTAMENTOS_POR_TORRE[z + '|' + t]) ||
+                (typeof APARTAMENTOS_POR_SECTOR !== 'undefined' && APARTAMENTOS_POR_SECTOR[z]) || null;
+    return typeof _listaAptosDelPiso === 'function' ? _listaAptosDelPiso(def, b.piso) : (Array.isArray(def) ? def : null);
   };
   const _deApto192 = function(b){ return b && (b.ambito || 'apartamento') !== 'torre' && b.vista !== 'estructura'; };
   window._aptoMal192 = function(b){ if (!_deApto192(b)) return null; const r = _revisarApto192(b.apto, _aptosDe192(b)); return r && r.mal ? r : null; };

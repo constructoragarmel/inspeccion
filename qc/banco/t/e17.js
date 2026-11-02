@@ -18,15 +18,17 @@ for (const [sector, torre, conv] of TORRES) {
   if (!document.querySelector('#estatus .ck-lbl.on')) [...document.querySelectorAll('#estatus .ck-lbl')].find(l => /progreso/.test(l.textContent)).click();
   abrirPlanilla(); await hasta(() => E().P && E().P.origenPrev === 'del archivo', 15000); await esperar(250);
   const P = E().P, keys = P.aptos.map(x => x.k), hist = Object.keys(informes);
-  const perdidos = hist.filter(k => keys.indexOf(k) < 0), dup = keys.filter((k, i) => keys.indexOf(k) !== i);
+  // En la T-04 (letra + piso desde el 2-nov) «C7» del piso 7 se empalma como C07: cuenta como el mismo apartamento.
+  const alias = k => { const m = k.match(/^P(\d{2})A([A-J])0*(\d+)$/); return m && +m[3] === +m[1] ? 'P' + m[1] + 'A' + m[2] + String(+m[3]).padStart(2, '0') : k; };
+  const perdidos = hist.filter(k => keys.indexOf(k) < 0 && keys.indexOf(alias(k)) < 0), dup = keys.filter((k, i) => keys.indexOf(k) !== i);
   const maxHist = Math.max(...hist.map(k => +k.slice(1, 3)));
   ok('E17 ' + sector + '-' + torre + ' · Los ' + hist.length + ' apartamentos con historial están todos, sin repetidos', !perdidos.length && !dup.length, 'perdidos ' + perdidos.join(',') + ' · repetidos ' + dup.join(','));
   ok('E17 ' + sector + '-' + torre + ' · Pisos de la PB al ' + Math.max(15, maxHist), P.pisoMin === 0 && P.pisos === Math.max(15, maxHist), P.pisoMin + '–' + P.pisos);
   // El gris: para cada apartamento con historial, cada % del archivo es lo que muestra como anterior.
-  const malos = []; hist.forEach(k => { const pc = (informes[k] || {}).pcts || {}; Object.keys(pc).forEach(c => { if (E().P.prev[k] && E().P.prev[k].pcts && E().P.prev[k].pcts[c] !== pc[c]) malos.push(k + ' ' + c); }); });
+  const malos = []; hist.forEach(k => { const pc = (informes[k] || {}).pcts || {}; Object.keys(pc).forEach(c => { const pk = E().P.prev[k] ? k : alias(k); if (E().P.prev[pk] && E().P.prev[pk].pcts && E().P.prev[pk].pcts[c] !== pc[c] && E().P.prev[pk].nro === informes[k].nro) malos.push(k + ' ' + c); }); });
   ok('E17 ' + sector + '-' + torre + ' · El gris de cada casilla es el último % del archivo', !malos.length, malos.slice(0, 5).join(', '));
   const porPiso = p => P.aptos.filter(x => x.p === p).map(x => x.a).join(',');
-  const muestra = sector === 'EZ' ? 'A1,A2,B1,B2' : sector === 'SR' ? 'A7,B7,C7,D7,E7,F7,G7,H7,I7,J7' : 'A07,B07,C07,D07,E07,F07';
+  const muestra = sector === 'EZ' ? 'A1,A2,B1,B2' : sector === 'SR' ? 'A07,B07,C07,D07,E07,F07,G07,H07,I07,J07' : 'A07,B07,C07,D07,E07,F07';
   const p7 = porPiso(7).split(',').filter(a => muestra.split(',').indexOf(a) >= 0).join(',');
   ok('E17 ' + sector + '-' + torre + ' · El piso 7 trae su juego completo (' + muestra + ')', p7 === muestra, porPiso(7));
   ok('E17 ' + sector + '-' + torre + ' · Un piso sin informe (el 14) también trae su juego', porPiso(14).split(',').length >= muestra.split(',').length, porPiso(14));

@@ -3518,6 +3518,10 @@ function _revisarApto192(apto, lista){
   if (lista.indexOf(v) >= 0) return null;
   const limpio = v.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]/g, '');
   if (lista.indexOf(limpio) >= 0) return { normal: limpio };
+  // «C7» donde la lista dice «C07» (T-04, letra + piso con dos cifras): el mismo, con o sin ceros a la izquierda.
+  const sinCeros = function(x){ return String(x).replace(/^([A-Z]+)0+(?=\d)/, '$1'); };
+  const igual = lista.filter(function(x){ return sinCeros(x) === sinCeros(limpio); });
+  if (igual.length === 1) return { normal: igual[0] };
   if (/^[A-Z0-9]+$/.test(v) && lista.map(_formaApto192).indexOf(_formaApto192(v)) >= 0) return null;
   return { mal: true, lista: lista };
 }
@@ -3570,8 +3574,9 @@ const _MARCA_VACIO192 = '⛔ Vacío, no se envía: no tiene nada medido. Si no s
 if (typeof getFormData === 'function' && typeof getSavedReports === 'function' && typeof enviarPendientes === 'function') {
   const _aptosDe192 = function(b){
     const z = (typeof SECTOR_POR_CONVENIO !== 'undefined' && SECTOR_POR_CONVENIO[b.convenio]) || '', t = b.torre || '';
-    if (typeof APARTAMENTOS_POR_TORRE !== 'undefined' && APARTAMENTOS_POR_TORRE[z + '|' + t]) return APARTAMENTOS_POR_TORRE[z + '|' + t];
-    return (typeof APARTAMENTOS_POR_SECTOR !== 'undefined' && APARTAMENTOS_POR_SECTOR[z]) || null;
+    const def = (typeof APARTAMENTOS_POR_TORRE !== 'undefined' && APARTAMENTOS_POR_TORRE[z + '|' + t]) ||
+                (typeof APARTAMENTOS_POR_SECTOR !== 'undefined' && APARTAMENTOS_POR_SECTOR[z]) || null;
+    return typeof _listaAptosDelPiso === 'function' ? _listaAptosDelPiso(def, b.piso) : (Array.isArray(def) ? def : null);
   };
   const _deApto192 = function(b){ return b && (b.ambito || 'apartamento') !== 'torre' && b.vista !== 'estructura'; };
   window._aptoMal192 = function(b){ if (!_deApto192(b)) return null; const r = _revisarApto192(b.apto, _aptosDe192(b)); return r && r.mal ? r : null; };

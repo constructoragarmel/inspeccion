@@ -9838,6 +9838,24 @@ s = sustituir(s,
  "    if (!rescatado) _cortes[datos.nro] = _t0;\n",
  "201b· y si no aparece, se recuerda el corte")
 
+# ── 202. El apartamento como letra + piso en la T-04 y la T-43 (2-nov-2026) ──────────────────────────────────────────────
+# Matriz de la inspección de la T-04 (por Planificación): una letra por apartamento, A a J, y el número del piso con dos cifras
+# (A07 es el A del piso 7). La lista de esas torres cambia con el piso (comun/maestros.py, _listaAptosDelPiso): el desplegable
+# se arma con la del piso elegido y se rehace al cambiar de piso. En la planta baja no hay lista y queda el campo libre.
+s = sustituir(s,
+ "function _aplicarListaApto(){\n",
+ "const _aptosDeSectorBase202 = _aptosDeSector;\n"
+ "_aptosDeSector = function(piso){ const def = _aptosDeSectorBase202();\n"
+ "  return _listaAptosDelPiso(def, piso === undefined ? ((document.getElementById('piso') || {}).value || '') : piso); };\n"
+ "// Al cambiar de piso, el mismo apartamento en el piso nuevo: G03 pasa a G07 (si no, quedaría como texto libre del otro piso).\n"
+ "document.addEventListener('change', function(e){ if (!e.target || e.target.id !== 'piso') return;\n"
+ "  const def = _aptosDeSectorBase202(), inp = document.getElementById('apto');\n"
+ "  if (def && def.conPiso && inp) { const m = /^([A-Z])\\d{2}$/.exec(String(inp.value || '').trim().toUpperCase()), l = _listaAptosDelPiso(def, e.target.value);\n"
+ "    if (m) { const nuevo = l && l.find(function(x){ return x.charAt(0) === m[1]; }); inp.value = nuevo || ''; } }\n"
+ "  _aplicarListaApto(); if (typeof updateDocInfo === 'function') updateDocInfo(); });\n"
+ "function _aplicarListaApto(){\n",
+ "202a· la lista del piso elegido")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
