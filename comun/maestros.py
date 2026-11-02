@@ -310,6 +310,8 @@ INSPECTORES_SHA_JS = """const INSPECTORES_SHA = [
 # Simón Bolívar (Planificación, 13-oct-2026): la nomenclatura es por par de torres, no por sector; las demás torres del
 # sector (D-08, J-07, J-08) y Simón Rodríguez siguen con el campo libre. Los informes de la J-12 anteriores al 13-oct traen
 # «D2» y «E2»: se abren con el campo libre, no se tocan.
+# T-43 de Simón Rodríguez (Planificación, 2-nov-2026): diez por piso, A01 a A10. La T-04 sigue con el campo libre: sus informes
+# traen letra y piso (A12, J12) y la lista nueva cortaría el historial de cada apartamento.
 APARTAMENTOS_JS = """const APARTAMENTOS_POR_SECTOR = {
   EZ: ['A1', 'A2', 'B1', 'B2']    // Ezequiel Zamora, Planificación 13-oct-2026
 };
@@ -317,6 +319,7 @@ const APARTAMENTOS_POR_TORRE = {
   'SB|J-09': ['E11', 'E12', 'D11', 'D12', 'A1', 'A2', 'C1', 'C2'],   // Simón Bolívar, Planificación 13-oct-2026
   'SB|J-10': ['E11', 'E12', 'D11', 'D12', 'A1', 'A2', 'C1', 'C2'],
   'SB|J-11': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2'],
-  'SB|J-12': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2']
+  'SB|J-12': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2'],
+  'SR|T-43': ['A01', 'A02', 'A03', 'A04', 'A05', 'A06', 'A07', 'A08', 'A09', 'A10']   // Simón Rodríguez, Planificación 2-nov-2026: diez por piso
 };"""
 

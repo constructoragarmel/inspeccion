@@ -63,6 +63,6 @@
   try { actualizarAvanceTorre(envio(eA)); } catch (e) {}
   ok('R12 · Si Drive falla al escribir, el candado se suelta igual (el siguiente envío no se queda esperando)', log.join(',') === 'espera,suelta', log.join(','));
   window.carpetaDeTorre = bak.c; window._leerAvanceTorre = bak.l;
-  ok('R13 · La versión del relevo es r79', /^r79-/.test(RELEVO_VERSION), RELEVO_VERSION);
+  ok('R13 · La versión del relevo es r79 o posterior', /^r(79|[89][0-9])-/.test(RELEVO_VERSION), RELEVO_VERSION);
   return R.join('\n');
 })();

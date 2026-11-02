@@ -2021,14 +2021,14 @@ const PARTIDAS = [
     "nombre": "HITO 3: INSTALACIÓN DE SERVICIOS", 
     "icon": "", 
     "color": "#303f9f", 
-    "items": ["Aguas blancas (puntos de agua fría y caliente)", "Desagüe (descargas)", "Cableados", "Canalizaciones", "Módulo de electricidad del edificio", "Tapa del módulo de electricidad del edificio", "Tablero eléctrico del apartamento", "Tapa del tablero del apartamento", "Equipamiento de cuarto de módulos", "Montante de voz y data", "Montante de aguas blancas", "Bajante de aguas servidas", "Montante de gas", "Bajante de aguas pluviales", "Manifold de gas", "Puntos de gas", "Válvula de paso del apartamento", "Válvula de paso del piso", "Válvula de regulación principal", "Centro de piso (C.P.)", "Tapón de registro (T.R.)"]
+    "items": ["Aguas blancas (puntos de agua fría y caliente)", "Puntos de desagüe", "Cableados", "Canalizaciones", "Módulo de electricidad del edificio", "Tapa del módulo de electricidad del edificio", "Tablero eléctrico del apartamento", "Tapa del tablero del apartamento", "Equipamiento de cuarto de módulos", "Montante de voz y data", "Montante de aguas blancas", "Bajante de aguas servidas", "Montante de gas", "Bajante de aguas pluviales", "Manifold de gas", "Puntos de gas", "Válvula de paso del apartamento", "Válvula de paso del piso", "Válvula de regulación principal", "Centro de piso (C.P.)", "Tapón de registro (T.R.)"]
   },
   {
     "id": "hito_acabados", 
     "nombre": "HITO 4: ACABADOS", 
     "icon": "", 
     "color": "#3949ab", 
-    "items": ["Frisos", "Encamisados", "Fondo antialcalino", "Cerámica en paredes", "Cerámica en pisos", "Construcción de sobrepisos", "Pintura en paredes", "Pintura en techos", "Texturizado de techos", "Pintura en puertas de herrería", "Barniz en puertas de madera", "Pintura en rejas", "Piso de cemento liso"]
+    "items": ["Friso interno", "Encamisados", "Fondo antialcalino", "Cerámica en paredes", "Cerámica en pisos", "Construcción de sobrepisos", "Pintura en paredes", "Pintura en techos", "Texturizado de techos", "Pintura en puertas de herrería", "Barniz en puertas de madera", "Pintura en rejas", "Piso de cemento liso"]
   },
   {
     "id": "hito_puertas", 
@@ -2351,7 +2351,8 @@ const APARTAMENTOS_POR_TORRE = {
   'SB|J-09': ['E11', 'E12', 'D11', 'D12', 'A1', 'A2', 'C1', 'C2'],   // Simón Bolívar, Planificación 13-oct-2026
   'SB|J-10': ['E11', 'E12', 'D11', 'D12', 'A1', 'A2', 'C1', 'C2'],
   'SB|J-11': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2'],
-  'SB|J-12': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2']
+  'SB|J-12': ['E21', 'E22', 'D21', 'D22', 'B1', 'B2', 'F1', 'F2'],
+  'SR|T-43': ['A01', 'A02', 'A03', 'A04', 'A05', 'A06', 'A07', 'A08', 'A09', 'A10']   // Simón Rodríguez, Planificación 2-nov-2026: diez por piso
 };
 function _aptosDeSector(){ const z = getSectorActual(), t = (document.getElementById('torre') || {}).value || '';
   if (typeof APARTAMENTOS_POR_TORRE !== 'undefined' && APARTAMENTOS_POR_TORRE[z + '|' + t]) return APARTAMENTOS_POR_TORRE[z + '|' + t];
