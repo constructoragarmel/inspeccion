@@ -1180,3 +1180,9 @@ apartamento). `e12` 12/12 (también a la vista a 375): el desplegable cambia con
 de piso; `e17` con el historial real de la T-04: de 100, 28 ya traían el nombre nuevo y 66 empalman solos («C7» → C07, en la planilla
 y en «Enviar todos»); quedan 6 sueltos en su piso (P01: «1B», «1B tipo 2 centro», «1 lateral», «1 lateral A1»; P02: «C3», «F3»).
 Las tandas que usaban la T-04 como torre sin lista (`e8`, `e14`, `t112`) pasan a la T-38 o la T-39.
+- `e21` (diez rondas sobre lo anterior, «eso no rompe nada, no?»): formulario T-04 de punta a punta con «Guardar y otro apto»,
+  «Repetir» con la lista del piso, un borrador viejo «C7» abierto (queda C07), «Enviar todos» con un «C7» (sale con apto C07) y un
+  «C3» en el piso 2 (no sale; el aviso dice A02…J02), la planilla con el historial real, la PB sin lista, la T-43 entera (150, hojas,
+  44 px), y EZ, SB J-09 y SR T-38 como antes. 10/10 sin ventana y a la vista a 375. **Encontró una:** un «C7» corregido a C07 por
+  «Enviar todos» llega con apto C07 y el número viejo (clave P07AC7); la planilla lo habría mostrado dos veces: el empalme ahora
+  decide por la clave. `e17` comprueba además que en la T-04 no quede ninguna clave con el nombre viejo.

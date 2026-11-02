@@ -22,7 +22,8 @@ for (const [sector, torre, conv] of TORRES) {
   const alias = k => { const m = k.match(/^P(\d{2})A([A-J])0*(\d+)$/); return m && +m[3] === +m[1] ? 'P' + m[1] + 'A' + m[2] + String(+m[3]).padStart(2, '0') : k; };
   const perdidos = hist.filter(k => keys.indexOf(k) < 0 && keys.indexOf(alias(k)) < 0), dup = keys.filter((k, i) => keys.indexOf(k) !== i);
   const maxHist = Math.max(...hist.map(k => +k.slice(1, 3)));
-  ok('E17 ' + sector + '-' + torre + ' · Los ' + hist.length + ' apartamentos con historial están todos, sin repetidos', !perdidos.length && !dup.length, 'perdidos ' + perdidos.join(',') + ' · repetidos ' + dup.join(','));
+  const viejasQueQuedan = torre === 'T-04' ? keys.filter(k => k !== alias(k)) : [];
+  ok('E17 ' + sector + '-' + torre + ' · Los ' + hist.length + ' apartamentos con historial están todos, sin repetidos ni con su nombre viejo', !perdidos.length && !dup.length && !viejasQueQuedan.length, 'perdidos ' + perdidos.join(',') + ' · repetidos ' + dup.join(',') + ' · viejos ' + viejasQueQuedan.slice(0, 5).join(','));
   ok('E17 ' + sector + '-' + torre + ' · Pisos de la PB al ' + Math.max(15, maxHist), P.pisoMin === 0 && P.pisos === Math.max(15, maxHist), P.pisoMin + '–' + P.pisos);
   // El gris: para cada apartamento con historial, cada % del archivo es lo que muestra como anterior.
   const malos = []; hist.forEach(k => { const pc = (informes[k] || {}).pcts || {}; Object.keys(pc).forEach(c => { const pk = E().P.prev[k] ? k : alias(k); if (E().P.prev[pk] && E().P.prev[pk].pcts && E().P.prev[pk].pcts[c] !== pc[c] && E().P.prev[pk].nro === informes[k].nro) malos.push(k + ' ' + c); }); });

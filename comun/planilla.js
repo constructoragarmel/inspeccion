@@ -171,11 +171,14 @@
     Object.keys(P.prev).forEach(function(k){
       const m = k.match(/^P(\d{2})A(.+)$/); if (!m) return;
       const p = +m[1], l = listaDe(p); if (!l) return;
-      const a = String(P.prev[k].apto || m[2]).trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-      if (l.indexOf(a) >= 0) return;
+      // Por el apartamento o, si no casa, por el nombre de la clave: un «C7» que «Enviar todos» corrigió a C07 llega con apto
+      // C07 pero con el número (y la clave) de antes, P07AC7.
       const sc = function(x){ return String(x).replace(/^([A-Z]+)0+(?=\d)/, '$1'); };
-      const igual = l.filter(function(x){ return sc(x) === sc(a); }); if (igual.length !== 1) return;
-      const nk = bloque(p, igual[0]);
+      const casa = function(x){ const v = String(x || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, ''); if (l.indexOf(v) >= 0) return v;
+        const ig = l.filter(function(y){ return sc(y) === sc(v); }); return ig.length === 1 ? ig[0] : null; };
+      const nombre = casa(P.prev[k].apto) || casa(m[2]); if (!nombre) return;
+      const nk = bloque(p, nombre); if (nk === k) return;
+      const igual = [nombre];
       if (!P.prev[nk] || String(P.prev[k].fecha || '') > String(P.prev[nk].fecha || '')) P.prev[nk] = Object.assign({}, P.prev[k], { apto: igual[0] });
       delete P.prev[k];
     });
