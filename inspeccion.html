@@ -4277,10 +4277,31 @@ function _conTitulo195(v){
   // solo al cerrar la planilla a propósito.
   const ABIERTA = 'garmel_planilla_abierta';
   function anotarAbierta(){ try { if (!P) return; localStorage.setItem(ABIERTA, JSON.stringify({ sector: P.sector, torre: P.torre, cab: P.cabForm || null, piso: piso, hitoSel: hitoSel, vista: vista })); } catch (e) {} }
-  function guardarBorrador(){ anotarAbierta(); try {
+  // Si el teléfono está lleno, el borrador no se puede escribir y antes fallaba callado: al cerrarse la app (una llamada) se perdía
+  // todo (2-nov-2026, T-57). Primero se hace lugar con lo que se vuelve a bajar del archivo (los grises guardados de otras torres y
+  // las listas de presupuesto) y se reintenta; si igual no cabe, se dice fijo arriba, para que guarde y libere espacio ya.
+  let sinEspacio = false;
+  function hacerLugar(){
+    let n = 0;
+    try { Object.keys(localStorage).forEach(function(k){
+      if ((/^garmel_planilla_prev_/.test(k) && k !== 'garmel_planilla_prev_' + P.sector + '|' + P.torre) || /^garmel_aplica_/.test(k)) { localStorage.removeItem(k); n++; } }); } catch (e) {}
+    return n;
+  }
+  function guardarBorrador(){ anotarAbierta();
     // `dia`: la fecha de la visita a la que pertenecen los cambios (la de la cabecera al cargarlos).
-    localStorage.setItem(CLAVE(), JSON.stringify({ est: est, pasa: P.pasa, impresa: P.impresa, extra: P.extra, pisos: P.pisosElegido || 0, pisosManual: !!P.pisosManual, oficina: !!P.oficina, dia: P.dia || P.cab.fecha }));
-  } catch (e) {} }
+    const texto = JSON.stringify({ est: est, pasa: P.pasa, impresa: P.impresa, extra: P.extra, pisos: P.pisosElegido || 0, pisosManual: !!P.pisosManual, oficina: !!P.oficina, dia: P.dia || P.cab.fecha });
+    let ok = false;
+    try { localStorage.setItem(CLAVE(), texto); ok = true; } catch (e) {}
+    if (!ok && hacerLugar()) { try { localStorage.setItem(CLAVE(), texto); ok = true; } catch (e) {} }
+    const antes = sinEspacio; sinEspacio = !ok;
+    const av = document.getElementById('pl-aviso');
+    if (sinEspacio) {
+      P.aviso = '⚠️ El teléfono está lleno: lo que carga en la planilla NO se está guardando. No cierre la app: toque «Revisar y guardar» y «Enviar todos», y en «Informes» borre los ya enviados (🧹).';
+      if (av) { av.hidden = false; av.textContent = P.aviso; av.classList.add('pl-lleno'); }
+      if (!antes) aviso('⚠️ El teléfono está lleno: la planilla no se está guardando.');
+    } else if (antes) { P.aviso = ''; if (av) { av.hidden = true; av.classList.remove('pl-lleno'); } }
+  }
+  window._plSinEspacio = function(){ return sinEspacio; };
   function leerBorrador(){ try { return JSON.parse(localStorage.getItem(CLAVE()) || 'null'); } catch (e) { return null; } }
   function antesDeCambiar(){ pila.push(JSON.stringify(est)); if (pila.length > MAX_DESHACER) pila.shift(); }
   const nuevo = function(k, c){ return !!(est.N[k] && c in est.N[k]); };
@@ -5070,6 +5091,7 @@ function _conTitulo195(v){
     '#planilla .pl-piso{display:flex;gap:8px;align-items:center;margin:4px 0 8px;max-width:620px}',
     '#planilla .pl-piso button{width:52px;min-height:48px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-size:24px}#planilla .pl-piso button:disabled{opacity:.35}',
     '#planilla .pl-piso select{flex:1;min-width:0;min-height:48px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-size:20px;font-weight:800;text-align:center}',
+    '#planilla .pl-aviso.pl-lleno,#planilla #pl-aviso.pl-lleno{background:#fde8e6;color:#8a1c12;border-color:#b42318;font-weight:700}',
     '#planilla .pl-sep th{text-align:left;font-size:12px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#37474f;background:#eef3f6;padding:6px 8px}',
     // Deslizando a los lados (torres de más de 4 por piso): el rótulo se queda a la vista y la esquina «Piso» va por encima de
     // la columna de subpartidas y de la fila de apartamentos, que también son fijas (2-nov-2026, a 320 px con la T-04).

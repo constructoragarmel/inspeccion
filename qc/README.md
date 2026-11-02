@@ -1240,3 +1240,11 @@ se rehace la cabecera y se reabre la planilla donde iba, con «↩️ Se recuper
 del formulario, no se le pisa: solo se avisa. Probado recargando la página a la vista (vuelve en el piso 6, «Eléctricas», con sus 3
 casillas; cerrada a propósito no vuelve; con un informe de torre en curso, el formulario queda y avisa) y con `e26` 5/5 (sin ventana y
 a la vista). Regresión `e7` a `e26` y `t139` en verde.
+
+## 2-nov-2026 · El teléfono lleno no hace perder la planilla en silencio: `e27`
+
+Christian perdió «todos los pisos» de la T-57 (nada llegó a Drive). La planilla guarda cada casilla en el teléfono, pero si el
+almacenamiento estaba lleno el borrador no se escribía y el error se tragaba: al cerrarse la app por la llamada, no quedaba nada.
+Ahora, si no cabe, primero se borra lo que se vuelve a bajar del archivo (los grises guardados de otras torres y las listas de
+presupuesto; nunca los de la torre en uso) y se reintenta; si igual no cabe, un aviso fijo en rojo dice que no se está guardando y
+qué hacer, y se quita solo cuando vuelve el lugar. `e27` 5/5 (sin ventana y a la vista), simulando el almacenamiento lleno.
