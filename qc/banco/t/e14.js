@@ -19,8 +19,8 @@ const delPiso = p => E().P.aptos.filter(x => x.p === p).map(x => x.a).join(',');
 // 1 · Letra + piso (como la T-04 de SR): A2 y B2 en el 2, C3 en el 3, J5 en el 5.
 await Q.relevo({ sembrarAvance: { sector: 'SR', torre: 'T-04', prueba: true, informes: inf('SR', 'T-04', [[2, 'A2'], [2, 'B2'], [3, 'C3'], [5, 'J5']]) } });
 await abrirEn('Convenio Rusos', 'T-04');
-ok('E14-1 · Letra con su piso: cada piso del 1 al 16 trae A, B, C y J con su número (A10, B10, C10, J10 en el 10)',
-   E().P.pisos === 16 && delPiso(10) === 'A10,B10,C10,J10' && delPiso(1) === 'A1,B1,C1,J1' && delPiso(5) === 'A5,B5,C5,J5', E().P.pisos + ' · 10: ' + delPiso(10) + ' · 1: ' + delPiso(1));
+ok('E14-1 · Letra con su piso: cada piso del 1 al 15 trae A, B, C y J con su número (A10, B10, C10, J10 en el 10)',
+   E().P.pisos === 15 && delPiso(0) === '' && delPiso(10) === 'A10,B10,C10,J10' && delPiso(1) === 'A1,B1,C1,J1' && delPiso(5) === 'A5,B5,C5,J5', E().P.pisos + ' · 10: ' + delPiso(10) + ' · 1: ' + delPiso(1));
 _plIr({ vista: 'tel', piso: 12, hitoSel: 'hito_servicios' }); await esperar(120);
 const c = $('#planilla .pl-c[data-k="P12AJ12"][data-c="3.01"]');
 ok('E14-2 · En 📱 Obra el piso 12, sin ningún informe, tiene la casilla de J12 y se puede cargar', !!c && (c.click(), await esperar(60), $('#pl-sheet [data-r="25"]').click(), $('#pl-ksi').click(), await esperar(60), _plEstado().P && true) && /25/.test($('#planilla .pl-c[data-k="P12AJ12"][data-c="3.01"]').textContent));
@@ -29,7 +29,7 @@ cerrarPlanilla(); await esperar(150);
 // 2 · Nombres fijos por piso (como la J-11): D22 y E22 en el 1 y el 2.
 await Q.relevo({ sembrarAvance: { sector: 'SB', torre: 'J-08', prueba: true, informes: inf('SB', 'J-08', [[1, 'D22'], [1, 'E22'], [2, 'D22']]) } });
 await abrirEn('Convenio Chinos', 'J-08');
-ok('E14-3 · Nombres que no llevan el piso se repiten tal cual en todos: D22 y E22 del 1 al 16', E().P.pisos === 16 && delPiso(9) === 'D22,E22' && delPiso(16) === 'D22,E22' && delPiso(2) === 'D22,E22', '9: ' + delPiso(9) + ' · 16: ' + delPiso(16));
+ok('E14-3 · Nombres que no llevan el piso se repiten tal cual en todos: D22 y E22 de la PB al 15', E().P.pisos === 15 && delPiso(9) === 'D22,E22' && delPiso(15) === 'D22,E22' && delPiso(0) === 'D22,E22' && delPiso(2) === 'D22,E22', '9: ' + delPiso(9) + ' · 15: ' + delPiso(15) + ' · PB: ' + delPiso(0));
 cerrarPlanilla(); await esperar(150);
 
 // 3 · Con cero (C03 en el 3) y un «A1» suelto en el piso 1, que no se toma como letra + piso.
@@ -48,7 +48,7 @@ cerrarPlanilla(); await esperar(150);
 await Q.relevo({ sembrarAvance: { sector: 'SR', torre: 'T-13', prueba: true, informes: {} } });
 await abrirEn('Convenio Rusos', 'T-13');
 _plIr({ vista: 'tel', piso: 9, hitoSel: 'hito_servicios' }); await esperar(120);
-ok('E14-5 · Sin informes ni lista: llega al piso 16 y en cada piso ofrece «＋ Apartamentos»', E().P.pisos === 16 && [...$('#pl-psel').options].length === 16 && !!$('#pl-mas') && /no tiene apartamentos/.test($('#planilla').textContent), E().P.pisos + ' · ' + [...$('#pl-psel').options].length);
+ok('E14-5 · Sin informes ni lista: va de la PB al 15 y en cada piso ofrece «＋ Apartamentos»', E().P.pisos === 15 && [...$('#pl-psel').options].length === 16 && !!$('#pl-mas') && /no tiene apartamentos/.test($('#planilla').textContent), E().P.pisos + ' · ' + [...$('#pl-psel').options].length);
 // 5 · «Pisos de la torre» en la oficina manda: 9 deja la torre en 9.
 _plIr({ vista: 'tabla' }); await esperar(120);
 { const np = $('#pl-npisos'); np.value = '9'; np.dispatchEvent(new Event('change')); await esperar(100); }

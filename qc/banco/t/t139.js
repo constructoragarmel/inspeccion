@@ -38,7 +38,7 @@ const bp = $('#btn-planilla');
 ok('2a · El botón «📋 Planilla de la torre» está junto al ámbito', !!bp && bp.previousElementSibling && bp.previousElementSibling.id === 'btnAmbEstr');
 tap(bp); await hasta(() => E().P && E().P.origenPrev === 'del archivo', 8000); await esperar(200);
 _plIr({ vista: 'tel', piso: 3, hitoSel: 'hito_servicios' }); await esperar(100);
-ok('2b · Abre con lo del archivo en gris: del 1 al 16 × 4 (el archivo llega al 12), y 3.01 de P03 A1 dice 50', E().P.pisos === 16 && E().P.aptos.length === 64 && celda('P03AA1', '3.01') && celda('P03AA1', '3.01').textContent.trim() === '50', E().P.pisos + ' pisos · ' + E().P.aptos.length + ' · ' + (celda('P03AA1', '3.01') || {}).textContent);
+ok('2b · Abre con lo del archivo en gris: PB y del 1 al 15 × 4 (el archivo llega al 12), y 3.01 de P03 A1 dice 50', E().P.pisoMin === 0 && E().P.pisos === 15 && E().P.aptos.length === 64 && celda('P03AA1', '3.01') && celda('P03AA1', '3.01').textContent.trim() === '50', E().P.pisos + ' pisos · ' + E().P.aptos.length + ' · ' + (celda('P03AA1', '3.01') || {}).textContent);
 ok('2c · Sin dato se ve «·» en blanco, no un cero', celda('P03AA1', '3.07').textContent.trim() === '·' && /vacia/.test(celda('P03AA1', '3.07').className));
 // ── 3 ──
 const chicos = [...document.querySelectorAll('#planilla button, #planilla select, #planilla input')].filter(e => { const r = e.getBoundingClientRect(); return r.width && r.height && r.height < 44; }).map(e => e.id || e.className);

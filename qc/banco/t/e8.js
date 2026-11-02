@@ -113,7 +113,7 @@ tap($('#pl-mas')); await esperar(60);
 const ponerEn = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); };
 ponerEn('pl-np', '1'); ponerEn('pl-np2', '12'); ponerEn('pl-na', 'A1 A2 A3 A4 A5, B1 B2 B3 B4 B5');
 tap($('#pl-nsi')); await esperar(150);
-ok('QC9b · Diez apartamentos en los 12 pisos de una vez: 120 en la planilla (y la torre sigue hasta el 16)', E().P.aptos.length === 120 && E().P.pisos === 16, E().P.aptos.length + ' · ' + E().P.pisos + ' pisos');
+ok('QC9b · Diez apartamentos en los 12 pisos de una vez: 120 en la planilla (y la torre sigue hasta el 15, con PB)', E().P.aptos.length === 120 && E().P.pisos === 15, E().P.aptos.length + ' · ' + E().P.pisos + ' pisos');
 tap($('#pl-mas')); await esperar(60); ponerEn('pl-np', '3'); ponerEn('pl-np2', '3'); ponerEn('pl-na', 'a1 <b>c1</b> c-2'); tap($('#pl-nsi')); await esperar(150);
 const esperados9 = _aptosEscritos('a1 <b>c1</b> c-2', '').filter(a => a !== 'A1');
 ok('QC9c · Lo repetido (A1) no se duplica y lo raro se limpia igual que en «Repetir en otros apartamentos», sin HTML', E().P.aptos.length === 120 + esperados9.length && esperados9.every(a => E().P.aptos.some(x => x.k === 'P03A' + a)) && !$('#planilla').innerHTML.match(/<b>c1/i), E().P.aptos.filter(x => x.p === 3).map(x => x.a).join(','));

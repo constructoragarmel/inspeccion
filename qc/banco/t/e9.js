@@ -79,7 +79,7 @@ tap($('#planilla [data-ay="3.01"]')); const ay = $('#pl-sheet').textContent;
 document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await esperar(50);
 ok('QC11l · La ayuda de la subpartida dice qué cuenta, y Escape la cierra', /agua fría/.test(ay) && $('#pl-fondo').hidden);
 tap(celda('P04AB2', '3.01')); document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await esperar(50);
-ok('QC11m · Tocar «‹» en el primer piso y «›» en el último no hace nada (están apagados)', (await (async () => { await ir({ piso: 1 }); const a = $('#pl-ant').disabled; await ir({ piso: E().P.pisos }); return a && $('#pl-sig').disabled; })()));
+ok('QC11m · Tocar «‹» en el primer piso y «›» en el último no hace nada (están apagados)', (await (async () => { await ir({ piso: E().P.pisoMin }); const a = $('#pl-ant').disabled; await ir({ piso: E().P.pisos }); return a && $('#pl-sig').disabled; })()));
 cerrarPlanilla(); Object.keys(localStorage).filter(k => /^garmel_planilla_EZ/.test(k)).forEach(k => localStorage.removeItem(k));
 
 // ── QC12 · la oficina ──
@@ -89,7 +89,7 @@ await cabecera(); await abrir(); await ir({ vista: 'tabla' });
 E().LISTA.forEach(h => _plIr({ abrir: h.id }));
 let t = performance.now(); await ir({ vista: 'tabla' }); const ms12 = performance.now() - t;
 const nIn = $$('#planilla input.pl-pc').length;
-ok('QC12a · Todos los hitos abiertos: ' + nIn + ' casillas pintadas en menos de 1,5 s', nIn === 48 * 50 && ms12 < 1500, Math.round(ms12) + ' ms');
+ok('QC12a · Todos los hitos abiertos: ' + nIn + ' casillas pintadas en menos de 1,5 s', nIn === 52 * 50 && ms12 < 1500, Math.round(ms12) + ' ms');
 const inp = (k, c) => $('#planilla input.pl-pc[data-k="' + k + '"][data-c="' + c + '"]');
 const pegar = (k, c, txt) => { const dt = new DataTransfer(); dt.setData('text/plain', txt); const i = inp(k, c); i.focus(); i.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); };
 t = performance.now();
@@ -101,7 +101,7 @@ pegar('P12AB2', '3.01', '10\n20\n30\n');
 ok('QC12d · Pegar desde la última fila: entra lo que cabe y avisa de lo que quedó fuera', N('P12AB2', '3.01') === 10 && /2 quedaban fuera/.test(_plUltimoAviso()), _plUltimoAviso());
 const i12 = inp('P12AB2', '3.02'); i12.focus(); i12.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
 const f1 = document.activeElement === i12;
-const i12b = inp('P01AA1', '3.02'); i12b.focus(); i12b.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true, bubbles: true }));
+const i12b = inp('P00AA1', '3.02'); i12b.focus(); i12b.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true, bubbles: true }));
 ok('QC12e · Enter en la última fila y Mayúsculas+Enter en la primera no saltan a ningún lado ni fallan', f1 && document.activeElement === i12b && !errJS.length);
 const i12c = inp('P03AB1', '3.08'); i12c.focus(); i12c.value = '45';      // escrito y sin salir de la casilla
 tap($('#pl-rev')); await esperar(60);
@@ -109,7 +109,7 @@ ok('QC12f · Lo escrito sin salir de la casilla cuenta al tocar «Revisar y guar
 tap($('#pl-rseg'));
 const np = $('#pl-npisos'); np.value = '1'; np.dispatchEvent(new Event('change')); await esperar(60);
 const quedo = E().P.pisos; const np2 = $('#pl-npisos'); np2.value = '15'; np2.dispatchEvent(new Event('change')); await esperar(100);
-ok('QC12g · «Pisos de la torre»: no deja quitar pisos con datos; subir a 15 agrega los pisos 13 a 15 con sus 4 apartamentos', quedo === 12 && E().P.pisos === 15 && E().P.aptos.length === 60, quedo + ' → ' + E().P.pisos + ' · ' + E().P.aptos.length);
+ok('QC12g · «Pisos de la torre»: no deja quitar pisos con datos; subir a 15 agrega los pisos 13 a 15 con sus 4 apartamentos (PB y 15: 64)', quedo === 12 && E().P.pisos === 15 && E().P.aptos.length === 64, quedo + ' → ' + E().P.pisos + ' · ' + E().P.aptos.length);
 
 // ── QC13 · la hoja impresa ──
 const imp = $('#pl-impresa'); imp.value = AYER; imp.dispatchEvent(new Event('change')); await esperar(80);

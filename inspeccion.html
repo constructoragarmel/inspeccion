@@ -4282,9 +4282,10 @@ function _conTitulo195(v){
 
   // ── los apartamentos de la torre ──
   // Ninguna torre deja pisos ni apartamentos fuera por no tener informe todavía (Planificación, 2-nov-2026: en la T-08 de
-  // Ezequiel Zamora no llegaban desde el teléfono a los pisos sin informe). Todas salen del piso 1 al 16, o más si el
-  // historial llega más alto; si en la oficina se fijan a mano los «Pisos de la torre», manda eso.
-  const PISOS_MIN = 16;
+  // Ezequiel Zamora no llegaban desde el teléfono a los pisos sin informe). Todas salen con la planta baja y del piso 1 al 15
+  // («son 15 más PB», Planificación), o más si el historial llega más alto; si en la oficina se fijan a mano los «Pisos de la
+  // torre», manda eso. En la planta baja van los de la lista; si no los tiene, quedan vacíos y no sale informe.
+  const PISOS_MIN = 15;
   // Donde no hay lista, los apartamentos de cada piso se deducen del historial de la torre. Si un nombre lleva el número de su
   // piso al final o al principio (A12 en el 12, F10 en el 10, «9 lateral» en el 9) y eso se ve desde el piso 2, se repite en todos
   // los pisos con el número de cada uno, con o sin cero según como se escribió. Lo que no lleva el número de su piso (D22) se
@@ -4311,7 +4312,8 @@ function _conTitulo195(v){
     const pats = Object.keys(pat).map(function(c){ const z = c.split('|'); return { t: z[0], r: z[1], ceros: z[2] === '2' }; })
       .sort(function(a, b){ return a.r.localeCompare(b.r, 'es', { numeric: true }); });
     fijos.sort(function(a, b){ return a.localeCompare(b, 'es', { numeric: true }); });
-    return function(p){ return pats.map(function(x){ const n = x.ceros ? String(p).padStart(2, '0') : String(p); return x.t === 'f' ? x.r + n : n + x.r; }).concat(fijos); };
+    // En la planta baja no hay número de piso que poner: solo los nombres fijos.
+    return function(p){ if (!p) return fijos.slice(); return pats.map(function(x){ const n = x.ceros ? String(p).padStart(2, '0') : String(p); return x.t === 'f' ? x.r + n : n + x.r; }).concat(fijos); };
   }
   function armarAptos(){
     const lista = (typeof _aptosDeSector === 'function' && _aptosDeSector()) || null;
@@ -4320,14 +4322,13 @@ function _conTitulo195(v){
     (P.extra || []).forEach(function(x){ maxP = Math.max(maxP, x.p); });
     if (!P.pisosManual) maxP = Math.max(maxP, PISOS_MIN);
     P.pisos = maxP;
-    // La planta baja solo aparece si ya tiene algo: un informe o un apartamento agregado.
-    P.pisoMin = (Object.keys(P.prev).some(function(k){ return /^P00A/.test(k); }) || (P.extra || []).some(function(x){ return x.p === 0; })) ? 0 : 1;
+    P.pisoMin = 0;
     const deducidos = lista ? null : patronDeTorre();
     const out = [], vistos = {};
     for (let p = P.pisoMin; p <= maxP; p++) {
       const deEste = [];
-      if (lista && p > 0) lista.forEach(function(a){ deEste.push(a); });
-      if (deducidos && p > 0) deducidos(p).forEach(function(a){ if (deEste.indexOf(a) < 0) deEste.push(a); });
+      if (lista) lista.forEach(function(a){ deEste.push(a); });
+      if (deducidos) deducidos(p).forEach(function(a){ if (deEste.indexOf(a) < 0) deEste.push(a); });
       Object.keys(P.prev).forEach(function(k){ const m = k.match(/^P(\d{2})A(.+)$/); if (m && +m[1] === p) { const a = String(P.prev[k].apto || m[2]).trim().toUpperCase(); if (deEste.indexOf(a) < 0) deEste.push(a); } });
       (P.extra || []).forEach(function(x){ if (x.p === p && deEste.indexOf(x.a) < 0) deEste.push(x.a); });
       deEste.forEach(function(a, i){ const k = bloque(p, a); if (vistos[k]) return; vistos[k] = true; out.push({ p: p, a: a, k: k, i: i }); });
@@ -4441,7 +4442,7 @@ function _conTitulo195(v){
     cerrarPlanilla(true);
   });
   window._plEstado = function(){ return { P: P, est: est, pila: pila, vista: vista, piso: piso, hitoSel: hitoSel, tamano: tamano, LISTA: VISTA, HITOS: LISTA }; };
-  window._plIr = function(o){ if (o.piso) piso = o.piso; if (o.hitoSel) hitoSel = o.hitoSel; if (o.tamano) tamano = o.tamano; if (o.abrir) abiertos[o.abrir] = true; if (o.enPapel) Object.keys(o.enPapel).forEach(function(k){ enPapel[k] = o.enPapel[k]; }); mostrar(o.vista || vista); };
+  window._plIr = function(o){ if (o.piso !== undefined && o.piso !== null) piso = o.piso; if (o.hitoSel) hitoSel = o.hitoSel; if (o.tamano) tamano = o.tamano; if (o.abrir) abiertos[o.abrir] = true; if (o.enPapel) Object.keys(o.enPapel).forEach(function(k){ enPapel[k] = o.enPapel[k]; }); mostrar(o.vista || vista); };
 
   // ── la pantalla ──
   let raiz = null;

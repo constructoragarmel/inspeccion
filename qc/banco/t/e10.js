@@ -73,7 +73,7 @@ const hojas = async (casos) => { const r = []; for (const t of casos) { _plIr({ 
 await cabecera(); await abrir(); await ir({ vista: 'tabla' });
 { const np = $('#pl-npisos'); np.value = '15'; np.dispatchEvent(new Event('change')); await esperar(100); }
 const h17a = await hojas(['comoda', 'compacta', 'toda']);
-ok('QC17a · EZ con 15 pisos × 4: cada tamaño cubre los 60 apartamentos, ninguna hoja cortada ni vacía, y dice cuántas hojas son', h17a.every(x => (x.dis || (x.mal === 0 && x.n === x.dice && x.cubre === 60))), JSON.stringify(h17a));
+ok('QC17a · EZ con PB y 15 pisos × 4: cada tamaño cubre los 64 apartamentos, ninguna hoja cortada ni vacía, y dice cuántas hojas son', h17a.every(x => (x.dis || (x.mal === 0 && x.n === x.dice && x.cubre === 64))), JSON.stringify(h17a));
 const marcados = E().LISTA.map(h => h.id); _plIr({ enPapel: Object.fromEntries(marcados.map(h => [h, false])) }); _plIr({ vista: 'imp' }); await esperar(80);
 ok('QC17b · Sin ningún hito marcado: «Imprimir» se apaga y dice que marque uno', $('#pl-imprimir').disabled && /Marque al menos un hito/.test($('#planilla .pl-tot').textContent));
 _plIr({ enPapel: { cap_sanitarias: true } }); _plIr({ vista: 'imp', tamano: 'comoda' }); await esperar(80);
@@ -88,7 +88,7 @@ cerrarPlanilla();
 await cabecera(); await abrir(); await ir({ vista: 'tabla' });
 { const np = $('#pl-npisos'); np.value = '40'; np.dispatchEvent(new Event('change')); await esperar(150); }
 const h17e = await hojas(['comoda', 'compacta']);
-ok('QC17e · Una torre de 40 pisos (160 apartamentos): las hojas salen completas y sin cortes', h17e.every(x => x.mal === 0 && x.n === x.dice && x.cubre === 160), JSON.stringify(h17e));
+ok('QC17e · Una torre de PB y 40 pisos (164 apartamentos): las hojas salen completas y sin cortes', h17e.every(x => x.mal === 0 && x.n === x.dice && x.cubre === 164), JSON.stringify(h17e));
 _plIr({ vista: 'guia' }); await esperar(60);
 ok('QC17f · La guía: las 50 subpartidas, cada una con su descripción, y su botón de imprimir', $$('#planilla .pl-guia dt').length === 50 && $$('#planilla .pl-guia dd').every(d => d.textContent.trim().length > 10) && !!$('#pl-impguia'));
 { const np = $('#pl-npisos') || null; } cerrarPlanilla();
