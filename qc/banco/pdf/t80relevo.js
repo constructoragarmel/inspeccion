@@ -4,7 +4,7 @@
 (function () {
   var R = [], ok = function (n, c, d) { R.push((c ? '✅ ' : '❌ ') + n + (d ? ' — ' + d : '')); };
   var nom = function (cod) { var h = HITOS_V2.filter(function (x) { return x.codigos.indexOf(cod) >= 0; })[0]; return h ? h.items[h.codigos.indexOf(cod)] : null; };
-  ok('V1 · La lista v2 del relevo: 3.02 «Puntos de desagüe» y 4.01 «Friso interno»; el resto de los códigos igual', nom('3.02') === 'Puntos de desagüe' && nom('4.01') === 'Friso interno' && nom('3.01') === 'Aguas blancas (puntos de agua fría y caliente)' && nom('4.02') === 'Encamisados', nom('3.02') + ' · ' + nom('4.01'));
+  ok('V1 · La lista v2 del relevo: 3.02 «Puntos de desagüe», 4.01 «Friso interno» y 5.04 «Marcos metálicos de puertas»; el resto de los códigos igual', nom('3.02') === 'Puntos de desagüe' && nom('4.01') === 'Friso interno' && nom('5.04') === 'Marcos met\u00e1licos de puertas' && nom('3.01') === 'Aguas blancas (puntos de agua fría y caliente)' && nom('4.02') === 'Encamisados', nom('3.02') + ' · ' + nom('4.01'));
   // Un informe de apartamento como lo manda la planilla: 3.02 al 50 y 4.01 al 30.
   var pl = function (cod, v) { return { codigo: cod, pct: v }; };
   var d = { lista: 'v2', formType: 'obra', ambito: 'apartamento', vista: 'apartamento', fecha: '2026-11-02', nro: 'PRUEBA-SR-T43-P03AA07-261102-PR', convenio: 'Convenio Rusos',
@@ -26,6 +26,6 @@
      errC || (r && r.error) || JSON.stringify([p302, p401]).slice(0, 220));
   ok('V4 · …y conserva el hito, el ámbito y el peso de Pesos.gs', p401 && p401.hito === 4 && !!p401.ambito && p401.peso > 0 && p401.promedio === 30, JSON.stringify(p401));
   window.carpetaDeTorre = bak.c; window._leerAvanceTorre = bak.l;
-  ok('V5 · La versión del relevo es r80', /^r80-/.test(RELEVO_VERSION), RELEVO_VERSION);
+  ok('V5 · La versión del relevo es r80 o posterior', /^r(8[0-9])-/.test(RELEVO_VERSION), RELEVO_VERSION);
   return R.join('\n');
 })();

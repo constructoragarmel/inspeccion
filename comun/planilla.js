@@ -35,8 +35,38 @@
     });
     return out;
   }
-  let LISTA = null, SUBS = {};
-  function prepararLista(){ LISTA = lista(); SUBS = {}; LISTA.forEach(function(h){ h.subs.forEach(function(s){ SUBS[s.c] = Object.assign({ h: h }, s); }); }); }
+  // Lo que se ve, en la secuencia de obra del formulario (ORDEN_HITOS_APTO) y por capítulos como su informe de apartamento
+  // (comun/capitulos.js): el hito 3 se parte en Sanitarias, Eléctricas (con voz y data) y Gas, y cada capítulo lleva primero la
+  // instalación y después sus accesorios (hitos 7 y 8). Pedido de Planificación del 2-nov-2026: «en secuencia la revisión de
+  // la instalación de servicios». Solo pantalla: los informes, sus hitos y su % son los de siempre (LISTA).
+  const CAPS = [{ id: 'cap_sanitarias', corto: 'Sanitarias', n: 'Instalaciones sanitarias', grupo: 'Sanitarias', acc: 'hito_acc_sanitarios', num: '3 y 7' },
+                { id: 'cap_electricas', corto: 'Eléctricas', n: 'Instalaciones eléctricas, voz y data', grupo: 'Eléctricas', acc: 'hito_acc_electricos', num: '3 y 8' },
+                { id: 'cap_gas', corto: 'Gas', n: 'Gas', grupo: 'Gas', acc: null, num: '3' }];
+  function armarVista(){
+    const por = {}, usados = {}, out = [];
+    LISTA.forEach(function(h){ por[h.id] = h; });
+    const grupos = {}; ((typeof GRUPOS_PANTALLA !== 'undefined' && GRUPOS_PANTALLA.hito_servicios) || []).forEach(function(g){ grupos[g[0]] = g[1]; });
+    const orden = (typeof ORDEN_HITOS_APTO !== 'undefined' ? ORDEN_HITOS_APTO : []).concat(LISTA.map(function(h){ return h.id; }));
+    orden.forEach(function(id){
+      if (usados[id] || !por[id]) return;
+      if (id !== 'hito_servicios' || !Object.keys(grupos).length) { usados[id] = true; out.push(por[id]); return; }
+      const h3 = por[id]; usados[id] = true;
+      CAPS.forEach(function(cap){
+        const inst = (grupos[cap.grupo] || []).map(function(c){ return h3.subs.find(function(s){ return s.c === c; }); }).filter(Boolean);
+        const acc = (cap.acc && por[cap.acc]) ? por[cap.acc].subs : [];
+        if (cap.acc) usados[cap.acc] = true;
+        if (inst.length || acc.length) out.push({ id: cap.id, n: cap.n, num: cap.num, corto: cap.corto, cap: true, inst: inst.length, subs: inst.concat(acc) });
+      });
+      const sobra = h3.subs.filter(function(s){ return !Object.keys(grupos).some(function(g){ return grupos[g].indexOf(s.c) >= 0; }); });
+      if (sobra.length) out.push(Object.assign({}, h3, { subs: sobra }));
+    });
+    return out;
+  }
+  const et = function(h){ return h.cap ? h.corto : 'H' + h.num + ' ' + h.corto; };
+  let LISTA = null, VISTA = null, SUBS = {};
+  function prepararLista(){ LISTA = lista(); VISTA = armarVista(); SUBS = {}; LISTA.forEach(function(h){ h.subs.forEach(function(s){ SUBS[s.c] = Object.assign({ h: h }, s); }); }); }
+  // Un hito de la lista también se puede pedir por su id (lo usan las pruebas y los borradores de antes); las pestañas son VISTA.
+  const deVista = function(id){ return VISTA.find(function(x){ return x.id === id; }) || LISTA.find(function(x){ return x.id === id; }); };
 
   // ── el % de una fila guardada, como lo cuenta el relevo (_pdfPctFila) ──
   function pctFila(r){
@@ -64,8 +94,8 @@
   const corPiso = function(p){ return p === 0 ? 'PB' : 'P' + pad(p); };
 
   // ── el estado de la planilla abierta ──
-  let P = null, est = { N: {}, C: {} }, pila = [], vista = 'tel', piso = 1, hitoSel = 'hito_servicios', tamano = 'comoda';
-  const enPapel = {}, abiertos = { hito_servicios: true };
+  let P = null, est = { N: {}, C: {} }, pila = [], vista = 'tel', piso = 1, hitoSel = 'cap_sanitarias', tamano = 'comoda';
+  const enPapel = {}, abiertos = { cap_sanitarias: true };
   const CLAVE = function(){ return 'garmel_planilla_' + P.sector + '|' + P.torre; };
   function guardarBorrador(){ try {
     localStorage.setItem(CLAVE(), JSON.stringify({ est: est, pasa: P.pasa, impresa: P.impresa, extra: P.extra, pisos: P.pisosElegido || 0, pisosManual: !!P.pisosManual, oficina: !!P.oficina }));
@@ -201,8 +231,8 @@
     est = { N: {}, C: {} }; pila = [];
     const b = leerBorrador();
     if (b) { if (b.est) est = b.est; P.pasa = b.pasa || ''; P.impresa = b.impresa || ''; P.extra = b.extra || []; P.pisosElegido = b.pisos || 0; P.pisosManual = !!b.pisosManual; P.oficina = !!b.oficina; }
-    LISTA.forEach(function(h){ if (!(h.id in enPapel)) enPapel[h.id] = true; });
-    if (!LISTA.some(function(h){ return h.id === hitoSel; })) hitoSel = LISTA[0].id;
+    VISTA.forEach(function(h){ if (!(h.id in enPapel)) enPapel[h.id] = true; });
+    if (!VISTA.some(function(h){ return h.id === hitoSel; })) hitoSel = VISTA[0].id;   // al abrir, siempre una pestaña de las que se ven
     vista = innerWidth >= 900 ? 'tabla' : 'tel';
     montar(); entrarAlHistorial();
     pintarCargando();
@@ -252,7 +282,7 @@
     if (f && !f.hidden) { cerrarSheet(); entrarAlHistorial(); return; }
     cerrarPlanilla(true);
   });
-  window._plEstado = function(){ return { P: P, est: est, pila: pila, vista: vista, piso: piso, hitoSel: hitoSel, tamano: tamano, LISTA: LISTA }; };
+  window._plEstado = function(){ return { P: P, est: est, pila: pila, vista: vista, piso: piso, hitoSel: hitoSel, tamano: tamano, LISTA: VISTA, HITOS: LISTA }; };
   window._plIr = function(o){ if (o.piso) piso = o.piso; if (o.hitoSel) hitoSel = o.hitoSel; if (o.tamano) tamano = o.tamano; if (o.abrir) abiertos[o.abrir] = true; if (o.enPapel) Object.keys(o.enPapel).forEach(function(k){ enPapel[k] = o.enPapel[k]; }); mostrar(o.vista || vista); };
 
   // ── la pantalla ──
@@ -316,16 +346,17 @@
     const conCambios = function(p){ return P.aptos.some(function(x){ return x.p === p && (est.N[x.k] || est.C[x.k]); }); };
     let opts = ''; for (let p = P.pisoMin; p <= P.pisos; p++) opts += '<option value="' + p + '">' + nomPiso(p) + (conCambios(p) ? ' •' : '') + '</option>';
     const aptos = P.aptos.filter(function(x){ return x.p === piso; });
-    const h = LISTA.find(function(x){ return x.id === hitoSel; });
+    const h = deVista(hitoSel);
     let t = '<div class="pl-piso"><button type="button" id="pl-ant" aria-label="Piso anterior"' + (piso <= P.pisoMin ? ' disabled' : '') + '>‹</button><select id="pl-psel" aria-label="Piso">' + opts + '</select><button type="button" id="pl-sig" aria-label="Piso siguiente"' + (piso >= P.pisos ? ' disabled' : '') + '>›</button></div>' +
-      '<div class="pl-chips" role="group" aria-label="Hito">' + LISTA.map(function(x){
+      '<div class="pl-chips" role="group" aria-label="Hito">' + VISTA.map(function(x){
         const n = aptos.reduce(function(a, y){ return a + x.subs.filter(function(s){ return nuevo(y.k, s.c); }).length; }, 0);
-        return '<button type="button" data-h="' + x.id + '" aria-pressed="' + (x.id === hitoSel) + '">H' + x.num + ' ' + esc(x.corto) + (n ? '<span class="pl-cnt">' + n + '</span>' : '') + '</button>'; }).join('') + '</div>';
+        return '<button type="button" data-h="' + x.id + '" aria-pressed="' + (x.id === hitoSel) + '">' + esc(et(x)) + (n ? '<span class="pl-cnt">' + n + '</span>' : '') + '</button>'; }).join('') + '</div>';
     if (!aptos.length) t += '<p class="pl-lead">' + (P.aptos.length ? 'Este piso' : 'Esta torre') + ' no tiene apartamentos en la lista. Agréguelos aquí: se pueden poner varios y en varios pisos de una vez.</p>';
     else {
       t += '<div class="pl-gw"><table class="pl-g' + (aptos.length > 4 ? ' ancho' : '') + '"><thead><tr><th scope="col">' + nomPiso(piso) + '</th>' + aptos.map(function(x){
         return '<th scope="col"><button type="button" class="pl-apto' + (est.C[x.k] ? ' tiene' : '') + '" data-com="' + x.k + '">' + esc(x.a) + '<small>' + (est.C[x.k] ? 'nota' : '+ nota') + '</small></button></th>'; }).join('') + '</tr></thead><tbody>';
-      h.subs.forEach(function(s){
+      h.subs.forEach(function(s, j){
+        if (h.cap && h.inst && h.inst < h.subs.length && (j === 0 || j === h.inst)) t += '<tr class="pl-sep"><th scope="rowgroup" colspan="' + (aptos.length + 1) + '">' + (j === 0 ? 'Instalación' : 'Accesorios') + '</th></tr>';
         t += '<tr><th scope="row"><button type="button" class="pl-ay" data-ay="' + s.c + '"><span>' + s.c + (s.sino ? ' · sí / no' : '') + '</span>' + esc(s.n) + '</button></th>';
         aptos.forEach(function(x){
           const v = valor(x.k, s.c);
@@ -432,14 +463,14 @@
       '<p class="pl-lead">Si viene de una hoja impresa, ponga quién la pasa y la fecha de la hoja. Enter baja al apartamento siguiente; Tab va a la derecha. Se puede pegar un bloque copiado de Excel.</p>' +
       (nPost ? '<div class="pl-post">⚠️ <b>' + nPost + ' apartamento(s) tuvieron otro informe después de que se imprimió la hoja</b> (marcados con ⚠️). La hoja trae un número más viejo: si el de la hoja es menor, no lo baje sin revisar.</div>' : '') +
       '<div class="pl-tw"><table class="pl-o"><thead><tr><th class="esq" rowspan="2" scope="col">Piso · apto</th>';
-    LISTA.forEach(function(h){ const ab = !!abiertos[h.id]; t += '<th scope="colgroup" colspan="' + (ab ? h.subs.length : 1) + '"><button type="button" class="pl-hb" data-h="' + h.id + '" aria-expanded="' + ab + '"><span class="fl">▸</span>H' + h.num + ' ' + esc(h.corto) + '</button></th>'; });
+    VISTA.forEach(function(h){ const ab = !!abiertos[h.id]; t += '<th scope="colgroup" colspan="' + (ab ? h.subs.length : 1) + '"><button type="button" class="pl-hb" data-h="' + h.id + '" aria-expanded="' + ab + '"><span class="fl">▸</span>' + esc(et(h)) + '</button></th>'; });
     t += '<th rowspan="2" scope="col">Nota</th></tr><tr>';
-    LISTA.forEach(function(h){ if (abiertos[h.id]) h.subs.forEach(function(s){ t += '<th scope="col" title="' + esc(s.n) + '"' + (fueraPresupuesto(s.c) ? ' class="opc"' : '') + '>' + s.c + '</th>'; }); else t += '<th scope="col">prom.</th>'; });
+    VISTA.forEach(function(h){ if (abiertos[h.id]) h.subs.forEach(function(s){ t += '<th scope="col" title="' + esc(s.n) + '"' + (fueraPresupuesto(s.c) ? ' class="opc"' : '') + '>' + s.c + '</th>'; }); else t += '<th scope="col">prom.</th>'; });
     t += '</tr></thead><tbody>';
     P.aptos.forEach(function(x, r){
       t += '<tr' + (x.i === 0 && x.p > P.pisoMin ? ' class="np"' : '') + '><th scope="row">' + (posterior(x.k) ? '<span title="Otro informe del ' + esc(fechaLarga(P.prev[x.k].fecha)) + '">⚠️</span> ' : '') + corPiso(x.p) + ' · ' + esc(x.a) + '</th>';
       let col = 0;
-      LISTA.forEach(function(h){
+      VISTA.forEach(function(h){
         if (abiertos[h.id]) h.subs.forEach(function(s){
           t += '<td><input class="' + claseInput(x.k, s.c) + '" inputmode="' + (s.sino ? 'text' : 'decimal') + '" maxlength="6" autocomplete="off" data-r="' + r + '" data-col="' + (col++) + '" data-c="' + s.c + '" data-k="' + x.k + '" placeholder="' + fmt(s.c, prev(x.k, s.c)) + '" value="' + textoInput(x.k, s.c) + '" aria-label="' + esc(s.n) + ', piso ' + x.p + ' ' + esc(x.a) + '"></td>';
         });
@@ -532,7 +563,7 @@
   }
   function grupos(){
     const g = []; let cur = [], n = 0;
-    LISTA.filter(function(h){ return enPapel[h.id]; }).forEach(function(h){ if (n + h.subs.length > MAX_COLS && cur.length) { g.push(cur); cur = []; n = 0; } cur.push(h); n += h.subs.length; });
+    VISTA.filter(function(h){ return enPapel[h.id]; }).forEach(function(h){ if (n + h.subs.length > MAX_COLS && cur.length) { g.push(cur); cur = []; n = 0; } cur.push(h); n += h.subs.length; });
     if (cur.length) g.push(cur); return g;
   }
   // En la hoja, un hito de una o dos columnas lleva su nombre corto: el largo no cabe.
@@ -540,7 +571,7 @@
     if (!cabe(tamano)) tamano = 'compacta';
     const tr = tramos(), gs = grupos(), total = gs.length * tr.length;
     let t = '<p class="pl-lead">Carta horizontal, para llevar a obra. Lo gris es el último % de cada casilla; lo que ya está en 100 % sale sombreado: ahí no hay nada que anotar.</p>' +
-      '<div class="pl-ctrl" role="group" aria-label="Hitos">' + LISTA.map(function(h){ return '<label><input type="checkbox" data-h="' + h.id + '"' + (enPapel[h.id] ? ' checked' : '') + '> H' + h.num + ' ' + esc(h.corto) + '</label>'; }).join('') + '</div>' +
+      '<div class="pl-ctrl" role="group" aria-label="Hitos">' + VISTA.map(function(h){ return '<label><input type="checkbox" data-h="' + h.id + '"' + (enPapel[h.id] ? ' checked' : '') + '> ' + esc(et(h)) + '</label>'; }).join('') + '</div>' +
       '<div class="pl-ctrl" role="group" aria-label="Tamaño"><span>Tamaño de la hoja:</span>' + Object.keys(TAMANOS).map(function(k){
         const n = k === 'toda' ? P.pisos - P.pisoMin + 1 : (function(){ const s = tamano; tamano = k; const x = tramos()[0]; tamano = s; return x[1] - x[0] + 1; })();
         return '<label' + (cabe(k) ? '' : ' title="No caben ' + P.aptos.length + ' apartamentos en una hoja"') + '><input type="radio" name="pl-tam" value="' + k + '"' + (k === tamano ? ' checked' : '') + (cabe(k) ? '' : ' disabled') + '> ' + TAMANOS[k].txt + (cabe(k) ? ' · ' + n + ' piso' + (n === 1 ? '' : 's') : ' · no cabe') + '</label>'; }).join('') + '</div>' +
@@ -552,7 +583,7 @@
       const filas = P.aptos.filter(function(x){ return x.p >= m[0] && x.p <= m[1]; });
       const denso = filas.length > 30;
       let tb = '<table><colgroup><col style="width:60px">' + cols.map(function(){ return '<col>'; }).join('') + '<col style="width:120px"></colgroup><thead><tr><th class="hg"></th>' +
-        g.map(function(h){ return '<th class="hg" colspan="' + h.subs.length + '">H' + h.num + ' ' + esc(h.subs.length <= 2 ? h.corto : String(h.n).replace(/^HITO \d+: /, '')) + '</th>'; }).join('') + '<th class="hg"></th></tr><tr><th>Piso<br>apto</th>' +
+        g.map(function(h){ return '<th class="hg" colspan="' + h.subs.length + '">' + esc(h.cap ? (h.subs.length <= 2 ? h.corto : h.n) : 'H' + h.num + ' ' + (h.subs.length <= 2 ? h.corto : String(h.n).replace(/^HITO \d+: /, ''))) + '</th>'; }).join('') + '<th class="hg"></th></tr><tr><th>Piso<br>apto</th>' +
         cols.map(function(s){ return '<th><span class="c">' + s.c + '</span>' + esc(s.n.length > 34 ? s.n.slice(0, 32) + '…' : s.n) + (s.sino ? ' (✓)' : '') + '</th>'; }).join('') + '<th>Observaciones</th></tr></thead><tbody>';
       filas.forEach(function(x, i){
         tb += '<tr' + (i > 0 && x.p !== filas[i - 1].p ? ' class="np"' : '') + '><th>' + corPiso(x.p) + ' ' + esc(x.a) + '</th>' +
@@ -574,7 +605,7 @@
   // ── 📖 guía ──
   function pintarGuia(){
     document.getElementById('pl-cuerpo').innerHTML = '<div class="pl-ib"><button type="button" class="pl-btn pri" id="pl-impguia">🖨 Imprimir la guía</button></div><h2 class="pl-gtit">Guía de subpartidas por apartamento</h2><div class="pl-guia">' +
-      LISTA.map(function(h){ return '<section><h3>' + esc(h.n) + '</h3><dl>' + h.subs.map(function(s){ return '<dt><span>' + s.c + '</span>' + esc(s.n) + '</dt><dd>' + esc(s.ay || 'Sin descripción.') + '</dd>'; }).join('') + '</dl></section>'; }).join('') + '</div>';
+      VISTA.map(function(h){ return '<section><h3>' + esc(h.cap ? h.n + ' (hitos ' + h.num + ')' : h.n) + '</h3><dl>' + h.subs.map(function(s){ return '<dt><span>' + s.c + '</span>' + esc(s.n) + '</dt><dd>' + esc(s.ay || 'Sin descripción.') + '</dd>'; }).join('') + '</dl></section>'; }).join('') + '</div>';
     document.getElementById('pl-impguia').onclick = function(){ document.body.classList.add('pl-imp-guia'); document.body.classList.remove('pl-imp-hojas'); window.print(); };
   }
 
@@ -765,6 +796,7 @@
     '#planilla .pl-piso{display:flex;gap:8px;align-items:center;margin:4px 0 8px;max-width:620px}',
     '#planilla .pl-piso button{width:52px;min-height:48px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-size:24px}#planilla .pl-piso button:disabled{opacity:.35}',
     '#planilla .pl-piso select{flex:1;min-width:0;min-height:48px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-size:20px;font-weight:800;text-align:center}',
+    '#planilla .pl-sep th{text-align:left;font-size:12px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#37474f;background:#eef3f6;padding:6px 8px}',
     '#planilla .pl-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;max-width:620px}',
     '#planilla .pl-chips button{flex:0 0 auto;min-height:44px;padding:0 12px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-weight:700;font-size:14px}',
     '#planilla .pl-chips button[aria-pressed="true"]{border-color:#1f6f8b;background:#e2eff4;box-shadow:inset 0 -3px 0 #1f6f8b}',

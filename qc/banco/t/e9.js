@@ -63,8 +63,9 @@ _plDeshacer();
 await ir({ hitoSel: 'hito_servicios', piso: 4 });
 teclear('P04AA1', '3.07', 20, true);
 ok('QC11h · «Lo mismo» en una subpartida sin dato: los cuatro quedan en 20', ['A1', 'A2', 'B1', 'B2'].every(a => N('P04A' + a, '3.07') === 20));
-const chip = $('#planilla .pl-chips [data-h="hito_servicios"] .pl-cnt'), opt = [...$('#pl-psel').options].find(o => o.value === '4');
-ok('QC11i · El hito muestra 4 cambios y el piso 4 lleva el punto en el desplegable', chip && chip.textContent === '4' && /•/.test(opt.textContent), (chip && chip.textContent) + ' · ' + opt.textContent);
+// La 3.07 está en «Eléctricas» desde el 2-nov.
+const chip = $('#planilla .pl-chips [data-h="cap_electricas"] .pl-cnt'), opt = [...$('#pl-psel').options].find(o => o.value === '4');
+ok('QC11i · El capítulo muestra 4 cambios y el piso 4 lleva el punto en el desplegable', chip && chip.textContent === '4' && /•/.test(opt.textContent), (chip && chip.textContent) + ' · ' + opt.textContent);
 await ir({ piso: 5 });
 for (let i = 0; i < 105; i++) teclear('P05AA1', '3.01', String(51 + (i % 49)));
 const pl = E().pila.length; for (let i = 0; i < 100; i++) _plDeshacer();
@@ -92,9 +93,9 @@ ok('QC12a · Todos los hitos abiertos: ' + nIn + ' casillas pintadas en menos de
 const inp = (k, c) => $('#planilla input.pl-pc[data-k="' + k + '"][data-c="' + c + '"]');
 const pegar = (k, c, txt) => { const dt = new DataTransfer(); dt.setData('text/plain', txt); const i = inp(k, c); i.focus(); i.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); };
 t = performance.now();
-pegar('P02AA1', '3.01', '75%\t0,5\t1.000\t\t 80 \r\nhola\t60\t60,4\t100\t-5\r\n');   // columnas 3.01 3.02 3.03 3.04 3.07 (3.05 y 3.06 son de torre)
+pegar('P02AA1', '3.01', '75%\t0,5\t1.000\t\t 80 \r\nhola\t60\t60,4\t100\t-5\r\n');   // columnas de «Sanitarias» (2-nov): 3.01 3.02 3.20 3.21 7.01
 const ms12b = performance.now() - t;
-ok('QC12b · Pegar de Excel: «75%», «80», «60», «60,4», «100» entran; «0,5» (fracción), «1.000», «hola» y «-5» no; las vacías no tocan nada', N('P02AA1', '3.01') === 75 && N('P02AA1', '3.07') === 80 && N('P02AA2', '3.02') === 60 && N('P02AA2', '3.03') === 60 && N('P02AA2', '3.04') === 100 && !N('P02AA2', '3.07') && !N('P02AA1', '3.02') && !N('P02AA1', '3.03') && !N('P02AA2', '3.01') && /4 no eran/.test(_plUltimoAviso()), _plUltimoAviso() + ' · ' + JSON.stringify(E().est.N));
+ok('QC12b · Pegar de Excel: «75%», «80», «60», «60,4», «100» entran; «0,5» (fracción), «1.000», «hola» y «-5» no; las vacías no tocan nada', N('P02AA1', '3.01') === 75 && N('P02AA1', '7.01') === 80 && N('P02AA2', '3.02') === 60 && N('P02AA2', '3.20') === 60 && N('P02AA2', '3.21') === 100 && !N('P02AA2', '7.01') && !N('P02AA1', '3.02') && !N('P02AA1', '3.20') && !N('P02AA2', '3.01') && /4 no eran/.test(_plUltimoAviso()), _plUltimoAviso() + ' · ' + JSON.stringify(E().est.N));
 ok('QC12c · …en menos de 1,5 s con todo abierto', ms12b < 1500, Math.round(ms12b) + ' ms');
 pegar('P12AB2', '3.01', '10\n20\n30\n');
 ok('QC12d · Pegar desde la última fila: entra lo que cabe y avisa de lo que quedó fuera', N('P12AB2', '3.01') === 10 && /2 quedaban fuera/.test(_plUltimoAviso()), _plUltimoAviso());

@@ -98,7 +98,8 @@ const inp = (k, c) => $('#planilla input.pl-pc[data-k="' + k + '"][data-c="' + c
 const escribirEn = (k, c, v) => { const i = inp(k, c); i.focus(); i.value = v; i.dispatchEvent(new Event('change')); return i; };
 escribirEn('P05AA1', '3.01', '75%'); escribirEn('P05AA1', '3.02', ' 60 '); escribirEn('P05AA2', '3.01', '8O');
 ok('9a · «75%» y « 60 » se leen; «8O» se rechaza y avisa', E().est.N.P05AA1['3.01'] === 75 && E().est.N.P05AA1['3.02'] === 60 && !E().est.N.P05AA2 && /no es un % válido/.test(_plUltimoAviso()));
-const i9 = inp('P05AB1', '3.03'); i9.focus(); i9.value = '90'; i9.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+// La 3.20 porque «Sanitarias» es la que abre desplegada (2-nov).
+const i9 = inp('P05AB1', '3.20'); i9.focus(); i9.value = '90'; i9.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
 ok('9b · Enter baja al apartamento siguiente', document.activeElement.dataset.k === 'P05AB2', document.activeElement.dataset.k);
 const dt = new DataTransfer(); dt.setData('text/plain', '100\t90\r\n95\tXX\r\n'); const i9b = inp('P06AA1', '3.01'); i9b.focus(); i9b.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
 ok('9c · Pegar 2×2 de Excel llena 3 y avisa del «XX»', E().est.N.P06AA1['3.01'] === 100 && E().est.N.P06AA2['3.01'] === 95 && /Se pegaron 3 .*1 no eran/.test(_plUltimoAviso()), _plUltimoAviso());

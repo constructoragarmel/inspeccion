@@ -1807,7 +1807,7 @@ const MEDICION = 'propuesta';
 // Lista v2: el Sí / No va por fila (UNIDADES = 'sino'), no por hito.
 const HITOS_SI_NO = [];
 const VERSION_LISTA = 'v2';
-const AYUDA_SUB = {"1.01": "El encofrado de madera de machones, vigas, bases y brocales.", "1.02": "Las cabillas y mallas, y la estructura metálica del edificio: vigas, planchas y pernos de anclaje. Las escaleras metálicas y las rejas no van aquí.", "1.03": "El concreto vaciado: losas, machones, vigas, fundaciones y concreto pobre.", "1.04": "Lo provisional y lo previo: campamento, oficinas y depósitos, acometidas provisionales, cercado, topografía, demoliciones, movimiento de tierra y limpieza.", "1.05": "El material de las escaleras metálicas: perfiles, descansos, paneles y escalones. Vale la mitad de las escaleras.", "1.06": "La preparación, el montaje y la protección del acero de las escaleras. Vale la otra mitad.", "2.01": "Las paredes de bloque del exterior del edificio: de arcilla, de concreto y de ventilación.", "2.02": "Las paredes de bloque de adentro, con sus dinteles, machones y brocales (el de la ducha, por ejemplo).", "2.03": "El manto asfáltico, la pintura aluminizada, las medias cañas y las cubiertas del techo del edificio.", "3.01": "Los puntos de agua fría y caliente del apartamento: tubería, conexiones y llaves de paso y de arresto.", "3.02": "Los puntos de aguas servidas del apartamento y su ventilación. El centro de piso y el tapón de registro van aparte, justo debajo.", "3.03": "El cable eléctrico ya pasado por la tubería, de cualquier calibre.", "3.04": "La tubería eléctrica embutida (EMT o PVC) con sus cajas y cajetines.", "3.05": "El del cuarto de electricidad de planta baja: armario de medición, tableros principales, breakers grandes y contactores.", "3.06": "La tapa puesta en el módulo de electricidad del edificio.", "3.07": "El tablero embutido de cada apartamento, donde van sus breakers.", "3.08": "La tapa puesta en el tablero del apartamento.", "3.09": "Lo que va dentro del cuarto de módulos de la torre. Qué cuenta exactamente está por definir.", "3.10": "La subida de voz y data por el edificio, con sus regletas.", "3.11": "La tubería principal de agua que sube por el edificio, con sus llaves de paso y válvulas reductoras.", "3.12": "La tubería que baja las aguas servidas del edificio, con su ventilación y sus tanquillas.", "3.13": "La tubería de gas que sube por el edificio, con sus válvulas.", "3.14": "Lo que baja el agua de lluvia: bajantes, canales, drenes del techo y tanquillas.", "3.15": "El manifold de gas y sus gabinetes, en planta baja y en los pisos.", "3.16": "Las salidas de gas dentro del apartamento.", "3.17": "La válvula de paso de gas de cada apartamento.", "3.18": "La válvula de paso de gas del piso: una por piso.", "3.19": "La válvula de regulación de gas de la caseta, para todo el edificio.", "3.20": "El dren de piso con su rejilla, que va con la tubería de desagüe.", "3.21": "El tapón de registro de las aguas servidas, que va con la tubería de desagüe.", "4.01": "El friso de mortero en paredes y techos, con sus esquineros.", "4.02": "El encamisado o estuco con pasta profesional en paredes y techos, lijado.", "4.03": "El fondo antialcalino en paredes y techos, antes de la pintura.", "4.04": "La cerámica o el porcelanato en paredes. La cerámica de la cocina, de pared y de piso, cuenta aquí.", "4.05": "La cerámica o el porcelanato en los pisos. La de la cocina se cuenta en «Cerámica en paredes».", "4.06": "El sobrepiso de cemento y las pendientes de mortero que nivelan la losa.", "4.07": "La pintura de caucho de las paredes.", "4.08": "La pintura de caucho de techos y losas. No es el texturizado.", "4.09": "El acabado texturizado del techo, o el cielo raso de láminas donde lo lleva.", "4.10": "El esmalte de las puertas metálicas y de los marcos metálicos.", "4.11": "El barniz de las puertas de madera, con su fondo sellador.", "4.12": "El anticorrosivo y el esmalte de rejas y barandas metálicas.", "4.13": "Los pisos que no son cerámica: cemento pulido o requemado, engomado y rodapiés.", "5.01": "Las puertas metálicas del apartamento, con la cerradura de la principal y, donde los lleve, el ojo mágico y el brazo hidráulico.", "5.02": "Las puertas metálicas de las áreas de servicio de la torre (cuartos de basura, tableros, bombas).", "5.03": "Las puertas de madera entamborada, con sus cerraduras.", "5.04": "Los marcos de madera de las puertas interiores. El de hierro de la principal va aparte.", "5.05": "La reja del jardín o de la sala del apartamento, según el modelo.", "5.06": "La reja del área de la batea.", "5.07": "Las puertas de vidrio templado, panorámicas o de aluminio y vidrio, de planta baja.", "5.08": "Las rejas de protección de puertas y ventanas que no son de jardín ni de batea.", "5.09": "El marco de chapa o hierro de la puerta principal del apartamento.", "6.01": "El marco de la ventana: la herrería donde corre el vidrio.", "6.02": "Las hojas o paños con su vidrio, ya en el marco: correderas, basculantes o romanillas.", "7.01": "La ducha con sus llaves y su grupo mezclador.", "7.02": "El fregadero con su grifería, canilla y sifón.", "7.03": "La poceta con su tanque, herraje, canilla y tapa.", "7.04": "El lavamanos con su grifería, canilla y sifón.", "7.05": "La batea con su grifo, y el grifo de la lavadora.", "7.08": "Los calentadores que ya llegaron a la obra. Vale el 60 % de los calentadores.", "7.09": "El calentador instalado en el apartamento. Vale el otro 40 %.", "8.01": "Los tomacorrientes con su tapa, sencillos y dobles.", "8.02": "Los interruptores de una tecla, con su tapa.", "8.03": "Los interruptores de dos teclas, con su tapa.", "8.04": "El pulsador del timbre, con el timbre.", "8.05": "Las tomas de teléfono, TV y red, con su tapa.", "8.06": "Los breakers puestos en el tablero del apartamento.", "8.07": "Las lámparas o luminarias del apartamento.", "8.08": "Los extractores, los equipos de aire y sus tableros de control que ya llegaron a la obra. Vale el 60 %.", "8.09": "Los extractores y equipos de aire ya instalados. Vale el otro 40 %.", "9.01": "El foso y el cuarto de máquinas preparados y con la plomada verificada. Es el 10 % de la instalación del ascensor.", "9.02": "Las guías, los rieles y los soportes dentro de la caja del ascensor. Es el 25 % de la instalación.", "9.03": "La cabina, el motor y el contrapeso montados. Es el 40 % de la instalación.", "9.04": "Las puertas de cada piso, las botoneras y el control electrónico. Es el 25 % de la instalación.", "9.05": "El equipo del ascensor ya está comprado.", "9.06": "El equipo del ascensor ya llegó a la obra.", "10.01": "El friso, el estuco y la pintura de la fachada, que es una sola para todo el edificio.", "10.02": "La pintura de pasillos y áreas comunes: las fachadas internas.", "10.03": "El ducto de basura con sus puertas y la señalización de accesos y pasillos. Los pisos van en «Pisos de áreas comunes».", "10.04": "Las luminarias de pasillos y áreas comunes, las lámparas de emergencia y el control de la iluminación.", "10.05": "Las barandas de perfiles de hierro.", "10.06": "Los pasamanos de hierro de las escaleras.", "10.07": "El friso de pasillos y áreas comunes.", "10.08": "La fachada de vidrio y el cerramiento de los locales comerciales de planta baja.", "10.09": "Los pisos de granito, cerámica o cemento de pasillos y escaleras, con rodapiés, escalones y encerado.", "11.01": "La prueba de presión de las tuberías de agua: se hizo o no.", "11.02": "La prueba de hermeticidad o estanqueidad de las tuberías: se hizo o no.", "11.03": "La prueba de carga eléctrica: se hizo o no.", "11.04": "Las pruebas de carga y velocidad del ascensor y su certificación de seguridad: se hicieron o no.", "12.02": "Los gabinetes contra incendio con su manguera.", "12.03": "Los extintores, de polvo químico o de CO2."};
+const AYUDA_SUB = {"1.01": "El encofrado de madera de machones, vigas, bases y brocales.", "1.02": "Las cabillas y mallas, y la estructura metálica del edificio: vigas, planchas y pernos de anclaje. Las escaleras metálicas y las rejas no van aquí.", "1.03": "El concreto vaciado: losas, machones, vigas, fundaciones y concreto pobre.", "1.04": "Lo provisional y lo previo: campamento, oficinas y depósitos, acometidas provisionales, cercado, topografía, demoliciones, movimiento de tierra y limpieza.", "1.05": "El material de las escaleras metálicas: perfiles, descansos, paneles y escalones. Vale la mitad de las escaleras.", "1.06": "La preparación, el montaje y la protección del acero de las escaleras. Vale la otra mitad.", "2.01": "Las paredes de bloque del exterior del edificio: de arcilla, de concreto y de ventilación.", "2.02": "Las paredes de bloque de adentro, con sus dinteles, machones y brocales (el de la ducha, por ejemplo).", "2.03": "El manto asfáltico, la pintura aluminizada, las medias cañas y las cubiertas del techo del edificio.", "3.01": "Los puntos de agua fría y caliente del apartamento: tubería, conexiones y llaves de paso y de arresto.", "3.02": "Los puntos de aguas servidas del apartamento y su ventilación. El centro de piso y el tapón de registro van aparte, justo debajo.", "3.03": "El cable eléctrico ya pasado por la tubería, de cualquier calibre.", "3.04": "La tubería eléctrica embutida (EMT o PVC) con sus cajas y cajetines.", "3.05": "El del cuarto de electricidad de planta baja: armario de medición, tableros principales, breakers grandes y contactores.", "3.06": "La tapa puesta en el módulo de electricidad del edificio.", "3.07": "El tablero embutido de cada apartamento, donde van sus breakers.", "3.08": "La tapa puesta en el tablero del apartamento.", "3.09": "Lo que va dentro del cuarto de módulos de la torre. Qué cuenta exactamente está por definir.", "3.10": "La subida de voz y data por el edificio, con sus regletas.", "3.11": "La tubería principal de agua que sube por el edificio, con sus llaves de paso y válvulas reductoras.", "3.12": "La tubería que baja las aguas servidas del edificio, con su ventilación y sus tanquillas.", "3.13": "La tubería de gas que sube por el edificio, con sus válvulas.", "3.14": "Lo que baja el agua de lluvia: bajantes, canales, drenes del techo y tanquillas.", "3.15": "El manifold de gas y sus gabinetes, en planta baja y en los pisos.", "3.16": "Las salidas de gas dentro del apartamento.", "3.17": "La válvula de paso de gas de cada apartamento.", "3.18": "La válvula de paso de gas del piso: una por piso.", "3.19": "La válvula de regulación de gas de la caseta, para todo el edificio.", "3.20": "El dren de piso con su rejilla, que va con la tubería de desagüe.", "3.21": "El tapón de registro de las aguas servidas, que va con la tubería de desagüe.", "4.01": "El friso de mortero en paredes y techos, con sus esquineros.", "4.02": "El encamisado o estuco con pasta profesional en paredes y techos, lijado.", "4.03": "El fondo antialcalino en paredes y techos, antes de la pintura.", "4.04": "La cerámica o el porcelanato en paredes. La cerámica de la cocina, de pared y de piso, cuenta aquí.", "4.05": "La cerámica o el porcelanato en los pisos. La de la cocina se cuenta en «Cerámica en paredes».", "4.06": "El sobrepiso de cemento y las pendientes de mortero que nivelan la losa.", "4.07": "La pintura de caucho de las paredes.", "4.08": "La pintura de caucho de techos y losas. No es el texturizado.", "4.09": "El acabado texturizado del techo, o el cielo raso de láminas donde lo lleva.", "4.10": "El esmalte de las puertas metálicas y de los marcos metálicos.", "4.11": "El barniz de las puertas de madera, con su fondo sellador.", "4.12": "El anticorrosivo y el esmalte de rejas y barandas metálicas.", "4.13": "Los pisos que no son cerámica: cemento pulido o requemado, engomado y rodapiés.", "5.01": "Las puertas metálicas del apartamento, con la cerradura de la principal y, donde los lleve, el ojo mágico y el brazo hidráulico.", "5.02": "Las puertas metálicas de las áreas de servicio de la torre (cuartos de basura, tableros, bombas).", "5.03": "Las puertas de madera entamborada, con sus cerraduras.", "5.04": "Los marcos de las puertas interiores, que en todas las torres son metálicos. El de hierro de la puerta principal va aparte (5.09).", "5.05": "La reja del jardín o de la sala del apartamento, según el modelo.", "5.06": "La reja del área de la batea.", "5.07": "Las puertas de vidrio templado, panorámicas o de aluminio y vidrio, de planta baja.", "5.08": "Las rejas de protección de puertas y ventanas que no son de jardín ni de batea.", "5.09": "El marco de chapa o hierro de la puerta principal del apartamento.", "6.01": "El marco de la ventana: la herrería donde corre el vidrio.", "6.02": "Las hojas o paños con su vidrio, ya en el marco: correderas, basculantes o romanillas.", "7.01": "La ducha con sus llaves y su grupo mezclador.", "7.02": "El fregadero con su grifería, canilla y sifón.", "7.03": "La poceta con su tanque, herraje, canilla y tapa.", "7.04": "El lavamanos con su grifería, canilla y sifón.", "7.05": "La batea con su grifo, y el grifo de la lavadora.", "7.08": "Los calentadores que ya llegaron a la obra. Vale el 60 % de los calentadores.", "7.09": "El calentador instalado en el apartamento. Vale el otro 40 %.", "8.01": "Los tomacorrientes con su tapa, sencillos y dobles.", "8.02": "Los interruptores de una tecla, con su tapa.", "8.03": "Los interruptores de dos teclas, con su tapa.", "8.04": "El pulsador del timbre, con el timbre.", "8.05": "Las tomas de teléfono, TV y red, con su tapa.", "8.06": "Los breakers puestos en el tablero del apartamento.", "8.07": "Las lámparas o luminarias del apartamento.", "8.08": "Los extractores, los equipos de aire y sus tableros de control que ya llegaron a la obra. Vale el 60 %.", "8.09": "Los extractores y equipos de aire ya instalados. Vale el otro 40 %.", "9.01": "El foso y el cuarto de máquinas preparados y con la plomada verificada. Es el 10 % de la instalación del ascensor.", "9.02": "Las guías, los rieles y los soportes dentro de la caja del ascensor. Es el 25 % de la instalación.", "9.03": "La cabina, el motor y el contrapeso montados. Es el 40 % de la instalación.", "9.04": "Las puertas de cada piso, las botoneras y el control electrónico. Es el 25 % de la instalación.", "9.05": "El equipo del ascensor ya está comprado.", "9.06": "El equipo del ascensor ya llegó a la obra.", "10.01": "El friso, el estuco y la pintura de la fachada, que es una sola para todo el edificio.", "10.02": "La pintura de pasillos y áreas comunes: las fachadas internas.", "10.03": "El ducto de basura con sus puertas y la señalización de accesos y pasillos. Los pisos van en «Pisos de áreas comunes».", "10.04": "Las luminarias de pasillos y áreas comunes, las lámparas de emergencia y el control de la iluminación.", "10.05": "Las barandas de perfiles de hierro.", "10.06": "Los pasamanos de hierro de las escaleras.", "10.07": "El friso de pasillos y áreas comunes.", "10.08": "La fachada de vidrio y el cerramiento de los locales comerciales de planta baja.", "10.09": "Los pisos de granito, cerámica o cemento de pasillos y escaleras, con rodapiés, escalones y encerado.", "11.01": "La prueba de presión de las tuberías de agua: se hizo o no.", "11.02": "La prueba de hermeticidad o estanqueidad de las tuberías: se hizo o no.", "11.03": "La prueba de carga eléctrica: se hizo o no.", "11.04": "Las pruebas de carga y velocidad del ascensor y su certificación de seguridad: se hicieron o no.", "12.02": "Los gabinetes contra incendio con su manguera.", "12.03": "Los extintores, de polvo químico o de CO2."};
 const AYUDA_SUB_TORRE = {"2.02": "Las paredes de bloque de adentro del edificio, con sus dinteles, machones y brocales.", "4.04": "La cerámica o el porcelanato en paredes.", "4.05": "La cerámica o el porcelanato en los pisos."};
 function _ayudaTorreDe(pid, i){ const c = (CODIGOS_SUB[pid] || [])[i]; return (c && typeof AYUDA_SUB_TORRE !== 'undefined' && AYUDA_SUB_TORRE[c]) || ''; }
 function _ayudaDe(pid, i){ const c = (CODIGOS_SUB[pid] || [])[i]; return (c && AYUDA_SUB[c]) || ''; }
@@ -2035,7 +2035,7 @@ const PARTIDAS = [
     "nombre": "HITO 5: PUERTAS", 
     "icon": "", 
     "color": "#1565c0", 
-    "items": ["Puertas metálicas", "Puertas de servicios", "Puertas de madera", "Marcos de puertas de madera", "Rejas de jardín / sala", "Rejas del área de batea", "Puertas de vidrio de planta baja", "Carpintería metálica (rejas de protección)", "Marco de hierro de la puerta principal"]
+    "items": ["Puertas metálicas", "Puertas de servicios", "Puertas de madera", "Marcos metálicos de puertas", "Rejas de jardín / sala", "Rejas del área de batea", "Puertas de vidrio de planta baja", "Carpintería metálica (rejas de protección)", "Marco de hierro de la puerta principal"]
   },
   {
     "id": "hito_ventanas", 
@@ -4193,8 +4193,38 @@ function _conTitulo195(v){
     });
     return out;
   }
-  let LISTA = null, SUBS = {};
-  function prepararLista(){ LISTA = lista(); SUBS = {}; LISTA.forEach(function(h){ h.subs.forEach(function(s){ SUBS[s.c] = Object.assign({ h: h }, s); }); }); }
+  // Lo que se ve, en la secuencia de obra del formulario (ORDEN_HITOS_APTO) y por capítulos como su informe de apartamento
+  // (comun/capitulos.js): el hito 3 se parte en Sanitarias, Eléctricas (con voz y data) y Gas, y cada capítulo lleva primero la
+  // instalación y después sus accesorios (hitos 7 y 8). Pedido de Planificación del 2-nov-2026: «en secuencia la revisión de
+  // la instalación de servicios». Solo pantalla: los informes, sus hitos y su % son los de siempre (LISTA).
+  const CAPS = [{ id: 'cap_sanitarias', corto: 'Sanitarias', n: 'Instalaciones sanitarias', grupo: 'Sanitarias', acc: 'hito_acc_sanitarios', num: '3 y 7' },
+                { id: 'cap_electricas', corto: 'Eléctricas', n: 'Instalaciones eléctricas, voz y data', grupo: 'Eléctricas', acc: 'hito_acc_electricos', num: '3 y 8' },
+                { id: 'cap_gas', corto: 'Gas', n: 'Gas', grupo: 'Gas', acc: null, num: '3' }];
+  function armarVista(){
+    const por = {}, usados = {}, out = [];
+    LISTA.forEach(function(h){ por[h.id] = h; });
+    const grupos = {}; ((typeof GRUPOS_PANTALLA !== 'undefined' && GRUPOS_PANTALLA.hito_servicios) || []).forEach(function(g){ grupos[g[0]] = g[1]; });
+    const orden = (typeof ORDEN_HITOS_APTO !== 'undefined' ? ORDEN_HITOS_APTO : []).concat(LISTA.map(function(h){ return h.id; }));
+    orden.forEach(function(id){
+      if (usados[id] || !por[id]) return;
+      if (id !== 'hito_servicios' || !Object.keys(grupos).length) { usados[id] = true; out.push(por[id]); return; }
+      const h3 = por[id]; usados[id] = true;
+      CAPS.forEach(function(cap){
+        const inst = (grupos[cap.grupo] || []).map(function(c){ return h3.subs.find(function(s){ return s.c === c; }); }).filter(Boolean);
+        const acc = (cap.acc && por[cap.acc]) ? por[cap.acc].subs : [];
+        if (cap.acc) usados[cap.acc] = true;
+        if (inst.length || acc.length) out.push({ id: cap.id, n: cap.n, num: cap.num, corto: cap.corto, cap: true, inst: inst.length, subs: inst.concat(acc) });
+      });
+      const sobra = h3.subs.filter(function(s){ return !Object.keys(grupos).some(function(g){ return grupos[g].indexOf(s.c) >= 0; }); });
+      if (sobra.length) out.push(Object.assign({}, h3, { subs: sobra }));
+    });
+    return out;
+  }
+  const et = function(h){ return h.cap ? h.corto : 'H' + h.num + ' ' + h.corto; };
+  let LISTA = null, VISTA = null, SUBS = {};
+  function prepararLista(){ LISTA = lista(); VISTA = armarVista(); SUBS = {}; LISTA.forEach(function(h){ h.subs.forEach(function(s){ SUBS[s.c] = Object.assign({ h: h }, s); }); }); }
+  // Un hito de la lista también se puede pedir por su id (lo usan las pruebas y los borradores de antes); las pestañas son VISTA.
+  const deVista = function(id){ return VISTA.find(function(x){ return x.id === id; }) || LISTA.find(function(x){ return x.id === id; }); };
 
   // ── el % de una fila guardada, como lo cuenta el relevo (_pdfPctFila) ──
   function pctFila(r){
@@ -4222,8 +4252,8 @@ function _conTitulo195(v){
   const corPiso = function(p){ return p === 0 ? 'PB' : 'P' + pad(p); };
 
   // ── el estado de la planilla abierta ──
-  let P = null, est = { N: {}, C: {} }, pila = [], vista = 'tel', piso = 1, hitoSel = 'hito_servicios', tamano = 'comoda';
-  const enPapel = {}, abiertos = { hito_servicios: true };
+  let P = null, est = { N: {}, C: {} }, pila = [], vista = 'tel', piso = 1, hitoSel = 'cap_sanitarias', tamano = 'comoda';
+  const enPapel = {}, abiertos = { cap_sanitarias: true };
   const CLAVE = function(){ return 'garmel_planilla_' + P.sector + '|' + P.torre; };
   function guardarBorrador(){ try {
     localStorage.setItem(CLAVE(), JSON.stringify({ est: est, pasa: P.pasa, impresa: P.impresa, extra: P.extra, pisos: P.pisosElegido || 0, pisosManual: !!P.pisosManual, oficina: !!P.oficina }));
@@ -4359,8 +4389,8 @@ function _conTitulo195(v){
     est = { N: {}, C: {} }; pila = [];
     const b = leerBorrador();
     if (b) { if (b.est) est = b.est; P.pasa = b.pasa || ''; P.impresa = b.impresa || ''; P.extra = b.extra || []; P.pisosElegido = b.pisos || 0; P.pisosManual = !!b.pisosManual; P.oficina = !!b.oficina; }
-    LISTA.forEach(function(h){ if (!(h.id in enPapel)) enPapel[h.id] = true; });
-    if (!LISTA.some(function(h){ return h.id === hitoSel; })) hitoSel = LISTA[0].id;
+    VISTA.forEach(function(h){ if (!(h.id in enPapel)) enPapel[h.id] = true; });
+    if (!VISTA.some(function(h){ return h.id === hitoSel; })) hitoSel = VISTA[0].id;   // al abrir, siempre una pestaña de las que se ven
     vista = innerWidth >= 900 ? 'tabla' : 'tel';
     montar(); entrarAlHistorial();
     pintarCargando();
@@ -4410,7 +4440,7 @@ function _conTitulo195(v){
     if (f && !f.hidden) { cerrarSheet(); entrarAlHistorial(); return; }
     cerrarPlanilla(true);
   });
-  window._plEstado = function(){ return { P: P, est: est, pila: pila, vista: vista, piso: piso, hitoSel: hitoSel, tamano: tamano, LISTA: LISTA }; };
+  window._plEstado = function(){ return { P: P, est: est, pila: pila, vista: vista, piso: piso, hitoSel: hitoSel, tamano: tamano, LISTA: VISTA, HITOS: LISTA }; };
   window._plIr = function(o){ if (o.piso) piso = o.piso; if (o.hitoSel) hitoSel = o.hitoSel; if (o.tamano) tamano = o.tamano; if (o.abrir) abiertos[o.abrir] = true; if (o.enPapel) Object.keys(o.enPapel).forEach(function(k){ enPapel[k] = o.enPapel[k]; }); mostrar(o.vista || vista); };
 
   // ── la pantalla ──
@@ -4474,16 +4504,17 @@ function _conTitulo195(v){
     const conCambios = function(p){ return P.aptos.some(function(x){ return x.p === p && (est.N[x.k] || est.C[x.k]); }); };
     let opts = ''; for (let p = P.pisoMin; p <= P.pisos; p++) opts += '<option value="' + p + '">' + nomPiso(p) + (conCambios(p) ? ' •' : '') + '</option>';
     const aptos = P.aptos.filter(function(x){ return x.p === piso; });
-    const h = LISTA.find(function(x){ return x.id === hitoSel; });
+    const h = deVista(hitoSel);
     let t = '<div class="pl-piso"><button type="button" id="pl-ant" aria-label="Piso anterior"' + (piso <= P.pisoMin ? ' disabled' : '') + '>‹</button><select id="pl-psel" aria-label="Piso">' + opts + '</select><button type="button" id="pl-sig" aria-label="Piso siguiente"' + (piso >= P.pisos ? ' disabled' : '') + '>›</button></div>' +
-      '<div class="pl-chips" role="group" aria-label="Hito">' + LISTA.map(function(x){
+      '<div class="pl-chips" role="group" aria-label="Hito">' + VISTA.map(function(x){
         const n = aptos.reduce(function(a, y){ return a + x.subs.filter(function(s){ return nuevo(y.k, s.c); }).length; }, 0);
-        return '<button type="button" data-h="' + x.id + '" aria-pressed="' + (x.id === hitoSel) + '">H' + x.num + ' ' + esc(x.corto) + (n ? '<span class="pl-cnt">' + n + '</span>' : '') + '</button>'; }).join('') + '</div>';
+        return '<button type="button" data-h="' + x.id + '" aria-pressed="' + (x.id === hitoSel) + '">' + esc(et(x)) + (n ? '<span class="pl-cnt">' + n + '</span>' : '') + '</button>'; }).join('') + '</div>';
     if (!aptos.length) t += '<p class="pl-lead">' + (P.aptos.length ? 'Este piso' : 'Esta torre') + ' no tiene apartamentos en la lista. Agréguelos aquí: se pueden poner varios y en varios pisos de una vez.</p>';
     else {
       t += '<div class="pl-gw"><table class="pl-g' + (aptos.length > 4 ? ' ancho' : '') + '"><thead><tr><th scope="col">' + nomPiso(piso) + '</th>' + aptos.map(function(x){
         return '<th scope="col"><button type="button" class="pl-apto' + (est.C[x.k] ? ' tiene' : '') + '" data-com="' + x.k + '">' + esc(x.a) + '<small>' + (est.C[x.k] ? 'nota' : '+ nota') + '</small></button></th>'; }).join('') + '</tr></thead><tbody>';
-      h.subs.forEach(function(s){
+      h.subs.forEach(function(s, j){
+        if (h.cap && h.inst && h.inst < h.subs.length && (j === 0 || j === h.inst)) t += '<tr class="pl-sep"><th scope="rowgroup" colspan="' + (aptos.length + 1) + '">' + (j === 0 ? 'Instalación' : 'Accesorios') + '</th></tr>';
         t += '<tr><th scope="row"><button type="button" class="pl-ay" data-ay="' + s.c + '"><span>' + s.c + (s.sino ? ' · sí / no' : '') + '</span>' + esc(s.n) + '</button></th>';
         aptos.forEach(function(x){
           const v = valor(x.k, s.c);
@@ -4590,14 +4621,14 @@ function _conTitulo195(v){
       '<p class="pl-lead">Si viene de una hoja impresa, ponga quién la pasa y la fecha de la hoja. Enter baja al apartamento siguiente; Tab va a la derecha. Se puede pegar un bloque copiado de Excel.</p>' +
       (nPost ? '<div class="pl-post">⚠️ <b>' + nPost + ' apartamento(s) tuvieron otro informe después de que se imprimió la hoja</b> (marcados con ⚠️). La hoja trae un número más viejo: si el de la hoja es menor, no lo baje sin revisar.</div>' : '') +
       '<div class="pl-tw"><table class="pl-o"><thead><tr><th class="esq" rowspan="2" scope="col">Piso · apto</th>';
-    LISTA.forEach(function(h){ const ab = !!abiertos[h.id]; t += '<th scope="colgroup" colspan="' + (ab ? h.subs.length : 1) + '"><button type="button" class="pl-hb" data-h="' + h.id + '" aria-expanded="' + ab + '"><span class="fl">▸</span>H' + h.num + ' ' + esc(h.corto) + '</button></th>'; });
+    VISTA.forEach(function(h){ const ab = !!abiertos[h.id]; t += '<th scope="colgroup" colspan="' + (ab ? h.subs.length : 1) + '"><button type="button" class="pl-hb" data-h="' + h.id + '" aria-expanded="' + ab + '"><span class="fl">▸</span>' + esc(et(h)) + '</button></th>'; });
     t += '<th rowspan="2" scope="col">Nota</th></tr><tr>';
-    LISTA.forEach(function(h){ if (abiertos[h.id]) h.subs.forEach(function(s){ t += '<th scope="col" title="' + esc(s.n) + '"' + (fueraPresupuesto(s.c) ? ' class="opc"' : '') + '>' + s.c + '</th>'; }); else t += '<th scope="col">prom.</th>'; });
+    VISTA.forEach(function(h){ if (abiertos[h.id]) h.subs.forEach(function(s){ t += '<th scope="col" title="' + esc(s.n) + '"' + (fueraPresupuesto(s.c) ? ' class="opc"' : '') + '>' + s.c + '</th>'; }); else t += '<th scope="col">prom.</th>'; });
     t += '</tr></thead><tbody>';
     P.aptos.forEach(function(x, r){
       t += '<tr' + (x.i === 0 && x.p > P.pisoMin ? ' class="np"' : '') + '><th scope="row">' + (posterior(x.k) ? '<span title="Otro informe del ' + esc(fechaLarga(P.prev[x.k].fecha)) + '">⚠️</span> ' : '') + corPiso(x.p) + ' · ' + esc(x.a) + '</th>';
       let col = 0;
-      LISTA.forEach(function(h){
+      VISTA.forEach(function(h){
         if (abiertos[h.id]) h.subs.forEach(function(s){
           t += '<td><input class="' + claseInput(x.k, s.c) + '" inputmode="' + (s.sino ? 'text' : 'decimal') + '" maxlength="6" autocomplete="off" data-r="' + r + '" data-col="' + (col++) + '" data-c="' + s.c + '" data-k="' + x.k + '" placeholder="' + fmt(s.c, prev(x.k, s.c)) + '" value="' + textoInput(x.k, s.c) + '" aria-label="' + esc(s.n) + ', piso ' + x.p + ' ' + esc(x.a) + '"></td>';
         });
@@ -4690,7 +4721,7 @@ function _conTitulo195(v){
   }
   function grupos(){
     const g = []; let cur = [], n = 0;
-    LISTA.filter(function(h){ return enPapel[h.id]; }).forEach(function(h){ if (n + h.subs.length > MAX_COLS && cur.length) { g.push(cur); cur = []; n = 0; } cur.push(h); n += h.subs.length; });
+    VISTA.filter(function(h){ return enPapel[h.id]; }).forEach(function(h){ if (n + h.subs.length > MAX_COLS && cur.length) { g.push(cur); cur = []; n = 0; } cur.push(h); n += h.subs.length; });
     if (cur.length) g.push(cur); return g;
   }
   // En la hoja, un hito de una o dos columnas lleva su nombre corto: el largo no cabe.
@@ -4698,7 +4729,7 @@ function _conTitulo195(v){
     if (!cabe(tamano)) tamano = 'compacta';
     const tr = tramos(), gs = grupos(), total = gs.length * tr.length;
     let t = '<p class="pl-lead">Carta horizontal, para llevar a obra. Lo gris es el último % de cada casilla; lo que ya está en 100 % sale sombreado: ahí no hay nada que anotar.</p>' +
-      '<div class="pl-ctrl" role="group" aria-label="Hitos">' + LISTA.map(function(h){ return '<label><input type="checkbox" data-h="' + h.id + '"' + (enPapel[h.id] ? ' checked' : '') + '> H' + h.num + ' ' + esc(h.corto) + '</label>'; }).join('') + '</div>' +
+      '<div class="pl-ctrl" role="group" aria-label="Hitos">' + VISTA.map(function(h){ return '<label><input type="checkbox" data-h="' + h.id + '"' + (enPapel[h.id] ? ' checked' : '') + '> ' + esc(et(h)) + '</label>'; }).join('') + '</div>' +
       '<div class="pl-ctrl" role="group" aria-label="Tamaño"><span>Tamaño de la hoja:</span>' + Object.keys(TAMANOS).map(function(k){
         const n = k === 'toda' ? P.pisos - P.pisoMin + 1 : (function(){ const s = tamano; tamano = k; const x = tramos()[0]; tamano = s; return x[1] - x[0] + 1; })();
         return '<label' + (cabe(k) ? '' : ' title="No caben ' + P.aptos.length + ' apartamentos en una hoja"') + '><input type="radio" name="pl-tam" value="' + k + '"' + (k === tamano ? ' checked' : '') + (cabe(k) ? '' : ' disabled') + '> ' + TAMANOS[k].txt + (cabe(k) ? ' · ' + n + ' piso' + (n === 1 ? '' : 's') : ' · no cabe') + '</label>'; }).join('') + '</div>' +
@@ -4710,7 +4741,7 @@ function _conTitulo195(v){
       const filas = P.aptos.filter(function(x){ return x.p >= m[0] && x.p <= m[1]; });
       const denso = filas.length > 30;
       let tb = '<table><colgroup><col style="width:60px">' + cols.map(function(){ return '<col>'; }).join('') + '<col style="width:120px"></colgroup><thead><tr><th class="hg"></th>' +
-        g.map(function(h){ return '<th class="hg" colspan="' + h.subs.length + '">H' + h.num + ' ' + esc(h.subs.length <= 2 ? h.corto : String(h.n).replace(/^HITO \d+: /, '')) + '</th>'; }).join('') + '<th class="hg"></th></tr><tr><th>Piso<br>apto</th>' +
+        g.map(function(h){ return '<th class="hg" colspan="' + h.subs.length + '">' + esc(h.cap ? (h.subs.length <= 2 ? h.corto : h.n) : 'H' + h.num + ' ' + (h.subs.length <= 2 ? h.corto : String(h.n).replace(/^HITO \d+: /, ''))) + '</th>'; }).join('') + '<th class="hg"></th></tr><tr><th>Piso<br>apto</th>' +
         cols.map(function(s){ return '<th><span class="c">' + s.c + '</span>' + esc(s.n.length > 34 ? s.n.slice(0, 32) + '…' : s.n) + (s.sino ? ' (✓)' : '') + '</th>'; }).join('') + '<th>Observaciones</th></tr></thead><tbody>';
       filas.forEach(function(x, i){
         tb += '<tr' + (i > 0 && x.p !== filas[i - 1].p ? ' class="np"' : '') + '><th>' + corPiso(x.p) + ' ' + esc(x.a) + '</th>' +
@@ -4732,7 +4763,7 @@ function _conTitulo195(v){
   // ── 📖 guía ──
   function pintarGuia(){
     document.getElementById('pl-cuerpo').innerHTML = '<div class="pl-ib"><button type="button" class="pl-btn pri" id="pl-impguia">🖨 Imprimir la guía</button></div><h2 class="pl-gtit">Guía de subpartidas por apartamento</h2><div class="pl-guia">' +
-      LISTA.map(function(h){ return '<section><h3>' + esc(h.n) + '</h3><dl>' + h.subs.map(function(s){ return '<dt><span>' + s.c + '</span>' + esc(s.n) + '</dt><dd>' + esc(s.ay || 'Sin descripción.') + '</dd>'; }).join('') + '</dl></section>'; }).join('') + '</div>';
+      VISTA.map(function(h){ return '<section><h3>' + esc(h.cap ? h.n + ' (hitos ' + h.num + ')' : h.n) + '</h3><dl>' + h.subs.map(function(s){ return '<dt><span>' + s.c + '</span>' + esc(s.n) + '</dt><dd>' + esc(s.ay || 'Sin descripción.') + '</dd>'; }).join('') + '</dl></section>'; }).join('') + '</div>';
     document.getElementById('pl-impguia').onclick = function(){ document.body.classList.add('pl-imp-guia'); document.body.classList.remove('pl-imp-hojas'); window.print(); };
   }
 
@@ -4923,6 +4954,7 @@ function _conTitulo195(v){
     '#planilla .pl-piso{display:flex;gap:8px;align-items:center;margin:4px 0 8px;max-width:620px}',
     '#planilla .pl-piso button{width:52px;min-height:48px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-size:24px}#planilla .pl-piso button:disabled{opacity:.35}',
     '#planilla .pl-piso select{flex:1;min-width:0;min-height:48px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-size:20px;font-weight:800;text-align:center}',
+    '#planilla .pl-sep th{text-align:left;font-size:12px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#37474f;background:#eef3f6;padding:6px 8px}',
     '#planilla .pl-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;max-width:620px}',
     '#planilla .pl-chips button{flex:0 0 auto;min-height:44px;padding:0 12px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-weight:700;font-size:14px}',
     '#planilla .pl-chips button[aria-pressed="true"]{border-color:#1f6f8b;background:#e2eff4;box-shadow:inset 0 -3px 0 #1f6f8b}',
