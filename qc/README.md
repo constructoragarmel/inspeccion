@@ -1186,3 +1186,28 @@ Las tandas que usaban la T-04 como torre sin lista (`e8`, `e14`, `t112`) pasan a
   44 px), y EZ, SB J-09 y SR T-38 como antes. 10/10 sin ventana y a la vista a 375. **Encontró una:** un «C7» corregido a C07 por
   «Enviar todos» llega con apto C07 y el número viejo (clave P07AC7); la planilla lo habría mostrado dos veces: el empalme ahora
   decide por la clave. `e17` comprueba además que en la T-04 no quede ninguna clave con el nombre viejo.
+
+## 2-nov-2026 (noche) · Treinta rondas «todas las rutas, cómodo para el usuario»: `e22`, `e23`, `e24`
+
+Pedido de Stephanie: «piensa en todas las cosas que podría hacer una persona, distintas rutas … lo que ya han hecho, de lo que se
+han quejado, lo que hemos arreglado». Con el historial real de la T-04 y la T-08.
+
+- `e22` (O1–O10, la oficina y el papel): imprimir la T-04 con letra + piso en los tres tamaños; pasar a mano una hoja de hace tres
+  días (sin «quién la pasa» no guarda; salen con la fecha de la visita, origen «oficina» y la hoja; «Enviar todos» los manda: se
+  guardaron hoy); fechas de hoja imposibles; el ⚠️ si el archivo es más nuevo que la hoja; pegar una hoja de Excel con «—», vacíos
+  y Sí / No; «Pisos de la torre» en la T-43; 4.000+ casillas en menos de 2 s; «Toda la torre» se apaga si no cabe; la guía; la vista
+  previa y «Imprimir» una vez. 12/12 sin ventana y a la vista.
+- `e23` (P1–P10, rutas raras en obra): sin estatus no abre; cambios de ayer sin guardar; cambiar de torre a mitad; bajar un %;
+  Sí / No con «Lo mismo» sin tocar el cerrado; cien cambios y deshacer; abrirla desde «Torre completa»; el atrás sin perder nada; el
+  camino de Liz en la T-08 real y reabrir. 12/12 sin ventana y a la vista.
+- `e24` (I1–I10, «Informes» y los cuatro): 64 tarjetas, «Quitar copias» no se come los de la planilla, «Enviar todos» con un
+  olvidado y un incompleto, la lista después; en servicios, SHA y urbanismo un corte a mitad de la respuesta (una vez, sin -r2),
+  «Pasarelas» en SHA y el olvidado con 🕰️; ningún error en la consola en los cuatro. 5/5 en obra; 3/3 a la vista en los otros tres.
+
+**Lo que encontraron, arreglado:** (1) **cambios sin guardar de otro día**: el borrador de la planilla no sabía de qué visita era;
+el lunes sin guardar salía el jueves con la fecha del jueves. Ahora guarda la fecha de la visita y, si al abrir la cabecera dice
+otra, pregunta «Seguir con ellos» o «Descartarlos»; (2) **«Informes» sin el piso**: con la planilla había dieciséis tarjetas
+«Apto: B2» iguales; ahora dicen «Piso 07 · Apto: B2» (cambio 203).
+
+Regresión con el código final: `e7` a `e24`, `t139`, `t112`, `t101`, `t124`, `t128`, `t136`, `t137`, `t69`, `t26`, `t29`, `t24` y SHA
+`t53` `t57` `t63` `t127` en verde; `e8` 23/25 sin ventana (QC6a y QC6c, tiempos) y 25/25 a la vista.

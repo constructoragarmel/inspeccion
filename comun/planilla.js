@@ -98,7 +98,8 @@
   const enPapel = {}, abiertos = { cap_sanitarias: true };
   const CLAVE = function(){ return 'garmel_planilla_' + P.sector + '|' + P.torre; };
   function guardarBorrador(){ try {
-    localStorage.setItem(CLAVE(), JSON.stringify({ est: est, pasa: P.pasa, impresa: P.impresa, extra: P.extra, pisos: P.pisosElegido || 0, pisosManual: !!P.pisosManual, oficina: !!P.oficina }));
+    // `dia`: la fecha de la visita a la que pertenecen los cambios (la de la cabecera al cargarlos).
+    localStorage.setItem(CLAVE(), JSON.stringify({ est: est, pasa: P.pasa, impresa: P.impresa, extra: P.extra, pisos: P.pisosElegido || 0, pisosManual: !!P.pisosManual, oficina: !!P.oficina, dia: P.dia || P.cab.fecha }));
   } catch (e) {} }
   function leerBorrador(){ try { return JSON.parse(localStorage.getItem(CLAVE()) || 'null'); } catch (e) { return null; } }
   function antesDeCambiar(){ pila.push(JSON.stringify(est)); if (pila.length > MAX_DESHACER) pila.shift(); }
@@ -259,7 +260,7 @@
     const mio = P = { sector: sector, torre: torre, cab: d, prev: {}, aptos: [], pisos: 0, extra: [], pasa: '', impresa: '', origenPrev: '', oficina: false };
     est = { N: {}, C: {} }; pila = [];
     const b = leerBorrador();
-    if (b) { if (b.est) est = b.est; P.pasa = b.pasa || ''; P.impresa = b.impresa || ''; P.extra = b.extra || []; P.pisosElegido = b.pisos || 0; P.pisosManual = !!b.pisosManual; P.oficina = !!b.oficina; }
+    if (b) { if (b.est) est = b.est; P.pasa = b.pasa || ''; P.impresa = b.impresa || ''; P.extra = b.extra || []; P.pisosElegido = b.pisos || 0; P.pisosManual = !!b.pisosManual; P.oficina = !!b.oficina; P.dia = b.dia || ''; }
     VISTA.forEach(function(h){ if (!(h.id in enPapel)) enPapel[h.id] = true; });
     if (!VISTA.some(function(h){ return h.id === hitoSel; })) hitoSel = VISTA[0].id;   // al abrir, siempre una pestaña de las que se ven
     vista = innerWidth >= 900 ? 'tabla' : 'tel';
@@ -282,7 +283,20 @@
     armarAptos(); piso = Math.min(Math.max(P.pisoMin, piso), P.pisos);
     P.aviso = (del ? '' : '📵 Sin conexión con el archivo: lo gris es ' + P.origenPrev + '. ') + recuperado();
     refrescar();
+    otroDia();
   };
+  // Cambios sin guardar de otra visita (2-nov-2026): el borrador de la torre quedó con casillas de una visita de otro día y la
+  // cabecera dice otra fecha. Sin preguntar, saldrían con la fecha de hoy. Se pregunta una vez: seguir con ellos o descartarlos.
+  function otroDia(){
+    const r = resumen();
+    if (!r.ks.length || !P.dia || P.dia === P.cab.fecha) { P.dia = P.cab.fecha; return; }
+    abrirSheet('<h3>Hay cambios sin guardar de otra visita</h3><p class="pl-sub">' + r.n + ' casilla(s) en ' + r.ks.length + ' apartamento(s), cargadas para la visita del ' +
+      esc(fechaLarga(P.dia)) + ' y nunca guardadas. La cabecera dice ' + esc(fechaLarga(P.cab.fecha)) + '.</p>' +
+      '<p>Si los sigue, salen con la fecha de la cabecera (' + esc(fechaLarga(P.cab.fecha)) + '). Si eran de esa otra visita, descártelos, o cambie la fecha en la cabecera antes de guardar.</p>' +
+      '<div class="pl-acc"><button type="button" class="pl-btn peligro" id="pl-odes">Descartarlos</button><button type="button" class="pl-btn pri" id="pl-oseg">Seguir con ellos</button></div>');
+    document.getElementById('pl-oseg').onclick = function(){ P.dia = P.cab.fecha; guardarBorrador(); cerrarSheet(); };
+    document.getElementById('pl-odes').onclick = function(){ est = { N: {}, C: {} }; pila = []; P.dia = P.cab.fecha; guardarBorrador(); cerrarSheet(); repintar(); aviso('Se descartaron los cambios de la otra visita.'); };
+  }
   // Repinta sin perder lo que se está escribiendo en la tabla de la oficina.
   function refrescar(){
     const a = document.activeElement; let foco = null;

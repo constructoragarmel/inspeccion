@@ -9856,6 +9856,14 @@ s = sustituir(s,
  "function _aplicarListaApto(){\n",
  "202a· la lista del piso elegido")
 
+# ── 203. «Informes» dice el piso (2-nov-2026) ─────────────────────────────────────────────────────────────────────────────
+# Con la planilla salen decenas de informes de una torre: la tarjeta decía «Torre: T-16 | Apto: B2» y había dieciséis iguales,
+# uno por piso. Ahora «Torre: T-16 | Piso 07 · Apto: B2» (el de torre, sin piso).
+s = sustituir(s,
+ "        <span class=\"saved-item-sub\">📍 Torre: ${_txt(item.torre || '—')} | Apto: ${_txt(item.apto || '—')}</span>\n",
+ "        <span class=\"saved-item-sub\">📍 Torre: ${_txt(item.torre || '—')}${(item.ambito || 'apartamento') !== 'torre' && item.piso ? ' | ' + _txt(item.piso) + ' · Apto: ' + _txt(item.apto || '—') : ((item.ambito || 'apartamento') === 'torre' ? ' | Torre completa' : ' | Apto: ' + _txt(item.apto || '—'))}</span>\n",
+ "203a· la tarjeta dice el piso")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
