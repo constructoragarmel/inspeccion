@@ -78,11 +78,13 @@ tap($('#planilla [data-ay="3.01"]')); const ay = $('#pl-sheet').textContent;
 document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await esperar(50);
 ok('QC11l · La ayuda de la subpartida dice qué cuenta, y Escape la cierra', /agua fría/.test(ay) && $('#pl-fondo').hidden);
 tap(celda('P04AB2', '3.01')); document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await esperar(50);
-ok('QC11m · Tocar «‹» en el primer piso y «›» en el último no hace nada (están apagados)', (await (async () => { await ir({ piso: 1 }); const a = $('#pl-ant').disabled; await ir({ piso: 12 }); return a && $('#pl-sig').disabled; })()));
+ok('QC11m · Tocar «‹» en el primer piso y «›» en el último no hace nada (están apagados)', (await (async () => { await ir({ piso: 1 }); const a = $('#pl-ant').disabled; await ir({ piso: E().P.pisos }); return a && $('#pl-sig').disabled; })()));
 cerrarPlanilla(); Object.keys(localStorage).filter(k => /^garmel_planilla_EZ/.test(k)).forEach(k => localStorage.removeItem(k));
 
 // ── QC12 · la oficina ──
 await cabecera(); await abrir(); await ir({ vista: 'tabla' });
+// La oficina fija la torre en 12 pisos (desde el 2-nov la planilla abre con 16 si nadie los fija).
+{ const np0 = $('#pl-npisos'); np0.value = '12'; np0.dispatchEvent(new Event('change')); await esperar(80); }
 E().LISTA.forEach(h => _plIr({ abrir: h.id }));
 let t = performance.now(); await ir({ vista: 'tabla' }); const ms12 = performance.now() - t;
 const nIn = $$('#planilla input.pl-pc').length;
