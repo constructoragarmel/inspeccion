@@ -1120,3 +1120,21 @@ fila con cantidades redondea como el relevo. En el relevo (r79), el avance de la
 botones de menos de 44 px y tablas que se salen a 375 (QC10, QC18), «falta: estatus» al enviar (QC1), el ancho de columnas al
 imprimir (QC17 y el PDF), números a medias (QC2), filas copiadas o heredadas que viajan (QC2), lo cerrado al 100 % (QC11), acentos,
 comillas y HTML (QC11, QC16), relevo lento o caído (QC6), teléfono sin espacio (QC7), y lo de torre que se cuela en apartamento (QC2).
+
+## 2-nov-2026 · Diez rondas sobre lo de hoy (v192 a v195 publicadas, y el encabezado fijo sin publicar)
+
+Lo que se cambió en el día: «Pasarelas» en SHA (v192); 3.02 «Puntos de desagüe», 4.01 «Friso interno» y la T-43 con A01 a A10
+(v193, relevo r80); la planilla sin pisos ni apartamentos fuera en ninguna torre (v194); PB y del 1 al 15, capítulos Sanitarias /
+Eléctricas / Gas en secuencia y 5.04 «Marcos metálicos de puertas» (v195, relevo r81); y el encabezado fijo en 📱 Obra (sin publicar).
+
+1. Regresión de la planilla (e7 a e16, t139) y del formulario (t124, t128, t136, t137, t138 a la vista, t108, t26, t69, t66, t10,
+   t72, t80, t123): en verde. e8 24/25 sin ventana por QC6c (a la vista 25/25); t47 8/11 como siempre (fecha de cuando se escribió).
+2. a 5. `e17` con el historial REAL de Drive (avance-torre.json copiado a `<banco>/reales/`): EZ-T08, EZ-T58, SR-T04 y SB-D-08,
+   20/20. Ningún apartamento con historial se pierde ni se repite, PB a 15, el gris es el último % y los pisos sin informe traen su
+   juego (A1–B2; A7–J7; A07–F07).
+6. Capítulos y relevo: `e15` 12/12 (nada se pierde entre pestañas, cada % en su hito); `e10` + `t79planilla` 13/13; `t80relevo` 5/5.
+7. Lo que llegó al relevo real: 43 PDF de la T-58 con r80 y 6 con r81 traen los nombres nuevos; el que llegó en el minuto del
+   despliegue, los de antes. Apareció un borrador de agosto (SR-T07-P01A11-260831-CF) que salió con «Enviar todos».
+8. Formulario, SHA y T-43: `e12` 10/10, `t137` 10/10, `t53`, `t57`, `t63` en verde; `t54` (Pasarelas) 9/9 a la vista en la mañana.
+9. Hojas impresas con PB y capítulos: `e10` 17/17 (64 apartamentos, hojas completas), `e15` rótulos de capítulo en la hoja.
+10. Pantallas: `e11`, `e16` y `e15` en 500×812, 812×375, 768×1024, 1280×800 y 500×667; `e16` y `t140` a la vista a 375×812.

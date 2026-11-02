@@ -4538,7 +4538,21 @@ function _conTitulo195(v){
     cuerpo.querySelectorAll('[data-com]').forEach(function(b){ b.onclick = function(){ comentario(b.dataset.com); }; });
     cuerpo.querySelectorAll('[data-ay]').forEach(function(b){ b.onclick = function(){ ayuda(b.dataset.ay); }; });
     barra();
+    altoTabla();
   }
+  // El encabezado fijo al cargar (Planificación, 2-nov-2026: «que el encabezado de los hitos quede fijo para que no se pierda»).
+  // La tabla se desplaza dentro de su caja, que llega justo hasta la barra de abajo: así quedan a la vista el piso, las
+  // pestañas y la fila de apartamentos (sticky dentro de la caja).
+  function altoTabla(){
+    const cu = document.getElementById('pl-cuerpo'), gw = cu && cu.querySelector('.pl-gw'), pl = document.getElementById('planilla'), br = document.getElementById('pl-barra');
+    if (!gw || !pl || vista !== 'tel') return;
+    gw.style.maxHeight = '';
+    const arriba = gw.getBoundingClientRect().top - pl.getBoundingClientRect().top + pl.scrollTop;
+    const abajo = (br ? br.getBoundingClientRect().height : 0) + 10, libre = window.innerHeight - arriba - abajo;
+    // Si no cabe bajo las pestañas (apaisado), la caja ocupa la pantalla menos la barra: al bajar, se ve entera.
+    gw.style.maxHeight = Math.floor(libre >= 200 ? libre : Math.max(120, window.innerHeight - abajo)) + 'px';
+  }
+  window.addEventListener('resize', function(){ if (P) altoTabla(); });
   // ADR-0053: lo que llegó al 100 % quedó cerrado; se puede corregir, pero se pide a propósito.
   function tocar(k, c){
     if (!nuevo(k, c) && prev(k, c) >= 100) {
@@ -4960,10 +4974,10 @@ function _conTitulo195(v){
     '#planilla .pl-chips button{flex:0 0 auto;min-height:44px;padding:0 12px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-weight:700;font-size:14px}',
     '#planilla .pl-chips button[aria-pressed="true"]{border-color:#1f6f8b;background:#e2eff4;box-shadow:inset 0 -3px 0 #1f6f8b}',
     '#planilla .pl-cnt{display:inline-block;min-width:20px;margin-left:4px;padding:0 5px;border-radius:10px;background:#1f6f8b;color:#fff;font-size:12px}',
-    '#planilla .pl-gw{overflow-x:auto;border:1px solid #d3dce3;border-radius:10px;background:#fff;max-width:620px}',
+    '#planilla .pl-gw{overflow:auto;overscroll-behavior:contain;border:1px solid #d3dce3;border-radius:10px;background:#fff;max-width:620px}',
     '#planilla table{border-collapse:separate;border-spacing:0;min-width:0}',   // el formulario da a toda tabla 640 px de mínimo
     '#planilla .pl-g{width:100%;table-layout:auto}#planilla .pl-g th,#planilla .pl-g td{border-bottom:1px solid #d3dce3;white-space:normal}',
-    '#planilla .pl-g thead th{position:sticky;top:0;background:#fff;padding:4px 2px;font-size:15px;z-index:1}',
+    '#planilla .pl-g thead th{position:sticky;top:0;background:#fff;padding:4px 2px;font-size:15px;z-index:2;box-shadow:0 1px 0 #d3dce3}',
     '#planilla .pl-g thead th:first-child{text-align:left;padding-left:8px;color:#5a6a77;font-weight:500;font-size:13px}',
     '#planilla .pl-g.ancho thead th:first-child,#planilla .pl-g.ancho tbody th{position:sticky;left:0;z-index:2;background:#fff;min-width:116px;max-width:116px;box-shadow:1px 0 0 #d3dce3}',
     '#planilla .pl-apto{min-height:44px;width:100%;border:0;background:none;font-weight:800;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center}',
