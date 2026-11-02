@@ -1138,3 +1138,36 @@ Eléctricas / Gas en secuencia y 5.04 «Marcos metálicos de puertas» (v195, re
 8. Formulario, SHA y T-43: `e12` 10/10, `t137` 10/10, `t53`, `t57`, `t63` en verde; `t54` (Pasarelas) 9/9 a la vista en la mañana.
 9. Hojas impresas con PB y capítulos: `e10` 17/17 (64 apartamentos, hojas completas), `e15` rótulos de capítulo en la hoja.
 10. Pantallas: `e11`, `e16` y `e15` en 500×812, 812×375, 768×1024, 1280×800 y 500×667; `e16` y `t140` a la vista a 375×812.
+
+## 2-nov-2026 (tarde) · Veinte rondas «como un ingeniero en obra» (sobre la v196): `e18`, `e19`, `e20`
+
+Pedido de Stephanie: «prueba UX, estresa la herramienta y prueba cosas que no se hayan probado antes». Rondas nuevas, con el
+historial REAL de Drive donde hace falta (`<banco>/reales/`, como `e17`), y el relevo falso con un mando nuevo: `cortar: N`
+(archiva y corta la conexión sin contestar, como un corte de señal a mitad de la respuesta).
+
+- `e18` (R1–R6, envío): corte a mitad de la respuesta en «Enviar todos» y en el envío de uno; relevo caído y vuelta; la marca de
+  corte sobrevive a cerrar la app; doble pulsación; un borrador olvidado (guardado en agosto) no sale y la hoja de la oficina de
+  hace diez días sí. 10/10. **Contra la v196 publicada reproduce lo real: R3b da 2 envíos (el -r2) y R6 manda el de agosto.**
+- `e19` (R7–R12, un día de obra): 16 niveles × 4 con «Lo mismo…» (64 informes, P00 a P15), el de PB abierto en el formulario,
+  corregir uno en el formulario y verlo en la planilla, mandar 64 de una vez, otra pasada el mismo día («ya salió hoy») y la T-58
+  real de Christian. 10/10.
+- `e20` (R13–R20, uso): atrás de Android con la hoja abierta y la caja bajada, deshacer entre capítulos, nota con emoji / HTML /
+  300 caracteres, la T-04 real (10 por piso) deslizada a los lados, pegar de Excel con un capítulo cerrado, la hoja impresa con PB
+  y capítulos, dos torres la misma mañana, y 44 px a 320 px. 12/12 a 500 sin ventana, y a la vista a 375×812 y 320×568.
+
+**Lo que encontraron, arreglado:** (1) **envíos dobles**: «Enviar todos» y el envío de uno solo preguntaban al relevo si ya había
+llegado cuando se agotaba el tiempo, no cuando la señal se cortaba a mitad de la respuesta («Failed to fetch»): el siguiente envío lo
+mandaba otra vez (el -r2 de la T-58 y de la T-13); ahora cualquier corte con señal pregunta, y la marca de corte se guarda en el
+teléfono (los cuatro formularios, `comun/envio_paciente.js`); (2) **borrador olvidado**: el de agosto de la SR-T07 salió con
+«Enviar todos»; ahora uno guardado hace más de 7 días y nunca enviado no sale en la tanda y lleva la marca 🕰️ (los cuatro,
+`comun/antes_de_enviar.js`); cuenta cuándo se guardó (`guardado` o `draft_<ms>`), no la fecha de inspección ni el `timestamp`,
+que sale en el idioma del teléfono; (3) en modo prueba lo guardado en el teléfono no entraba a la planilla («PRUEBA-» delante):
+el banco no lo probaba; (4) con eso a la vista, un nombre suelto («C2» agregado en un piso) se repetía en los 16 niveles: un nombre
+fijo se repite solo si se vio en dos pisos, y un patrón letra + piso solo si casi siempre lleva su piso; (5) deslizando a los lados
+en torres de 10 por piso, la esquina «Piso» quedaba tapada y el rótulo «Accesorios» desaparecía; (6) en un teléfono de 568 de alto
+la caja de la tabla quedaba debajo del encabezado fijo: ahora mide lo que se ve entre él y la barra.
+
+Regresión con el código final: `e7` a `e20`, `t139`, `t124`, `t128`, `t136`, `t137`, `t69`, `t26`, SHA `t53` `t57` `t63` `t127` en
+verde; `e8` 24/25 sin ventana (QC6c) y 25/25 a la vista; a la vista `t90` 6/6, `t91` 4/4 en servicios, SHA y urbanismo, `t108`
+4/4, `t33` 5/5. Veintiséis tandas viejas que usan «Enviar todos» dan lo mismo que la v196 (`t112` vive el 20-oct, el día que
+reproduce: sus borradores se guardaron el 13).

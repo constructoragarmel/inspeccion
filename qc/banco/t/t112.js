@@ -19,6 +19,9 @@ const poner = l => { localStorage.setItem('garmel_reports_list', JSON.stringify(
 const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const HOY = iso(new Date());
 const C13 = new Date(2026, 9, 13, 10, 0).getTime();
+// La tanda reproduce el teléfono del 20-oct (borradores guardados el 13-oct): desde el 2-nov, uno guardado hace más de 7 días
+// no sale en «Enviar todos» (antes_de_enviar.js, 4), así que «hoy» es el 20-oct mientras se envía.
+const _hoyReal112 = _hoy192; _hoy192 = () => new Date(2026, 9, 20, 10, 0);
 const limpio = a => String(a).toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 // Un borrador de verdad, hecho en pantalla, como molde.

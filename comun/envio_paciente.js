@@ -14,7 +14,16 @@
 // sin la acción contesta «Faltan numero…» en vez de archivar un informe vacío con ese número.
 let PLAZO_ENVIO_MS = 300000;
 let _REINTENTO_EXISTE_MS = 15000;
-const _cortes = {};
+// 201 (2-nov-2026): los cortes se recuerdan en el teléfono, no solo en memoria: si la app se cierra después de un corte, el
+// próximo Enviar de ese número igual pregunta primero si ya llegó. Se olvidan a los tres días.
+const _cortes = (function(){
+  let base = {};
+  try { base = JSON.parse(localStorage.getItem('garmel_cortes') || '{}') || {}; } catch (e) { base = {}; }
+  const ahora = Date.now(); Object.keys(base).forEach(function(k){ if (!(ahora - base[k] < 3 * 864e5)) delete base[k]; });
+  const guardar = function(){ try { localStorage.setItem('garmel_cortes', JSON.stringify(base)); } catch (e) {} };
+  return new Proxy(base, { set: function(o, k, v){ o[k] = v; guardar(); return true; },
+                           deleteProperty: function(o, k){ delete o[k]; guardar(); return true; } });
+})();
 async function _yaArchivado(clave, nro, sector, torre, tipo, desde, repetir, guardado){
   for (let intento = 0; intento < (repetir ? 2 : 1); intento++) {
     if (intento) await new Promise(function(r){ setTimeout(r, _REINTENTO_EXISTE_MS); });

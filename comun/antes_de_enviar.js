@@ -21,6 +21,10 @@
 //       sale en «Enviar todos»: queda en «Informes» con la marca «Vacío, no se envía» y se borra con 🗑️ Borrar. La
 //       proyectada no cuenta (puede venir de la visita anterior). Enviado de a uno se pregunta antes, por si de verdad
 //       va así.
+//   4 · BORRADOR OLVIDADO (2-nov-2026): uno guardado hace más de DIAS_VIEJO192 días y nunca enviado no sale en «Enviar
+//       todos»; queda en «Informes» con su marca y se manda de a uno, preguntando. Un borrador del 31-ago de la T-07 de
+//       Simón Rodríguez salió el 2-nov sin que nadie lo viera, junto con los 46 de la T-58. Cuenta cuándo se GUARDÓ, no la
+//       fecha de inspección: la oficina puede pasar hoy una hoja impresa de hace diez días y eso sí debe salir.
 const _MESES192 = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 function _hoy192(){ return new Date(); }   // las tandas del banco la cambian para «estar» en otro día
 function _iso192(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -112,7 +116,24 @@ function _nadaMedido192(d){
   if (Object.keys(E).some(function(k){ return [].concat(E[k] || []).some(fila); })) return false;
   return true;
 }
-function _fueraDeTanda192(b){ return _nadaMedido192(b); }
+const DIAS_VIEJO192 = 7;
+// Cuándo se guardó: `guardado` (servicios, SHA y urbanismo) o el número de `draft_<ms>` (obra). No se lee `timestamp`: sale
+// en el idioma del teléfono («2/11/2026» o «11/2/2026») y leído al revés frenaría uno de hoy. Sin ninguno de los dos, no frena.
+function _guardadoMs192(b){
+  if (!b) return 0;
+  const g = Date.parse(b.guardado || ''); if (!isNaN(g)) return g;
+  const d = /^draft_(\d{12,})/.exec(String(b.id || '')); if (d) return +d[1];
+  return 0;
+}
+// Los días desde que se guardó si pasan de DIAS_VIEJO192; si no, 0.
+function _viejo192(b){
+  const ms = _guardadoMs192(b); if (!ms) return 0;
+  const dias = Math.floor((_hoy192().getTime() - ms) / 864e5);
+  return dias > DIAS_VIEJO192 ? dias : 0;
+}
+function _textoViejo192(b){ const d = new Date(_guardadoMs192(b)); return 'se guardó el ' + _fechaCorta192(_iso192(d)) + ' (hace ' + _viejo192(b) + ' días) y nunca salió: si de verdad va, ábralo y envíelo solo; si no, bórrelo'; }
+const _MARCA_VIEJO192 = '🕰️ Olvidado, no sale en «Enviar todos»: ';
+function _fueraDeTanda192(b){ return _nadaMedido192(b) || !!_viejo192(b); }
 function _marca192(texto){
   const s = document.createElement('span'); s.className = 'marca192'; s.textContent = texto;
   s.style.cssText = 'display:block;margin-top:4px;padding:6px 8px;border-radius:6px;font-size:12.5px;line-height:1.35;font-weight:700;' +
@@ -158,6 +179,7 @@ if (typeof getFormData === 'function' && typeof getSavedReports === 'function' &
           return;
         }
         if (_nadaMedido192(d) && !confirm('⛔ Este informe no tiene nada medido: ninguna ejecutada, evaluación, Sí/No ni %.\n\n«Enviar todos» no lo manda. ¿Enviarlo de todos modos?')) return;
+        if (_viejo192(d) && !confirm('🕰️ Este informe ' + _textoViejo192(d).replace(/: si de verdad.*$/, '') + '.\n\n«Enviar todos» no lo manda. ¿Enviarlo de todos modos?')) return;
       }
     } catch (e) {}
     return _enviarAlRelevoBase192.apply(this, arguments);
@@ -168,6 +190,7 @@ if (typeof getFormData === 'function' && typeof getSavedReports === 'function' &
     const f = _faltanEnBase192.apply(this, arguments) || [];
     try {
       if (_nadaMedido192(b)) f.push('medir algo — está vacío y no se envía (bórrelo con 🗑️ Borrar si no sirve)');
+      if (_viejo192(b)) f.push('revisar si todavía va — ' + _textoViejo192(b));
       const m = _aptoMal192(b); if (m) f.push('corregir el apartamento «' + b.apto + '»: en la ' + b.torre + ' son ' + m.lista.join(', '));
     } catch (e) {}
     return f;
@@ -222,6 +245,7 @@ if (typeof getFormData === 'function' && typeof getSavedReports === 'function' &
         const b = l[i]; if (!b || b.enviado) return;
         const info = card.querySelector('.saved-item-info') || card;
         if (_nadaMedido192(b)) info.appendChild(_marca192(_MARCA_VACIO192));
+        if (_viejo192(b)) info.appendChild(_marca192(_MARCA_VIEJO192 + _textoViejo192(b) + '.'));
         const m = _aptoMal192(b); if (m) info.appendChild(_marca192('⚠️ ' + _textoApto192(b, m).replace(/^el/, 'El') + '. Ábralo con 📂 Editar y corríjalo: así no se envía.'));
       });
     } catch (e) {}
@@ -236,6 +260,8 @@ if (typeof datosDelFormulario === 'function' && typeof listaGuardada === 'functi
     const d = listaGuardada().find(function(x){ return x.id === id; });
     if (d && !d.enviado && !_tandaEnCurso && _nadaMedido192(d) &&
         !confirm('⛔ ' + (d.nro || 'Este informe') + ' no tiene nada medido.\n\n«Enviar todos» no lo manda. ¿Enviarlo de todos modos?')) return;
+    if (d && !d.enviado && !_tandaEnCurso && _viejo192(d) &&
+        !confirm('🕰️ ' + (d.nro || 'Este informe') + ' ' + _textoViejo192(d).replace(/: si de verdad.*$/, '') + '.\n\n«Enviar todos» no lo manda. ¿Enviarlo de todos modos?')) return;
     return _enviarSoloBase192.apply(this, arguments);
   };
   // Lo que «Enviar todos» dejó fuera, para el aviso del final (lo llama enviar() del motor).
@@ -243,7 +269,8 @@ if (typeof datosDelFormulario === 'function' && typeof listaGuardada === 'functi
     const l = listaGuardada().filter(function(b){ return !b.enviado && !faltan(b).length && _fueraDeTanda192(b); });
     if (!l.length) return '';
     return '\n\nNo salieron y siguen en el teléfono (' + l.length + '):\n' + l.map(function(b){
-      return '· ' + b.nro + ' — vacío: no tiene nada medido. Bórrelo con 🗑️ Borrar en Informes, o si de verdad va así envíelo solo con 📤 Enviar.';
+      return '· ' + b.nro + ' — ' + (_nadaMedido192(b) ? 'vacío: no tiene nada medido. Bórrelo con 🗑️ Borrar en Informes, o si de verdad va así envíelo solo con 📤 Enviar.'
+                                                     : 'viejo: ' + _textoViejo192(b) + '.');
     }).join('\n');
   };
   const _abrirInformesBase192 = abrirInformes;
@@ -254,6 +281,7 @@ if (typeof datosDelFormulario === 'function' && typeof listaGuardada === 'functi
       document.querySelectorAll('#modal-informes .ficha').forEach(function(card, i){
         const b = l[i]; if (!b || b.enviado) return;
         if (_nadaMedido192(b)) card.insertBefore(_marca192(_MARCA_VACIO192), card.querySelector('.b'));
+        else if (_viejo192(b)) card.insertBefore(_marca192(_MARCA_VIEJO192 + _textoViejo192(b) + '.'), card.querySelector('.b'));
       });
     } catch (e) {}
     return r;

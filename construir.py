@@ -9813,6 +9813,31 @@ s = sustituir(s,
  "// Devuelve la lista de campos obligatorios que faltan, según el ámbito.\nfunction camposFaltantes(){",
  "200e· viajan, se vacían y solo se ven en torre")
 
+# ── 201. Un corte a mitad de la respuesta tampoco es «no llegó» (2-nov-2026) ─────────────────────────────────────────────
+# El 184 preguntaba al relevo si el informe ya estaba archivado solo cuando se agotaba el tiempo. Un corte de señal a mitad
+# de la respuesta («Failed to fetch») lo daba por no enviado sin preguntar ni recordar el corte, y el siguiente Enviar lo
+# mandaba otra vez: el relevo lo archivaba como -r2 (T-58 de EZ y T-13, 30-oct y 2-nov). Ahora cualquier error con señal
+# pregunta una vez, y si no aparece se recuerda el corte (en el teléfono: comun/envio_paciente.js). «Enviar todos», igual
+# (comun/robustez.js).
+s = sustituir(s,
+ "      logEl.textContent += '⏳ Pasaron ' + min + ' min sin respuesta. El relevo puede estar terminando de archivarlo: comprobando…\\n';\n",
+ "      logEl.textContent += (seRindio ? '⏳ Pasaron ' + min + ' min sin respuesta.' : '⏳ Se cortó la conexión antes de la respuesta.') + ' El relevo puede estar terminando de archivarlo: comprobando…\\n';\n",
+ "201c· el aviso dice qué pasó")
+s = sustituir(s,
+ "    let rescatado = false;\n"
+ "    if (seRindio) {\n",
+ "    let rescatado = false;\n"
+ "    if (seRindio || navigator.onLine !== false) {\n",
+ "201a· cualquier corte con señal pregunta si ya llegó")
+s = sustituir(s,
+ "      rescatado = await _yaArchivado(clave, datos.nro, getSectorActual(), getTorreActual(), undefined, _t0, true);\n"
+ "      if (!rescatado) _cortes[datos.nro] = _t0;\n"
+ "    }\n",
+ "      rescatado = await _yaArchivado(clave, datos.nro, getSectorActual(), getTorreActual(), undefined, _t0, seRindio);\n"
+ "    }\n"
+ "    if (!rescatado) _cortes[datos.nro] = _t0;\n",
+ "201b· y si no aparece, se recuerda el corte")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))

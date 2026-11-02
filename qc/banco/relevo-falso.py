@@ -2,7 +2,7 @@ import http.server, json, os, time
 S=os.path.dirname(os.path.abspath(__file__))
 # v168 (cambio 184): `colgar: N` archiva el envío y tarda N s en contestar (como el relevo real con muchas fotos);
 # `perder: True` lee el cuerpo, no archiva nada y tarda `colgar` s en cerrar sin contestar (el cuerpo no llegó).
-ESTADO={'tipos':['inspeccion','servicios','sha','urbanismo'],'caido':False,'fallar':[],'lento':0,'colgar':0,'perder':False,'clave':'qc'}
+ESTADO={'tipos':['inspeccion','servicios','sha','urbanismo'],'caido':False,'fallar':[],'lento':0,'colgar':0,'perder':False,'cortar':0,'clave':'qc'}
 def shaClave(lugar,x):
     import re as _re
     l=str(lugar or '').strip()
@@ -297,6 +297,10 @@ class H(http.server.BaseHTTPRequestHandler):
             H.obra[(d.get('torre'),m.group(1) if m else 'TORRE')]=r
             if m and m.group(1)!='ESTR': H.obraApto[d.get('torre')]=r
         if ESTADO.get('colgar'): time.sleep(ESTADO['colgar'])   # ya archivado: la respuesta es lo que tarda
+        # 201 (2-nov-2026): `cortar: N` archiva los próximos N envíos y corta la conexión sin contestar, como un corte de
+        # señal a mitad de la respuesta en obra («Failed to fetch» en el teléfono, el informe sí quedó en Drive).
+        if ESTADO.get('cortar'):
+            ESTADO['cortar']-=1; self.close_connection=True; return
         self._ok({"ok":True,"numero":p['numero'],"archivos":[p['numero']+'.json',p['numero']+'.pdf']})
     def log_message(self,*a): pass
 http.server.ThreadingHTTPServer(('127.0.0.1',8776),H).serve_forever()

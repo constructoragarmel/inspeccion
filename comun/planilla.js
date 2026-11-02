@@ -131,26 +131,33 @@
   // Donde no hay lista, los apartamentos de cada piso se deducen del historial de la torre. Si un nombre lleva el número de su
   // piso al final o al principio (A12 en el 12, F10 en el 10, «9 lateral» en el 9) y eso se ve desde el piso 2, se repite en todos
   // los pisos con el número de cada uno, con o sin cero según como se escribió. Lo que no lleva el número de su piso (D22) se
-  // repite tal cual. Lo dudoso (un «A1» o un «1 lateral» que solo se vio en el piso 1) se queda en su piso. Lo que sobre no
+  // repite tal cual si ya se vio en dos pisos. Lo dudoso (un «A1» o un «1 lateral» que solo se vio en el piso 1) se queda en su piso. Lo que sobre no
   // estorba: solo sale informe de lo que se cambia.
   function patronDeTorre(){
-    const pat = {}, fijos = [], ent = [];
+    const pat = {}, fijos = [], ent = [], enPisos = {};
     const partes = function(a){ const f = a.match(/^(.*?[^\d])(\d+)$/), i = a.match(/^(\d+)([^\d].*)$/);
       return [f ? { t: 'f', r: f[1], n: f[2] } : null, i ? { t: 'i', r: i[2], n: i[1] } : null].filter(Boolean); };
     const clave = function(x){ return x.t + '|' + x.r + '|' + (x.n.length > 1 && x.n[0] === '0' ? 2 : 1); };
     Object.keys(P.prev).forEach(function(k){ const m = k.match(/^P(\d{2})A(.+)$/); if (!m || +m[1] < 1) return;
       ent.push({ p: +m[1], a: String(P.prev[k].apto || m[2]).trim().toUpperCase() }); });
-    // Una sola forma por letra: si conviven «A07» y «A7», la que más se usó.
-    const votos = {};
-    ent.forEach(function(x){ if (x.p >= 2) partes(x.a).forEach(function(y){ if (+y.n === x.p) votos[clave(y)] = (votos[clave(y)] || 0) + 1; }); });
+    // Una sola forma por letra: si conviven «A07» y «A7», la que más se usó. Y es patrón solo si la letra casi siempre lleva
+    // el número de su piso: «A1…A5» repetidos en doce pisos coinciden con el piso en cinco, pero son nombres fijos.
+    const votos = {}, contra = {};
+    ent.forEach(function(x){ partes(x.a).forEach(function(y){
+      if (+y.n === x.p) { if (x.p >= 2) votos[clave(y)] = (votos[clave(y)] || 0) + 1; }
+      else contra[y.t + '|' + y.r] = (contra[y.t + '|' + y.r] || 0) + 1; }); });
     Object.keys(votos).forEach(function(c){ const z = c.split('|'), otra = z[0] + '|' + z[1] + '|' + (z[2] === '2' ? 1 : 2);
+      const si = votos[c] + (votos[otra] || 0), no = contra[z[0] + '|' + z[1]] || 0;
+      if (si < 2 * no) return;
       if (!(votos[otra] > votos[c] || (votos[otra] === votos[c] && z[2] === '1'))) pat[c] = true; });
     const raiz = function(y){ return pat[y.t + '|' + y.r + '|1'] || pat[y.t + '|' + y.r + '|2']; };
     ent.forEach(function(x){
       if (partes(x.a).some(raiz)) return;                     // sale por su patrón, o es esa letra con el piso mal escrito
       if ((x.a.match(/\d+/g) || []).some(function(n){ return +n === x.p; })) return;            // dudoso: solo en su piso
-      if (fijos.indexOf(x.a) < 0) fijos.push(x.a);
+      (enPisos[x.a] = enPisos[x.a] || {})[x.p] = true;
     });
+    // Un nombre fijo se repite en todos los pisos solo si ya se vio en dos pisos o más; uno suelto se queda en el suyo.
+    Object.keys(enPisos).forEach(function(a){ if (Object.keys(enPisos[a]).length >= 2) fijos.push(a); });
     const pats = Object.keys(pat).map(function(c){ const z = c.split('|'); return { t: z[0], r: z[1], ceros: z[2] === '2' }; })
       .sort(function(a, b){ return a.r.localeCompare(b.r, 'es', { numeric: true }); });
     fijos.sort(function(a, b){ return a.localeCompare(b, 'es', { numeric: true }); });
@@ -196,7 +203,8 @@
     const out = {};
     getSavedReports().forEach(function(b){
       if (!b || b.lista !== VERSION_LISTA || b.torre !== P.torre || (b.ambito || 'apartamento') !== 'apartamento') return;
-      if (String(b.nro || '').indexOf(P.sector + '-') !== 0) return;
+      // En modo prueba los números llevan «PRUEBA-» delante: sin quitarlo, lo del teléfono no se veía en el banco.
+      if (String(b.nro || '').replace(/^PRUEBA-/, '').indexOf(P.sector + '-') !== 0) return;
       const k = claveDe(b.nro); if (!k) return;
       const f = String(b.fecha || '') + '|' + String(b.timestamp || '');
       if (out[k] && out[k].orden >= f) return;
@@ -357,7 +365,7 @@
       t += '<div class="pl-gw"><table class="pl-g' + (aptos.length > 4 ? ' ancho' : '') + '"><thead><tr><th scope="col">' + nomPiso(piso) + '</th>' + aptos.map(function(x){
         return '<th scope="col"><button type="button" class="pl-apto' + (est.C[x.k] ? ' tiene' : '') + '" data-com="' + x.k + '">' + esc(x.a) + '<small>' + (est.C[x.k] ? 'nota' : '+ nota') + '</small></button></th>'; }).join('') + '</tr></thead><tbody>';
       h.subs.forEach(function(s, j){
-        if (h.cap && h.inst && h.inst < h.subs.length && (j === 0 || j === h.inst)) t += '<tr class="pl-sep"><th scope="rowgroup" colspan="' + (aptos.length + 1) + '">' + (j === 0 ? 'Instalación' : 'Accesorios') + '</th></tr>';
+        if (h.cap && h.inst && h.inst < h.subs.length && (j === 0 || j === h.inst)) t += '<tr class="pl-sep"><th scope="rowgroup" colspan="' + (aptos.length + 1) + '"><span>' + (j === 0 ? 'Instalación' : 'Accesorios') + '</span></th></tr>';
         t += '<tr><th scope="row"><button type="button" class="pl-ay" data-ay="' + s.c + '"><span>' + s.c + (s.sino ? ' · sí / no' : '') + '</span>' + esc(s.n) + '</button></th>';
         aptos.forEach(function(x){
           const v = valor(x.k, s.c);
@@ -391,8 +399,10 @@
     gw.style.maxHeight = '';
     const arriba = gw.getBoundingClientRect().top - pl.getBoundingClientRect().top + pl.scrollTop;
     const abajo = (br ? br.getBoundingClientRect().height : 0) + 10, libre = window.innerHeight - arriba - abajo;
-    // Si no cabe bajo las pestañas (apaisado), la caja ocupa la pantalla menos la barra: al bajar, se ve entera.
-    gw.style.maxHeight = Math.floor(libre >= 200 ? libre : Math.max(120, window.innerHeight - abajo)) + 'px';
+    // Si no cabe bajo las pestañas (apaisado, o un teléfono chico de 568 de alto), la caja mide lo que se ve entre el
+    // encabezado fijo de arriba —si lo es— y la barra de abajo: al bajar un poco, queda entera a la vista.
+    const top = pl.querySelector('.pl-top'), fijo = top && getComputedStyle(top).position === 'sticky' ? top.getBoundingClientRect().height : 0;
+    gw.style.maxHeight = Math.floor(libre >= 200 ? libre : Math.max(160, window.innerHeight - abajo - fijo)) + 'px';
   }
   window.addEventListener('resize', function(){ if (P) altoTabla(); });
   // ADR-0053: lo que llegó al 100 % quedó cerrado; se puede corregir, pero se pide a propósito.
@@ -812,6 +822,10 @@
     '#planilla .pl-piso button{width:52px;min-height:48px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-size:24px}#planilla .pl-piso button:disabled{opacity:.35}',
     '#planilla .pl-piso select{flex:1;min-width:0;min-height:48px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-size:20px;font-weight:800;text-align:center}',
     '#planilla .pl-sep th{text-align:left;font-size:12px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#37474f;background:#eef3f6;padding:6px 8px}',
+    // Deslizando a los lados (torres de más de 4 por piso): el rótulo se queda a la vista y la esquina «Piso» va por encima de
+    // la columna de subpartidas y de la fila de apartamentos, que también son fijas (2-nov-2026, a 320 px con la T-04).
+    '#planilla .pl-g.ancho tbody tr.pl-sep th{position:static;max-width:none;min-width:0;box-shadow:none}#planilla .pl-sep th span{position:sticky;left:8px}',
+    '#planilla table.pl-g.ancho thead th:first-child{z-index:3}',
     '#planilla .pl-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;max-width:620px}',
     '#planilla .pl-chips button{flex:0 0 auto;min-height:44px;padding:0 12px;border-radius:8px;border:1px solid #d3dce3;background:#fff;font-weight:700;font-size:14px}',
     '#planilla .pl-chips button[aria-pressed="true"]{border-color:#1f6f8b;background:#e2eff4;box-shadow:inset 0 -3px 0 #1f6f8b}',

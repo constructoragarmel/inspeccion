@@ -27,9 +27,9 @@ ok('E14-2 · En 📱 Obra el piso 12, sin ningún informe, tiene la casilla de J
 cerrarPlanilla(); await esperar(150);
 
 // 2 · Nombres fijos por piso (como la J-11): D22 y E22 en el 1 y el 2.
-await Q.relevo({ sembrarAvance: { sector: 'SB', torre: 'J-08', prueba: true, informes: inf('SB', 'J-08', [[1, 'D22'], [1, 'E22'], [2, 'D22']]) } });
+await Q.relevo({ sembrarAvance: { sector: 'SB', torre: 'J-08', prueba: true, informes: inf('SB', 'J-08', [[1, 'D22'], [1, 'E22'], [2, 'D22'], [5, 'E22'], [3, 'X9']]) } });
 await abrirEn('Convenio Chinos', 'J-08');
-ok('E14-3 · Nombres que no llevan el piso se repiten tal cual en todos: D22 y E22 de la PB al 15', E().P.pisos === 15 && delPiso(9) === 'D22,E22' && delPiso(15) === 'D22,E22' && delPiso(0) === 'D22,E22' && delPiso(2) === 'D22,E22', '9: ' + delPiso(9) + ' · 15: ' + delPiso(15) + ' · PB: ' + delPiso(0));
+ok('E14-3 · Nombres que no llevan el piso y se vieron en dos pisos se repiten en todos (D22, E22); uno suelto (X9, solo en el 3) se queda en el suyo', E().P.pisos === 15 && delPiso(9) === 'D22,E22' && delPiso(15) === 'D22,E22' && delPiso(0) === 'D22,E22' && delPiso(3) === 'D22,E22,X9' && delPiso(2) === 'D22,E22', '9: ' + delPiso(9) + ' · 15: ' + delPiso(15) + ' · PB: ' + delPiso(0));
 cerrarPlanilla(); await esperar(150);
 
 // 3 · Con cero (C03 en el 3) y un «A1» suelto en el piso 1, que no se toma como letra + piso.

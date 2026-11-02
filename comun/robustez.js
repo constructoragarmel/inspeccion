@@ -179,17 +179,19 @@ _enviarUno = async function(b, clave){
     return false;
   } catch(e) {
     clearInterval(latido);   // el contador no pisa el «comprobando…»
-    if (e && e.name === 'AbortError') {
-      // 184: sin respuesta no quiere decir que no llegó: se le pregunta al relevo antes de darlo por fallido.
+    // 184 y 201: sin respuesta no quiere decir que no llegó, ni por tiempo ni por un corte de señal a mitad de la respuesta
+    // («Failed to fetch»): se le pregunta al relevo antes de darlo por fallido, y si no aparece se recuerda el corte para
+    // preguntar otra vez antes del próximo envío (2-nov-2026: el P02 B1 de la T-58 quedó como -r2 por eso).
+    const seRindio = !!(e && e.name === 'AbortError');
+    if (seRindio || navigator.onLine !== false) {
       _cartelSegundos(Math.round((Date.now() - _t0) / 1000) + ' s sin respuesta. El relevo puede estar terminando de archivarlo: comprobando…');
       const sector = (typeof SECTOR_POR_CONVENIO !== 'undefined' && SECTOR_POR_CONVENIO[b.convenio]) || 'XX';
-      const ya = await _yaArchivado(clave, b.nro, sector, b.torre, undefined, _t0, true);
+      const ya = await _yaArchivado(clave, b.nro, sector, b.torre, undefined, _t0, seRindio);
       if (ya) { delete _cortes[b.nro]; _marcarComoEnviado(b.nro, b.id); return true; }
-      _cortes[b.nro] = _t0;
-      _motivoEnvio = 'sin respuesta en ' + _minutosDeEspera() + ' min y todavía no aparece archivado (señal mala); espere unos minutos y reintente';
-    } else {
-      _motivoEnvio = 'sin conexión: ' + String(e && e.message || e).slice(0, 60);
     }
+    _cortes[b.nro] = _t0;
+    _motivoEnvio = seRindio ? 'sin respuesta en ' + _minutosDeEspera() + ' min y todavía no aparece archivado (señal mala); espere unos minutos y reintente'
+                            : 'sin conexión: ' + String(e && e.message || e).slice(0, 60);
     return false;
   } finally { clearInterval(latido); }
 };
