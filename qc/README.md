@@ -1248,3 +1248,22 @@ almacenamiento estaba lleno el borrador no se escribía y el error se tragaba: a
 Ahora, si no cabe, primero se borra lo que se vuelve a bajar del archivo (los grises guardados de otras torres y las listas de
 presupuesto; nunca los de la torre en uso) y se reintenta; si igual no cabe, un aviso fijo en rojo dice que no se está guardando y
 qué hacer, y se quita solo cuando vuelve el lugar. `e27` 5/5 (sin ventana y a la vista), simulando el almacenamiento lleno.
+
+## 2-nov-2026 · Torre completa trae sola lo acumulado: `e28`
+
+Leidy, T-16 (por Diego): «¿no debería venir acumulado eso cuando se carga la información de la torre?». El informe del 21-oct
+estaba bien archivado (paredes exteriores 89 %), pero solo se *ofrecía* con un aviso amarillo que se iba al escribir cualquier cosa.
+Ahora, en «Torre completa» con el informe en blanco, lo del último informe de esa torre llega solo, fila por fila «↺ De la visita
+anterior · Sigue igual», con un aviso «Se trajo lo acumulado de la torre: el informe del 21-oct» y «Empezar vacío». Mientras nadie
+toque nada: cambiar la torre (o pasar a apartamento o a «Estructura») lo quita y trae lo de la nueva; y no se guarda como borrador,
+ni a los 2 s ni al salir de la app. Tocado una vez («Sigue igual» o una medición), es de esta visita y se guarda como siempre.
+Apartamento y «Estructura» siguen con la oferta. `e28` 9/9 (sin ventana y a la vista), con el informe real `EZ-T16-261021-LV`
+sembrado en el relevo falso. `e25` (ahora empieza con «Empezar vacío») y `t26` 5 (otro texto del aviso) ajustadas; regresión `e18`
+a `e28`, `t26`, `t29`, `t69`, `t128`, `t139` en verde.
+
+## 2-nov-2026 · El compilado de la contratista con los nombres de verdad
+
+Diego: «Thaisa es con una sola S» (membrete del compilado de la semana del 22 al 28-oct). Los cuatro formularios ya corregían el
+nombre (`CORRECCIONES_EMPRESA`), pero `construir-compilado.py` no las aplicaba: el compilado mostraba THAISSA, y también Zerpa,
+Vialpa, Aroa, Tsuru… con el nombre viejo. Ahora las aplica igual. `t120`, `t121`, `t126`, `t127`, `t134` en verde a la vista
+(`t120` R6.1/R8.2 y `t126` R7.2 fallan sin ventana también con el compilado anterior: es el tiempo del relevo lento).

@@ -41,6 +41,10 @@ def construir():
          .replace("@@VERSION@@", version))
     if "@@" in p:
         sys.exit("✗ Quedaron marcadores sin sustituir")
+    # Los nombres como se escriben de verdad, igual que en los cuatro formularios. Faltaba: el compilado de la contratista
+    # salía «THAISSA» (2-nov-2026, Diego: «Thaisa es con una sola S»), y también Zerpa, Vialpa, Aroa… con el nombre viejo.
+    for viejo, nuevo in maestros.CORRECCIONES_EMPRESA + maestros.CORRECCIONES_TEXTO:
+        p = p.replace(viejo, nuevo)
     # El repositorio es público: aquí no puede haber avances, montos ni teléfonos.
     if re.search(r"\bUSD\b|Bs\.|\$\s?\d|\b0[24]\d{2}[- ]?\d{7}\b|@cgarmel", p):
         sys.exit("✗ compilado.html trae algo que no debe ir al repositorio público")
