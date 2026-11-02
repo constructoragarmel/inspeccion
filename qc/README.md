@@ -1229,3 +1229,14 @@ Ahora lo copiado conserva la marca (construir-urbanismo.py, 18).
 
 Ojo con el banco: la corrida A LA VISTA usa `auto-<página>.html`, que solo escribe `headless.py`; `preparar.py` no lo rehace. Después
 de construir, correr algo sin ventana en esa página antes de mirarla a la vista, o se prueba código viejo.
+
+## 2-nov-2026 · La planilla vuelve si el teléfono cierra la app: `e26`
+
+Christian: «lo llamaron y perdió lo que estaba haciendo» (en la planilla). La planilla ya guardaba cada casilla en el teléfono, pero
+mientras se usa el formulario solo tiene la cabecera, que no se guarda sola; si el sistema cerraba la app (una llamada, poca memoria),
+al volver se veía el formulario en blanco y nada decía que la planilla seguía ahí. Ahora, al abrirla, queda una nota (torre,
+cabecera, piso, pestaña) que se borra solo al cerrarla a propósito; al abrir la app, si la nota sigue y hay casillas sin guardar,
+se rehace la cabecera y se reabre la planilla donde iba, con «↩️ Se recuperó la planilla…». Si mientras tanto se recuperó un informe
+del formulario, no se le pisa: solo se avisa. Probado recargando la página a la vista (vuelve en el piso 6, «Eléctricas», con sus 3
+casillas; cerrada a propósito no vuelve; con un informe de torre en curso, el formulario queda y avisa) y con `e26` 5/5 (sin ventana y
+a la vista). Regresión `e7` a `e26` y `t139` en verde.

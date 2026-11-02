@@ -97,7 +97,12 @@
   let P = null, est = { N: {}, C: {} }, pila = [], vista = 'tel', piso = 1, hitoSel = 'cap_sanitarias', tamano = 'comoda';
   const enPapel = {}, abiertos = { cap_sanitarias: true };
   const CLAVE = function(){ return 'garmel_planilla_' + P.sector + '|' + P.torre; };
-  function guardarBorrador(){ try {
+  // Si el teléfono cierra la app mientras se llena la planilla (una llamada, poca memoria), al volver se reabre sola: la nota dice
+  // qué torre, con qué cabecera y dónde iba (2-nov-2026, Christian: «lo llamaron y perdió lo que estaba haciendo»). Se borra
+  // solo al cerrar la planilla a propósito.
+  const ABIERTA = 'garmel_planilla_abierta';
+  function anotarAbierta(){ try { if (!P) return; localStorage.setItem(ABIERTA, JSON.stringify({ sector: P.sector, torre: P.torre, cab: P.cabForm || null, piso: piso, hitoSel: hitoSel, vista: vista })); } catch (e) {} }
+  function guardarBorrador(){ anotarAbierta(); try {
     // `dia`: la fecha de la visita a la que pertenecen los cambios (la de la cabecera al cargarlos).
     localStorage.setItem(CLAVE(), JSON.stringify({ est: est, pasa: P.pasa, impresa: P.impresa, extra: P.extra, pisos: P.pisosElegido || 0, pisosManual: !!P.pisosManual, oficina: !!P.oficina, dia: P.dia || P.cab.fecha }));
   } catch (e) {} }
@@ -257,14 +262,16 @@
     prepararLista();
     // La cabecera se usa tal cual en cada informe: lo que es de otro informe (el de torre, una copia) no viaja.
     ['obsAptosGen', 'copiadoDe', 'fotos', 'fotobs', 'enviado', 'editadoTras', 'oficina', 'definitiva', 'fotosEnIdb', 'repetidoDe', 'separadoDe', 'planilla', 'uso'].forEach(function(c){ delete d[c]; });
-    const mio = P = { sector: sector, torre: torre, cab: d, prev: {}, aptos: [], pisos: 0, extra: [], pasa: '', impresa: '', origenPrev: '', oficina: false };
+    const mio = P = { sector: sector, torre: torre, cab: d, prev: {}, aptos: [], pisos: 0, extra: [], pasa: '', impresa: '', origenPrev: '', oficina: false,
+                      cabForm: { ambito: (typeof ambito !== 'undefined' ? ambito : 'apartamento'), vistaForm: d.vista || '', convenio: d.convenio || '', torre: d.torre || torre,
+                                 fecha: d.fecha || '', inspectores: d.inspectores || [], estatus: d.estatus || [] } };
     est = { N: {}, C: {} }; pila = [];
     const b = leerBorrador();
     if (b) { if (b.est) est = b.est; P.pasa = b.pasa || ''; P.impresa = b.impresa || ''; P.extra = b.extra || []; P.pisosElegido = b.pisos || 0; P.pisosManual = !!b.pisosManual; P.oficina = !!b.oficina; P.dia = b.dia || ''; }
     VISTA.forEach(function(h){ if (!(h.id in enPapel)) enPapel[h.id] = true; });
     if (!VISTA.some(function(h){ return h.id === hitoSel; })) hitoSel = VISTA[0].id;   // al abrir, siempre una pestaña de las que se ven
     vista = innerWidth >= 900 ? 'tabla' : 'tel';
-    montar(); entrarAlHistorial();
+    montar(); entrarAlHistorial(); anotarAbierta();
     pintarCargando();
     // Primero lo guardado (sirve sin señal) y se puede trabajar ya; el archivo, si contesta, lo pone al día.
     let guardado = null; try { guardado = JSON.parse(localStorage.getItem('garmel_planilla_prev_' + P.sector + '|' + P.torre) || 'null'); } catch (e) {}
@@ -356,12 +363,45 @@
     if (!raiz) return;
     if (desdeAtras !== true && enHistorial) salirDelHistorial();
     if (!P) { raiz.hidden = true; return; }
-    confirmarFoco(); guardarBorrador();
+    confirmarFoco(); guardarBorrador(); try { localStorage.removeItem(ABIERTA); } catch (e) {}
     raiz.hidden = true; raiz.innerHTML = ''; document.body.classList.remove('pl-abierta', 'pl-imp-hojas', 'pl-imp-guia');
     const r = resumen(); P = null;
     if (r.ks.length && typeof showToast === 'function') showToast('📋 La planilla queda guardada en este teléfono sin enviar (' + r.n + ' casilla(s)). Ábrala otra vez para revisarla y guardarla.', 'ok');
   }
   window.cerrarPlanilla = cerrarPlanilla;
+  // Al abrir la app: si quedó la nota y la planilla de esa torre tiene casillas sin guardar, se rehace la cabecera y se reabre en el
+  // mismo piso y pestaña. Si mientras tanto se recuperó un informe del formulario, no se le pisa la cabecera: solo se avisa.
+  async function retomar(){
+    let ab = null; try { ab = JSON.parse(localStorage.getItem(ABIERTA) || 'null'); } catch (e) {}
+    if (!ab || !ab.sector || !ab.torre || P) return;
+    let b = null; try { b = JSON.parse(localStorage.getItem('garmel_planilla_' + ab.sector + '|' + ab.torre) || 'null'); } catch (e) {}
+    const n = b && b.est && b.est.N ? Object.keys(b.est.N).reduce(function(a, k){ return a + Object.keys(b.est.N[k] || {}).length; }, 0) : 0;
+    if (!n) { try { localStorage.removeItem(ABIERTA); } catch (e) {} return; }
+    const formOcupado = (typeof _idEnEdicion !== 'undefined' && _idEnEdicion) || ((document.getElementById('torre') || {}).value && document.getElementById('torre').value !== ab.torre);
+    if (formOcupado || !ab.cab) {
+      if (typeof showToast === 'function') showToast('📋 Quedó a medias la planilla de la ' + ab.torre + ' (' + n + ' casilla(s) sin guardar): ábrala con «📋 Planilla de la torre» en esa torre.', 'ok');
+      return;
+    }
+    const c = ab.cab, w = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+    const pon = function(id, v){ const e = document.getElementById(id); if (!e || v === undefined || v === null || v === '') return; e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); e.dispatchEvent(new Event('input', { bubbles: true })); };
+    try {
+      if (c.ambito && typeof setAmbito === 'function' && (typeof ambito === 'undefined' || ambito !== c.ambito)) { setAmbito(c.ambito); await w(200); }
+      pon('convenio', c.convenio); await w(150); pon('torre', c.torre); await w(300); pon('fecha', c.fecha); await w(100);
+      const ins = document.querySelector('.inspector-select');
+      if (ins && c.inspectores && c.inspectores[0] && !ins.value) { ins.value = c.inspectores[0]; ins.dispatchEvent(new Event('change', { bubbles: true })); await w(150); }
+      (c.estatus || []).forEach(function(v){ const i = [...document.querySelectorAll('#estatus .ck-lbl input')].find(function(x){ return x.value === v; });
+        if (i && !i.closest('.ck-lbl').classList.contains('on')) i.closest('.ck-lbl').click(); });
+      await w(150);
+      await window.abrirPlanilla();
+      if (!P) return;
+      if (typeof ab.piso === 'number') piso = Math.min(Math.max(P.pisoMin, ab.piso), P.pisos);
+      if (ab.hitoSel && VISTA.some(function(h){ return h.id === ab.hitoSel; })) hitoSel = ab.hitoSel;
+      if (ab.vista === 'tel' || ab.vista === 'tabla') vista = ab.vista;
+      mostrar(vista); aviso('↩️ Se recuperó la planilla que estaba llenando: ' + n + ' casilla(s) sin guardar.');
+    } catch (e) { console.warn('retomar la planilla:', e); }
+  }
+  window._plRetomar = retomar;
+  window.addEventListener('load', function(){ setTimeout(retomar, 2600); });   // después del aviso del formulario (1,8 s), que si no lo tapa
   function pintarCargando(){ const c = document.getElementById('pl-cuerpo'); if (c) c.innerHTML = '<p class="pl-lead">Trayendo lo último de cada apartamento de la torre…</p>'; }
   function mostrar(v){
     if (!P || !raiz) return;
