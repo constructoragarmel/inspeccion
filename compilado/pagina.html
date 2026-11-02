@@ -697,7 +697,19 @@ function borradorContratista() {
   (DATA.torres || []).forEach(w => { const sec = seccionDe(w.torre); if (sec && sec.querySelector('.av-pct')) o.torres[w.torre] = { pct: sec.querySelector('.av-pct').value, motivo: sec.querySelector('.av-motivo').value, nota: sec.querySelector('.av-nota').value }; });
   return o;
 }
+// 2-nov-2026: el compilado pasó a usar el nombre corregido de cada contratista (THAISSA → THAISA, ZERPA… → ZERPA'S…). Un borrador
+// escrito antes quedó guardado con el nombre viejo: se busca ahí y se pasa al nombre nuevo, para que no parezca perdido.
+const NOMBRES_VIEJOS = @@NOMBRES_VIEJOS@@;
+function _rescatarBorradorViejo() {
+  const viejo = NOMBRES_VIEJOS[DATA.contratista]; if (!viejo) return;
+  const nueva = claveBorrador(), vieja = 'garmel_compilado_con_' + DATA.sector + '_' + viejo + '_' + DATA.desde;
+  try {
+    if (localStorage.getItem(nueva) === null && localStorage.getItem(vieja) !== null) { localStorage.setItem(nueva, localStorage.getItem(vieja)); localStorage.removeItem(vieja); }
+    if (localStorage.getItem(nueva + '|estatus') === null && localStorage.getItem(vieja + '|estatus') !== null) { localStorage.setItem(nueva + '|estatus', localStorage.getItem(vieja + '|estatus')); localStorage.removeItem(vieja + '|estatus'); }
+  } catch (e) {}
+}
 function cargarBorradorContratista() {
+  _rescatarBorradorViejo();
   let b = null; try { b = JSON.parse(localStorage.getItem(claveBorrador()) || 'null'); } catch (e) {}
   const hayLocal = !!(b && (CAMPOS.some(k => String((b.textos || {})[k] || '').trim()) || Object.keys(b.torres || {}).some(t => ['pct', 'motivo', 'nota'].some(k => String(b.torres[t][k] || '').trim()))));
   const arch = DATA.torres.map(w => w.archivado && w.archivado.compiladoContratista ? w.archivado : null), a = arch.find(Boolean);

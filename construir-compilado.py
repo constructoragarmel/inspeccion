@@ -26,6 +26,7 @@ RAIZ = os.path.dirname(os.path.abspath(__file__))
 SALIDA = os.path.join(RAIZ, "compilado.html")
 sys.path.insert(0, os.path.join(RAIZ, "comun"))
 import maestros
+import json
 
 
 def construir():
@@ -39,12 +40,16 @@ def construir():
          .replace("@@INSPECTORES_SHA@@", maestros.INSPECTORES_SHA_JS)
          .replace("@@RELEVO@@", relevo)
          .replace("@@VERSION@@", version))
-    if "@@" in p:
+    if re.search(r"@@(?!NOMBRES_VIEJOS@@)\w+@@", p):
         sys.exit("✗ Quedaron marcadores sin sustituir")
     # Los nombres como se escriben de verdad, igual que en los cuatro formularios. Faltaba: el compilado de la contratista
     # salía «THAISSA» (2-nov-2026, Diego: «Thaisa es con una sola S»), y también Zerpa, Vialpa, Aroa… con el nombre viejo.
     for viejo, nuevo in maestros.CORRECCIONES_EMPRESA + maestros.CORRECCIONES_TEXTO:
         p = p.replace(viejo, nuevo)
+    # Después de corregir, para que los nombres viejos sobrevivan: con ellos se rescata un borrador guardado antes del cambio.
+    p = p.replace("@@NOMBRES_VIEJOS@@", json.dumps({n: v for v, n in maestros.CORRECCIONES_EMPRESA}, ensure_ascii=False))
+    if "@@" in p:
+        sys.exit("✗ Quedaron marcadores sin sustituir")
     # El repositorio es público: aquí no puede haber avances, montos ni teléfonos.
     if re.search(r"\bUSD\b|Bs\.|\$\s?\d|\b0[24]\d{2}[- ]?\d{7}\b|@cgarmel", p):
         sys.exit("✗ compilado.html trae algo que no debe ir al repositorio público")
