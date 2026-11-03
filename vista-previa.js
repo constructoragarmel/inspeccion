@@ -1,6 +1,6 @@
 // GENERADO por Garmel/implementacion/generar-vista-previa.py desde relevo-drive/PDF.gs y Logos.gs. NO EDITAR A MANO.
 // Es la plantilla del PDF oficial, copiada tal cual para que el inspector vea su informe antes de enviarlo.
-// Huella de la fuente: 39eeee9696
+// Huella de la fuente: fe2db29227
 (function () {
   // Lo poco de Apps Script que usa la plantilla.
   var Utilities = { formatDate: function (d) {
@@ -419,7 +419,7 @@ function _pdfTh(ancho, texto, alineado) {
          ' bgcolor="#eef0f7" style="' + PDF_CABECERA + '">' + texto + '</th>';
 }
 var PDF_ANCHO_FOTO = 170;
-var PDF_TITULO_INSPECTOR = {"Alejandro Bastidas": "Ing.", "\u00c1ngel S\u00e1nchez": "TSU", "Birmania Rada": "TSU", "Carlos J. Colmenares": "Ing.", "Charbel Abdul": "Ing.", "Christian Fricke": "Arq.", "Cleidy Chac\u00f3n": "Arq.", "Diego Orta": "Ing.", "Diego Rosales": "Ing.", "Edenil Narv\u00e1ez": "Ing.", "Eduardo Rivero": "Ing.", "Gabriel Barrios": "TSU", "Gabriel Jelenkovic": "Ing.", "G\u00e9nesis Cordob\u00e9s": "Ing.", "G\u00e9nesis M\u00e1rquez": "Ing.", "Girlenys Lacruz": "Ing.", "Hern\u00e1n Escobar": "Ing.", "Katherine Correia": "Ing.", "Leidy Villamizar": "Ing.", "Lizeira Aragort": "Ing.", "Manuel Madrid": "Arq.", "Mariana Rojas": "Arq.", "Martha Azcarate": "Ing.", "Miguel E. \u00c1vila": "TSU", "Oriana Plaza": "Ing.", "Selehidy Rivero": "Ing.", "Skarlet G\u00f3mez": "Ing.", "V\u00edctor Mendoza": "TSU", "Yenddy Sierra": "Ing."};
+var PDF_TITULO_INSPECTOR = {"Alejandro Bastidas": "Ing.", "\u00c1ngel S\u00e1nchez": "TSU", "Birmania Rada": "TSU", "Carlos J. Colmenares": "Ing.", "Charbel Abdul": "Ing.", "Christian Fricke": "Arq.", "Claribel Pozo": "Ing.", "Cleidy Chac\u00f3n": "Arq.", "Diego Orta": "Ing.", "Diego Rosales": "Ing.", "Edenil Narv\u00e1ez": "Ing.", "Eduardo Rivero": "Ing.", "Gabriel Barrios": "TSU", "Gabriel Jelenkovic": "Ing.", "G\u00e9nesis Cordob\u00e9s": "Ing.", "G\u00e9nesis M\u00e1rquez": "Ing.", "Girlenys Lacruz": "Ing.", "Hern\u00e1n Escobar": "Ing.", "Katherine Correia": "Ing.", "Leidy Villamizar": "Ing.", "Lizeira Aragort": "Ing.", "Manuel Madrid": "Arq.", "Mariana Rojas": "Arq.", "Martha Azcarate": "Ing.", "Miguel E. \u00c1vila": "TSU", "Oriana Plaza": "Ing.", "Selehidy Rivero": "Ing.", "Skarlet G\u00f3mez": "Ing.", "V\u00edctor Mendoza": "TSU", "Yenddy Sierra": "Ing."};
 function _pdfInspectores(d) {
   return ((d && d.inspectores) || []).map(function (v) {
     v = String(v || '');
@@ -1327,7 +1327,7 @@ function _pdfMaquinariaUrbanismo(it) {
   return '<tr><td></td><td colspan="6" style="font-size:9px;color:#334155"><b>Maquinaria que oper\u00f3:</b> ' + _pdfEsc(m) + '</td></tr>';
 }
   window.VistaPrevia = {
-    huella: '39eeee9696',
+    huella: 'fe2db29227',
     tipos: ['servicios', 'sha', 'urbanismo'],
     html: function (p) {
       var f = { servicios: _pdfHtmlServicios, sha: _pdfHtmlSha, urbanismo: _pdfHtmlUrbanismo }[p && p.tipo];

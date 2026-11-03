@@ -1267,3 +1267,11 @@ Diego: «Thaisa es con una sola S» (membrete del compilado de la semana del 22 
 nombre (`CORRECCIONES_EMPRESA`), pero `construir-compilado.py` no las aplicaba: el compilado mostraba THAISSA, y también Zerpa,
 Vialpa, Aroa, Tsuru… con el nombre viejo. Ahora las aplica igual. `t120`, `t121`, `t126`, `t127`, `t134` en verde a la vista
 (`t120` R6.1/R8.2 y `t126` R7.2 fallan sin ventana también con el compilado anterior: es el tiempo del relevo lento).
+
+## 3-nov-2026 · Entra Claribel Pozo: `e30`
+
+Ingeniera civil, ingreso el 3-nov, CIV 221.472 (Stephanie; el mismo de su CV). Va al padrón de inspección y urbanismo (entre
+Christian Fricke y Cleidy Chacón) con título «Ing.»; servicios y SHA siguen con su lista propia pero le saben el título. Iniciales
+CP, sin choque. El PDF del relevo (`PDF.gs`, r83) y `vista-previa.js` le ponen «Ing.». `e30` en los cuatro formularios (6/6
+inspección y urbanismo, 5/5 servicios y SHA) y a la vista a 375; `t26` y `e28` en verde. `t1` de urbanismo da 34/39 antes y
+después del cambio: es una tanda vieja.

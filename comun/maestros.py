@@ -142,6 +142,9 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # v150 (12-oct-2026): entra Gabriel Antonio Jelenkovic Alaña, ingeniero inspector de obra con ingreso el 8-oct
 # (Stephanie, 12-oct). CIV 215.739, del carnet y del sello del título. Sus iniciales, GJ, no chocan con Gabriel Barrios
 # (GB). El padrón queda en 29.
+# v204 (3-nov-2026): entra Claribel Pozo Corrales, ingeniera civil con ingreso el 3-nov (Stephanie, 3-nov; se había descartado
+# el 12-sep y se reincorpora). CIV 221.472, dado por Stephanie y el mismo de su CV. Sus iniciales, CP, no chocan con Christian
+# Fricke (CF), Cleidy Chacón (CC) ni Carlos J. Colmenares (CJ). El padrón queda en 30.
 INSPECTORES_JS = """const INSPECTORES_DB = [
   "Alejandro Bastidas (CIV-67.316)",
   "Ángel Sánchez (CIV-NC)",
@@ -149,6 +152,7 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Carlos J. Colmenares (CIV-127.708)",
   "Charbel Abdul (CIV-321.425)",
   "Christian Fricke (CIV-184.558)",
+  "Claribel Pozo (CIV-221.472)",
   "Cleidy Chacón (CIV-240.930)",
   "Diego Orta (CIV-307.823)",
   "Diego Rosales (CIV-296.226)",
@@ -186,6 +190,7 @@ TITULO_INSPECTOR = {
     "Carlos J. Colmenares": "Ing.",
     "Charbel Abdul": "Ing.",
     "Christian Fricke": "Arq.",
+    "Claribel Pozo": "Ing.",
     "Cleidy Chacón": "Arq.",
     "Diego Orta": "Ing.",
     "Diego Rosales": "Ing.",
