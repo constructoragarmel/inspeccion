@@ -2214,6 +2214,9 @@ JS = JS.replace(_ANCLA_SW, VER_PDF_JS + "\n" + _ANCLA_SW)
 # Y el título de cada inspector en los desplegables (obra, cambio 195): comun/titulos.js con los títulos de comun/maestros.py.
 TITULOS_JS = maestros.TITULO_INSPECTOR_JS + "\n" + open(os.path.join(RAIZ, "comun", "titulos.js"), encoding="utf-8").read()
 JS = JS.replace(_ANCLA_SW, TITULOS_JS + "\n" + _ANCLA_SW)
+# Y un informe ya enviado no se muda de torre ni de convenio (Diego Orta, 3-nov-2026; obra, cambio 204): comun/lugar_enviado.js.
+LUGAR_ENVIADO_JS = open(os.path.join(RAIZ, "comun", "lugar_enviado.js"), encoding="utf-8").read()
+JS = JS.replace(_ANCLA_SW, LUGAR_ENVIADO_JS + "\n" + _ANCLA_SW)
 
 
 # ══════════════════════════════════════════════════════════════════════════

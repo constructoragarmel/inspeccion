@@ -1275,3 +1275,14 @@ Christian Fricke y Cleidy Chacón) con título «Ing.»; servicios y SHA siguen 
 CP, sin choque. El PDF del relevo (`PDF.gs`, r83) y `vista-previa.js` le ponen «Ing.». `e30` en los cuatro formularios (6/6
 inspección y urbanismo, 5/5 servicios y SHA) y a la vista a 375; `t26` y `e28` en verde. `t1` de urbanismo da 34/39 antes y
 después del cambio: es una tanda vieja.
+
+## 3-nov-2026 · Un informe ya enviado no se muda de torre ni de convenio: `e31`
+
+Diego, por Génesis Cordobés y Cleidy Chacón: «el sistema nos combina información de los dos sectores». No era el relevo: en un
+informe ya enviado (abierto desde «Informes» o con «Abrir para corregir»), cambiar torre o convenio se tomaba como corrección y el
+informe salía entero —mediciones, fotos, observaciones— al archivo de la otra torre. Así salieron `SR-T12-P03AA2-261028-CC`
+(copia de `EZ-T04-P03AA2-261028-CC`), y `EZ-T04-261027-GC-r2` y `EZ-T04-261028-GC` (con lo de `SR-T38-261021-GC`). Ahora
+pregunta: Aceptar empieza en la torre nueva un informe en blanco con la misma fecha; Cancelar lo deja igual. Un borrador sin enviar
+se sigue corrigiendo como antes. `comun/lugar_enviado.js` (cambio 204), el mismo en los cuatro. `e31` 5/5 en los cuatro a 375.
+Regresión `e7` a `e28`, `t139`, `t112`, `t101`, `t124`, `t128`, `t136`, `t137`, `t69`, `t26`, `t29`, `t24`, SHA `t53` `t57`
+`t63` `t127` y servicios `e30` en verde (`e2` de urbanismo recarga la página: no corre sin ventana).

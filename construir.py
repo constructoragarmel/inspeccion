@@ -9864,6 +9864,13 @@ s = sustituir(s,
  "        <span class=\"saved-item-sub\">📍 Torre: ${_txt(item.torre || '—')}${(item.ambito || 'apartamento') !== 'torre' && item.piso ? ' | ' + _txt(item.piso) + ' · Apto: ' + _txt(item.apto || '—') : ((item.ambito || 'apartamento') === 'torre' ? ' | Torre completa' : ' | Apto: ' + _txt(item.apto || '—'))}</span>\n",
  "203a· la tarjeta dice el piso")
 
+# ── 204. Un informe ya enviado no se muda de torre ni de convenio (3-nov-2026) ─────────────────────────────────────────────
+# Diego Orta, por Génesis Cordobés y Cleidy Chacón: «el sistema nos combina información de los dos sectores». Era un informe
+# ya enviado al que se le cambió la torre o el convenio: salía entero, con mediciones y fotos, al archivo de la otra torre.
+# Ahora pregunta y, si se acepta, empieza en blanco. El código es comun/lugar_enviado.js, el mismo de servicios, SHA y urbanismo.
+LUGAR_ENVIADO_JS = open(os.path.join(RAIZ, "comun", "lugar_enviado.js"), encoding="utf-8").read()
+s = sustituir(s, "function toggleP(id){", LUGAR_ENVIADO_JS + "\nfunction toggleP(id){", "204· un informe enviado no se muda de torre")
+
 open(SALIDA, "w", encoding="utf-8").write(s)
 
 print("✓ inspeccion.html construido — %d KB" % (os.path.getsize(SALIDA) // 1024))
