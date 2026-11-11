@@ -5226,7 +5226,7 @@ function _conTitulo195(v){
     lista().forEach(function(d){
       if (!d || !(d.enviado || d.oficina) || !d.nro || !d.torre) return;
       const k = base(d.nro); if (!k || r[k]) return;
-      r[k] = { torre: d.torre, convenio: d.convenio || '', t: ahora }; cambio = true;
+      r[k] = { torre: d.torre, convenio: d.convenio || '', fecha: d.fecha || '', t: ahora }; cambio = true;
     });
     Object.keys(r).forEach(function(k){ if (ahora - (r[k].t || 0) > DIAS * 864e5) { delete r[k]; cambio = true; } });
     if (cambio) { try { localStorage.setItem(REG, JSON.stringify(r)); } catch (e) {} }
@@ -5284,33 +5284,41 @@ function _conTitulo195(v){
     if (d && (d.enviado || d.oficina)) return d;
     // 206: un borrador con el contenido de un informe que este teléfono ya envió (mismo número) cuenta como enviado.
     const nro = base(nroEnPantalla()), r = nro ? anotar()[nro] : null;
-    if (r && hayContenido()) return { nro: nro, torre: r.torre, convenio: r.convenio };
+    if (r && hayContenido()) return { nro: nro, torre: r.torre, convenio: r.convenio, fecha: r.fecha || '', _registro: true };
     return null;
   }
   function poner(id, v){
     const el = document.getElementById(id); if (!el) return;
     el.value = v; el.dispatchEvent(new Event('change', { bubbles: true }));
   }
+  // 207 (11-nov-2026, QC antes de publicar): la FECHA también. A un informe enviado, cambiarle la fecha lo mandaba entero como
+  // otro informe de otro día (el EZ-T04-261104-GC-r2 de Génesis llevaba los datos del 10-nov). Aceptar empieza en blanco ese día,
+  // en la misma torre.
   document.addEventListener('change', function(e){
     const el = e.target;
-    if (pasando || !el || (el.id !== 'torre' && el.id !== 'convenio')) return;
+    if (pasando || !el || (el.id !== 'torre' && el.id !== 'convenio' && el.id !== 'fecha')) return;
     const d = abierto(); if (!d) return;
-    const antes = String((el.id === 'torre' ? d.torre : d.convenio) || '');
+    const que = el.id, antes = String(d[que] || '');
+    // Un borrador que solo coincide por número puede cambiar de día: es la forma de separar un segundo informe del mismo día.
+    if (que === 'fecha' && d._registro) return;
     if (!antes || el.value === antes) return;
     e.stopImmediatePropagation();
-    const nuevo = el.value, esTorre = el.id === 'torre';
+    const nuevo = el.value;
     const donde = (d.torre || '') + (d.convenio ? ' (' + d.convenio + ')' : '');
-    const destino = esTorre ? (nuevo || 'la otra torre') : (nuevo || 'el otro convenio');
+    const destino = que === 'torre' ? (nuevo || 'la otra torre') : que === 'convenio' ? (nuevo || 'el otro convenio')
+                  : (d.torre || 'esta torre') + ' con fecha ' + (nuevo || 'otra');
+    const cambiar = que === 'torre' ? 'la torre' : que === 'convenio' ? 'el convenio' : 'la fecha';
     el.value = antes;   // mientras pregunta, y para lo que se guarde ahora, el informe sigue donde estaba
-    const si = confirm('Este informe (' + (d.nro || '') + ') ya se envió: está archivado en ' + donde + '.\n\n' +
-      'Cambiarle ' + (esTorre ? 'la torre' : 'el convenio') + ' NO lo corrige: lo mandaría otra vez, entero —mediciones, fotos y ' +
-      'observaciones—, al archivo de ' + destino + ', con datos de ' + (d.torre || 'esta torre') + '.\n\n' +
+    const si = confirm('Este informe (' + (d.nro || '') + ') ya se envió: está archivado en ' + donde + (d.fecha ? ', con fecha ' + d.fecha : '') + '.\n\n' +
+      'Cambiarle ' + cambiar + ' NO lo corrige: lo mandaría otra vez, entero —mediciones, fotos y ' +
+      'observaciones—, al archivo de ' + destino + ', con datos de ' + (que === 'fecha' ? 'otro día' : (d.torre || 'esta torre')) + '.\n\n' +
       'Aceptar: empezar en ' + destino + ' un informe nuevo, en blanco.\n' +
       'Cancelar: dejar este informe como está.\n\n' +
-      'Si se envió con la torre equivocada, avise a Planificación: no se arregla desde aquí.');
+      'Si se envió con ' + (que === 'fecha' ? 'la fecha equivocada' : 'la torre equivocada') + ', avise a Planificación: no se arregla desde aquí.');
     if (!si) return;
-    const fecha = (document.getElementById('fecha') || {}).value || '';
-    const conv = esTorre ? String(d.convenio || (document.getElementById('convenio') || {}).value || '') : nuevo;
+    const fecha = que === 'fecha' ? nuevo : ((document.getElementById('fecha') || {}).value || '');
+    const conv = que === 'convenio' ? nuevo : String(d.convenio || (document.getElementById('convenio') || {}).value || '');
+    const torre = que === 'torre' ? nuevo : (que === 'fecha' ? String(d.torre || '') : '');
     const c = window.confirm; window.confirm = function(){ return true; };
     pasando = true;
     try {
@@ -5318,7 +5326,8 @@ function _conTitulo195(v){
       else nuevoInforme();
       if (fecha) { const f = document.getElementById('fecha'); if (f) f.value = fecha; }
       poner('convenio', conv);
-      if (esTorre) poner('torre', nuevo);
+      if (torre) poner('torre', torre);
+      if (que === 'fecha' && fecha) poner('fecha', fecha);
     } finally { pasando = false; window.confirm = c; }
     if (OBRA && typeof updateNroInforme === 'function') updateNroInforme();
     if (typeof showToast === 'function') showToast('🆕 Informe nuevo de ' + destino + ', en blanco. ' + (d.nro || 'El anterior') + ' quedó como estaba.', 'ok');
@@ -7832,8 +7841,12 @@ function _copiarEtiqueta(f){
 function _copiarFuentesLocales(torres){
   const idAct = (typeof _idEnEdicion !== 'undefined') ? _idEnEdicion : null;
   const v = (typeof vista !== 'undefined') ? (vista || '') : '';
+  // 207 (11-nov-2026, QC): solo del mismo convenio. Las torres se piden por nombre y «T-12» existe en dos sectores: en SR T-12 se
+  // ofrecía un informe de EZ T-12 guardado en el teléfono (así salió SR-T12-261016-LV, copiado de EZ-T16-P02AB2-261016-LV).
+  const conv = _copiarClaveTexto((document.getElementById('convenio') || {}).value || '');
   return getSavedReports().filter(function(b){
     return b && b.lista === VERSION_LISTA && b.id !== idAct && torres.indexOf(b.torre) >= 0 &&
+           (!conv || !b.convenio || _copiarClaveTexto(b.convenio) === conv) &&
            (b.ambito || 'apartamento') === ambito && (b.vista || '') === v && _copiarFilasMedidas(b.partidas) > 0;
   }).map(function(b){
     return { nro: b.nro || '', torre: b.torre, piso: b.piso || '', apto: b.apto || '', fecha: b.fecha || '',

@@ -78,8 +78,12 @@ function _copiarEtiqueta(f){
 function _copiarFuentesLocales(torres){
   const idAct = (typeof _idEnEdicion !== 'undefined') ? _idEnEdicion : null;
   const v = (typeof vista !== 'undefined') ? (vista || '') : '';
+  // 207 (11-nov-2026, QC): solo del mismo convenio. Las torres se piden por nombre y «T-12» existe en dos sectores: en SR T-12 se
+  // ofrecía un informe de EZ T-12 guardado en el teléfono (así salió SR-T12-261016-LV, copiado de EZ-T16-P02AB2-261016-LV).
+  const conv = _copiarClaveTexto((document.getElementById('convenio') || {}).value || '');
   return getSavedReports().filter(function(b){
     return b && b.lista === VERSION_LISTA && b.id !== idAct && torres.indexOf(b.torre) >= 0 &&
+           (!conv || !b.convenio || _copiarClaveTexto(b.convenio) === conv) &&
            (b.ambito || 'apartamento') === ambito && (b.vista || '') === v && _copiarFilasMedidas(b.partidas) > 0;
   }).map(function(b){
     return { nro: b.nro || '', torre: b.torre, piso: b.piso || '', apto: b.apto || '', fecha: b.fecha || '',
