@@ -5220,16 +5220,24 @@ function _conTitulo195(v){
   const REG = 'garmel_enviados_lugar', DIAS = 45;
   function base(n){ return String(n || '').trim().toUpperCase().replace(/-R\d+$/, ''); }
   function lista(){ try { return (OBRA ? getSavedReports() : listaGuardada()) || []; } catch (e) { return []; } }
+  // Compacto (QC del 11-nov: con objetos, 3.300 números pesaban 381 KB del mismo espacio donde viven los informes): cada número
+  // guarda [torre, convenio, fecha, día en que se anotó]; el convenio va por su número en CONVS.
+  const CONVS = ['Convenio Bielorrusos', 'Convenio Chinos', 'Convenio Rusos'];
   function anotar(){
-    let r = {}; try { r = JSON.parse(localStorage.getItem(REG) || '{}') || {}; } catch (e) { r = {}; }
-    const ahora = Date.now(); let cambio = false;
+    let g = {}; try { g = JSON.parse(localStorage.getItem(REG) || '{}') || {}; } catch (e) { g = {}; }
+    const hoy = Math.floor(Date.now() / 864e5); let cambio = false;
     lista().forEach(function(d){
       if (!d || !(d.enviado || d.oficina) || !d.nro || !d.torre) return;
-      const k = base(d.nro); if (!k || r[k]) return;
-      r[k] = { torre: d.torre, convenio: d.convenio || '', fecha: d.fecha || '', t: ahora }; cambio = true;
+      const k = base(d.nro); if (!k || g[k]) return;
+      const ci = CONVS.indexOf(d.convenio || '');
+      g[k] = [d.torre, ci >= 0 ? ci : (d.convenio || ''), d.fecha || '', hoy]; cambio = true;
     });
-    Object.keys(r).forEach(function(k){ if (ahora - (r[k].t || 0) > DIAS * 864e5) { delete r[k]; cambio = true; } });
-    if (cambio) { try { localStorage.setItem(REG, JSON.stringify(r)); } catch (e) {} }
+    const r = {};
+    Object.keys(g).forEach(function(k){
+      const x = g[k]; if (!Array.isArray(x) || hoy - (x[3] || 0) > DIAS) { delete g[k]; cambio = true; return; }
+      r[k] = { torre: x[0], convenio: typeof x[1] === 'number' ? CONVS[x[1]] : x[1], fecha: x[2] };
+    });
+    if (cambio) { try { localStorage.setItem(REG, JSON.stringify(g)); } catch (e) {} }
     return r;
   }
   function nroEnPantalla(){

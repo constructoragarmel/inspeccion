@@ -74,7 +74,7 @@ ok('G4b · …y Aceptar: informe en blanco del 2026-01-05 en la misma torre; el 
    $('#fecha').value + ' · ' + $('#torre').value + ' · actividades «' + $('#actividades').value.slice(0, 30) + '» heredadas ' + !!$('#actividades').dataset.heredado + ' · original ' + (orig4 && orig4.fecha));
 
 // ── G5 · El registro: lo de hace 50 días se olvida, y con el almacenamiento lleno nada revienta ──
-localStorage.setItem('garmel_enviados_lugar', JSON.stringify({ 'EZ-T99-260901-XX': { torre: 'T-99', convenio: EZ, t: Date.now() - 50 * 864e5 } }));
+localStorage.setItem('garmel_enviados_lugar', JSON.stringify({ 'EZ-T99-260901-XX': ['T-99', 0, '2026-09-01', Math.floor(Date.now() / 864e5) - 50] }));
 document.dispatchEvent(new Event('visibilitychange')); await esperar(100);
 const olvido = !JSON.parse(localStorage.getItem('garmel_enviados_lugar') || '{}')['EZ-T99-260901-XX'];
 const set0 = Storage.prototype.setItem; let reventó = '';

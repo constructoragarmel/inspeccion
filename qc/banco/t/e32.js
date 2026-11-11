@@ -49,7 +49,7 @@ ok('X1 · Borrar enviados con el informe en pantalla: queda en blanco y no apare
 // ── X2 · El número quedó anotado aunque ya no esté en la lista ──
 let reg = {}; try { reg = JSON.parse(localStorage.getItem('garmel_enviados_lugar') || '{}'); } catch (e) {}
 const k = String(env.nro).toUpperCase();
-ok('X2 · ' + env.nro + ' sigue anotado como enviado en ' + t1 + ' después de borrarlo', !!reg[k] && reg[k].torre === t1, JSON.stringify(reg[k] || null));
+ok('X2 · ' + env.nro + ' sigue anotado como enviado en ' + t1 + ' después de borrarlo', !!reg[k] && reg[k][0] === t1, JSON.stringify(reg[k] || null));
 // ── X3 · Un borrador huérfano con ese número (como el de Génesis): cambiar la torre pregunta; Cancelar lo deja ──
 const env2 = await hacer(t1, { enviado: new Date().toLocaleString() });
 document.dispatchEvent(new Event('visibilitychange'));
