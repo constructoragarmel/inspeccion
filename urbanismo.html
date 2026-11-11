@@ -4053,11 +4053,26 @@ function _conTitulo195(v){
     const fecha = que === 'fecha' ? nuevo : ((document.getElementById('fecha') || {}).value || '');
     const conv = que === 'convenio' ? nuevo : String(d.convenio || (document.getElementById('convenio') || {}).value || '');
     const torre = que === 'torre' ? nuevo : (que === 'fecha' ? String(d.torre || '') : '');
+    // Lo que es de la persona y no del informe —inspector y estatus— se queda, como en «Siguiente apto.» y «Sig. torre» (QC del
+    // 11-nov: sin eso, la planilla no abría después de Aceptar hasta volver a elegirse).
+    let insp = [], est = [];
+    try {
+      if (OBRA) { insp = getInspectoresValues().filter(Boolean); est = [...document.querySelectorAll('#estatus .ck-lbl.on input')].map(function(x){ return x.value; }); }
+      else { insp = inspectoresElegidos().filter(Boolean); est = [(document.getElementById('estatus') || {}).value || '']; }
+    } catch (e3) {}
     const c = window.confirm; window.confirm = function(){ return true; };
     pasando = true;
     try {
       if (OBRA) { try { if (_hayCambiosSinGuardar) saveDraft(true); } catch (e2) {} nuevoFormulario(); }
       else nuevoInforme();
+      try {
+        if (insp.length) {
+          const cont = document.getElementById(OBRA ? 'inspectores-container' : 'inspectores');
+          if (cont) { cont.innerHTML = ''; insp.forEach(function(v){ if (OBRA) addInspectorField(v); else addInspector(v); }); }
+        }
+        if (OBRA) document.querySelectorAll('#estatus .ck-lbl').forEach(function(l){ const i = l.querySelector('input'); if (i && est.indexOf(i.value) >= 0 && !l.classList.contains('on')) l.click(); });
+        else if (est[0]) { const e4 = document.getElementById('estatus'); if (e4) { e4.value = est[0]; e4.dispatchEvent(new Event('change', { bubbles: true })); } }
+      } catch (e5) {}
       if (fecha) { const f = document.getElementById('fecha'); if (f) f.value = fecha; }
       poner('convenio', conv);
       if (torre) poner('torre', torre);

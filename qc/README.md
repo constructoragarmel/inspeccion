@@ -1300,3 +1300,51 @@ el borrador a otro día, porque con la misma fecha tendría el número del envia
 `e7`, `e9` a `e16`, `e18`, `e24` a `e27`, `e30`, `t139`, `t112`, `t101`, `t124`, `t128`, `t136`, `t137`, `t69`, `t26`, `t29`,
 `t24`, SHA `t53` `t57` `t63` `t127` y servicios `e30` en verde. `e17`, `e19` a `e23`, `e28` y `e29` fallan igual con el v205 sin
 este cambio (el banco les devuelve una página donde esperan JSON), y `e8` es de tiempos (23/25 ahora, 24/25 con el v205).
+
+## 11-nov-2026 · Veinte rondas antes de publicar la v206: `e33` a `e36`, y el banco con el historial real
+
+Pedido de Stephanie: «lánzate 20 QC de todo… revisión de las quejas que han salido en las últimas semanas, de los errores que
+nadie ha visto». Cuatro tandas de cinco sobre lo que pasó en obra desde el 3-nov.
+
+- `e33` (G1–G5, «lo de Génesis», obra): enviar con «Enviar todos» y cambiarle la torre al que quedó en pantalla; «Copiar de…» en
+  SR T-12 con un informe de EZ T-12 en el teléfono; la papelera del informe abierto; cambiarle la fecha a uno enviado; el registro a
+  los 50 días y sin espacio. 6/6.
+- `e34` (P1–P5, la planilla): lo de Manuel Madrid (un borrador del formulario del mismo apartamento y día choca, lo demás sale y
+  lo chocado no se pierde; borrado el borrador, sale); dos inspectores, un ala cada uno (Gabriel y Carlos); «B02» y «B2» en una
+  fila; la SR T-43 real con el gris en sus 78 filas y abriendo en menos de 3 s. 6/6.
+- `e35` (S1–S5, servicios, SHA y urbanismo): lo de Ángel Sánchez («pide torre»): «Toda la zona» se guarda y se envía sin torre
+  (no se reproduce: en SHA la calle de entrada va en «Toda la zona»); borrar el abierto; cambiar la fecha de uno enviado; «Nuevo»
+  después de enviar; consola limpia. 6/6 en los tres, a la vista a 375 (sin ventana no termina: el envío espera más que el tiempo
+  virtual).
+- `e36` (N1–N5, lo que nadie ha visto, obra): 3.000 números anotados y 300 enviados en la lista; enviado y cambiado después; abierto
+  desde el archivo y cambiar la fecha; el aviso cabe; lo que pesa el registro. 5/5.
+
+**Lo que encontraron, arreglado:**
+1. **La planilla sin el gris en 224 apartamentos de 6 torres** (SB D-08, J-07, J-08; SR T-04, T-13, T-43). El relevo r86 (9-nov)
+   guarda la clave del archivo sin ceros (P09AC9) y la planilla armaba la fila con ceros (P09AC09). Desde la reconstrucción del
+   11-nov afecta a todas las torres con nombres de dos cifras. Ahora la planilla toma la clave del número del informe.
+   `e17` no lo veía: comprobaba el gris en `P.prev` y no en la fila; ahora sí lo comprueba.
+2. **«Copiar de…» ofrecía informes del teléfono de otro sector** con el mismo nombre de torre: así salió `SR-T12-261016-LV`,
+   copiado de `EZ-T16-P02AB2-261016-LV`. Ahora solo del mismo convenio (cambio 207, `comun/copiar_de.js`).
+3. **Cambiar la fecha de un informe enviado no preguntaba**: lo mandaba entero como otro informe de otro día. Ahora pregunta, igual
+   que la torre (cambio 207, `comun/lugar_enviado.js`, los cuatro). Un borrador que solo coincide por número sí puede cambiar de
+   día. En servicios, SHA y urbanismo primero sale «¿La fecha es correcta?»; si se contesta que no, la fecha vuelve sola.
+4. **El registro de enviados pesaba 381 KB con 3.300 números**, en el mismo espacio de los informes. Ahora se guarda compacto.
+5. **El banco no traía el historial real**: `e17`, `e19` a `e23` y `e28` fallaban en cualquier banco nuevo. Ahora lo trae
+   `qc/banco/reales.py`. `e29` es del compilado (`compilado:e29`), no de obra.
+
+Falsa alarma, corregida en la tanda: `e17` daba por perdido el `C09` del piso 10 de la SB D-08 (un error de tipeo real en
+`SB-D08-P10AC09-261027-EN`). Sí sale; era la comparación de claves con y sin cero.
+
+**Y uno que encontró la regresión:** al aceptar «ya se envió», el informe nuevo empezaba sin inspector ni estatus, y la planilla
+no abría hasta volver a elegirlos (`e7` QC2e, que abre un informe viejo enviado y le pone la fecha de hoy). Ahora se quedan, como
+en «Siguiente apto.» y «Sig. torre»; el contenido no.
+
+Regresión con el código final. Sin ventana: `e7` 25/25, `e9` a `e23`, `e25` a `e28`, `e30` a `e34`, `e36`, `t139`, `t112`,
+`t101`, `t124`, `t128`, `t133`, `t136`, `t137`, `t69`, `t26`, `t29`, `t24`; servicios `e30` a `e32`; SHA `e31`, `e32`, `t53`, `t57`,
+`t63`, `t127`, `t105`; urbanismo `e31`, `e32`; compilado `e29` y `t134`. A la vista a 375: `e33`, `e34`, `e36`, `t140`, `e35` en los
+tres, y `e24`. En `e24` (I1, 64 tarjetas en menos de 1 s) dio 1.002 ms, pero pintar la lista tarda 10 ms: es la espera de 50 ms de
+la tanda, que el navegador estira a 1 s con el panel oculto. Con la v205, en el mismo navegador y al mismo ancho, fallan igual:
+`t138` (su pantalla cambió después del 27-oct), `t129`, `t130` y `t132` en obra (prueban a 375 sin ventana), `t106` de SHA y
+las que envían y no terminan sin ventana (`e24` de servicios, SHA y urbanismo; `t130` de servicios; `t131` y `t135` de urbanismo).
+`e8` es de tiempos (23/25; 24/25 con la v205).
