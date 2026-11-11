@@ -1286,3 +1286,17 @@ pregunta: Aceptar empieza en la torre nueva un informe en blanco con la misma fe
 se sigue corrigiendo como antes. `comun/lugar_enviado.js` (cambio 204), el mismo en los cuatro. `e31` 5/5 en los cuatro a 375.
 Regresión `e7` a `e28`, `t139`, `t112`, `t101`, `t124`, `t128`, `t136`, `t137`, `t69`, `t26`, `t29`, `t24`, SHA `t53` `t57`
 `t63` `t127` y servicios `e30` en verde (`e2` de urbanismo recarga la página: no corre sin ventana).
+
+## 11-nov-2026 · El teléfono recuerda qué números ya envió: `e32`
+
+Diego: `EZ-T01-261104-GC` y `EZ-T04-261110-GC` (Génesis Cordobés) traían actividades, observaciones, fotos y casi todas las
+mediciones de `SR-T38-261104-GC`. No eran informes enviados abiertos para corregir (eso lo ataja el 204), sino borradores nuevos
+con el contenido de la T-38: el de la T-01 nació 40 s después de enviar la T-38. «Borrar enviados», o borrar desde «Informes» el
+que está en pantalla, lo quitaba de la lista pero dejaba su contenido, y el siguiente autoguardado lo volvía un borrador nuevo.
+Ahora el teléfono anota 45 días cada número enviado (`garmel_enviados_lugar`) y cambiar la torre o el convenio de algo con ese
+número pregunta como el 204; y borrar el informe en pantalla deja la pantalla en blanco. Cambio 206 en `comun/lugar_enviado.js`,
+el mismo en los cuatro. `e32` 6/6 en los cuatro a 375 (navegador) y a 500 (`headless.py`). `e31` 5/5 en los cuatro: su W3 pasa
+el borrador a otro día, porque con la misma fecha tendría el número del enviado de W1 y ahora preguntaría con razón. Regresión
+`e7`, `e9` a `e16`, `e18`, `e24` a `e27`, `e30`, `t139`, `t112`, `t101`, `t124`, `t128`, `t136`, `t137`, `t69`, `t26`, `t29`,
+`t24`, SHA `t53` `t57` `t63` `t127` y servicios `e30` en verde. `e17`, `e19` a `e23`, `e28` y `e29` fallan igual con el v205 sin
+este cambio (el banco les devuelve una página donde esperan JSON), y `e8` es de tiempos (23/25 ahora, 24/25 con el v205).

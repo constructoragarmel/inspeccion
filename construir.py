@@ -9868,6 +9868,9 @@ s = sustituir(s,
 # Diego Orta, por Génesis Cordobés y Cleidy Chacón: «el sistema nos combina información de los dos sectores». Era un informe
 # ya enviado al que se le cambió la torre o el convenio: salía entero, con mediciones y fotos, al archivo de la otra torre.
 # Ahora pregunta y, si se acepta, empieza en blanco. El código es comun/lugar_enviado.js, el mismo de servicios, SHA y urbanismo.
+# 206 (11-nov-2026, Diego Orta: EZ-T01-261104-GC y EZ-T04-261110-GC traían todo de SR-T38-261104-GC): en el mismo archivo, el
+# teléfono anota 45 días los números que envió y pregunta igual en un borrador que tiene uno de ellos; y borrar el informe que
+# está en pantalla («Borrar enviados» o la papelera) deja la pantalla en blanco, en vez de dejar su contenido para un borrador nuevo.
 LUGAR_ENVIADO_JS = open(os.path.join(RAIZ, "comun", "lugar_enviado.js"), encoding="utf-8").read()
 s = sustituir(s, "function toggleP(id){", LUGAR_ENVIADO_JS + "\nfunction toggleP(id){", "204· un informe enviado no se muda de torre")
 

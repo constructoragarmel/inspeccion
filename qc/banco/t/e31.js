@@ -64,6 +64,8 @@ ok('W2 · …y Aceptar: queda ' + t2 + ' en blanco, y ' + nro0 + ' sigue en ' + 
    $('#torre').value + ' · en blanco ' + enBlanco() + ' · original ' + (orig && orig.torre + ' ' + orig.nro));
 // ── W3 · Un borrador que nunca se envió se corrige como antes: sin pregunta, conserva lo medido ──
 const bor = await hacer(t1, {});
+// 206: con la misma fecha tendría el número de W1, que ya se envió, y preguntaría con razón; otro día es otro informe.
+sel('fecha', '2026-01-02'); await esperar(300);
 Q.dialogos.length = 0; Q.aceptar = true;
 sel('torre', t3); await esperar(900);
 ok('W3 · Borrador sin enviar: cambiar la torre no pregunta y conserva lo medido (se corrige la torre)',
