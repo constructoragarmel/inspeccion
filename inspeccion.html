@@ -4437,7 +4437,13 @@ function _conTitulo195(v){
   }
   function mezclar(archivo){
     const prev = {};
-    Object.keys(archivo || {}).forEach(function(k){ prev[k] = archivo[k]; });
+    // 11-nov-2026: desde el relevo r86 el archivo guarda la clave sin ceros (P09AC9) para juntar «B02» y «B2»; la planilla arma
+    // las filas con el nombre escrito (P09AC09). Sin esto, en 224 apartamentos de 6 torres (SB D-08, J-07, J-08; SR T-04, T-13,
+    // T-43) la fila salía sin el gris de antes. Se usa la clave del número del informe, como con lo de este teléfono.
+    Object.keys(archivo || {}).forEach(function(k){
+      const x = archivo[k], nk = (x && claveDe(x.nro)) || k;
+      if (!prev[nk] || String((x && x.fecha) || '') >= String(prev[nk].fecha || '')) prev[nk] = x;
+    });
     const tel = delTelefono();
     Object.keys(tel).forEach(function(k){ if (!prev[k] || String(tel[k].fecha) >= String(prev[k].fecha || '')) prev[k] = tel[k]; });
     return prev;

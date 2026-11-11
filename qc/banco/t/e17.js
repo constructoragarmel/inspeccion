@@ -20,7 +20,10 @@ for (const [sector, torre, conv] of TORRES) {
   const P = E().P, keys = P.aptos.map(x => x.k), hist = Object.keys(informes);
   // En la T-04 (letra + piso desde el 2-nov) «C7» del piso 7 se empalma como C07: cuenta como el mismo apartamento.
   const alias = k => { const m = k.match(/^P(\d{2})A([A-J])0*(\d+)$/); return m && +m[3] === +m[1] ? 'P' + m[1] + 'A' + m[2] + String(+m[3]).padStart(2, '0') : k; };
-  const perdidos = hist.filter(k => keys.indexOf(k) < 0 && keys.indexOf(alias(k)) < 0), dup = keys.filter((k, i) => keys.indexOf(k) !== i);
+  // Desde el relevo r86 (9-nov) el archivo guarda la clave sin ceros (P10AC9) y la planilla la arma con el nombre escrito (P10AC09):
+  // se comparan sin ceros.
+  const sc = k => String(k).replace(/([A-Z])0+(?=\d)/g, '$1'), ksc = keys.map(sc);
+  const perdidos = hist.filter(k => keys.indexOf(k) < 0 && keys.indexOf(alias(k)) < 0 && ksc.indexOf(sc(k)) < 0), dup = keys.filter((k, i) => keys.indexOf(k) !== i);
   const maxHist = Math.max(...hist.map(k => +k.slice(1, 3)));
   const viejasQueQuedan = torre === 'T-04' ? keys.filter(k => k !== alias(k)) : [];
   ok('E17 ' + sector + '-' + torre + ' · Los ' + hist.length + ' apartamentos con historial están todos, sin repetidos ni con su nombre viejo', !perdidos.length && !dup.length && !viejasQueQuedan.length, 'perdidos ' + perdidos.join(',') + ' · repetidos ' + dup.join(',') + ' · viejos ' + viejasQueQuedan.slice(0, 5).join(','));
@@ -28,6 +31,9 @@ for (const [sector, torre, conv] of TORRES) {
   // El gris: para cada apartamento con historial, cada % del archivo es lo que muestra como anterior.
   const malos = []; hist.forEach(k => { const pc = (informes[k] || {}).pcts || {}; Object.keys(pc).forEach(c => { const pk = E().P.prev[k] ? k : alias(k); if (E().P.prev[pk] && E().P.prev[pk].pcts && E().P.prev[pk].pcts[c] !== pc[c] && E().P.prev[pk].nro === informes[k].nro) malos.push(k + ' ' + c); }); });
   ok('E17 ' + sector + '-' + torre + ' · El gris de cada casilla es el último % del archivo', !malos.length, malos.slice(0, 5).join(', '));
+  // 11-nov: el gris tiene que llegar a la FILA (la clave con que se pinta), no solo estar en P.prev con otra clave.
+  const sinGris = hist.filter(k => { const x = P.aptos.find(y => y.k === k || y.k === alias(k) || sc(y.k) === sc(k)); return !x || !E().P.prev[x.k] || !E().P.prev[x.k].pcts; });
+  ok('E17 ' + sector + '-' + torre + ' · Cada apartamento con historial muestra su gris en su fila', !sinGris.length, sinGris.length + ' sin gris: ' + sinGris.slice(0, 6).join(','));
   const porPiso = p => P.aptos.filter(x => x.p === p).map(x => x.a).join(',');
   const muestra = sector === 'EZ' ? 'A1,A2,B1,B2' : sector === 'SR' ? 'A07,B07,C07,D07,E07,F07,G07,H07,I07,J07' : 'A07,B07,C07,D07,E07,F07';
   const p7 = porPiso(7).split(',').filter(a => muestra.split(',').indexOf(a) >= 0).join(',');
