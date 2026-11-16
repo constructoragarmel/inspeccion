@@ -198,7 +198,7 @@ tr.de-antes td{color:#64748b;background:#f8fafc}.antes-tag{color:#8f4b00;font-we
   <div class="estado" id="estado-envio" hidden></div>
 </div>
 
-<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v206</div>
+<div class="pie">Constructora Garmel, C.A. · Ciudad Tiuna · ● <span id="conexion">en línea</span> · v207</div>
 </main>
 
 <script>
@@ -844,7 +844,8 @@ async function enviar() {
   if (DATA.modo === 'contratista') return enviarContratista();
   if (esInspSha(DATA.quien)) return mostrarEnvio('El compilado lo envía la coordinación. Usted guarda el estatus con «Guardar el estatus para la coordinación».', 'mal');
   const t = textos();
-  if (!CAMPOS.some(k => t[k])) { mostrarEnvio('Escriba al menos uno de los cuadros de la validación antes de enviar.', 'mal'); return; }
+  // v207 (16-nov-2026, Stephanie González): en SHA validar es revisar el estatus de cada hallazgo y enviar; los comentarios son opcionales.
+  if (DATA.tipo !== 'sha' && !CAMPOS.some(k => t[k])) { mostrarEnvio('Escriba al menos uno de los cuadros de la validación antes de enviar.', 'mal'); return; }
   const estatus = DATA.tipo === 'sha' ? filasEst().filter(f => f.sel.value).map(f => ({ torre: f.torre, frente: f.frente, hallazgo: f.hallazgo, estatus: f.sel.value, antes: f.estatus })) : undefined;   // v182 (ADR-0050)
   const clave = claveGuardada();
   if (!clave) return mostrarEnvio('Este equipo no tiene la clave de envío. Configúrela en Inicio.', 'mal');

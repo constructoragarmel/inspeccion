@@ -158,7 +158,7 @@ class H(http.server.BaseHTTPRequestHandler):
                                      "avance":{"app":((x.get('semana') or {}).get('avanceApp') or {}).get('avance'),"validado":(float(v.replace(',','.')) if v else None),"motivo":x.get('motivo') or ''}}
                 return self._ok({"ok":True,"numero":num,"archivo":num+".json","url":"http://127.0.0.1:8777/compilado.json","pdf":"http://127.0.0.1:8777/compilado.pdf","torres":[{"torre":x.get('torre')} for x in torres],"reemplazado":antes,"guardado":"2026-10-21 10:15"})
             t=p.get('textos') or {}
-            if not any((t.get(k) or '').strip() for k in ('hitos','exitos','dificultades','otros')): return self._ok({"ok":False,"error":"El compilado va sin ningún comentario de la coordinación"})
+            if p.get('tipo')!='sha' and not any((t.get(k) or '').strip() for k in ('hitos','exitos','dificultades','otros')): return self._ok({"ok":False,"error":"El compilado va sin ningún comentario de la coordinación"})
             if not (p.get('coordinadora') or '').strip(): return self._ok({"ok":False,"error":"Falta quién valida"})
             est=p.get('estatus') or []
             for c in est:
