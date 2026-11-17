@@ -2,6 +2,9 @@
 // 1 el botón y lo que muestra · 2 el número lleva ESTR · 3 lo que viaja · 4 el % · 5 ir a Torre completa y volver
 // 6 ir a Apartamento y volver · 7 el borrador reabre en Estructura · 8 el envío · 9 la visita anterior no se cruza con
 // la de torre completa (archivo) · 10 ni en el teléfono · 11 cabe en la pantalla
+// 17-nov-2026: los chequeos 2, 5 y 8 esperaban la fecha fija «261001», el día en que se escribió la tanda. El formulario
+// pone la fecha de hoy y cabecera() solo la llena si está vacía, así que desde el 2-oct fallaban aunque el número
+// llevara su ESTR. Ahora la fecha esperada se lee del campo «fecha» (aammdd); lo que se prueba es el ESTR, no el día.
 localStorage.setItem('garmel_rol', 'inspector');
 localStorage.setItem('garmel_clave_envio', 'qc');
 const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); e.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -24,6 +27,7 @@ const visibles = () => { const out = []; _hitosDelAmbito().forEach(p => p.items.
 const aLaVista = id => { const c = document.getElementById(id)?.closest('.field'); return !!c && getComputedStyle(c).display !== 'none'; };
 const marcado = id => /background:\s*var\(--blue\)/.test(document.getElementById(id).style.cssText);
 const nro = () => document.getElementById('nro-display').textContent;
+const aammdd = () => document.getElementById('fecha').value.slice(2).replace(/-/g, '');
 await Q.relevo({ caido: false, fallar: [], lento: 0, borrar: true });
 
 // ── 1. El botón ──
@@ -38,7 +42,7 @@ ok('1 · «Estructura» es el tercer botón de «Ámbito del informe»; al tocar
    v1.join(',') + ' · hitos a la vista: ' + [...document.querySelectorAll('[id^="p_hito_"]')].filter(b => getComputedStyle(b).display !== 'none').length);
 
 // ── 2. El número ──
-ok('2 · El número del informe lleva ESTR donde el de apartamento lleva piso y apartamento, y las iniciales CJ', /^PRUEBA-EZ-T07-ESTR-261001-CJ$/.test(nro()), nro());
+ok('2 · El número del informe lleva ESTR donde el de apartamento lleva piso y apartamento, y las iniciales CJ', nro() === 'PRUEBA-EZ-T07-ESTR-' + aammdd() + '-CJ', nro());
 
 // ── 3 y 4. Lo que viaja y el % ──
 est('hito_estructura_3', 100); est('hito_estructura_4', 50);
@@ -56,7 +60,7 @@ setAmbito('torre'); await esperar(200);
 const v5 = visibles(), n5 = nro(), p5 = pct('hito_estructura_4');
 setAmbito('estructura'); await esperar(200);
 ok('5 · «Torre completa» sigue igual: 58 filas con estructura adentro, sin ESTR en el número y con lo medido; al volver a «Estructura» sigue ahí',
-   v5.length === 58 && v5.indexOf('1.02') >= 0 && n5 === 'PRUEBA-EZ-T07-261001-CJ' && p5 === '50%' && marcado('btnAmbEstr') &&
+   v5.length === 58 && v5.indexOf('1.02') >= 0 && n5 === 'PRUEBA-EZ-T07-' + aammdd() + '-CJ' && p5 === '50%' && marcado('btnAmbEstr') &&
    visibles().length === 6 && pct('hito_estructura_4') === '50%', v5.length + ' filas · ' + n5 + ' · escaleras ' + p5);
 
 // ── 6. A apartamento y de vuelta ──
@@ -89,7 +93,7 @@ await esperar(800); await hasta(() => !/enviando/i.test(document.getElementById(
 const env = (await Q.envios()).slice(-1)[0] || {};
 const pd = (env.datos || {}).partidas || {};
 ok('8 · El envío sale con ESTR en el número, ámbito torre, vista estructura y solo el hito de estructura',
-   /^PRUEBA-EZ-T07-ESTR-261001-CJ/.test(env.numero || '') && env.ambito === 'torre' && (env.datos || {}).vista === 'estructura' &&
+   (env.numero || '').indexOf('PRUEBA-EZ-T07-ESTR-' + aammdd() + '-CJ') === 0 && env.ambito === 'torre' && (env.datos || {}).vista === 'estructura' &&
    Object.keys(pd).join(',') === 'hito_estructura,hito_estructura_extra' && pd.hito_estructura[3].ej === '100',
    (env.numero || 'sin envío') + ' · ' + env.ambito + '/' + ((env.datos || {}).vista) + ' · ' + Object.keys(pd).join(','));
 
