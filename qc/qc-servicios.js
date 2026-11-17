@@ -285,7 +285,7 @@ function ok(nombre, cond, detalle) {
   await page.click('#aviso-historial .si'); await page.waitForTimeout(150);
   ok('Vuelve el residente escrito la vez anterior', (await page.inputValue('#residente')) === 'ING. ESCRITO A MANO', await page.inputValue('#residente'));
   await page.selectOption('#torre', 'T-05'); await page.waitForTimeout(150);
-  ok('En T-05, el maestro manda y no lo pisa el historial', (await page.inputValue('#residente')) === 'ING. ANTONIO CUICAS', await page.inputValue('#residente'));
+  ok('En T-05, el maestro manda y no lo pisa el historial', (await page.inputValue('#residente')) === 'HECTOR BECERRA', await page.inputValue('#residente'));
 
   console.log('\n— 14. El historial llega del relevo cuando el teléfono no lo tiene (Hernán y Oriana se alternan)');
   await page.evaluate(() => nuevoInforme()); await page.waitForTimeout(100);

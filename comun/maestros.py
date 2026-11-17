@@ -35,13 +35,16 @@ generador.
 # Construcciones, que no estaba en el cuadro del 28-ago; y la **T-04 rusa pasa de Aroa 93 a Glajos** (mismo
 # representante, José Gregorio García). Las dos sin residente. El relevo lleva su propia copia del padrón
 # (`TORRES` en Smartsheet.gs del repositorio Garmel) y se actualizó el mismo día: si no, rechaza los informes de T-43.
+# 17-nov-2026 (Diego Orta, de parte de Lizeira, a Stephanie): Alnavic cambió de residente. Salen Antonio Cuicas (T-05) y
+# José V. Gonzáles (T-06) y entra **Héctor Becerra** en las dos. La T-07 y la T-08 siguen en blanco, por la regla de arriba, pero el
+# desplegable de residentes lo ofrece igual para cualquier torre de Alnavic. Sin título: no se sabe si es Ing.
 TORRES_JS = """const TORRES = [
   {t:'T-01',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:"ING HARRY ARTEAGA"},
   {t:'T-02',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:"ING MARIA T MARCANO"},
   {t:'T-03',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:""},
   {t:'T-04',  c:'Convenio Bielorusos',   e:"RÍO LIMÓN, C.A.",               r:""},
-  {t:'T-05',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:"ING. ANTONIO CUICAS"},
-  {t:'T-06',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:"ING JOSE V GONZALES"},
+  {t:'T-05',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:"HECTOR BECERRA"},
+  {t:'T-06',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:"HECTOR BECERRA"},
   {t:'T-07',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:""},
   {t:'T-08',  c:'Convenio Bielorusos',   e:"ALNAVIC, C.A.",                 r:""},
   {t:'T-09',  c:'Convenio Bielorusos',   e:"THAISSA MM INVERSIONES, C.A.",  r:"ING MANUEL PAEZ"},
@@ -270,7 +273,6 @@ CORRECCIONES_TEXTO = [
     ("ING FELIX PINTO",     "ING. FELIX PINTO"),
     ("ING HARRY ARTEAGA",   "ING. HARRY ARTEAGA"),
     ("ING MANUEL PAEZ",     "ING. MANUEL PAEZ"),
-    ("ING JOSE V GONZALES", "ING. JOSE V. GONZALES"),
     ("ING MARIA T MARCANO", "ING. MARIA T. MARCANO"),
     # Se le escapó a la lista original: estaba sin punto en LOS DOS
     # formularios por igual, no por desincronización sino porque nadie lo miró.

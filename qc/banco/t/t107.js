@@ -3,6 +3,8 @@
 // 5c con un solo residente, tocar otro lo reemplaza · 5d cambiar de torre cambia el residente como siempre (no se rompió).
 // En inspeccion.html: 6a «Guardar y otro apto» conserva el residente y su «▾» · 6b torre no registrada con empresa elegida:
 // la lista trae los residentes de esa empresa · 6c dos residentes en obra viajan los dos.
+// 17-nov-2026: Alnavic cambió de residente (Héctor Becerra en lugar de Antonio Cuicas y José V. Gonzáles); 5a y 5b pasan a
+// la T-01 y la T-02 de Río Limón, que siguen teniendo dos residentes distintos, y se agrega 5e.
 localStorage.setItem('garmel_rol', 'inspector');
 Q.aceptar = true;
 const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); };
@@ -12,15 +14,16 @@ if (typeof TIPO_INFORME !== 'undefined') {
   localStorage.setItem(CLAVE_LISTA, '[]'); nuevoInforme(); await esperar(300);
   sel('convenio', 'Convenio Bielorrusos'); await esperar(150);
   [...document.querySelectorAll('#campo-donde .donde button')].find(b => b.dataset.m === 'varias').click(); await esperar(150);
-  sel('torre', 'T-05'); await esperar(300); sel('otra-lugar', 'T-06'); await esperar(300);
+  sel('torre', 'T-01'); await esperar(300); sel('otra-lugar', 'T-02'); await esperar(300);
   const r = $('#residente');
-  ok('5a · «Varias torres» T-05 + T-06 junta los dos residentes', r.value === 'ING. ANTONIO CUICAS · ING. JOSE V. GONZALES', r.value);
-  await elegir(r, 'ING. HARRY ARTEAGA');
-  ok('5b · Tocar otro de la lista lo suma, sin borrar a los demás', r.value === 'ING. ANTONIO CUICAS · ING. JOSE V. GONZALES · ING. HARRY ARTEAGA' && datosDelFormulario().residente === r.value, r.value);
+  ok('5a · «Varias torres» T-01 + T-02 junta los dos residentes', r.value === 'ING. HARRY ARTEAGA · ING. MARIA T. MARCANO', r.value);
+  await elegir(r, 'HECTOR BECERRA');
+  ok('5b · Tocar otro de la lista lo suma, sin borrar a los demás', r.value === 'ING. HARRY ARTEAGA · ING. MARIA T. MARCANO · HECTOR BECERRA' && datosDelFormulario().residente === r.value, r.value);
   [...document.querySelectorAll('#campo-donde .donde button')].find(b => b.dataset.m === 'una').click(); await esperar(150);
   sel('convenio', 'Convenio Bielorrusos'); sel('torre', 'T-05'); await esperar(300);
-  await elegir(r, 'ING. JOSE V. GONZALES');
-  ok('5c · Con un solo residente, tocar otro lo reemplaza', r.value === 'ING. JOSE V. GONZALES', r.value);
+  ok('5e · T-05 pone al residente nuevo de Alnavic (17-nov)', r.value === 'HECTOR BECERRA', r.value);
+  await elegir(r, 'ING. MARIA T. MARCANO');
+  ok('5c · Con un solo residente, tocar otro lo reemplaza', r.value === 'ING. MARIA T. MARCANO', r.value);
   sel('torre', 'T-01'); await esperar(300);
   ok('5d · Cambiar de torre sigue poniendo el residente del cuadro', r.value === 'ING. HARRY ARTEAGA', r.value);
   localStorage.setItem(CLAVE_LISTA, '[]');
@@ -42,12 +45,12 @@ if (typeof TIPO_INFORME !== 'undefined') {
   sel('empresa', 'INVERSIONES ALNAVIC, C.A.'); await esperar(300);
   const r6 = document.querySelector('.residente-input'); r6.closest('.res-caja').querySelector('.res-abrir').click(); await esperar(150);
   const g = [...document.querySelectorAll('.res-lista .res-g')].map(x => x.textContent), nn = [...document.querySelectorAll('.res-lista button')].map(x => x.dataset.r);
-  ok('6b · Torre no registrada con Alnavic: la lista trae primero los residentes de Alnavic', g[0] === 'De INVERSIONES ALNAVIC, C.A.' && nn[0] === 'ING. ANTONIO CUICAS', g.join(' | ') + ' · ' + nn.slice(0, 2).join(', '));
+  ok('6b · Torre no registrada con Alnavic: la lista trae primero los residentes de Alnavic', g[0] === 'De INVERSIONES ALNAVIC, C.A.' && nn[0] === 'HECTOR BECERRA' && !nn.some(x => /CUICAS|GONZALES/.test(x)), g.join(' | ') + ' · ' + nn.slice(0, 2).join(', '));
   document.querySelector('label').click(); await esperar(100);
   addResidenteField(''); await esperar(150);
   const dos = [...document.querySelectorAll('.residente-input')];
-  await elegir(dos[0], 'ING. ANTONIO CUICAS'); await elegir(dos[1], 'ING. JOSE V. GONZALES');
+  await elegir(dos[0], 'HECTOR BECERRA'); await elegir(dos[1], 'ING. HARRY ARTEAGA');
   const rs = getFormData().residentes;
-  ok('6c · Dos residentes en obra, elegidos de la lista, viajan los dos', rs.join(' / ') === 'ING. ANTONIO CUICAS / ING. JOSE V. GONZALES', rs.join(' / '));
+  ok('6c · Dos residentes en obra, elegidos de la lista, viajan los dos', rs.join(' / ') === 'HECTOR BECERRA / ING. HARRY ARTEAGA', rs.join(' / '));
   localStorage.setItem('garmel_reports_list', '[]');
 }
