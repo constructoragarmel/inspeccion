@@ -4,8 +4,8 @@
 (function () {
   var R = [];
   var ok = function (n, c, d) { R.push((c ? '✅ ' : '❌ ') + n + ' — ' + d); };
-  var torreDe = { 'T-56': 'EZ-T56', 'D-08': 'SB-D08', 'J-07': 'SB-J07', 'T-12': 'SR-T12', 'T-13': 'SR-T13', 'T-38': 'SR-T38', 'T-39': 'SR-T39' };
-  var sectorDe = { 'T-56': 'EZ', 'D-08': 'SB', 'J-07': 'SB', 'T-12': 'SR', 'T-13': 'SR', 'T-38': 'SR', 'T-39': 'SR' };
+  var torreDe = { 'T-56': 'EZ-T56', 'D-08': 'SB-D08', 'J-07': 'SB-J07', 'J-08': 'SB-J08', 'T-12': 'SR-T12', 'T-13': 'SR-T13', 'T-38': 'SR-T38', 'T-39': 'SR-T39' };
+  var sectorDe = { 'T-56': 'EZ', 'D-08': 'SB', 'J-07': 'SB', 'J-08': 'SB', 'T-12': 'SR', 'T-13': 'SR', 'T-38': 'SR', 'T-39': 'SR' };
   _torreCompuesta = function (p) { return torreDe[p.torre]; };
   _fila = function (token, hoja, o) { return o; };
   var E = function (v) { return { pr: '100', ej: String(v), ev: '', ud: 'estado', sn: '', pct: '' }; };
@@ -31,19 +31,24 @@
   Object.keys(PESOS_POR_TORRE.torres).forEach(function (t) {
     var p = PESOS_POR_TORRE.torres[t].pesos, s = 0;
     Object.keys(p).forEach(function (c) { s += p[c]; if (!codigos[c]) malas.push(t + ':' + c); });
-    if (Math.abs(s - 1) > 0.002) malas.push(t + ' suma ' + s.toFixed(4));
+    // lo que no tiene subpartida en la lista no se reparte (sinSubpartida): los pesos más eso suman 1
+    if (Math.abs(s + (PESOS_POR_TORRE.torres[t].sinSubpartida || 0) - 1) > 0.002) malas.push(t + ' suma ' + s.toFixed(4));
   });
-  // 17-nov-2026 (ADR-0057 del repositorio Garmel): la D-08 tiene presupuesto (el de su contrato 2); las otras cinco,
-  // todavía no. Son 33 torres: entró SB-D08 y salieron SR-T05, T-15 y T-17 de AROA 93.
-  var inmo = ['J-07', 'T-12', 'T-13', 'T-38', 'T-39'].filter(function (t) {
+  // 17-nov-2026 (ADR-0057 del repositorio Garmel): entran con el presupuesto de su contrato la D-08 (VIALPA) y, esa
+  // tarde, la J-08 (SB 86), la T-12 (Zerpa's), la T-38 (5010) y la T-39 (JVR). Son 37 torres (salieron SR-T05, T-15 y
+  // T-17 de AROA 93). Siguen sin presupuesto la J-07 y la T-13, que no tienen contrato en el control.
+  var inmo = ['J-07', 'T-13'].filter(function (t) {
     return !_aplicaDeTorre({ torre: t, sector: sectorDe[t] }).sinPresupuesto; });
   var d08 = _aplicaDeTorre({ torre: 'D-08', sector: 'SB' });
+  var nuevas = { 'J-08': 'SB 86', 'T-12': "Zerpa's", 'T-38': '5010', 'T-39': 'JVR' }, malNuevas = [];
+  Object.keys(nuevas).forEach(function (t) { var a = _aplicaDeTorre({ torre: t, sector: sectorDe[t] });
+    if (a.sinPresupuesto || a.contratista !== nuevas[t]) malNuevas.push(t + ':' + (a.contratista || 'sin presupuesto')); });
   var t56 = _aplicaDeTorre({ torre: 'T-56', sector: 'EZ' }).codigos || [];
-  ok('10 · Pesos: 33 torres, cada una suma 1 y solo usa códigos de la lista (ninguno retirado); J-07, T-12, T-13, T-38 y T-39 sin presupuesto y la D-08 con el de VIALPA',
-     Object.keys(PESOS_POR_TORRE.torres).length === 33 && malas.length === 0 && inmo.length === 0 &&
+  ok('10 · Pesos: 37 torres, cada una suma 1 (con lo que no tiene subpartida) y solo usa códigos de la lista; J-07 y T-13 sin presupuesto; D-08 con VIALPA y J-08, T-12, T-38 y T-39 con el de su contratista',
+     Object.keys(PESOS_POR_TORRE.torres).length === 37 && malas.length === 0 && inmo.length === 0 && malNuevas.length === 0 &&
      !d08.sinPresupuesto && d08.contratista === 'VIALPA' &&
      t56.indexOf('9.05') >= 0 && t56.indexOf('12.01') < 0,
      Object.keys(PESOS_POR_TORRE.torres).length + ' torres · problemas: ' + (malas.join(', ') || 'ninguno') +
-     ' · sin contrato 2 con presupuesto: ' + (inmo.join(',') || 'ninguna') + ' · D-08: ' + (d08.contratista || 'sin presupuesto') + ' · T-56 trae 9.05: ' + (t56.indexOf('9.05') >= 0));
+     ' · sin contrato con presupuesto: ' + (inmo.join(',') || 'ninguna') + ' · nuevas mal: ' + (malNuevas.join(',') || 'ninguna') + ' · D-08: ' + (d08.contratista || 'sin presupuesto') + ' · T-56 trae 9.05: ' + (t56.indexOf('9.05') >= 0));
   return R;
 })();
