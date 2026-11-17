@@ -21,7 +21,7 @@
   var h2 = _pdfHtml(p2);
   ok('R5 · El % escrito a mano por el inspector (modo por hitos) sí sale: «Avance declarado: 40 %»', /Avance declarado: 40 %/.test(h2), '');
   ok('R6 · La leyenda ya no habla de promedio y NO INSPECCIONADO dice «no es un cero»', !/no entra en el promedio/.test(h1) && /NO INSPECCIONADO: el hito no se verificó en esta visita — no es un cero/.test(h1), '');
-  ok('R7 · La versión del relevo es r52 o posterior', typeof RELEVO_VERSION === 'string' && /^r5[2-9]-/.test(RELEVO_VERSION), String(typeof RELEVO_VERSION === 'string' ? RELEVO_VERSION : 'sin versión'));
+  ok('R7 · La versión del relevo es r52 o posterior', typeof RELEVO_VERSION === 'string' && +((/^r(\d+)-/.exec(RELEVO_VERSION) || [])[1] || 0) >= 52, String(typeof RELEVO_VERSION === 'string' ? RELEVO_VERSION : 'sin versión'));
   var antes = PDF_SIN_CUENTAS; PDF_SIN_CUENTAS = false; var h3 = ''; try { h3 = _pdfHtml(p1); } catch (x) { h3 = ''; } PDF_SIN_CUENTAS = antes;
   ok('R8 · Con PDF_SIN_CUENTAS en false vuelven los dos totales del r51 (físico 75 %), sin tocar nada más', /Avance físico de la torre<\/div><div[^>]*>75 %/.test(h3) && /Avance del contrato \(/.test(h3), '');
   var p4 = base('J-07', 'torre', { hito_estructura: [fila('10', '5')] });

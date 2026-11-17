@@ -100,13 +100,18 @@
   var nuevas = res.partes.filter(function (b) { return b.__nuevo; }).map(function (b) { return b.getName(); });
   var x1 = res.partes[2].getDataAsString(), x12 = res.partes[3].getDataAsString();
   var ids = (x1.match(/<p:cNvPr id="\d+"/g) || []).map(function (s) { return s.replace(/\D/g, ''); });
-  ok('10 · De punta a punta: solo cambian la portada y la lámina con datos; cada una lleva su nota amarilla (con número propio y dentro de la lámina); el relato dice la base, lo actualizado, lo que hay que revisar y lo que falta',
-     nuevas.join(',') === 'ppt/slides/slide1.xml,ppt/slides/slide12.xml' && res.partes.length === 7 && res.partes[4].getDataAsString() === matSR &&
+  // Desde el 12-oct-2026 (BorradorSemana.gs) cada lámina lleva su nota ACTUALIZADA o NO ACTUALIZADA: las de Simón Rodríguez
+  // y la otra también cambian, pero solo por la nota.
+  var x3 = res.partes[4].getDataAsString(), x4 = res.partes[5].getDataAsString();
+  ok('10 · De punta a punta: la portada y la lámina con datos se actualizan y las otras dos solo reciben «NO ACTUALIZADA»; cada nota con número propio y dentro de la lámina; el relato dice la base, lo actualizado, lo que hay que revisar y lo que falta',
+     nuevas.join(',') === 'ppt/slides/slide1.xml,ppt/slides/slide12.xml,ppt/slides/slide3.xml,ppt/slides/slide4.xml' && res.partes.length === 7 &&
+     /<a:t>ACTUALIZADA<\/a:t>/.test(x12) && /<a:t>NO ACTUALIZADA<\/a:t>/.test(x3) && /<a:t>NO ACTUALIZADA<\/a:t>/.test(x4) &&
+     /ACTUALIZADAS \(1\): láminas 2/.test(x1) && /NO ACTUALIZADAS \(2\): láminas 3, 4/.test(x1) && bienFormado(x3) && bienFormado(x4) &&
      (x1.match(/name="Nota del borrador"/g) || []).length === 1 && (x12.match(/name="Nota del borrador"/g) || []).length === 1 && ids.length === new Set(ids).size &&
      x1.indexOf('Nota del borrador') < x1.indexOf('</p:spTree>') && bienFormado(x1) && bienFormado(x12) &&
      res.lineas[1] === 'Base: 2026-09-25 Informe General v2.pptx' && res.lineas.some(function (l) { return /Lámina 2 · materiales de Simón Bolívar \(reunión del 28-09-2026\)/.test(l); }) &&
      res.lineas.some(function (l) { return /Lámina 3: materiales de Simón Rodríguez SIN actualizar/.test(l); }) && res.lineas.some(function (l) { return /EMPRESA QUE NO FUE/.test(l); }) &&
-     res.lineas.some(function (l) { return /^LO DEMÁS VIENE IGUAL/.test(l); }),
+     res.lineas.some(function (l) { return /^NO ACTUALIZADAS \(2\): láminas 3, 4\. Cada una dice qué revisar/.test(l); }),
      'cambiaron: ' + nuevas.join(', ') + ' · ' + res.lineas.length + ' renglones en la nota');
 
   return R.join('\n');

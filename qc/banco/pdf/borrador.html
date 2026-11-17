@@ -8,7 +8,7 @@ window.MimeType = {}; window.SpreadsheetApp = {}; window.PropertiesService = {};
 window.Utilities = { newBlob: function (t, tipo, n) { return { __nuevo: true, getName: function () { return n; }, getDataAsString: function () { return t; } }; },
   DigestAlgorithm: { MD5: 1 }, Charset: { UTF_8: 1 }, computeDigest: function (a, t) { var h = [0, 0, 0, 0]; for (var i = 0; i < t.length; i++) h[i % 4] = (h[i % 4] * 31 + t.charCodeAt(i)) & 0xff; return h; } };
 window.__listo = (async () => {
-  for (const g of ['Smartsheet.gs', 'Tablero.gs', 'Contactos.gs', 'Reuniones.gs', 'Minutas.gs', 'BorradorInforme.gs']) (0, eval)(await (await fetch(g)).text());
+  for (const g of ['Smartsheet.gs', 'Tablero.gs', 'Contactos.gs', 'Reuniones.gs', 'Minutas.gs', 'BorradorInforme.gs', 'BorradorSemana.gs']) (0, eval)(await (await fetch(g)).text());
   return 'ok';
 })();
 </script></body>

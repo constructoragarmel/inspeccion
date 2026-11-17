@@ -22,6 +22,7 @@
   h = _pdfHtmlUrbanismo(sobre([{ nombre: 'Bote de material', cant: '12', ud: 'm³', heredado: 'URB-X', camiones: [{ placa: 'H', m3: '12', viajes: '1' }] }]));
   ok('La fila de camiones va justo debajo de su partida', /Bote de material[\s\S]*?<\/tr><tr><td><\/td><td colspan="6"[^>]*><b>Camiones:<\/b> Camión 1 \(H\)/.test(h));
   h = _pdfHtmlUrbanismo(sobre([{ nombre: 'Bote de material', ud: 'm³', camiones: [{ placa: 'SIN', m3: '3', viajes: '2' }] }]));
-  ok('(BORDE) camiones sin cant ni calidad: la partida no sale y los camiones tampoco', !/Camiones:/.test(h), /Bote de material/.test(h) ? 'sale' : 'no sale');
+  // r61 (14-oct-2026): «la partida con solo camiones o maquinaria también escribe su fila»; antes no salía.
+  ok('(BORDE) camiones sin cant ni calidad: desde el r61 la partida sale, con sus camiones', /Bote de material/.test(h) && /Camiones:<\/b> Camión 1 \(SIN\): 3 m³ × 2 viaje\(s\)/.test(h), (h.match(/Camiones:<\/b>[^<]*/) || ['sin camiones'])[0]);
   window.__t20pdf = R; return R;
 })();
