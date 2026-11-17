@@ -2,6 +2,8 @@
 // 1 dónde están · 2 solo Bote calcula · 3-4 en Desmalezamiento el camión es registro y no toca el ejecutado · 5 Bote sigue igual
 // 6 lo que viaja · 7 el borrador conserva maquinaria y camiones · 8 al heredar la visita anterior no pasa la maquinaria ni los camiones
 // 9 el envío lleva maquinaria y camiones · 10 cabe en 375 px. Corre sobre urbanismo.html?prueba=1.
+// 17-nov-2026: «a mano» es la casilla «Hoy». Desde la v188 (27-oct, 24d7b21) cada partida diaria lleva «Hoy» y «Anterior», y el
+// acumulado (.cant) se calcula solo y queda bloqueado; Bote de material sigue calculando con sus camiones como antes.
 localStorage.clear();
 // el relevo falso guarda estado entre tandas (lento, caído, fallar): se deja como nuevo, o el envío espera para siempre
 await Q.relevo({ borrar: true, tipos: ['inspeccion', 'servicios', 'sha', 'urbanismo'], caido: false, fallar: [], lento: 0 });
@@ -22,7 +24,7 @@ ok('2 · Solo Bote calcula el ejecutado con los camiones; en las otras dos la li
 cambiar(desm().querySelector('.cant'), '1200');
 btn(desm()).click(); let f = desm().querySelector('.camion'); cambiar(f.querySelector('.placa'), 'A58CI8D'); cambiar(f.querySelector('.m3'), '16'); cambiar(f.querySelector('.viajes'), '3');
 ok('3 · En Desmalezamiento el camión no toca el ejecutado: sigue en 1200 y editable; el total cuenta 1 camión, 3 viajes y 48 m³ como registro',
-   desm().querySelector('.cant').value === '1200' && !desm().querySelector('.cant').readOnly && /1 camión\(es\) · 3 viaje\(s\) · 48 m³ hoy \(registro\)/.test(desm().querySelector('.cam-total').textContent),
+   desm().querySelector('.cant').value === '1200' && !desm().querySelector('.hoy').readOnly && /1 camión\(es\) · 3 viaje\(s\) · 48 m³ hoy \(registro\)/.test(desm().querySelector('.cam-total').textContent),
    desm().querySelector('.cant').value + ' · ' + desm().querySelector('.cam-total').textContent);
 ok('4 · En Desmalezamiento no aparece «Acumulado anterior»', getComputedStyle(desm().querySelector('.cam-base')).display === 'none');
 btn(bote()).click(); f = bote().querySelector('.camion'); cambiar(f.querySelector('.placa'), '2053'); cambiar(f.querySelector('.m3'), '25'); cambiar(f.querySelector('.viajes'), '2');

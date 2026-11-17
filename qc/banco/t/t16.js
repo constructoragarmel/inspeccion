@@ -1,11 +1,15 @@
 // INSPECCIÓN: fotos en varios hitos del ámbito, con acentos en el texto libre
+// 17-nov-2026: el apartamento pasa de «4B» a «B1». Desde la v180 (192, 20-oct) en una torre con lista (la T-05: A1, A2, B1, B2) un
+// apartamento fuera de ella no se envía, y esta tanda prueba las fotos, no eso.
+localStorage.setItem('garmel_clave_envio', 'qc');   // 17-nov-2026: la tanda pone su clave. Antes la heredaba de otra corrida en el mismo navegador; con el teléfono limpio de headless.py no enviaba («no está configurado para enviar»).
 localStorage.setItem('garmel_rol', 'inspector');
+{ const c = document.getElementById('claveEnvio'); if (c && !c.value) c.value = 'qc'; if (typeof refrescarEstadoClave === 'function') refrescarEstadoClave(); }   // en obra la clave se lee del campo, que se llena al abrir
 const sel = (id, v) => { const e = document.getElementById(id); if (!e) return false; e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); e.dispatchEvent(new Event('input', { bubbles: true })); return true; };
 sel('torre', [...document.getElementById('torre').options].map(o => o.value).find(v => /T-05/.test(v)));
 const insp = document.querySelector('.inspector-select');
 insp.value = [...insp.options].map(o => o.value).filter(Boolean)[0]; insp.dispatchEvent(new Event('change', {bubbles:true}));
 sel('piso', [...document.getElementById('piso').options].map(o => o.value).filter(Boolean)[1]);
-const apto = document.getElementById('apto'); apto.value = '4B'; apto.dispatchEvent(new Event('input', {bubbles:true}));
+const apto = document.getElementById('apto'); apto.value = 'B1'; apto.dispatchEvent(new Event('input', {bubbles:true}));
 document.querySelector('#estatus .ck-lbl').click();
 ok('Cabecera completa', !!document.getElementById('torre').value && !!document.getElementById('piso').value && !!insp.value && !!document.querySelectorAll('#estatus .ck-lbl.on').length);
 const hitos = _hitosDelAmbito().slice(0, 3).map(p => p.id);

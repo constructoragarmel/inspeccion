@@ -1,4 +1,8 @@
 // SERVICIOS: apartamentos con acentos, fotos en servicios y en apartamentos
+// 17-nov-2026: se contesta un Sí/No del primer servicio antes de enviar. Desde la v180 (192, 20-oct) un informe sin ninguna
+// respuesta —aunque tenga fotos y filas de apartamento con nombre— es «vacío» y «Enviar todos» no lo manda; esta tanda prueba
+// los nombres de las fotos, no eso.
+localStorage.setItem('garmel_clave_envio', 'qc');   // 17-nov-2026: la tanda pone su clave. Antes la heredaba de otra corrida en el mismo navegador; con el teléfono limpio de headless.py no enviaba («no está configurado para enviar»).
 Object.keys(localStorage).filter(k => /garmel_srv_/.test(k)).forEach(k => localStorage.removeItem(k));
 nuevoInforme(); Q.elegir($('#torre'), 'T-05'); await esperar(150);
 if ($('#aviso-historial .no')) $('#aviso-historial .no').click();
@@ -15,6 +19,7 @@ for (const nombre of ['4B Ñandú', 'Área 5-C', 'PB · côté']){
   Q.ponerFotos(f.querySelector('input[type=file]'), [await Q.foto(700,500,150 + $$('.fila-apto').length)]);
   await hasta(() => f.querySelectorAll('.foto img').length === 1, 10000);
 }
+{ const it = document.querySelector('#srv-' + sid + ' .item'); marcarSN(it.querySelector('.sino').children[0], 'SI'); }
 guardar(false); await _escrituraFotos;
 Q.dialogos = []; enviar(); await esperar(400); await hasta(() => !_tandaEnCurso && !$('#cartel-envio'), 40000);
 const env = (await Q.envios()).slice(-1)[0];

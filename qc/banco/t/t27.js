@@ -1,6 +1,8 @@
 // INFORME ANTERIOR · tanda 2 de 5 — BORDES (29-sep-2026), contra el relevo falso.
 // v180 (20-oct-2026): «A» y «B» pasaron a A1 y B1, y el «4» = «04» se prueba en la T-04 de Simón Rodríguez, que no tiene lista:
 // en la T-07 de Ezequiel Zamora un apartamento sin la forma de la lista ya no sale (192).
+// 17-nov-2026: la torre sin lista pasa de la T-04 a la T-12 (también de Simón Rodríguez): desde el 2-nov (2df1dcd) la T-04 tiene
+// lista fija de apartamentos (letra + piso) y el «4» ya no es un apartamento suyo.
 localStorage.setItem('garmel_rol', 'inspector');
 localStorage.setItem('garmel_clave_envio', 'qc');
 const put = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -10,7 +12,7 @@ const aviso = () => (document.getElementById('aviso-anterior')?.innerText || '')
 const limpiar = async () => { Q.aceptar = true; nuevoFormulario(); await esperar(300); };
 const cabecera = (piso, apto, fecha, sinLista) => {
   sel('fecha', fecha || '2026-09-29');
-  if (sinLista) { sel('convenio', 'Convenio Rusos'); sel('torre', 'T-04'); } else { sel('torre', 'T-07'); sel('convenio', 'Convenio Bielorrusos'); }
+  if (sinLista) { sel('convenio', 'Convenio Rusos'); sel('torre', 'T-12'); } else { sel('torre', 'T-07'); sel('convenio', 'Convenio Bielorrusos'); }
   const emp = [...document.getElementById('empresa').options].map(o => o.value);
   sel('empresa', emp.find(x => /ALNAVIC/i.test(x)) || emp[1]);
   const insp = document.querySelector('.inspector-select');

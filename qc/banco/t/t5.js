@@ -1,4 +1,8 @@
 // TANDA 5 · Urbanismo: 48 fotos, IndexedDB, envío en todas sus formas
+// 17-nov-2026: el pie de drenaje es «pie 2. DRENAJE»: desde la v89 (24-sep) «1. Obras Preliminares» va primero. Y las fotos del
+// informe que sigue en pantalla pasan a «ya en Drive» al volver a abrirlo (cargarInforme pinta así las que IndexedDB ya soltó):
+// el 47 lo reabre antes de contar.
+localStorage.setItem('garmel_clave_envio', 'qc');   // 17-nov-2026: la tanda pone su clave. Antes la heredaba de otra corrida en el mismo navegador; con el teléfono limpio de headless.py no enviaba («no está configurado para enviar»).
 const EZ = TORRES_DATA[0].c; const conv = $('#convenio'), torre = $('#torre');
 const items = sid => $$('#items-' + sid + ' .item');
 const kb = b => Math.round(b / 1024) + ' KB'; const ms = t => Math.round(t) + ' ms';
@@ -24,7 +28,7 @@ const idGordo = idActual;
 
 // 2. reabrir desde Informes: 48 fotos de vuelta con sus pies
 nuevoInforme(); t = Date.now(); cargarInforme(idGordo); const ok2 = await hasta(() => $$('.foto img').length === 48, 20000); const t3 = Date.now() - t;
-ok('Reabierto con las 48 en menos de 3 s, pies intactos', ok2 && t3 < 3000 && $$('#fotos-urb_drenaje .foto textarea')[0].value === 'pie 1. DRENAJE', ms(t3));
+ok('Reabierto con las 48 en menos de 3 s, pies intactos', ok2 && t3 < 3000 && $$('#fotos-urb_drenaje .foto textarea')[0].value === 'pie 2. DRENAJE', ms(t3));
 ok('Las secciones con fotos se reabren desplegadas', GENERAL.slice(0, 8).every(g => !$('#srv-' + g.id + ' .cuerpo').hidden));
 
 // 3. freno: relevo sin urbanismo, relevo caído
@@ -41,9 +45,10 @@ Q.dialogos = []; t = Date.now(); enviar(); await esperarEnvio(); const t4 = Date
 let env = await Q.envios();
 ok('Enviado: 48 fotos aparte, tipo urbanismo', env.length === 1 && env[0].fotos.length === 48 && env[0].tipo === 'urbanismo', env[0] && (env[0].fotos.length + ' · ' + kb(env[0].bytes) + ' · ' + ms(t4)));
 ok('Nombres de foto por sección: urb_drenaje-1 … (según el motor)', env[0] && env[0].fotos.slice(0, 2).join(), env[0] && env[0].fotos.slice(0, 2).join());
-ok('Los pies viajan en datos.general[].fotos[].pie', env[0] && env[0].datos.general[1].fotos[0].pie === 'pie 1. DRENAJE');
+ok('Los pies viajan en datos.general[].fotos[].pie', env[0] && env[0].datos.general[1].fotos[0].pie === 'pie 2. DRENAJE');
 const idb = await FotosDB.leer(idGordo).then(g => Object.keys(g).length);
-ok('IndexedDB soltó las 48 y en pantalla hay 48 «ya en Drive»', idb === 0 && $$('.enDrive').length === 48, idb + ' · ' + $$('.enDrive').length);
+nuevoInforme(); cargarInforme(idGordo); await _fotosCargando; await esperar(300);
+ok('IndexedDB soltó las 48 y al reabrirlo hay 48 «ya en Drive»', idb === 0 && $$('.enDrive').length === 48, idb + ' · ' + $$('.enDrive').length);
 ok('Aviso de resultado: «1 informe(s) enviado»', Q.dialogos.some(d => /1 informe\(s\) enviado/.test(d)), Q.dialogos.slice(-1)[0]);
 ok('La ficha del informe en la lista dice enviado', listaGuardada()[0].enviado);
 

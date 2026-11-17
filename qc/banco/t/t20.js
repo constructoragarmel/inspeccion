@@ -1,6 +1,9 @@
 // TANDA 20 · Estrés de lo del 24-sep (v89): Obras Preliminares, camiones y
 // secciones retiradas. Diez QC; el 6 sigue en t20b (tras recargar) y el 10 es
 // del PDF (qc/banco/pdf, `t20pdf.js`). Arranca en un teléfono limpio con clave.
+// 17-nov-2026: desde la v188 (27-oct, 1de10c7) Gas y Telecomunicaciones son secciones fijas y las agregadas a mano con ese nombre
+// pasan a ellas (ABSORBIDAS): QC7 ya no las cuenta como «legítimas» y comprueba adónde van. Y el aviso de QC8 dice ahora
+// «OBRAS PRELIMINARES ya es una sección fija: agregue ahí la partida que falte».
 Object.keys(localStorage).filter(k => /garmel_urb_/.test(k)).forEach(k => localStorage.removeItem(k));
 localStorage.setItem('garmel_clave_envio', 'clave-falsa');
 nuevoInforme();
@@ -107,7 +110,8 @@ ok('QC5 · las otras partidas no llevan claves de camiones', env && env.datos.ge
 // ── QC7 · secciones retiradas: variantes y datos rotos ────────────────────
 const ret = ['urb_x_obraspreliminares', 'urb_x_obraspreliminar', 'urb_x_demalezamiento', 'urb_x_desmalezamiento', 'urb_x_desmalezado', 'urb_x_preliminares', 'URB_X_OBRASPRELIMINARES'];
 ok('QC7 · todas las variantes de Gabriel se reconocen', ret.every(id => RETIRADA.test(id)), ret.filter(id => !RETIRADA.test(id)).join());
-const legit = ['urb_x_gas', 'urb_x_telecomunicaciones', 'urb_x_movimientodetierra', 'urb_x_controldemalezas', 'urb_x_obraspreliminaresdevialidad', 'urb_x_malezas', 'urb_x_obraspreliminaresfase2'];
+ok('QC7 · Gas y Telecomunicaciones agregadas a mano van a sus secciones fijas (v188)', destinoRetirada('urb_x_gas') === 'urb_gas' && destinoRetirada('urb_x_telecomunicaciones') === 'urb_telecomunicaciones', destinoRetirada('urb_x_gas') + ' · ' + destinoRetirada('urb_x_telecomunicaciones'));
+const legit = ['urb_x_movimientodetierra', 'urb_x_controldemalezas', 'urb_x_obraspreliminaresdevialidad', 'urb_x_malezas', 'urb_x_obraspreliminaresfase2'];
 ok('QC7 · el patrón no se lleva secciones legítimas (malezas, preliminares de vialidad…)', !legit.some(id => RETIRADA.test(id)), legit.filter(id => RETIRADA.test(id)).join(', ') || 'ninguna');
 const n0 = GENERAL.length;
 const lista = listaGuardada();
@@ -134,7 +138,7 @@ ok('QC8 · 15 agregadas: numeradas 10…24 en orden', GENERAL.slice(9).map(g => 
 const rec = JSON.parse(localStorage.getItem('garmel_urb_secciones'));
 ok('QC8 · recordadas las 15, ninguna retirada', rec.length === 15 && !rec.some(s => RETIRADA.test(s.id)));
 Q.dialogos = []; $('#ns-nombre').value = 'Desmalezamiento'; agregarSeccion();
-ok('QC8 · «Desmalezamiento» como sección nueva se rechaza', GENERAL.length === 24 && /sección 1/.test(Q.dialogos.join()), Q.dialogos.join());
+ok('QC8 · «Desmalezamiento» como sección nueva se rechaza', GENERAL.length === 24 && /ya es una sección fija/.test(Q.dialogos.join()), Q.dialogos.join());
 while (GENERAL.length > 9) GENERAL.pop(); localStorage.removeItem('garmel_urb_secciones'); pintarGeneral();
 
 // ── QC9 · Planificación con camiones ──────────────────────────────────────

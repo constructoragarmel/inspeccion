@@ -5,6 +5,8 @@
 // 6 sin lista (Simón Rodríguez) se escriben: «b10, c10 C10 A10 d10» da B10 C10 D10 · 7 abrir una copia la trae con su apartamento,
 // lo medido y la foto · 8 «Enviar todos» manda cada copia con su número y su foto · 9 en blanco o sin apartamento no repite: lo dice ·
 // 10 nada se sale a 375 px y los botones miden 44 px.
+// 17-nov-2026: el 6 pasa de la T-04 a la T-12 (también de Simón Rodríguez, sin lista). Desde el 2-nov (2df1dcd) la T-04 tiene
+// lista fija de apartamentos (letra + piso), y con lista «Repetir» ofrece casillas, no el campo «Sin lista» que prueba el 6.
 localStorage.setItem('garmel_rol', 'inspector'); localStorage.setItem('garmel_clave_envio', 'qc'); localStorage.setItem('garmel_reports_list', '[]');
 await Q.relevo({ caido: false, fallar: [], lento: 0, colgar: 0, perder: false, borrar: true });
 Q.aceptar = true;
@@ -56,7 +58,7 @@ const a5 = $$('#repetir-modal .repetir-lista input').find(i => i.value === 'A1')
 ok('5 · Repetir otra vez en A1: dice que ya hay y no deja guardar', $('#repetir-si').disabled && /Ya hay informe de A1/.test($('#repetir-van').textContent), $('#repetir-van').textContent);
 $('#repetir-no').click(); await esperar(100);
 // ── 6 ──
-await cabecera('Convenio Rusos', 'T-04', 'Piso 10', 'A10');
+await cabecera('Convenio Rusos', 'T-12', 'Piso 10', 'A10');
 mide('2.01', '20', '0'); saveDraft(true); await esperar(300);
 const nro6 = getFormData().nro;
 b1.click(); await esperar(200);

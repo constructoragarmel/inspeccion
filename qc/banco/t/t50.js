@@ -4,6 +4,8 @@
 // 8 al marcar N/A la fila dice qué significa, y se quita al desmarcar · 9 N/A sobre un cero lo saca del promedio
 // 10 lo que viaja · 11 con tres N/A pregunta antes de enviar y «Cancelar» no envía · 12 con dos no pregunta
 // 13 el borrador conserva el cero · 14 la nota no ensancha la página · 15 y 16 la leyenda al inicio de cada hito (v108)
+// 17-nov-2026: el 16 abre los hitos del ámbito antes de medir la leyenda («se ve con el hito abierto»). Desde la v175 los hitos
+// arrancan plegados salvo el primero, y lo que la tanda tocó antes dejaba uno cerrado: contaba 7 a la vista en vez de 8.
 localStorage.setItem('garmel_rol', 'inspector');
 localStorage.setItem('garmel_clave_envio', 'qc');
 const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); e.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -136,6 +138,7 @@ const primera = ley[0];
 ok('15 · Cada hito del ámbito abre con la leyenda del N/A, antes de la primera subpartida, y dice que lo no iniciado no es N/A',
    hitos.length >= 8 && ley.every(l => l && l.nextElementSibling && l.nextElementSibling.classList.contains('tbl-wrap') && /no existe aquí/.test(l.textContent) && /no está iniciado/.test(l.textContent)),
    hitos.length + ' hitos · con leyenda ' + ley.filter(Boolean).length);
+hitos.forEach(h => h.classList.remove('collapsed'));
 const vis = ley.filter(l => l && l.offsetParent), r0 = primera.getBoundingClientRect();
 ok('16 · La leyenda se ve con el hito abierto, cabe a ' + ancho + ' px y no sale en el PDF (solo pantalla)',
    vis.length >= 8 && vis.every(l => { const r = l.getBoundingClientRect(); return r.left >= 0 && r.right <= ancho + 1 && r.height <= 110; }) &&

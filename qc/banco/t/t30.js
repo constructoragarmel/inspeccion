@@ -1,4 +1,7 @@
 // INFORME ANTERIOR · tanda 5 de 5 — UX (29-sep-2026). Se corre a 375×812 y a 320×640.
+// 17-nov-2026: el 17 mide contra el bloque del apartamento que se ve. Desde la v158 (13-oct) en Ezequiel Zamora el apartamento es un
+// desplegable (#apto-sel) y el campo de texto #apto queda oculto: medido contra él (alto 0, arriba del todo) daba «1644 px». Y el
+// bloque trae ahora una línea de ayuda debajo del desplegable: el aviso va pegado al bloque (11 px), no al desplegable.
 localStorage.setItem('garmel_rol', 'inspector');
 localStorage.setItem('garmel_clave_envio', 'qc');
 const W = innerWidth, H = innerHeight;
@@ -33,7 +36,8 @@ ok('16 · @' + W + ': el aviso cabe, sin scroll lateral, y sus dos botones miden
 await limpiar(); setAmbito('apartamento'); cabecera();
 sel('piso', 'Piso 02'); put('apto', 'A');
 await esperarAviso(); await esperar(300);
-const rApto = document.getElementById('apto').getBoundingClientRect(), ra = caja().getBoundingClientRect();
+const campoApto = ['apto-sel', 'apto'].map(id => document.getElementById(id)).find(e => e && e.offsetParent);
+const rApto = (campoApto.closest('.field') || campoApto).getBoundingClientRect(), ra = caja().getBoundingClientRect();
 const distancia = Math.round(ra.top - rApto.bottom);
 ok('17 · @' + W + ': el aviso aparece justo debajo del campo del apartamento (a menos de 60 px), no más abajo de la pantalla',
    distancia >= 0 && distancia < 60 && ra.height < H * 0.6, 'distancia ' + distancia + ' px · alto del aviso ' + Math.round(ra.height) + ' px');

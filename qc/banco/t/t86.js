@@ -4,6 +4,8 @@
 // 6 quitar todos los camiones en registro · 7 en registro los viajes no pisan la cantidad escrita · 8 maqueta cargada a 375 px
 // 9 la vista previa (plantilla del PDF del relevo) imprime los camiones de Desmalezamiento · 10 la memoria de la manzana para la visita siguiente.
 // Corre sobre urbanismo.html?prueba=1.
+// 17-nov-2026: «a mano» es la casilla «Hoy». Desde la v188 (27-oct, 24d7b21) cada partida diaria lleva «Hoy» y «Anterior», y el
+// acumulado (.cant) se calcula solo y queda bloqueado; Bote de material sigue calculando con sus camiones como antes.
 localStorage.clear();
 await Q.relevo({ borrar: true, tipos: ['inspeccion', 'servicios', 'sha', 'urbanismo'], caido: false, fallar: [], lento: 0 });
 Q.aceptar = true;
@@ -37,7 +39,7 @@ const ofrece2 = getComputedStyle(ant(desm())).display !== 'none' && /Traer los 2
 ant(desm()).click();
 ok('2 · Al traer la visita anterior, Desmalezamiento hereda 900 (sin maquinaria), ofrece «Traer los 2 camiones»; al traerlos quedan sin viajes y el 900 sigue a mano',
    ofrece2 && desm().querySelector('.cant').value === '900' && desm().querySelector('.maquinaria').value === '' && desm().querySelectorAll('.camion').length === 2 &&
-   fila(desm(), 1).querySelector('.viajes').value === '' && !desm().querySelector('.cant').readOnly && /2 camión\(es\) · 0 viaje\(s\) · 0 m³ hoy \(registro\)/.test(desm().querySelector('.cam-total').textContent),
+   fila(desm(), 1).querySelector('.viajes').value === '' && !desm().querySelector('.hoy').readOnly && /2 camión\(es\) · 0 viaje\(s\) · 0 m³ hoy \(registro\)/.test(desm().querySelector('.cam-total').textContent),
    [desm().querySelector('.cant').value, '«' + desm().querySelector('.maquinaria').value + '»', desm().querySelectorAll('.camion').length + ' camiones', desm().querySelector('.cam-total').textContent].join(' · '));
 
 // 3. un ítem con solo maquinaria, o solo camiones, es contenido: el informe se guarda y no cuenta como vacío
@@ -83,7 +85,7 @@ ok('7 · En Desmalezamiento, escribir 1350 después de anotar el camión y luego
    desm().querySelector('.cant').value === '1350' && /5 viaje/.test(desm().querySelector('.cam-total').textContent), desm().querySelector('.cant').value + ' · ' + desm().querySelector('.cam-total').textContent);
 Q.aceptar = true; fila(desm(), 0).querySelector('.quitar-cam').click();
 ok('6 · Al quitar el único camión de Desmalezamiento la cantidad sigue en 1350 y editable, y el total se vacía',
-   desm().querySelectorAll('.camion').length === 0 && desm().querySelector('.cant').value === '1350' && !desm().querySelector('.cant').readOnly && desm().querySelector('.cam-total').textContent === '',
+   desm().querySelectorAll('.camion').length === 0 && desm().querySelector('.cant').value === '1350' && !desm().querySelector('.hoy').readOnly && desm().querySelector('.cam-total').textContent === '',
    desm().querySelector('.cant').value);
 
 // 8. maqueta cargada: dos camiones y maquinaria en las tres partidas

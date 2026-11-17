@@ -4,6 +4,8 @@
 // como borradores nuevos, sin esas marcas · d lo escrito raro («<b>X1</b>», «a-1», espacios; la «/» también separa) se limpia como el
 // campo del apartamento y no se cuela HTML · e seguir editando el original después de repetir no toca las copias · f dos toques seguidos a
 // «Guardar» no hacen copias dobles.
+// 17-nov-2026: la torre pasa de la T-04 a la T-12 (también de Simón Rodríguez). Desde el 2-nov (2df1dcd) la T-04 tiene lista
+// fija de apartamentos (letra + piso), y con lista «Repetir» ofrece casillas, no el campo de texto que esta tanda escribe.
 localStorage.setItem('garmel_rol', 'inspector'); localStorage.setItem('garmel_clave_envio', 'qc'); localStorage.setItem('garmel_reports_list', '[]');
 await Q.relevo({ caido: false, fallar: [], lento: 0, colgar: 0, perder: false, borrar: true });
 Q.aceptar = true;
@@ -13,7 +15,7 @@ const rid = cod => { for (const h of PARTIDAS) { const i = (CODIGOS_SUB[h.id] ||
 const mide = (cod, pr, ej) => { const r = rid(cod), a = document.getElementById('pr_' + r), b = document.getElementById('ej_' + r); a.value = pr; b.value = ej; recalcRow(a); b.dispatchEvent(new Event('input', { bubbles: true })); };
 const cabecera = async (piso, a) => {
   nuevoFormulario(); await esperar(300); setAmbito('apartamento'); await esperar(200);
-  sel('fecha', '2026-10-27'); sel('convenio', 'Convenio Rusos'); sel('torre', 'T-04'); await esperar(300); sel('piso', piso); put('apto', a); await esperar(900);
+  sel('fecha', '2026-10-27'); sel('convenio', 'Convenio Rusos'); sel('torre', 'T-12'); await esperar(300); sel('piso', piso); put('apto', a); await esperar(900);
   { const x = document.getElementById('aviso-anterior'); if (x) x.innerHTML = ''; }
   const ins = document.querySelector('.inspector-select'); Q.elegir(ins, [...ins.options].map(o => o.value).filter(Boolean)[0]);
   if (!document.querySelector('#estatus .ck-lbl.on')) document.querySelector('#estatus .ck-lbl').click();

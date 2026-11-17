@@ -1,6 +1,9 @@
 // TANDA 119 · V181 (21-oct-2026): rondas 1 a 5 de QC del compilado de obra por contratista (ADR-0049), pedidas por Stephanie antes de
 // publicar. En compilado.html?prueba=1, a 375×812, con el relevo falso. 1 semana sin informes en ninguna torre · 2 BZS, siete torres,
 // dos lentas y una de 60 apartamentos · 3 una torre que no se puede leer · 4 los números raros del % · 5 textos largos, emojis y saltos.
+// 17-nov-2026: R1.1 ya no pide «No hubo informes de apartamento». Desde el relevo r75 (27-oct, t134) cada torre trae todos sus
+// apartamentos con su último informe aunque en la semana no haya llegado ninguno; lo de la semana lo dicen el aviso de arriba,
+// «No hubo informe de torre» y «0 informes en la semana».
 localStorage.clear(); localStorage.setItem('garmel_clave_envio', 'qc'); await Q.relevo({ borrar: true, caido: false, lento: 0, fallarTorres: [], tardaTorre: {} });
 const sel = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); };
 const con = re => [...$('#torre').options].find(o => re.test(o.value)).value;
@@ -11,9 +14,9 @@ const sec = t => secs().find(x => x.dataset.torre === t);
 sel('tipo', 'obra'); sel('sector', 'EZ'); sel('quien', COORDINADORES[0].n);
 // ── Ronda 1 · semana sin informes ──
 sel('torre', con(/ALNAVIC/)); fechas('2026-12-03', '2026-12-09'); await pedir();
-ok('R1.1 · Semana sin informes: lo dice para la contratista y cada torre dice que no hubo apartamentos ni informe de torre',
+ok('R1.1 · Semana sin informes: lo dice para la contratista y cada torre dice 0 informes en la semana y que no hubo informe de torre',
    !$('#sin-informes').hidden && /No llegó ningún informe de obra de las torres de .*ALNAVIC/.test($('#sin-informes').textContent) && secs().length === 4 &&
-   secs().every(s => /No hubo informes de apartamento/.test(s.textContent) && /No hubo informe de torre/.test(s.textContent) && /0 informes en la semana/.test(s.querySelector('h2').textContent)), $('#sin-informes').textContent.slice(0, 120));
+   secs().every(s => /No hubo informe de torre/.test(s.textContent) && /0 informes en la semana/.test(s.querySelector('h2').textContent)), $('#sin-informes').textContent.slice(0, 120));
 ok('R1.2 · Aun sin informes, cada torre trae su % de la app (es a la fecha, no de la semana)', secs().every(s => /%/.test((s.querySelector('.av-num') || {}).textContent || '')));
 Q.escribir($('#t-otros'), 'Semana sin inspección por lluvias');
 const e0 = (await Q.envios()).length; await enviar(); await hasta(() => /archivado|No se pudo/.test($('#estado-envio').textContent), 8000);

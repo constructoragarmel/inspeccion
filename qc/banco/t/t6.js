@@ -1,4 +1,8 @@
 // TANDA 6 · SHA: incidencias (accidentes)
+// 17-nov-2026: SHA tiene cuatro pestañas desde la v113 (2-oct, t54): Recaudos, Hallazgos de campo, Incidencias y Obstáculos.
+// 17-nov-2026: al reabrir, «Picadura de abeja» sale elegida en el desplegable y no en «Otro»: desde la v82 (21-sep) el tipo escrito
+// a mano queda recordado como opción de la lista (lo prueba «El tipo nuevo se recordó»). Vale cualquiera de las dos.
+localStorage.setItem('garmel_clave_envio', 'qc');   // 17-nov-2026: la tanda pone su clave. Antes la heredaba de otra corrida en el mismo navegador; con el teléfono limpio de headless.py no enviaba («no está configurado para enviar»).
 const REC = '#items-sha_recaudos .item';
 const incs = () => $$('#filas-inc .fila-inc');
 const esperarEnvio = async () => { await esperar(300); return hasta(() => !_tandaEnCurso && !$('#cartel-envio'), 60000); };
@@ -7,7 +11,7 @@ const cabecera = async (t) => { Q.elegir($('#torre'), t); await esperar(100); if
 const inc = (fecha, tipo, notas, acc, estado) => { addIncidencia(); const f = incs().pop(); if (fecha) Q.escribir(f.querySelector('.inc-fecha'), fecha); if (tipo !== undefined){ const sel = f.querySelector('.inc-tipo-sel'); if ([...sel.options].some(o => o.value === tipo)) Q.elegir(sel, tipo); else { Q.elegir(sel, '__otro'); Q.escribir(f.querySelector('.inc-tipo'), tipo); } } if (notas) Q.escribir(f.querySelector('.inc-notas'), notas); if (acc) Q.escribir(f.querySelector('.inc-acciones'), acc); if (estado) [...f.querySelectorAll('.sem button')].find(b => b.dataset.estado === estado).click(); return f; };
 
 // 1. pestaña y fila nueva
-ok('Tres pestañas: Recaudos · Hallazgos de campo · Incidencias', $$('.pestanas button').map(b => b.textContent.trim()).join(' · ') === 'Recaudos · Hallazgos de campo · Incidencias', $$('.pestanas button').map(b => b.textContent.trim()).join(' · '));
+ok('Pestañas: Recaudos · Hallazgos de campo · Incidencias (· Obstáculos desde la v113)', $$('.pestanas button').map(b => b.textContent.trim()).join(' · ') === 'Recaudos · Hallazgos de campo · Incidencias · Obstáculos', $$('.pestanas button').map(b => b.textContent.trim()).join(' · '));
 verPanel('c');
 ok('Panel C visible con el texto de vacío y el botón de agregar', $('#panel-c').classList.contains('on') && /Todavía no hay incidencias/.test($('#c-vacio').textContent) && $('#panel-c .btn-add'));
 await cabecera('T-45');
@@ -45,7 +49,7 @@ ok('El tipo nuevo se recordó en el teléfono', tiposRecordados().includes('Pica
 
 // 4. reabrir: todo vuelve, incluidas las fotos de cada incidencia
 nuevoInforme(); cargarInforme(id1); await hasta(() => $$('#filas-inc .foto img').length === 5, 10000); await esperar(100);
-ok('Reabierto: 3 incidencias, tipo «Otro» con su texto, fechas, estados, 5 fotos con pies', incs().length === 3 && incs()[1].querySelector('.inc-tipo').value === 'Picadura de abeja' && incs()[1].querySelector('.inc-tipo-sel').value === '__otro' && incs()[1].querySelector('.inc-fecha').value === '2026-09-19' && valorSem(incs()[2]) === 'Cerrada' && $$('#filas-inc .foto img').length === 5 && $$('#filas-inc .foto textarea')[0].value === 'pie inc 0');
+ok('Reabierto: 3 incidencias, tipo «Otro» con su texto, fechas, estados, 5 fotos con pies', incs().length === 3 && incs()[1].querySelector('.inc-tipo').value === 'Picadura de abeja' && ['__otro', 'Picadura de abeja'].indexOf(incs()[1].querySelector('.inc-tipo-sel').value) >= 0 && incs()[1].querySelector('.inc-fecha').value === '2026-09-19' && valorSem(incs()[2]) === 'Cerrada' && $$('#filas-inc .foto img').length === 5 && $$('#filas-inc .foto textarea')[0].value === 'pie inc 0');
 ok('El nuevo informe tras reabrir tiene Picadura de abeja en la lista de tipos', (function(){ addIncidencia(); const f = incs().pop(); const r = [...f.querySelector('.inc-tipo-sel').options].some(o => o.value === 'Picadura de abeja'); quitarIncidencia(f.querySelector('.quitar')); return r; })());
 
 // 5. quitar la PRIMERA incidencia (3 fotos) y guardar: ¿las fotos de la que queda son las suyas?

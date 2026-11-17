@@ -1,4 +1,5 @@
 // SHA: hallazgos con acentos, incidencias con fotos, recaudos y generales
+localStorage.setItem('garmel_clave_envio', 'qc');   // 17-nov-2026: la tanda pone su clave. Antes la heredaba de otra corrida en el mismo navegador; con el teléfono limpio de headless.py no enviaba («no está configurado para enviar»).
 Object.keys(localStorage).filter(k => /garmel_sha_/.test(k)).forEach(k => localStorage.removeItem(k));
 nuevoInforme(); Q.elegir($('#torre'), 'T-45'); await esperar(150);
 if ($('#aviso-historial .no')) $('#aviso-historial .no').click();

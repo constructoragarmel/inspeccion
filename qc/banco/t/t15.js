@@ -1,4 +1,5 @@
 // URBANISMO: acentos y ñ en todo lo que pueda nombrar una foto
+localStorage.setItem('garmel_clave_envio', 'qc');   // 17-nov-2026: la tanda pone su clave. Antes la heredaba de otra corrida en el mismo navegador; con el teléfono limpio de headless.py no enviaba («no está configurado para enviar»).
 const EZ = TORRES_DATA[0].c;
 Object.keys(localStorage).filter(k => /garmel_urb_/.test(k)).forEach(k => localStorage.removeItem(k));
 nuevoInforme(); Q.elegir($('#inspectores select'), INSPECTORES_DB[0]);

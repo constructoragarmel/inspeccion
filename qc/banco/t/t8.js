@@ -1,4 +1,8 @@
 // TANDA 8 · Urbanismo: volumen — 30 manzanas, 30 informes con fotos, tanda de 30, cuota llena, 20 secciones + 100 partidas recordadas
+// 17-nov-2026: las cuentas fijas (42 partidas, 9 + 20 = 29 secciones) eran de antes de la v188 (27-oct, 1de10c7), que sumó
+// «Demolición de pavimento», el «Colchón de arena» de cada tendido y las secciones fijas de Telecomunicaciones y Gas. Ahora se
+// cuentan al empezar, en un informe nuevo (BASE partidas, SECC0 secciones); lo que se prueba es el volumen, no cuántas son.
+localStorage.setItem('garmel_clave_envio', 'qc');   // 17-nov-2026: la tanda pone su clave. Antes la heredaba de otra corrida en el mismo navegador; con el teléfono limpio de headless.py no enviaba («no está configurado para enviar»).
 const EZ = TORRES_DATA[0].c; const conv = $('#convenio'), torre = $('#torre');
 const items = sid => $$('#items-' + sid + ' .item');
 const ms = t => Math.round(t) + ' ms'; const kb = b => Math.round(b / 1024) + ' KB';
@@ -7,6 +11,7 @@ await Q.relevo({ borrar: true, tipos: ['inspeccion', 'servicios', 'sha', 'urbani
 const esperarEnvio = async () => { await esperar(300); return hasta(() => !_tandaEnCurso && !$('#cartel-envio'), 120000); };
 const insp = () => Q.elegir($('#inspectores select'), INSPECTORES_DB[1]);
 
+nuevoInforme(); const BASE = $$('.item').length, SECC0 = GENERAL.length;
 // 1. 30 manzanas agregadas en SR y SB
 let t = Date.now();
 for (let i = 1; i <= 30; i++){ abrirNuevaManzana(); $('#nm-sector').value = i % 2 ? 'Convenio Rusos' : 'Convenio Chinos'; $('#nm-nombre').value = 'M-' + (100 + i); guardarNuevaManzana(); }
@@ -25,7 +30,7 @@ for (let i = 1; i <= 30; i++){
   guardar(false); await _escrituraFotos; tMax = Math.max(tMax, Date.now() - t0);
 }
 const tTotal = Date.now() - t;
-ok('30 informes guardados con 42 partidas y 2 fotos', listaGuardada().length === 30 && listaGuardada().every(x => x.general.reduce((s, g) => s + g.items.length, 0) === 42 && x.general[6].fotos.length === 2), ms(tTotal) + ' total · peor informe ' + ms(tMax));
+ok('30 informes guardados con ' + BASE + ' partidas y 2 fotos', listaGuardada().length === 30 && listaGuardada().every(x => x.general.reduce((s, g) => s + g.items.length, 0) === BASE && x.general[6].fotos.length === 2), ms(tTotal) + ' total · peor informe ' + ms(tMax));
 const tam = (localStorage.getItem('garmel_urb_list') || '').length + (localStorage.getItem('garmel_urb_torres') || '').length;
 ok('localStorage con 30 informes: ' + kb(tam) + ' (lejos de 4,8 MB)', tam < 1500000, kb(tam));
 ok('estadosDeTorres tiene las 30 manzanas', Object.keys(estadosDeTorres()).length === 30);
@@ -62,9 +67,9 @@ ok('Al volver el espacio, la foto entra en el siguiente guardado', Object.keys(a
 for (let i = 1; i <= 20; i++){ $('#ns-nombre').value = 'Sección extra ' + i; agregarSeccion(); }
 const mem = memoriaItems(); GENERAL.forEach(g => { mem[g.id] = (mem[g.id] || []).concat(Array.from({ length: 4 }, (_, k) => 'Partida recordada ' + k + ' de ' + g.id)); }); guardarMemoriaItems(mem);
 t = Date.now(); nuevoInforme(); const tP = Date.now() - t;
-ok('29 secciones y ' + $$('.item').length + ' partidas: «Nuevo» pinta en ' + ms(tP), GENERAL.length === 29 && $$('.item').length >= 42 + 112 && tP < 1500, ms(tP));
+ok((SECC0 + 20) + ' secciones y ' + $$('.item').length + ' partidas: «Nuevo» pinta en ' + ms(tP), GENERAL.length === SECC0 + 20 && $$('.item').length >= BASE + 4 * (SECC0 + 20) && tP < 1500, ms(tP));
 ok('Sin scroll horizontal con 28 secciones', document.documentElement.scrollWidth <= innerWidth);
 Q.elegir($('#convenio'), 'Convenio Rusos'); await esperar(100);   // 20-oct: las manzanas se filtran por sector (M-101 es de SR)
 t = Date.now(); insp(); Q.elegir(torre, 'M-101'); await esperar(50); $('#aviso-historial .si') && $('#aviso-historial .si').click(); const tH = Date.now() - t;
-ok('Traer historial de M-101 con 151 partidas en pantalla: ' + ms(tH), tH < 1500 && $$('.item.heredado').length === 42, $$('.item.heredado').length);
+ok('Traer historial de M-101 con ' + $$('.item').length + ' partidas en pantalla: ' + ms(tH), tH < 1500 && $$('.item.heredado').length === BASE, $$('.item.heredado').length + ' de ' + BASE);
 ok('Ningún error de página', !Q.R.some(r => /pageerror|unhandled/.test(r.n)));
