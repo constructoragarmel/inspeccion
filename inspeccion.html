@@ -914,6 +914,9 @@ tr.heredada td.desc{background:#fff8e1}
 .abrir-txt{font-size:11px;font-weight:700;color:#fff;opacity:.9;margin-right:2px}
 .partida.collapsed .abrir-txt::before{content:'Abrir'}
 .partida:not(.collapsed) .abrir-txt::before{content:'Cerrar'}
+/* 17-nov-2026: a 320 px, con el hito abierto («No inspeccionado» + % + «Cerrar» + flecha) la cabecera se salía 4 a 15 px (t25).
+   En las pantallas más angostas queda la flecha sola, que dice lo mismo. */
+@media (max-width:340px){.abrir-txt{display:none}}
 .partida.collapsed .no-insp-tgl:not(.on){display:none!important}
 textarea{font-family:inherit}
 .multi-input-row:only-child .btn-remove-item{display:none}
