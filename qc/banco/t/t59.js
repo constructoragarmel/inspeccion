@@ -3,6 +3,10 @@
 // 1 el botón, primero detrás del «⋯» · 2 en blanco avisa y no abre · 3 con contenido abre la hoja con el título, el número y lo escrito
 // 4 la foto tomada sale en la hoja · 5 no se envió nada · 6 si falta algo de la cabecera, lo dice arriba · 7 la hoja cabe a lo ancho, entera
 // 8 «Cerrar» la quita y el formulario queda como estaba · 9 «Ver» en un informe guardado sin enviar, con sus fotos · 10 un enviado no lo ofrece
+// 17-nov-2026: el 9 salía «fotos 0» en headless.py (Chrome sin ventana) y en verde en el navegador visible a 375 px.
+// No es el formulario: con --virtual-time-budget la escritura de las fotos en IndexedDB no termina (se midió: sigue
+// pendiente 60 s virtuales después de guardar), y «Ver» lee un informe sin fotos. Ahora la tanda espera esa escritura
+// antes de tocar «Ver» y, si no termina, el 9 lo dice. Este chequeo vale en un navegador de verdad, no en headless.py.
 const pagina = /sha\.html/.test(location.pathname) ? 'sha' : /urbanismo\.html/.test(location.pathname) ? 'urbanismo' : 'servicios';
 const TITULO = { urbanismo: /INFORME DE INSPECCI[ÓO]N DE URBANISMO/, servicios: /SERVICIOS/, sha: /SHA|SEGURIDAD/ }[pagina];
 const nuevo = async () => { Q.aceptar = true; nuevoInforme(); await esperar(150); if ($('#aviso-historial .no')) $('#aviso-historial .no').click(); };
@@ -83,7 +87,9 @@ if (ancho < 760) {
 ok('8 · «Cerrar» la quita y el formulario queda como estaba', !vp() && $('#obs_general').value === TEXTO && grid.children.length === 1 && numeroInforme() === nro, 'observación y foto en su sitio');
 
 // Un informe guardado
-guardar(false); const id9 = idActual; await esperar(800);
+guardar(false); const id9 = idActual;
+let fotosEscritas = false; _escrituraFotos.then(() => { fotosEscritas = true; }, () => {});
+await esperar(800); await hasta(() => fotosEscritas, 10000);
 await nuevo();
 abrirInformes(); await esperar(100);
 const ver = [...document.querySelectorAll('#modal-informes .ficha button')].find(b => /Ver/.test(b.textContent));
@@ -91,7 +97,7 @@ ok('9a · En «Informes», el que está sin enviar tiene «👁 Ver», y sus cua
 if (ver) ver.click();
 const doc9 = await hoja(), t9 = doc9.body.innerText;
 ok('9 · «Ver» abre la hoja de ese informe guardado, con su foto, aunque en pantalla haya otro', t9.indexOf(nro) >= 0 && t9.indexOf(TEXTO) >= 0 && [...doc9.querySelectorAll('img')].filter(i => /^data:image\/jpe?g/.test(i.src)).length === 1 && $('#modal-informes').hidden && $('#obs_general').value === '',
-   nro + ' · fotos ' + [...doc9.querySelectorAll('img')].filter(i => /^data:image\/jpe?g/.test(i.src)).length);
+   (fotosEscritas ? '' : 'las fotos no terminaron de escribirse en IndexedDB (¿Chrome sin ventana? este chequeo se corre en un navegador visible) · ') + nro + ' · fotos ' + [...doc9.querySelectorAll('img')].filter(i => /^data:image\/jpe?g/.test(i.src)).length);
 _vpCerrar();
 
 const l = listaGuardada(); const x = l.find(y => y.id === id9); x.enviado = '02/10 12:00';

@@ -6,6 +6,9 @@ Hace falta cuando el navegador no está a la vista: oculto, Chrome estrangula lo
 fotos no terminan. Aquí el tiempo es virtual (--virtual-time-budget), así que no hay estrangulamiento.
 OJO: sin ventana el ancho mínimo es 500 px. Las comprobaciones de maqueta (375 y 320 px) se corren en un navegador
 de verdad; aquí salen en verde aunque el formulario se saliera en un teléfono.
+OJO también: con el tiempo virtual IndexedDB no termina de escribir (17-nov-2026: las fotos de un informe guardado
+seguían pendientes 60 s virtuales después). Lo que relee fotos guardadas —«Ver» de t59, por ejemplo— se corre en un
+navegador de verdad; aquí sale en rojo aunque el formulario esté bien.
 
 Antes:  python3 qc/banco/preparar.py <banco>  ·  relevo-falso.py y estatico.py corriendo (8776 y 8777).
 Uso:    python3 qc/banco/headless.py <banco> inspeccion:t21,t24 urbanismo:t46 [--ancho 375] [--alto 812]
