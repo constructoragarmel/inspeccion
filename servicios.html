@@ -1829,8 +1829,12 @@ function cargarInforme(id){
     _fotosCargando = FotosDB.leer(d.id).catch(() => ({})).then(grupos => {
       if (idActual !== d.id) return;
       (d.general || []).forEach(g => {
+        // 17-nov-2026: una sección que no se pintó —en urbanismo, la Gas o Telecomunicaciones agregada a mano antes de la v188,
+        // que sin fotos se pasa a su sección fija— no tiene grilla. Sin este salto, pintarFotos(null) reventaba aquí y no se
+        // pintaban las fotos de Minutas ni de los apartamentos; el guardado siguiente las dejaba fuera del informe.
+        const grid = document.getElementById('fotos-' + g.id); if (!grid) return;
         const datos = grupos[g.id] || [];
-        pintarFotos(document.getElementById('fotos-' + g.id), (g.fotos || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : datos[k] || '') })));
+        pintarFotos(grid, (g.fotos || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : datos[k] || '') })));
       });
       const dmin = grupos['minutas'] || [];
       pintarFotos(document.getElementById(GRID_MINUTAS), (d.fotosMinutas || []).map((f, k) => ({ pie: f.pie, dato: f.dato || (f.enDrive ? '' : dmin[k] || '') })));
