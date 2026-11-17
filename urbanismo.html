@@ -328,7 +328,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
     <button type="button" class="hbtn hbtn-saved-list" onclick="abrirInformes()" title="Los informes que hay en este teléfono, enviados y sin enviar">📁 <span>Informes</span><b id="cnt"></b></button>
     <button type="button" class="hbtn hbtn-send" onclick="enviar()" title="Manda a Drive todos los pendientes. Hasta entonces viven solo aquí">📤 <span>Enviar</span><b id="cnt-pend"></b></button>
     <button type="button" class="hbtn hbtn-mas" id="btn-mas" onclick="toggleMasAcciones()" title="Resto de las acciones">⋯ <span>Más</span></button>
-    <span class="pie" id="pie">● <span id="conexion">en línea</span> · v208</span>
+    <span class="pie" id="pie">● <span id="conexion">en línea</span> · v209</span>
     <div class="hdr-sec" id="fila-mas">
       <button type="button" class="hbtn hbtn-pdf" onclick="vistaPrevia()" title="Muestra el informe como saldrá en el PDF, sin enviarlo">🖨️ <span>PDF</span></button>
       <button type="button" class="hbtn hbtn-save" onclick="guardar(true)" title="Guarda en este teléfono. Se guarda solo a los 2 segundos y cada 30">💾 <span>Guardar</span></button>
@@ -368,7 +368,7 @@ body:not(.plan) .item.heredado.her-pr .etq-her{display:none}
       </div>
       <div class="campo">
         <label for="residente">Ingeniero residente</label>
-        <input type="text" id="residente" placeholder="Escríbalo la primera vez; se recuerda por manzana">
+        <input type="text" id="residente" placeholder="Escriba el residente de hoy">
       </div>
       <div class="campo">
         <label for="fecha">Fecha de inspección</label>
@@ -939,7 +939,7 @@ function actualizarCuentas(){
     const hechos = items.filter(i => valorSN(i) || i.querySelector('.cant').value).length;
     // «4/6 · 3 sin revisar»: de las cuatro contestadas, tres vienen de la
     // visita anterior y nadie las ha tocado hoy. Cuando se tocan, baja.
-    const her = items.filter(i => i.classList.contains('heredado') && (valorSN(i) || i.querySelector('.cant').value)).length;
+    const her = items.filter(i => i.classList.contains('heredado') && !(i.classList.contains('her-pr') && !i.classList.contains('copiada')) && (valorSN(i) || i.querySelector('.cant').value)).length;
     el.textContent = items.length ? '· ' + hechos + '/' + items.length + (her ? ' · ' + her + ' sin revisar' : '') : '';
   });
 }
