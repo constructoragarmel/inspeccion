@@ -33,13 +33,17 @@
     Object.keys(p).forEach(function (c) { s += p[c]; if (!codigos[c]) malas.push(t + ':' + c); });
     if (Math.abs(s - 1) > 0.002) malas.push(t + ' suma ' + s.toFixed(4));
   });
-  var inmo = ['D-08', 'J-07', 'T-12', 'T-13', 'T-38', 'T-39'].filter(function (t) {
+  // 17-nov-2026 (ADR-0057 del repositorio Garmel): la D-08 tiene presupuesto (el de su contrato 2); las otras cinco,
+  // todavía no. Son 33 torres: entró SB-D08 y salieron SR-T05, T-15 y T-17 de AROA 93.
+  var inmo = ['J-07', 'T-12', 'T-13', 'T-38', 'T-39'].filter(function (t) {
     return !_aplicaDeTorre({ torre: t, sector: sectorDe[t] }).sinPresupuesto; });
+  var d08 = _aplicaDeTorre({ torre: 'D-08', sector: 'SB' });
   var t56 = _aplicaDeTorre({ torre: 'T-56', sector: 'EZ' }).codigos || [];
-  ok('10 · Pesos: 34 torres, cada una suma 1 y solo usa códigos de la lista (ninguno retirado); las 6 de la Inmobiliaria salen sin presupuesto',
-     Object.keys(PESOS_POR_TORRE.torres).length === 34 && malas.length === 0 && inmo.length === 0 &&
+  ok('10 · Pesos: 33 torres, cada una suma 1 y solo usa códigos de la lista (ninguno retirado); J-07, T-12, T-13, T-38 y T-39 sin presupuesto y la D-08 con el de VIALPA',
+     Object.keys(PESOS_POR_TORRE.torres).length === 33 && malas.length === 0 && inmo.length === 0 &&
+     !d08.sinPresupuesto && d08.contratista === 'VIALPA' &&
      t56.indexOf('9.05') >= 0 && t56.indexOf('12.01') < 0,
      Object.keys(PESOS_POR_TORRE.torres).length + ' torres · problemas: ' + (malas.join(', ') || 'ninguno') +
-     ' · Inmobiliaria con presupuesto: ' + (inmo.join(',') || 'ninguna') + ' · T-56 trae 9.05: ' + (t56.indexOf('9.05') >= 0));
+     ' · sin contrato 2 con presupuesto: ' + (inmo.join(',') || 'ninguna') + ' · D-08: ' + (d08.contratista || 'sin presupuesto') + ' · T-56 trae 9.05: ' + (t56.indexOf('9.05') >= 0));
   return R;
 })();

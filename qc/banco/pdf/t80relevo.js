@@ -26,6 +26,6 @@
      errC || (r && r.error) || JSON.stringify([p302, p401]).slice(0, 220));
   ok('V4 · …y conserva el hito, el ámbito y el peso de Pesos.gs', p401 && p401.hito === 4 && !!p401.ambito && p401.peso > 0 && p401.promedio === 30, JSON.stringify(p401));
   window.carpetaDeTorre = bak.c; window._leerAvanceTorre = bak.l;
-  ok('V5 · La versión del relevo es r80 o posterior', /^r(8[0-9])-/.test(RELEVO_VERSION), RELEVO_VERSION);
+  ok('V5 · La versión del relevo es r80 o posterior', +((/^r(\d+)-/.exec(RELEVO_VERSION) || [])[1] || 0) >= 80, RELEVO_VERSION);
   return R.join('\n');
 })();
