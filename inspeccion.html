@@ -869,6 +869,9 @@ tr.subgrupo td{background:#eef0fb;color:#1a237e;font-weight:800;font-size:11px;t
 .ofi-btn.sec{background:#fff;color:#1a237e}
 .ofi-btn.ok{background:#2e7d32;border-color:#2e7d32}
 .ofi-btn:disabled{opacity:.5;cursor:default}
+/* 17-nov-2026: con «Ver PDF» y «Abrir para corregir» (sin partir) la tabla mide ~650 px; en una pantalla angosta se desplaza
+   dentro de su caja en vez de correr la página entera de lado. */
+.ofi-lista{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .ofi-lista table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px;background:#fff}
 .ofi-lista th,.ofi-lista td{padding:6px 8px;border-bottom:1px solid #e0e3f0;text-align:left;vertical-align:middle}
 .ofi-lista th{background:#e8eaf6;color:#1a237e;font-size:11px;text-transform:uppercase;letter-spacing:.3px}
