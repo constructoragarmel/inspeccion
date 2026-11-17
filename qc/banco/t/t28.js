@@ -1,4 +1,10 @@
 // INFORME ANTERIOR · tanda 3 de 5 — INTERACCIÓN (29-sep-2026), contra el relevo falso.
+// 17-nov-2026, dos cambios hechos a propósito después:
+// · 7: desde el cambio 196 (27-oct, 0b2c9d6) lo que ya estaba al 100 % se trae solo y cerrado al elegir el apartamento, antes de
+//   tocar nada. Las tomas del informe anterior estaban completas y llegan así. Lo que se prueba sigue siendo que «Traer», con algo
+//   ya medido, no pisa ni agrega nada: se compara con lo que había justo antes del toque, no con vacío.
+// · 9: desde el 2-nov (8b1eb83, Leidy en la T-16) «Torre completa» trae sola lo acumulado y el aviso dice «Se trajo lo acumulado
+//   de la torre» en vez de «Esta torre ya tiene un informe». Los valores que se miden son los mismos.
 localStorage.setItem('garmel_rol', 'inspector');
 localStorage.setItem('garmel_clave_envio', 'qc');
 const put = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); };
@@ -41,9 +47,11 @@ ok('6 · Al cambiar de torre el aviso viejo se quita en el acto y el nuevo trae 
 await limpiar(); setAmbito('apartamento'); cabecera('T-07', 'Piso 02', 'A');
 await esperarAviso();
 put('pr_hito_acc_electricos_1', '3');
+const antes7 = [...document.querySelectorAll('input[id^="pr_"], input[id^="ej_"], input[id^="pm_"]')].map(e => e.id + '=' + e.value).join();
 document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
+const despues7 = [...document.querySelectorAll('input[id^="pr_"], input[id^="ej_"], input[id^="pm_"]')].map(e => e.id + '=' + e.value).join();
 ok('7 · Con algo ya medido, tocar «Traer» no trae nada (no pisa lo escrito) y el aviso se va',
-   document.getElementById('pr_hito_acc_electricos_0').value === '' && document.getElementById('pr_hito_acc_electricos_1').value === '3' && aviso() === '',
+   antes7 === despues7 && document.getElementById('pr_hito_acc_electricos_1').value === '3' && aviso() === '',
    'tomas hay=«' + document.getElementById('pr_hito_acc_electricos_0').value + '» · interr=' + document.getElementById('pr_hito_acc_electricos_1').value);
 
 // ── 8. Las cantidades «hay»: solo filas de conteo del apartamento ──
@@ -63,7 +71,7 @@ guardarNuevo();
 await limpiar(); setAmbito('torre'); await esperar(200); cabecera('T-09');
 const a9 = await esperarAviso(); document.querySelector('#aviso-anterior .si')?.click(); await esperar(300);
 ok('9 · Torre: trae el acero con su unidad kg y su 35 %, el encofrado al 80 % y contra incendio al 25 %',
-   /Esta torre/.test(a9) && document.getElementById('ud_hito_estructura_1').value === 'kg' && pct('hito_estructura_1') === '35%' &&
+   /Esta torre|Se trajo lo acumulado de la torre/.test(a9) && document.getElementById('ud_hito_estructura_1').value === 'kg' && pct('hito_estructura_1') === '35%' &&
    pct('hito_estructura_0') === '80%' && pct('hito_exteriores_7') === '25%',
    'ud=' + document.getElementById('ud_hito_estructura_1').value + ' acero ' + pct('hito_estructura_1') + ' encofrado ' + pct('hito_estructura_0') + ' fachada PB ' + pct('hito_exteriores_7'));
 
