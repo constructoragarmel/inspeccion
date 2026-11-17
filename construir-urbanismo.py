@@ -87,7 +87,10 @@ H = sustituir(H, """      <div class="campo">
       </div>""", "3· sector primero, manzana en vez de torre")
 H = sustituir(H, 'placeholder="Se llena al elegir la torre"', 'placeholder="Se llena al elegir la manzana"', "5· placeholders", n=2)
 H = sustituir(H, '<input type="text" id="residente" placeholder="Se llena al elegir la manzana">',
-                 '<input type="text" id="residente" placeholder="Escríbalo la primera vez; se recuerda por manzana">', "5b· residente")
+                 '<input type="text" id="residente" placeholder="Escriba el residente de hoy">', "5b· residente")
+# 17-nov-2026 (Stephanie González): manda el maestro (v167). El residente escrito no se recuerda por manzana ni vuelve con
+# «traer lo anterior», así que el campo ya no lo promete. El campo solo queda vacío cuando el maestro no tiene residente
+# para la empresa; el texto mide 195 px y cabe a 375 px (el anterior medía 364 y se cortaba).
 H = sustituir(H, """  <div class="tarjeta">
     <label style="font-weight:600;font-size:13px;color:#475569">Observación general</label>
     <textarea id="obs_general" placeholder="Lo que no cabe en ningún servicio..."></textarea>

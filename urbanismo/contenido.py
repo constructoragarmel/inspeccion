@@ -18,8 +18,9 @@ deja agregar manzanas, secciones y partidas desde el teléfono, y las recuerda.
 #
 # El «torre» del motor es aquí la manzana o el lote. La empresa de urbanismo es
 # una por sector (Skarlet y Stephanie, 21-sep): ADDISON en Ezequiel Zamora,
-# PROCODIMA en Simón Rodríguez, RACAR en Simón Bolívar. Residente: se escribe
-# la primera vez y el teléfono lo recuerda por manzana.
+# PROCODIMA en Simón Rodríguez, RACAR en Simón Bolívar. Residente: lo propone el
+# maestro de la empresa (RESIDENTE_POR_EMPRESA, v167) y manda él; lo escrito a mano
+# vale para ese informe y no se recuerda por manzana (decidido el 17-nov-2026).
 EMPRESA_POR_SECTOR = {
     "Convenio Bielorusos": "ADDISON",
     "Convenio Rusos":      "PROCODIMA, C.A.",
