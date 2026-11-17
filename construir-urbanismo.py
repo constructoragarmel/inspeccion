@@ -613,7 +613,10 @@ J = sustituir(J, "  const items = [...document.querySelectorAll('.item')].filter
 J = sustituir(J, "    const hechos = items.filter(i => valorSN(i)).length;",
                  "    const hechos = items.filter(i => valorSN(i) || i.querySelector('.cant').value).length;", "14j· cuenta")
 J = sustituir(J, "    const her = items.filter(i => i.classList.contains('heredado') && valorSN(i)).length;",
-                 "    const her = items.filter(i => i.classList.contains('heredado') && (valorSN(i) || i.querySelector('.cant').value)).length;", "14k· sin revisar en la cuenta")
+# 14k · v188: el acumulado heredado de la visita anterior (her-pr) es el «Anterior», no algo por revisar; el aviso de «Enviar»
+# ya no lo contaba y la cuenta de la sección sí («5/5 · 5 sin revisar» con nada por revisar, 17-nov-2026, t4). Se cuenta con la
+# misma regla que el aviso: her-pr no cuenta, salvo lo copiado de otra manzana (18).
+                 "    const her = items.filter(i => i.classList.contains('heredado') && !(i.classList.contains('her-pr') && !i.classList.contains('copiada')) && (valorSN(i) || i.querySelector('.cant').value)).length;", "14k· sin revisar en la cuenta")
 J = sustituir(J, "  (d.general || []).forEach(g => (g.items || []).forEach(i => { if (i.heredado && i.sn) n++; }));",
                  "  (d.general || []).forEach(g => (g.items || []).forEach(i => { if (i.heredado && (i.sn || i.cant)) n++; }));", "14l· sin revisar al enviar")
 J = sustituir(J, "function actualizarCuentas(){\n", "function actualizarCuentas(){\n  actualizarAvances();\n", "14m· avances al marcar")
