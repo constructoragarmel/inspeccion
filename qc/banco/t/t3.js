@@ -37,9 +37,9 @@ let d = datosDelFormulario();
 ok('Los 5 proyectados están en los datos', d.general[1].items.map(i => i.pr).join() === '100,200,300,400,500', d.general[1].items.map(i => i.pr).join());
 const antes = listaGuardada().length; const g = guardar(true);
 ok('(HALLAZGO) un informe con SOLO proyectadas se considera «en blanco» y NO se guarda', g === true && listaGuardada().length === antes + 1, 'guardar→' + g + ' · ' + (Q.dialogos.slice(-1)[0] || '') + ' · lista ' + antes + '→' + listaGuardada().length);
-// PENDIENTE DE DECISIÓN (17-nov-2026): desde la v83 «contestada» es calidad o cantidad; una partida con solo el proyectado
-// no cuenta (el proyectado es la meta). Este hallazgo del 21-sep nunca se decidió: se deja en rojo hasta decidir.
-ok('(HALLAZGO) …ni cuenta como contestado para la sección', /1\/5|5\/5/.test($('#cuenta-urb_drenaje').textContent), JSON.stringify($('#cuenta-urb_drenaje').textContent));
+// Decidido el 17-nov-2026 (Stephanie González): el proyectado es la meta, no una medición, así que una partida con solo el
+// proyectado NO cuenta como contestada (así es desde la v83). Cierra el hallazgo del 21-sep.
+ok('Solo proyectadas: la sección sigue en 0/5 contestadas (el proyectado es la meta)', /0\/5/.test($('#cuenta-urb_drenaje').textContent), JSON.stringify($('#cuenta-urb_drenaje').textContent));
 Q.dialogos = []; siguienteTorre();
 ok('(HALLAZGO) «Sig. manzana» con solo proyectadas: ¿quedó guardado M-1 L1?', listaGuardada().some(x => x.torre === 'M-1 L1'), listaGuardada().map(x => x.torre).join());
 // con una cantidad además, sí

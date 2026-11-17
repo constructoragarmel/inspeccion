@@ -80,7 +80,7 @@ ok('Sig. manzana: guarda 1 informe, conserva sector SR, inspector GB y fecha; su
 ok('(UX) tras Sig. manzana la empresa del sector queda visible', /PROCODIMA/.test($('#empresa').value), $('#empresa').value);
 ok('El informe guardado lleva manzana, sector, empresa, residente y la cantidad', (function(){ const d = listaGuardada()[0]; return d.torre === 'ÑANDÚ/2 "B" <B>X</B>' && d.convenio === 'Convenio Rusos' && /PROCODIMA/.test(d.empresa) && d.residente === 'ING. RESIDENTE SR' && d.general[1].items[0].cant === '12.5' && d.general[1].items[0].ud === 'm'; })(), JSON.stringify(listaGuardada()[0]).slice(0, 200));
 
-// 8. residente «se recuerda por manzana»: volver a elegirla
+// 8. residente al volver a la manzana: manda el del maestro (17-nov-2026)
 Q.elegir(torre, 'ÑANDÚ/2 "B" <B>X</B>'); await esperar(300);
 const banner = $('#aviso-historial').textContent.replace(/\s+/g, ' ');
 ok('Al volver a la manzana ofrece la visita anterior', /ya tiene un informe anterior/.test(banner), banner.slice(0, 100));
@@ -90,9 +90,12 @@ ok('Al elegir la manzana se propone el residente de la empresa (v167)', $('#resi
 ok('El aviso cuenta la cantidad escrita: «1 partida(s) con dato»', /1 partida\(s\) con dato/.test(banner), (banner.match(/\d+ partida\(s\) con dato/) || [banner.slice(0, 80)])[0]);
 ok('El banner no inyecta HTML con el nombre raro de la manzana', !$('#aviso-historial b'));
 $('#aviso-historial .si').click(); await esperar(100);
-// PENDIENTE DE DECISIÓN (17-nov-2026): con el maestro (v167) el residente escrito no se recuerda por manzana ni vuelve con
-// «Sí, traer lo anterior»: queda el del maestro, aunque el campo dice «se recuerda por manzana». Se deja en rojo hasta decidir.
-ok('Con «Sí»: residente vuelve, la cantidad 12.5 vuelve en amarillo (heredada)', $('#residente').value === 'ING. RESIDENTE SR' && it0.querySelector('.cant').value === '12.5' && it0.classList.contains('heredado'), $('#residente').value + ' · ' + it0.querySelector('.cant').value);
+// Decidido el 17-nov-2026 (Stephanie González): manda el maestro. El residente escrito no se recuerda por manzana ni vuelve
+// con «Sí, traer lo anterior»: queda el que propone el maestro para la empresa, y el campo ya no promete recordarlo.
+// v188 (27-oct-2026, t135): la cantidad heredada vuelve como «Anterior» (her-pr), no como «sin revisar».
+// Se lee la partida que está en pantalla ahora: el formulario vuelve a dibujar las partidas al traer lo anterior.
+const it1 = $('#items-urb_drenaje .item');
+ok('Con «Sí»: el residente es el del maestro (no el escrito la vez anterior) y la cantidad 12.5 vuelve como «Anterior» (her-pr: no queda «sin revisar», v188)', $('#residente').value === residenteDe($('#empresa').value) && $('#residente').value !== 'ING. RESIDENTE SR' && it1.querySelector('.cant').value === '12.5' && (it1.querySelector('.ant') || {}).value === '12.5' && it1.classList.contains('her-pr'), $('#residente').value + ' · cant ' + it1.querySelector('.cant').value + ' · anterior ' + (it1.querySelector('.ant') || {}).value + ' · ' + it1.className);
 
 // 9. Nuevo conserva sector
 nuevoInforme();
