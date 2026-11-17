@@ -1348,3 +1348,24 @@ la tanda, que el navegador estira a 1 s con el panel oculto. Con la v205, en el 
 `t138` (su pantalla cambió después del 27-oct), `t129`, `t130` y `t132` en obra (prueban a 375 sin ventana), `t106` de SHA y
 las que envían y no terminan sin ventana (`e24` de servicios, SHA y urbanismo; `t130` de servicios; `t131` y `t135` de urbanismo).
 `e8` es de tiempos (23/25; 24/25 con la v205).
+
+## 17-nov-2026 · El banco completo de la v208, a 375 px reales
+
+Corrido entero (213 corridas) para ver si las fallas de `t47` y `t59` escondían otras. Salieron seis errores de verdad, ya
+arreglados: el aviso «1 partida… quedan cerradas» en obra; la carga de fotos que se cortaba al abrir un informe de urbanismo
+con Gas o Telecomunicaciones agregada a mano (servicios, SHA y urbanismo); la tabla del buscador de oficina que corría la
+página de lado (los cuatro); el compilado que no recordaba lo último elegido (desde la v160); «🗑️ Borrar» fuera de la tarjeta
+de «Informes» a 375 px y la cabecera de un hito abierto a 320 px (obra). Unas treinta tandas eran viejas: esperaban cosas que
+se cambiaron a propósito, y cada una dice ahora en su cabecera qué y desde cuándo. Lo que hace falta saber para no repetirlo:
+
+- **Sin ventana, en tiempo real, no con `--virtual-time-budget`**: con tiempo virtual IndexedDB no termina de escribir
+  (`t59` 9 salía «fotos 0»). Se corre a Chrome sin ventana, se espera el resultado por un POST y solo entonces se cierra.
+- **375 px de verdad**: sin ventana Chrome no baja de 500. Se carga la página dentro de un `<iframe>` de 375 (o 320) con
+  `--hide-scrollbars` (un teléfono no le resta la barra al ancho). A 500 se escapan cosas: la tabla del buscador y «Borrar».
+- **Las cadenas con recarga (`t9a`→`t9b`, `t20`→`t20b`, `t34`→`t34b`, `t79`→`t79b`) en el mismo navegador**: cerrar Chrome
+  entre una y otra pierde lo último de localStorage (no llega a disco) y parece que el borrador no se reabre. Se corre la
+  primera, se recarga la página (`location.reload()`, o con `?rol=planificacion` para `t9b`) y se sigue con la segunda.
+- **Cada tanda en su página**: `t43` y `t81` son de obra; `t83`, `t84`, `t98` y `t99` del compilado; `t6`, `t12` y `t18` de
+  SHA; `t74` necesita `?oficina=1`; `t80` va en el menú, obra y servicios. Y `reales/` (con `reales.py`) para `e17`…`e34`.
+- Queda: a 320 px las tablas de accesorios sanitarios y eléctricos del apartamento pasan 15 px su caja (`t25` 16), y la
+  cadena «Inicio» `t7b`…`t7h` (navega al menú y sin `?prueba`) no se corrió así.
