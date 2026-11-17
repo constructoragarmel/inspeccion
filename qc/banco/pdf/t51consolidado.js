@@ -1,8 +1,19 @@
 // QC del consolidado por torre y día (Consolidado.gs, r36, 1-oct-2026). Se corre en pdf/index.html del banco (Smartsheet.gs,
 // PDF.gs, ListaV2.gs, Pesos.gs y Avance.gs del repositorio Garmel) con Consolidado.gs cargado, con:
 //   eval(await (await fetch('t51consolidado.js')).text())
+// También necesita Oficina.gs (desde el r47, 6-oct, el PDF pregunta la versión del informe):
+//   python3 qc/banco/pdf/headless-relevo.py <banco> t51consolidado "Consolidado.gs,Oficina.gs"
 // Todo contra un Drive y un registro de mentira, con informes inventados.
+// El reloj queda fijo en AHORA mientras corre (17-nov-2026): _consolidados toma la hora de new Date() y los informes son
+// del 1-oct, así que fuera de esos días no encontraba ningún grupo de las últimas 48 h y la prueba se caía en el paso 4.
 (function () {
+  var _DateReal = Date, _fijo = new _DateReal('2026-10-01T22:00:00Z').getTime();
+  var _DateFija = function () { var a = [].slice.call(arguments);
+    return new (Function.prototype.bind.apply(_DateReal, [null].concat(a.length ? a : [_fijo])))(); };
+  _DateFija.prototype = _DateReal.prototype; _DateFija.now = function () { return _fijo; };
+  _DateFija.UTC = _DateReal.UTC; _DateFija.parse = _DateReal.parse;
+  window.Date = _DateFija;
+  try { return (function () {
   var R = [], ok = function (n, c, d) { R.push((c ? '✅ ' : '❌ ') + n + ' — ' + d); };
   var AHORA = new Date('2026-10-01T22:00:00Z').getTime(), H = 3600 * 1000;
   window.Logger = { log: function () {} };
@@ -140,13 +151,19 @@
      /va sin fotograf/.test(h11) && /son 70/.test(h11) && !/<img src="data:image\/jpeg/.test(h11), 'fotos en el documento: ' + (h11.match(/<img src="data:image\/jpeg/g) || []).length);
 
   // ── 12. El resumen con presupuesto ──
-  var h12 = consolidados('EZ', 'T-56')[0] ? _conHtml({ numero: 'EZ-T56-DIA-261001', sector: 'EZ', torre: 'T-56', aammdd: '261001' },
+  // Desde el r52 (8-oct-2026, ADR-0048 del repositorio Garmel) el PDF va sin cuentas mientras se actualizan los presupuestos
+  // (PDF_SIN_CUENTAS = true): el resumen pone «—». Se comprueban los dos modos; el interruptor queda como estaba.
+  var html12 = function () { return consolidados('EZ', 'T-56')[0] ? _conHtml({ numero: 'EZ-T56-DIA-261001', sector: 'EZ', torre: 'T-56', aammdd: '261001' },
      [{ numero: 'EZ-T56-P03AA-261001-IU', rev: 1, sector: 'EZ', torre: 'T-56', datos: informe('Piso 03', 'A', 'Inspector Uno', 100), fotos: [] },
-      { numero: 'EZ-T56-P03AB-261001-ID', rev: 2, sector: 'EZ', torre: 'T-56', datos: informe('Piso 03', 'B', 'Inspector Dos', 50), fotos: [] }], { cuando: '01/10/2026 a las 18:00', conFotos: true, totalFotos: 0 }) : '';
-  var fila = function (t) { var m = new RegExp('<td>' + t + '</td><td>[^<]*</td><td align="right">([^<]*)</td>').exec(h12); return m ? m[1] : '?'; };
-  ok('12 · En el resumen cada apartamento lleva su avance según el presupuesto (100 % y 50 %) y el número de su informe con la revisión',
-     fila('Piso 03 · Apto. A') === '100 %' && fila('Piso 03 · Apto. B') === '50 %' && /EZ-T56-P03AB-261001-ID-r2/.test(h12) && /2 \(2 de apartamento\)/.test(h12),
-     'A ' + fila('Piso 03 · Apto. A') + ' · B ' + fila('Piso 03 · Apto. B'));
+      { numero: 'EZ-T56-P03AB-261001-ID', rev: 2, sector: 'EZ', torre: 'T-56', datos: informe('Piso 03', 'B', 'Inspector Dos', 50), fotos: [] }], { cuando: '01/10/2026 a las 18:00', conFotos: true, totalFotos: 0 }) : ''; };
+  var sinCuentas = PDF_SIN_CUENTAS, h12 = html12();
+  PDF_SIN_CUENTAS = false; var h12c = ''; try { h12c = html12(); } finally { PDF_SIN_CUENTAS = sinCuentas; }
+  var fila = function (h, t) { var m = new RegExp('<td>' + t + '</td><td>[^<]*</td><td align="right">([^<]*)</td>').exec(h); return m ? m[1] : '?'; };
+  var A = 'Piso 03 \u00b7 Apto. A', B = 'Piso 03 \u00b7 Apto. B';
+  ok('12 · En el resumen cada apartamento lleva el número de su informe con la revisión, y su avance según el presupuesto: «—» mientras PDF_SIN_CUENTAS (hoy ' + sinCuentas + '), 100 % y 50 % sin él',
+     (sinCuentas ? fila(h12, A) === '—' && fila(h12, B) === '—' : fila(h12, A) === '100 %' && fila(h12, B) === '50 %') &&
+     fila(h12c, A) === '100 %' && fila(h12c, B) === '50 %' && /EZ-T56-P03AB-261001-ID-r2/.test(h12) && /2 \(2 de apartamento\)/.test(h12),
+     'ahora A ' + fila(h12, A) + ' · B ' + fila(h12, B) + ' · sin el interruptor A ' + fila(h12c, A) + ' · B ' + fila(h12c, B));
   // ── 13. Nombres escritos distinto ──
   var dA = informe('Piso 01', 'A', 'Inspector Uno', 100), dB = informe('Piso 01', 'B', 'Inspector Uno', 100);
   dA.residentes = ['Ing. José Pérez']; dB.residentes = ['Ing Jose Perez', 'ING. JOSÉ  PÉREZ', 'Ing. Otro Residente'];
@@ -156,4 +173,5 @@
   ok('13 · El mismo residente escrito con y sin punto o acento firma una sola vez; y la barra de cada apartamento no depende de un fondo (el conversor de Google no los pinta)',
      u13.length === 2 && u13[0] === 'Ing. José Pérez' && (h13.match(/<b>Ingeniero residente<\/b>/g) || []).length === 2 && !/bgcolor="#1a237e"/.test(h13) && /border-bottom:3px solid #1a237e/.test(h13), u13.join(' | '));
   return R.join('\n');
+  })(); } finally { window.Date = _DateReal; }
 })();
