@@ -35,11 +35,12 @@ items('urb_drenaje').forEach((x, i) => Q.escribir(x.querySelector('.cant'), Stri
 agregarItemNuevo('urb_electricidad'); const ag = items('urb_electricidad').pop(); Q.escribir(ag.querySelector('.nombre-libre'), 'Transformador'); Q.elegir(ag.querySelector('.ud-sel'), 'und'); Q.escribir(ag.querySelector('.cant'), '2'); guardar(false);
 nuevoInforme(); insp(); Q.elegir(torre, 'M-5'); await esperar(100); $('#aviso-historial .si').click(); await esperar(50);
 const b5 = $('#aviso-historial').textContent; 
-ok('5 heredados (4 cant + agregada)', $$('.item.heredado').length === 5, $$('.item.heredado').length);
+// 1de10c7 (27-oct-2026): drenaje tiene cinco partidas (entró «Colchón de arena»): 5 cantidades + la agregada.
+ok('6 heredados (5 cant de drenaje + agregada)', items('urb_drenaje').length === 5 && $$('.item.heredado').length === 6, $$('.item.heredado').length);
 Q.elegir(torre, 'M-6'); await esperar(50);
 ok('Cambiar a M-6: cantidades, unidad y agregada limpias; formulario en blanco', items('urb_drenaje').every(x => x.querySelector('.cant').value === '') && (function(){ const t = items('urb_electricidad').find(x => x.dataset.fijo === '0'); return !t || (t.querySelector('.cant').value === '' && t.querySelector('.ud-sel').value === ''); })() && formularioEnBlanco());
 nuevoInforme(); insp(); Q.elegir(torre, 'M-5'); await esperar(100);
-ok('Banner: «5 partida(s) con dato» (4 de drenaje + Transformador, como los 5 heredados)', /5 partida\(s\) con dato/.test($('#aviso-historial').textContent), $('#aviso-historial').textContent.replace(/\s+/g, ' ').slice(40, 120));
+ok('Banner: «6 partida(s) con dato» (5 de drenaje + Transformador, como los 6 heredados)', /6 partida\(s\) con dato/.test($('#aviso-historial').textContent), $('#aviso-historial').textContent.replace(/\s+/g, ' ').slice(40, 120));
 $('#aviso-historial .no').click();
 // E) faltan: partida agregada sin nombre; textos
 agregarItemNuevo('urb_drenaje'); Q.escribir(items('urb_drenaje').pop().querySelector('.cant'), '7');
@@ -49,18 +50,20 @@ quitarItem(items('urb_drenaje').pop().querySelector('.quitar-item'));
 Q.elegir(torre, ''); Q.dialogos = []; siguienteTorre();
 ok('Sin manzana: «la manzana o lote»', /la manzana o lote/.test(Q.dialogos[0] || ''), Q.dialogos[0]);
 ok('Textos: «Agregar partida», «Notas de la sección», sección vacía dice «partidas»', $('#srv-urb_drenaje .btn-add').textContent.includes('Agregar partida') && $('#srv-urb_drenaje .obs-srv').placeholder === 'Notas de la sección...');
+// 1de10c7 (27-oct-2026): Gas y Telecomunicaciones son fijas y lo agregado a mano con ese nombre se absorbe
+// (ABSORBIDAS): la sección agregada de la prueba pasa a ser «Riego», y las fijas son 11.
 // F) agregar sección con solo nota + foto + NI: se conservan
 Q.elegir(torre, 'M-6'); await esperar(50); if ($('#aviso-historial .no')) $('#aviso-historial .no').click();
 Q.escribir($('#srv-urb_vialidad .obs-srv'), 'nota sola'); Q.ponerFotos($('#srv-urb_vialidad input[type=file]'), [await Q.foto(800, 600, 61)]); await hasta(() => $$('#fotos-urb_vialidad .foto img').length === 1); toggleNoInsp('urb_paisajismo');
-$('#ns-nombre').value = 'Gas'; agregarSeccion(); await hasta(() => $$('#fotos-urb_vialidad .foto img').length === 1, 3000);
-ok('Agregar sección conserva nota, foto y NI', $('#srv-urb_vialidad .obs-srv').value === 'nota sola' && $$('#fotos-urb_vialidad .foto img').length === 1 && $('#srv-urb_paisajismo').classList.contains('no-inspeccionado') && GENERAL.some(g => g.id === 'urb_x_gas') && $('#srv-urb_x_gas .vacio').textContent.includes('partidas'), $('#srv-urb_x_gas .vacio').textContent);
+$('#ns-nombre').value = 'Riego'; agregarSeccion(); await hasta(() => $$('#fotos-urb_vialidad .foto img').length === 1, 3000);
+ok('Agregar sección conserva nota, foto y NI', $('#srv-urb_vialidad .obs-srv').value === 'nota sola' && $$('#fotos-urb_vialidad .foto img').length === 1 && $('#srv-urb_paisajismo').classList.contains('no-inspeccionado') && GENERAL.some(g => g.id === 'urb_x_riego') && $('#srv-urb_x_riego .vacio').textContent.includes('partidas'), $('#srv-urb_x_riego .vacio').textContent);
 // G) secciones agregadas vacías no viajan; con contenido sí
 $('#ns-nombre').value = 'Vacía'; agregarSeccion(); await esperar(300);
 let d = datosDelFormulario();
-ok('La sección vacía no va en los datos; las 9 fijas sí', d.general.length === 9 && !d.general.some(g => g.id === 'urb_x_vacia'), d.general.map(g => g.id).join());
-agregarItemNuevo('urb_x_gas'); const pg = items('urb_x_gas').pop(); Q.escribir(pg.querySelector('.nombre-libre'), 'Tubería'); Q.escribir(pg.querySelector('.cant'), '5');
+ok('La sección vacía no va en los datos; las 11 fijas sí', d.general.length === 11 && !d.general.some(g => g.id === 'urb_x_vacia'), d.general.map(g => g.id).join());
+agregarItemNuevo('urb_x_riego'); const pg = items('urb_x_riego').pop(); Q.escribir(pg.querySelector('.nombre-libre'), 'Tubería'); Q.escribir(pg.querySelector('.cant'), '5');
 d = datosDelFormulario();
-ok('Gas con una partida sí viaja', d.general.some(g => g.id === 'urb_x_gas' && g.items.length === 1));
+ok('Riego con una partida sí viaja', d.general.some(g => g.id === 'urb_x_riego' && g.items.length === 1));
 toggleNoInsp('urb_x_vacia'); d = datosDelFormulario();
 ok('Una agregada marcada NO INSPECCIONADO viaja', d.general.some(g => g.id === 'urb_x_vacia'));
 // H) manzana repetida: aviso con sector y sugerencia

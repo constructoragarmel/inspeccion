@@ -4,7 +4,8 @@ const ops = sel => [...sel.options].map(o => o.value + '|' + o.textContent);
 const hoy = $('#fecha').value; const fec = hoy.slice(2).replace(/-/g, '');
 
 // 1. estado inicial
-ok('Sector: 3 opciones con nombre de sector, primero «Seleccione sector»', ops(conv).length === 4 && /Ezequiel Zamora/.test(ops(conv)[1]) && /Simón Rodríguez/.test(ops(conv)[2]) && /Simón Bolívar/.test(ops(conv)[3]) && /Seleccione sector/.test(ops(conv)[0]), ops(conv).join(' ; '));
+// v143 (7-oct-2026): los sectores en el mismo orden en los cuatro formularios: Simón Bolívar, Simón Rodríguez, Ezequiel Zamora.
+ok('Sector: 3 opciones con nombre de sector, primero «Seleccione sector», en el orden de los cuatro formularios (v143)', ops(conv).length === 4 && /Simón Bolívar/.test(ops(conv)[1]) && /Simón Rodríguez/.test(ops(conv)[2]) && /Ezequiel Zamora/.test(ops(conv)[3]) && /Seleccione sector/.test(ops(conv)[0]), ops(conv).join(' ; '));
 ok('Sin sector: 9 manzanas, cada una con su sector al lado', ops(torre).length === 10 && ops(torre).slice(1).every(o => / · Ezequiel Zamora$/.test(o)), ops(torre).slice(0, 3).join(' ; '));
 ok('El sector va ANTES que la manzana en la pantalla', conv.getBoundingClientRect().top < torre.getBoundingClientRect().top);
 ok('Inspectores: Gabriel, Mariana y Alejandro primero', INSPECTORES_DB.slice(0, 3).map(x => x.split(' ')[0]).join() === 'Gabriel,Mariana,Alejandro', INSPECTORES_DB.slice(0, 4).join(' | '));
@@ -43,7 +44,8 @@ ok('Nombre vacío: avisa y no agrega', Q.dialogos.length === 1 && /nombre/.test(
 $('#nm-nombre').value = '  m-2   l3 '; guardarNuevaManzana();
 ok('«  m-2   l3 » entra como «M-2 L3» en SB, elegida, con RACAR, caja cerrada', torre.value === 'M-2 L3' && conv.value === 'Convenio Chinos' && /RACAR/.test($('#empresa').value) && $('#nueva-manzana').hidden && $('#nm-nombre').value === '', torre.value + ' · ' + $('#empresa').value);
 ok('Número con la manzana nueva: URB-SB-M2L3', /^PRUEBA-URB-SB-M2L3-/.test($('#nro').textContent), $('#nro').textContent);
-ok('Queda en el teléfono (garmel_urb_manzanas)', JSON.stringify(manzanasRecordadas()) === JSON.stringify([{ t: 'M-2 L3', c: 'Convenio Chinos', e: 'RACAR INGENIEROS, C.A.', r: '' }]), localStorage.getItem('garmel_urb_manzanas'));
+// v167: la manzana nueva se recuerda con el residente que propone el maestro para su empresa.
+ok('Queda en el teléfono (garmel_urb_manzanas), con el residente propuesto para la empresa (v167)', JSON.stringify(manzanasRecordadas()) === JSON.stringify([{ t: 'M-2 L3', c: 'Convenio Chinos', e: 'RACAR INGENIEROS, C.A.', r: residenteDe('RACAR INGENIEROS, C.A.') }]) && residenteDe('RACAR INGENIEROS, C.A.') !== '', localStorage.getItem('garmel_urb_manzanas'));
 Q.dialogos = []; abrirNuevaManzana(); $('#nm-nombre').value = 'M-2 L3'; guardarNuevaManzana();
 ok('Repetida: avisa «ya está en la lista»', /ya está en la lista/.test(Q.dialogos[0] || '') && TORRES_DATA.length === 10, Q.dialogos[0]);
 Q.dialogos = []; $('#nm-sector').value = 'Convenio Rusos'; $('#nm-nombre').value = 'M-2'; guardarNuevaManzana();
@@ -82,10 +84,14 @@ ok('El informe guardado lleva manzana, sector, empresa, residente y la cantidad'
 Q.elegir(torre, 'ÑANDÚ/2 "B" <B>X</B>'); await esperar(300);
 const banner = $('#aviso-historial').textContent.replace(/\s+/g, ' ');
 ok('Al volver a la manzana ofrece la visita anterior', /ya tiene un informe anterior/.test(banner), banner.slice(0, 100));
-ok('(UX) el residente NO vuelve solo al elegir la manzana: solo con «Sí, traer lo anterior»', $('#residente').value === '', $('#residente').value);
-ok('(UX) el banner cuenta «0 ítem(s) contestado(s)» aunque haya una cantidad escrita: cuenta solo calidades', /0 ítem\(s\)/.test(banner), banner.match(/\d+ ítem\(s\)[^.]*/) && banner.match(/\d+ ítem\(s\)[^.]*/)[0]);
+// v167: al elegir la manzana se propone el residente de la empresa (antes quedaba en blanco).
+ok('Al elegir la manzana se propone el residente de la empresa (v167)', $('#residente').value === residenteDe($('#empresa').value) && $('#residente').value !== '', $('#residente').value);
+// El aviso ya cuenta las cantidades: antes decía «0 ítem(s) contestado(s)» con una cantidad escrita (defecto anotado aquí).
+ok('El aviso cuenta la cantidad escrita: «1 partida(s) con dato»', /1 partida\(s\) con dato/.test(banner), (banner.match(/\d+ partida\(s\) con dato/) || [banner.slice(0, 80)])[0]);
 ok('El banner no inyecta HTML con el nombre raro de la manzana', !$('#aviso-historial b'));
 $('#aviso-historial .si').click(); await esperar(100);
+// PENDIENTE DE DECISIÓN (17-nov-2026): con el maestro (v167) el residente escrito no se recuerda por manzana ni vuelve con
+// «Sí, traer lo anterior»: queda el del maestro, aunque el campo dice «se recuerda por manzana». Se deja en rojo hasta decidir.
 ok('Con «Sí»: residente vuelve, la cantidad 12.5 vuelve en amarillo (heredada)', $('#residente').value === 'ING. RESIDENTE SR' && it0.querySelector('.cant').value === '12.5' && it0.classList.contains('heredado'), $('#residente').value + ' · ' + it0.querySelector('.cant').value);
 
 // 9. Nuevo conserva sector

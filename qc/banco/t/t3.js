@@ -1,4 +1,7 @@
 // TANDA 3 · Urbanismo: Planificación
+// Puesta al día del 17-nov-2026: drenaje tiene cinco partidas (1de10c7, 27-oct), el signo menos se quita al escribir
+// (como «-3 → 3» de t11), lo proyectado heredado se marca heredado + her-pr (v188) y sin clave el teléfono no envía.
+localStorage.setItem('garmel_clave_envio', 'qc');
 const EZ = TORRES_DATA[0].c; const conv = $('#convenio'), torre = $('#torre');
 const items = sid => $$('#items-' + sid + ' .item');
 const btnP = $$('.acciones button, .fila-mas button, button').find(b => /Proyectadas/.test(b.textContent));
@@ -22,7 +25,7 @@ ok('2 de 3 → 67% (redondea)', caso('2', '3') === '67%', av.textContent);
 ok('Proyectado 0 → sin porcentaje', caso('10', '0') === '', JSON.stringify(av.textContent));
 ok('Sin ejecutado → sin porcentaje', caso('', '100') === '', JSON.stringify(av.textContent));
 ok('Sin proyectado → sin porcentaje', caso('10', '') === '', JSON.stringify(av.textContent));
-ok('Negativo -5 de 100 → sin porcentaje (c>=0)', caso('-5', '100') === '', JSON.stringify(av.textContent));
+ok('Negativo -5 de 100 → el signo se quita: 5 %', /^5\s*%$/.test(caso('-5', '100')), JSON.stringify(av.textContent));
 ok('12.5 de 50 → 25%', caso('12.5', '50') === '25%', av.textContent);
 ok('Cuenta de la sección sube con el ejecutado', /1\/8/.test($('#cuenta-urb_vialidad').textContent), $('#cuenta-urb_vialidad').textContent);
 
@@ -31,29 +34,33 @@ nuevoInforme(); Q.elegir(torre, 'M-1 L1'); await esperar(100); if ($('#aviso-his
 Q.elegir($('#inspectores select'), INSPECTORES_DB[1]);
 const drena = items('urb_drenaje'); drena.forEach((x, i) => Q.escribir(x.querySelector('.pr'), String((i + 1) * 100)));
 let d = datosDelFormulario();
-ok('Los 4 proyectados están en los datos', d.general[1].items.map(i => i.pr).join() === '100,200,300,400', d.general[1].items.map(i => i.pr).join());
+ok('Los 5 proyectados están en los datos', d.general[1].items.map(i => i.pr).join() === '100,200,300,400,500', d.general[1].items.map(i => i.pr).join());
 const antes = listaGuardada().length; const g = guardar(true);
 ok('(HALLAZGO) un informe con SOLO proyectadas se considera «en blanco» y NO se guarda', g === true && listaGuardada().length === antes + 1, 'guardar→' + g + ' · ' + (Q.dialogos.slice(-1)[0] || '') + ' · lista ' + antes + '→' + listaGuardada().length);
-ok('(HALLAZGO) …ni cuenta como contestado para la sección', /1\/4|4\/4/.test($('#cuenta-urb_drenaje').textContent), JSON.stringify($('#cuenta-urb_drenaje').textContent));
+// PENDIENTE DE DECISIÓN (17-nov-2026): desde la v83 «contestada» es calidad o cantidad; una partida con solo el proyectado
+// no cuenta (el proyectado es la meta). Este hallazgo del 21-sep nunca se decidió: se deja en rojo hasta decidir.
+ok('(HALLAZGO) …ni cuenta como contestado para la sección', /1\/5|5\/5/.test($('#cuenta-urb_drenaje').textContent), JSON.stringify($('#cuenta-urb_drenaje').textContent));
 Q.dialogos = []; siguienteTorre();
 ok('(HALLAZGO) «Sig. manzana» con solo proyectadas: ¿quedó guardado M-1 L1?', listaGuardada().some(x => x.torre === 'M-1 L1'), listaGuardada().map(x => x.torre).join());
 // con una cantidad además, sí
 Q.elegir(torre, 'M-1 L1'); await esperar(100); if ($('#aviso-historial .no')) $('#aviso-historial .no').click();
 items('urb_drenaje').forEach((x, i) => Q.escribir(x.querySelector('.pr'), String((i + 1) * 100)));
-Q.escribir(items('urb_drenaje')[0].querySelector('.cant'), '50'); guardar(false);
-d = listaGuardada().find(x => x.torre === 'M-1 L1');
-ok('Con un ejecutado además, se guarda con los 4 proyectados', d && d.general[1].items.map(i => i.pr).join() === '100,200,300,400' && d.general[1].items[0].cant === '50', d && d.general[1].items.map(i => i.pr + '/' + i.cant).join());
+// v188 (27-oct-2026): en drenaje la cantidad es el «Acumulado» (anterior + hoy) y se escribe en «Hoy».
+Q.escribir(items('urb_drenaje')[0].querySelector('.hoy'), '50'); guardar(false);
+// Desde que «solo proyectadas» se guarda, hay dos M-1 L1 en la lista: se mira el último.
+d = listaGuardada().filter(x => x.torre === 'M-1 L1').pop();
+ok('Con un ejecutado además, se guarda con los 5 proyectados', d && d.general[1].items.map(i => i.pr).join() === '100,200,300,400,500' && d.general[1].items[0].cant === '50', d && d.general[1].items.map(i => i.pr + '/' + i.cant).join());
 
 // salir del modo plan: el proyectado sigue viajando aunque no se vea
 btnP.click();
 ok('Apagar: sin clase plan, sin aviso, proyectado oculto, los valores siguen', !document.body.classList.contains('plan') && !$('.plan-aviso') && getComputedStyle(items('urb_drenaje')[0].querySelector('.proy')).display === 'none' && items('urb_drenaje')[3].querySelector('.pr').value === '400');
-guardar(false); d = listaGuardada().find(x => x.torre === 'M-1 L1');
-ok('Guardado en modo inspector: los proyectados no se pierden', d.general[1].items.map(i => i.pr).join() === '100,200,300,400');
+guardar(false); d = listaGuardada().filter(x => x.torre === 'M-1 L1').pop();
+ok('Guardado en modo inspector: los proyectados no se pierden', d.general[1].items.map(i => i.pr).join() === '100,200,300,400,500');
 
 // historial: el inspector del día siguiente hereda cant y recibe pr sin verlo
 nuevoInforme(); Q.elegir(torre, 'M-1 L1'); await esperar(200); $('#aviso-historial .si').click(); await esperar(100);
 const d0 = items('urb_drenaje')[0], d3 = items('urb_drenaje')[3];
-ok('Heredado: drenaje[0] con 50 en amarillo; drenaje[3] recibe pr 400 pero NO se marca heredado (solo proyectado)', d0.classList.contains('heredado') && d0.querySelector('.cant').value === '50' && d3.querySelector('.pr').value === '400' && !d3.classList.contains('heredado'), d3.querySelector('.pr').value + ' · ' + d3.className);
+ok('Heredado: drenaje[0] con 50 en amarillo; drenaje[3] recibe pr 400 marcado heredado + her-pr (v188: sin etiqueta ni «sin revisar»)', d0.classList.contains('heredado') && d0.querySelector('.cant').value === '50' && d3.querySelector('.pr').value === '400' && d3.classList.contains('her-pr'), d3.querySelector('.pr').value + ' · ' + d3.className);
 Q.escribir(d0.querySelector('.cant'), '80');
 ok('El inspector escribe 80 encima: deja de ser heredado y el pr 100 sigue', !d0.classList.contains('heredado') && d0.querySelector('.pr').value === '100');
 guardar(false);
