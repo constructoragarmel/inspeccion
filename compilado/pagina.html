@@ -234,7 +234,6 @@ if (ESPRUEBA) { $('prueba').hidden = false; $('volver').href = 'index.html?prueb
   const j = new Date(hoy); j.setDate(j.getDate() - 1);
   while (j.getDay() !== 4) j.setDate(j.getDate() - 1);   // el jueves anterior (hoy jueves cuenta como la semana que termina: se toma el de hace 7 días)
   $('desde').value = iso(j); $('hasta').value = iso(hoy);
-  try { const u = JSON.parse(localStorage.getItem('garmel_compilado_ultimo') || 'null'); if (u) { if (u.tipo && TIPOS[u.tipo]) $('tipo').value = u.tipo; aplicarTipo(); $('sector').value = u.sector || ''; if (tipoActual() === 'urbanismo') { MANZANAS[u.sector] = MANZANAS[u.sector] || (u.torre ? [u.torre] : []); llenarManzanas(); } else llenarTorres(); $('torre').value = u.torre || ''; $('quien').value = u.quien || ''; if ($('quien').selectedIndex < 0) $('quien').selectedIndex = 0; } } catch (e) {}
   if (!navigator.onLine) $('conexion').textContent = 'sin conexión';
   window.addEventListener('online', () => $('conexion').textContent = 'en línea');
   window.addEventListener('offline', () => $('conexion').textContent = 'sin conexión');
@@ -868,6 +867,10 @@ async function guardarEstatus() {
 function mostrarEnvio(txt, clase) { const e = $('estado-envio'); e.hidden = false; e.className = 'estado ' + clase; e.innerHTML = txt; e.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
 function otraVez() { $('aviso-archivado').hidden = true; $('resultado').hidden = true; DATA = null; ENVIADO = false; $('btn-enviar').textContent = '📤 Enviar el compilado'; $('guardado-txt').textContent = 'Se guarda solo en este equipo mientras escribe; se archiva al tocar «Enviar el compilado».'; try { localStorage.removeItem('garmel_compilado_semana'); } catch (e) {} window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
+// Lo último que se eligió (tipo, sector, torre y quién valida) vuelve al abrir. 17-nov-2026: estaba dentro del arranque de arriba,
+// antes de que existieran TIPOS y `corto` (const, más abajo): desde la v160 (13-oct) reventaba callado en el try y la página abría
+// siempre en obra y en blanco. Aquí ya existe todo; la última semana generada, justo debajo, sigue mandando si la hay.
+try { const u = JSON.parse(localStorage.getItem('garmel_compilado_ultimo') || 'null'); if (u) { if (u.tipo && TIPOS[u.tipo]) $('tipo').value = u.tipo; aplicarTipo(); $('sector').value = u.sector || ''; if (tipoActual() === 'urbanismo') { MANZANAS[u.sector] = MANZANAS[u.sector] || (u.torre ? [u.torre] : []); llenarManzanas(); } else llenarTorres(); $('torre').value = u.torre || ''; $('quien').value = u.quien || ''; if ($('quien').selectedIndex < 0) $('quien').selectedIndex = 0; } } catch (e) {}
 // La última semana generada se repinta al abrir (recargar o volver no obliga a esperar otra vez), con aviso.
 try {
   const u = JSON.parse(localStorage.getItem('garmel_compilado_semana') || 'null');

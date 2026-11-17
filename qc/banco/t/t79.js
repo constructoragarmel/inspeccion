@@ -24,9 +24,14 @@ await enviar(); await hasta(() => /No se pudo archivar/.test($('#estado-envio').
 ok('4 · Enviar con el relevo caído avisa y conserva lo escrito en el equipo', /sigue guardado en este equipo/.test($('#estado-envio').textContent) && ((JSON.parse(localStorage.getItem('garmel_compilado_con_EZ_' + RIO + '_2026-10-08') || '{}').textos) || {}).otros === 'No se pierde' && !$('#btn-enviar').disabled, $('#estado-envio').textContent);
 await Q.relevo({ caido: false });
 // QC 5 · Un nombre recordado que ya no está en la lista no deja el desplegable en blanco; y el último sector y torre se recuerdan.
-localStorage.setItem('garmel_compilado_ultimo', JSON.stringify({ sector: 'SB', torre: 'J-12', quien: 'Alguien que ya no está' }));
+// 17-nov-2026: el recuerdo lleva tipo «servicios». Desde la V181 obra va por contratista, y «J-12» no es una opción de obra: sin
+// tipo, la página volvía en obra y t79b no podía encontrar la torre.
+localStorage.setItem('garmel_compilado_ultimo', JSON.stringify({ tipo: 'servicios', sector: 'SB', torre: 'J-12', quien: 'Alguien que ya no está' }));
 ok('5 · Preparado para recargar: el recuerdo lleva un nombre que no está en la lista', true);
 // QC 6 · Fechas al revés y ventana de más de 60 días.
 Q.escribir($('#desde'), '2026-10-10'); Q.escribir($('#hasta'), '2026-10-09'); await generar();
 ok('6 · Fechas al revés: avisa sin llamar al relevo', /fechas/i.test($('#estado').textContent), $('#estado').textContent);
 localStorage.removeItem('garmel_compilado_con_EZ_' + RIO + '_2026-10-08');
+// 17-nov-2026: se suelta la última semana generada antes de recargar. Desde la v154 (13-oct) esa semana se repinta al abrir y
+// manda sobre «garmel_compilado_ultimo»: con ella, t79b veía Río Limón en vez de lo recordado en el QC 5.
+localStorage.removeItem('garmel_compilado_semana');
