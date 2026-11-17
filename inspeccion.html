@@ -497,7 +497,10 @@ td.desc input:focus{outline:none;border-color:var(--yellow)}
   .saved-item{ flex-wrap:wrap; gap:8px; }
   .saved-item-actions{ width:100%; gap:10px; }
   .s-btn{ min-height:44px; font-size:12.5px; padding:8px 12px; flex:1 1 auto; }
-  .s-btn-del{ flex:0 0 auto; padding:8px 16px; margin-left:20px; }
+  .s-btn-del{ flex:0 0 auto; padding:8px 12px; margin-left:12px; }
+  /* 17-nov-2026: con 20 px de margen y 16 de relleno, a 375 px «🗑️ Borrar» se salía 11 px de la tarjeta (t112). Ahora cabe en
+     la fila, y en una pantalla más angosta la fila se parte en dos en vez de salirse. */
+  .saved-item-actions{ flex-wrap:wrap; }
 }
 
 @media print{

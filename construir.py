@@ -4208,7 +4208,10 @@ s = sustituir(s,
 
 s = sustituir(s,
  "  .s-btn-del{ flex:0 0 56px; margin-left:26px; }",
- "  .s-btn-del{ flex:0 0 auto; padding:8px 16px; margin-left:20px; }",
+ "  .s-btn-del{ flex:0 0 auto; padding:8px 12px; margin-left:12px; }\n"
+ "  /* 17-nov-2026: con 20 px de margen y 16 de relleno, a 375 px «🗑️ Borrar» se salía 11 px de la tarjeta (t112). Ahora cabe en\n"
+ "     la fila, y en una pantalla más angosta la fila se parte en dos en vez de salirse. */\n"
+ "  .saved-item-actions{ flex-wrap:wrap; }",
  "98a3· en el teléfono le cabe la palabra")
 
 s = sustituir(s,
