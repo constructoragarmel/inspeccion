@@ -151,6 +151,11 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # v211 (19-nov-2026): entra Rafael Guillermo Mota Rivas, ingeniero civil (Universidad José María Vargas, 2010) con ingreso
 # el 18-nov como «Ing. de Obra» (WhatsApp de la Gerencia Técnica, reenviado por Stephanie, que pidió sumarlo al formulario).
 # CIV 213.794, de su carnet y del sello del título. Sus iniciales, RM, no las tiene nadie más. El padrón queda en 31.
+# v212 (19-nov-2026, Stephanie): entra Gehosmary Alejandra Mendoza Mendoza, ingeniera industrial (mención Procesos, título
+# en trámite, sin CIV: «CIV-NC»), Ingeniero Administrador de Contratos con ingreso el 18-nov, como Martha Azcarate. La
+# Gerencia Técnica la llama «Ing.». Va con la inicial del segundo nombre porque «GM» ya es Génesis Márquez: sus informes
+# salen GA. Y sale Skarlet Gómez, que dejó Garmel a fines de septiembre: ya no está en el desplegable, pero su título
+# sigue en TITULO_INSPECTOR para que sus informes viejos se lean igual. El padrón queda en 31.
 INSPECTORES_JS = """const INSPECTORES_DB = [
   "Alejandro Bastidas (CIV-67.316)",
   "Ángel Sánchez (CIV-NC)",
@@ -166,6 +171,7 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Eduardo Rivero (CIV-169.435)",
   "Gabriel Barrios (CIV-NC)",
   "Gabriel Jelenkovic (CIV-215.739)",
+  "Gehosmary A. Mendoza (CIV-NC)",
   "Génesis Cordobés (CIV-307.057)",
   "Génesis Márquez (CIV-306.358)",
   "Girlenys Lacruz (CIV-288.041)",
@@ -180,7 +186,6 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Oriana Plaza (CIV-321.434)",
   "Rafael Mota (CIV-213.794)",
   "Selehidy Rivero (CIV-292.273)",
-  "Skarlet Gómez (CIV-317.442)",
   "Víctor Mendoza (CIV-NC)",
   "Yenddy Sierra (CIV-307.772)"
 ];"""
@@ -205,6 +210,7 @@ TITULO_INSPECTOR = {
     "Eduardo Rivero": "Ing.",
     "Gabriel Barrios": "TSU",
     "Gabriel Jelenkovic": "Ing.",
+    "Gehosmary A. Mendoza": "Ing.",
     "Génesis Cordobés": "Ing.",
     "Génesis Márquez": "Ing.",
     "Girlenys Lacruz": "Ing.",

@@ -1391,3 +1391,13 @@ Iniciales RM, sin choque; el padrón queda en 31. `e38` en verde en los cuatro f
 servicios y SHA, sin ventana a 500 px) y 5/5 en inspección a 375×812 en un navegador de verdad; `e30` sigue en verde.
 **El PDF del relevo todavía no le pone «Ing.»**: `PDF_TITULO_INSPECTOR` de `PDF.gs` se cambia con el próximo despliegue del
 relevo, desde la computadora con la sesión de admin@. Hasta entonces su PDF dice «Rafael Mota» a secas.
+
+## 19-nov-2026 · Entra Gehosmary Mendoza y sale Skarlet Gómez: `e39` (v212)
+
+Gehosmary Alejandra Mendoza Mendoza, ingeniera industrial (título en trámite, sin CIV), administradora de contratos con
+ingreso el 18-nov, entra como «Gehosmary A. Mendoza (CIV-NC)» con «Ing.»: GM ya es Génesis Márquez, así que sus informes
+salen GA. Skarlet Gómez, que se fue a fines de septiembre, sale del desplegable (pidió Stephanie) y conserva su título para
+lo viejo. El padrón sigue en 31. `e39` en verde en los cuatro formularios y 6/6 a 375×812 en un navegador de verdad; `e38`,
+`e30` y `t26` siguen en verde. `e28` no corre en esta computadora: le falta `reales/EZ-T16-torre-261021.json`, que sale del
+Drive con `reales.py` (no tiene que ver con el padrón). El PDF del relevo tampoco le pone «Ing.» a ella hasta su próximo
+despliegue.
