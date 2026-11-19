@@ -148,6 +148,9 @@ SECTOR_POR_CONVENIO_JS = """const SECTOR_POR_CONVENIO = {
 # v204 (3-nov-2026): entra Claribel Pozo Corrales, ingeniera civil con ingreso el 3-nov (Stephanie, 3-nov; se había descartado
 # el 12-sep y se reincorpora). CIV 221.472, dado por Stephanie y el mismo de su CV. Sus iniciales, CP, no chocan con Christian
 # Fricke (CF), Cleidy Chacón (CC) ni Carlos J. Colmenares (CJ). El padrón queda en 30.
+# v211 (19-nov-2026): entra Rafael Guillermo Mota Rivas, ingeniero civil (Universidad José María Vargas, 2010) con ingreso
+# el 18-nov como «Ing. de Obra» (WhatsApp de la Gerencia Técnica, reenviado por Stephanie, que pidió sumarlo al formulario).
+# CIV 213.794, de su carnet y del sello del título. Sus iniciales, RM, no las tiene nadie más. El padrón queda en 31.
 INSPECTORES_JS = """const INSPECTORES_DB = [
   "Alejandro Bastidas (CIV-67.316)",
   "Ángel Sánchez (CIV-NC)",
@@ -175,6 +178,7 @@ INSPECTORES_JS = """const INSPECTORES_DB = [
   "Martha Azcarate (CIV-87.616)",
   "Miguel E. Ávila (CIV-NC)",
   "Oriana Plaza (CIV-321.434)",
+  "Rafael Mota (CIV-213.794)",
   "Selehidy Rivero (CIV-292.273)",
   "Skarlet Gómez (CIV-317.442)",
   "Víctor Mendoza (CIV-NC)",
@@ -213,6 +217,7 @@ TITULO_INSPECTOR = {
     "Martha Azcarate": "Ing.",
     "Miguel E. Ávila": "TSU",
     "Oriana Plaza": "Ing.",
+    "Rafael Mota": "Ing.",
     "Selehidy Rivero": "Ing.",
     "Skarlet Gómez": "Ing.",
     "Víctor Mendoza": "TSU",

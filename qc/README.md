@@ -1382,3 +1382,12 @@ El relevo falso la simula con `incompletaTorres: ['T-07']` (obra y los otros tre
 de Edenil tal cual. Regresión a 375 px a la vista: `t141` 6/6, `t119` 17, `t78` 24, `t79` 7, `t83` 11, `t84` 8 + 10 (con la
 recarga), `t95` 6, `t96` 9, `t98` 3, `t99` 8, `t111` 4, `t117` 6, `t120` 16, `t121` 13, `t122` 12, `t126` 13, `t134` 7,
 `e5` 5, `e29` 3, `e37` 3. Todas en verde.
+
+## 19-nov-2026 · Entra Rafael Mota: `e38` (v211)
+
+Ingeniero civil, ingreso el 18-nov, CIV 213.794 (su carnet y el sello del título). Va al padrón de inspección y urbanismo
+(entre Oriana Plaza y Selehidy Rivero) con título «Ing.»; servicios y SHA siguen con su lista propia pero le saben el título.
+Iniciales RM, sin choque; el padrón queda en 31. `e38` en verde en los cuatro formularios (5/5 inspección y urbanismo, 4/4
+servicios y SHA, sin ventana a 500 px) y 5/5 en inspección a 375×812 en un navegador de verdad; `e30` sigue en verde.
+**El PDF del relevo todavía no le pone «Ing.»**: `PDF_TITULO_INSPECTOR` de `PDF.gs` se cambia con el próximo despliegue del
+relevo, desde la computadora con la sesión de admin@. Hasta entonces su PDF dice «Rafael Mota» a secas.
