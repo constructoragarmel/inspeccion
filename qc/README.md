@@ -1369,3 +1369,16 @@ se cambiaron a propósito, y cada una dice ahora en su cabecera qué y desde cu�
   SHA; `t74` necesita `?oficina=1`; `t80` va en el menú, obra y servicios. Y `reales/` (con `reales.py`) para `e17`…`e34`.
 - Queda: a 320 px las tablas de accesorios sanitarios y eléctricos del apartamento pasan 15 px su caja (`t25` 16), y la
   cadena «Inicio» `t7b`…`t7h` (navega al menú y sin `?prueba`) no se corrió así.
+
+## 19-nov-2026 · Una torre que llega incompleta no tumba el compilado: `t141` (v210)
+
+La noche del 18-nov el compilado de Drijecae (Ezequiel Zamora, 12 al 18-nov) se cayó entero con «can't access property
+"filter", d.notas is undefined»: el relevo dio por buena una torre que llegó sin notas. Al día siguiente la misma semana llegó
+completa (cuatro torres, 120 informes) y la causa no quedó a la vista. Desde la v210, una respuesta con «ok» pero sin `notas`,
+`apartamentos` o `hitos` es una torre sin leer: sale con «Reintentar» como la que no contesta, y la consola dice qué faltó y
+qué traía. En servicios, urbanismo y SHA, una semana sin `notas` avisa que vuelva a intentar.
+
+El relevo falso la simula con `incompletaTorres: ['T-07']` (obra y los otros tres tipos). Sin el arreglo, `t141` da el error
+de Edenil tal cual. Regresión a 375 px a la vista: `t141` 6/6, `t119` 17, `t78` 24, `t79` 7, `t83` 11, `t84` 8 + 10 (con la
+recarga), `t95` 6, `t96` 9, `t98` 3, `t99` 8, `t111` 4, `t117` 6, `t120` 16, `t121` 13, `t122` 12, `t126` 13, `t134` 7,
+`e5` 5, `e29` 3, `e37` 3. Todas en verde.

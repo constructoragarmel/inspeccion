@@ -337,6 +337,8 @@ async function generar() {
       body: JSON.stringify({ clave, accion: 'compilado-semana', tipo, sector, torre, desde, hasta, prueba: ESPRUEBA }), signal: corte.signal });
     const res = await r.json();
     if (!res.ok) throw new Error(res.error || 'El relevo no contestó');
+    const falta = faltaEnSemana(res, ['notas']);   // v210: como en pedirTorre
+    if (falta) throw new Error(falta + '. Vuelva a intentar');
     DATA = res; DATA.quien = quien; DATA.tipo = res.tipo || tipo;
     try { localStorage.setItem('garmel_compilado_semana', JSON.stringify(DATA)); } catch (e) {}
     estado(''); pintar();
@@ -594,12 +596,23 @@ async function generarContratista(sector, contratista, desde, hasta, quien, clav
       (/abort/i.test(m) ? 'El relevo tardó demasiado. Pruebe con menos días o vuelva a intentar.' : 'No se pudo armar el compilado: ' + esc(m)), 'mal');
   } finally { clearTimeout(reloj); clearInterval(latido); $('btn-generar').disabled = false; }
 }
+// v210: qué listas faltan en una semana que el relevo dio por buena; null si está completa. Lo que falta queda en la consola.
+function faltaEnSemana(j, claves) {
+  const f = claves.filter(k => !Array.isArray(j[k]));
+  if (!f.length) return null;
+  console.warn('Compilado: el relevo contestó ok pero sin ' + f.join(', ') + ' · trae: ' + Object.keys(j).join(', '));
+  return 'la respuesta del relevo llegó incompleta';
+}
 async function pedirTorre(clave, sector, t, desde, hasta, signal) {
   try {
     const r = await fetch(RELEVO_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ clave, accion: 'compilado-semana', tipo: 'obra', sector, torre: t, desde, hasta, prueba: ESPRUEBA }), signal });
     const j = await r.json();
     if (!j.ok) return { torre: t, fallo: true, error: j.error || 'El relevo no contestó' };
+    // v210 (19-nov-2026): la noche del 18-nov una torre de Drijecae llegó con «ok» pero sin notas y tumbó el compilado entero
+    // («d.notas is undefined»); al día siguiente la misma semana llegó completa. Una respuesta incompleta es una torre sin leer.
+    const falta = faltaEnSemana(j, ['notas', 'apartamentos', 'hitos']);
+    if (falta) return { torre: t, fallo: true, error: falta };
     return j;
   } catch (e) { const m = String(e && e.message || e); return { torre: t, fallo: true, error: /abort/i.test(m) ? 'el relevo tardó demasiado' : m }; }
 }

@@ -61,6 +61,7 @@ class H(http.server.BaseHTTPRequestHandler):
             return self._ok({"ok":True,"sector":p.get('sector'),"manzanas":["M-1 L1","M-5","M-6"] if p.get('sector')=='EZ' else []})
         if p.get('accion')=='compilado-semana' and p.get('tipo') in ('servicios','urbanismo','sha'):
             if p.get('clave')!=ESTADO['clave']: return self._ok({"ok":False,"error":"Clave incorrecta"})
+            if p.get('torre') in (ESTADO.get('incompletaTorres') or []): return self._ok({"ok":True,"tipo":p['tipo'],"sector":p.get('sector'),"torre":p['torre']})   # v210
             if not p.get('sector') or not p.get('torre'): return self._ok({"ok":False,"error":"Faltan sector o torre"})
             t=p['tipo']; nro={"servicios":"SRV-QC-T01-261009-OP","urbanismo":"URB-QC-M6-261009-ER","sha":"SHA-QC-T01-261009-VM"}[t]
             ult={"numero":nro,"numeroRev":nro,"fecha":"2026-10-09","inspectores":["Inspector de prueba"],"pdf":"http://127.0.0.1:8777/qc-"+t+".pdf","estatus":["En progreso"]}
@@ -99,6 +100,8 @@ class H(http.server.BaseHTTPRequestHandler):
             if not p.get('sector') or not p.get('torre'): return self._ok({"ok":False,"error":"Faltan sector o torre"})
             # v181 (rondas de QC del compilado por contratista): una torre que falla, una que tarda, la semana sin informes y una torre de 60.
             if p.get('torre') in (ESTADO.get('fallarTorres') or []): return self._ok({"ok":False,"error":"No se pudo leer la carpeta de la torre"})
+            # v210 (19-nov): «ok» pero sin notas ni apartamentos, como la torre de Drijecae la noche del 18-nov.
+            if p.get('torre') in (ESTADO.get('incompletaTorres') or []): return self._ok({"ok":True,"sector":p['sector'],"torre":p['torre'],"generado":"2026-11-18 21:00"})
             if (ESTADO.get('tardaTorre') or {}).get(p.get('torre')): time.sleep((ESTADO.get('tardaTorre') or {}).get(p.get('torre')))
             hitos=[{"id":"hito_cerramientos","numero":"2","nombre":"HITO 2: CERRAMIENTOS","corto":"Albañilería","torre":True,"apto":True},
                    {"id":"hito_servicios","numero":"3","nombre":"HITO 3: INSTALACIÓN DE SERVICIOS","corto":"Servicios","torre":True,"apto":True},
