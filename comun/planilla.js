@@ -259,6 +259,41 @@
     });
     return out;
   }
+  // 20-nov-2026 (Miguel, T-311 de SB): «Guardar» y «Seguir en la planilla» sobre el mismo apartamento el mismo día chocaba
+  // con el informe que la propia planilla acababa de dejar en «Informes» y no dejaba guardar hasta enviar. Si ese informe
+  // sin enviar salió de la planilla y nadie le puso fotos ni observaciones en el formulario, se actualiza el mismo. Si
+  // tiene algo del formulario, el bloqueo se queda: ahí sí protege trabajo que la planilla no ve.
+  function pendienteDe(lista, nro){ return lista.find(function(b){ return b && b.nro === nro && !b.enviado; }) || null; }
+  function conAlgo(o){ return Object.keys(o || {}).some(function(k){ const v = o[k]; return Array.isArray(v) ? v.length > 0 : !!(v && String(v).trim()); }); }
+  function propioDePlanilla(b){
+    return !!(b && b.planilla && !b.enviado && !b.fotosEnIdb && !conAlgo(b.fotos) && !conAlgo(b.fotobs) && !String(b.obs_sp || '').trim() &&
+              !String(b.actividades || '').trim() && !(b.agentes || []).length && !b.editadoTras);
+  }
+  // Lo guardado en este teléfono (o en otra pestaña) pasa a ser lo gris: sin esto, una pestaña abierta antes de guardar en
+  // otra mostraba todo como «sin dato».
+  function ponerAlDiaDelTelefono(){
+    if (!P) return;
+    const tel = delTelefono();
+    Object.keys(tel).forEach(function(k){ if (!P.prev[k] || String(tel[k].fecha) >= String(P.prev[k].fecha || '')) P.prev[k] = tel[k]; });
+  }
+  // Dos pestañas con la misma torre (pasó en la computadora de la oficina, 20-nov-2026): lo que guarda una, la otra no lo
+  // veía y seguía con los cambios ya guardados como pendientes. El navegador avisa a las otras pestañas cuando una escribe
+  // en localStorage: la planilla abierta recarga su borrador y lo gris, y lo dice.
+  let tOtra = null;
+  addEventListener('storage', function(e){
+    if (!P || !e.key || (e.key !== CLAVE() && e.key !== 'garmel_reports_list')) return;
+    clearTimeout(tOtra);
+    tOtra = setTimeout(function(){
+      if (!P) return;
+      const b = leerBorrador();
+      est = (b && b.est) || { N: {}, C: {} }; pila = [];
+      if (b) { P.pasa = b.pasa || ''; P.impresa = b.impresa || ''; }
+      ponerAlDiaDelTelefono();
+      const f = document.getElementById('pl-fondo'); if (f && !f.hidden) cerrarSheet();
+      if (vista === 'tel' || vista === 'tabla') repintar();
+      aviso('🔄 La planilla de esta torre se cambió en otra ventana: aquí ya está al día.');
+    }, 250);
+  });
   function mezclar(archivo){
     const prev = {};
     // 11-nov-2026: desde el relevo r86 el archivo guarda la clave sin ceros (P09AC9) para juntar «B02» y «B2»; la planilla arma
@@ -778,18 +813,20 @@
     if (!r.ks.length) return;
     if (vista === 'tabla') { const e = document.getElementById('pl-pasa'); if (e && P.impresa && !P.pasa) e.classList.add('err'); }
     const lista = getSavedReports();
+    ponerAlDiaDelTelefono();
     let h = '<h3>Se guardarían ' + r.ks.length + ' informe' + (r.ks.length === 1 ? '' : 's') + '</h3><p class="pl-sub">Uno por apartamento que cambió, con la cabecera del formulario (' + esc(fechaLarga(P.cab.fecha)) + ', ' + esc((P.cab.inspectores || []).join(', ')) + ')' + (P.pasa ? '; la pasó ' + esc(P.pasa) : '') + '. Quedan en «Informes» para enviar.</p>';
     if (falta.length) h += '<div class="pl-faltan">Antes de guardar falta ' + falta.join('; ') + '.</div>';
     let choques = 0, correcciones = 0;
     r.ks.forEach(function(k){
       const x = aptoDe(k), cs = est.N[k] ? Object.keys(est.N[k]) : [], nro = nroPara(x);
-      const choca = nro && lista.some(function(b){ return b && b.nro === nro && !b.enviado; });
+      const pend = nro ? pendienteDe(lista, nro) : null, actualiza = !!(pend && propioDePlanilla(pend)), choca = !!pend && !actualiza;
       // Mismo número = mismo apartamento, mismo día y misma inspectora: el relevo lo guarda como corrección (-r2) y pasa a
       // ser el último. Lleva los % de la planilla, no las fotos ni las observaciones del que ya se envió.
       const enviadoHoy = !choca && nro && (lista.some(function(b){ return b && b.nro === nro && b.enviado; }) || (P.prev[k] && P.prev[k].nro === nro && !P.prev[k].telefono));
       if (choca) choques++; if (enviadoHoy) correcciones++;
       h += '<div class="pl-ra"><h4>' + nomPiso(x.p) + ' · ' + esc(x.a) + '</h4><div class="pl-nro">' + esc(nro || '—') + '</div>' +
-        (choca ? '<div class="pl-faltan">Ya hay un informe de este apartamento con esta fecha en el teléfono, sin enviar. Envíelo o bórrelo primero: este no se guarda.</div>' : '') +
+        (choca ? '<div class="pl-faltan">Ya hay un informe de este apartamento con esta fecha en el teléfono, sin enviar, con fotos u observaciones del formulario. Envíelo o bórrelo primero: este no se guarda.</div>' : '') +
+        (actualiza ? '<div class="pl-post">Ya se guardó hoy desde la planilla y todavía no se envió: se actualiza ese mismo informe en «Informes», no se crea otro.</div>' : '') +
         (enviadoHoy ? '<div class="pl-post">Ya se envió hoy un informe de este apartamento con este número. Este entra como corrección y pasa a ser el último del día: lleva los % de la planilla, pero no las fotos ni las observaciones del que ya se envió (esas quedan en el de antes). Si el de hoy tenía fotos, mejor corríjalo en «Informes».</div>' : '') + '<ul>' +
         cs.map(function(c){ return '<li' + (baja(k, c) ? ' class="b"' : '') + '>' + c + ' ' + esc(SUBS[c].n) + ': ' + (prev(k, c) === null ? 'sin dato' : fmt(c, prev(k, c))) + ' → <b>' + fmt(c, est.N[k][c]) + '</b>' + (baja(k, c) ? ' (baja)' : '') + '</li>'; }).join('') +
         (est.C[k] ? '<li>Nota: ' + esc(est.C[k]) + '</li>' : '') + (!cs.length ? '<li>Solo nota: lleva los mismos % de antes.</li>' : '') + '</ul></div>';
@@ -834,9 +871,19 @@
   window._plPartidasPara = partidasPara;
   function guardarTodo(r){
     const lista = getSavedReports(), hechos = [], saltados = [], base = P.cab, ahora = Date.now();
+    let nuevos = 0, actualizados = 0;
+    ponerAlDiaDelTelefono();
     r.ks.forEach(function(k, j){
-      const x = aptoDe(k), nro = nroPara(x);
-      if (!nro || lista.some(function(b){ return b && b.nro === nro && !b.enviado; })) { saltados.push(corPiso(x.p) + ' ' + x.a); return; }
+      const x = aptoDe(k), nro = nroPara(x), pend = nro ? pendienteDe(lista, nro) : null;
+      if (pend && propioDePlanilla(pend)) {
+        // El mismo informe, puesto al día: todas sus subpartidas (las que tenía y las nuevas) y la nota si se escribió otra.
+        pend.partidas = partidasPara(k); if (est.C[k]) pend.obs_general = est.C[k];
+        pend.timestamp = new Date().toLocaleString();
+        pend.planilla = Object.assign({}, pend.planilla, { pasa: P.pasa || pend.planilla.pasa || '', guardada: new Date().toISOString(), veces: (pend.planilla.veces || 1) + 1 });
+        hechos.push({ k: k, nro: nro, actualizado: true }); actualizados++;
+        return;
+      }
+      if (!nro || pend) { saltados.push(corPiso(x.p) + ' ' + x.a); return; }
       const d = JSON.parse(JSON.stringify(base));
       d.id = 'draft_' + ahora + '_pl' + j; d.formType = 'detallado'; d.lista = VERSION_LISTA; d.ambito = 'apartamento'; d.vista = '';
       d.piso = nomPiso(x.p); d.apto = x.a; d.nro = nro; d.timestamp = new Date().toLocaleString();
@@ -845,15 +892,17 @@
       d.fotobs = {}; Object.keys(d.partidas).forEach(function(pid){ if (!/_extra$/.test(pid)) d.fotobs[pid] = ''; });
       d.planilla = { origen: (P.oficina || P.impresa) ? 'oficina' : 'obra', pasa: P.pasa || '', impresa: P.impresa || '', guardada: new Date().toISOString() };
       d.uso = { planilla: true };
-      lista.unshift(d); hechos.push({ k: k, nro: nro });
+      lista.unshift(d); hechos.push({ k: k, nro: nro }); nuevos++;
     });
     try { localStorage.setItem('garmel_reports_list', JSON.stringify(lista)); }
     catch (e) { aviso('❌ El teléfono se quedó sin espacio. Envíe o elimine informes y vuelva a guardar: la planilla no se perdió.'); document.getElementById('pl-rgua').disabled = false; return; }
-    if (typeof currentEditingIndex !== 'undefined' && currentEditingIndex !== null) currentEditingIndex += hechos.length;
+    if (typeof currentEditingIndex !== 'undefined' && currentEditingIndex !== null) currentEditingIndex += nuevos;
     hechos.forEach(function(h){ const x = P.prev[h.k] = P.prev[h.k] || { pcts: {} }; x.pcts = Object.assign({}, x.pcts || {}, est.N[h.k] || {}); x.fecha = P.cab.fecha; x.nro = h.nro; x.telefono = true; delete est.N[h.k]; delete est.C[h.k]; });
     pila = []; guardarBorrador();
     if (typeof actualizarContadores === 'function') actualizarContadores();
-    abrirSheet('<h3>✅ ' + hechos.length + ' informe' + (hechos.length === 1 ? '' : 's') + ' en «Informes»</h3><p class="pl-sub">Se envían con «Enviar todos», como cualquier informe. Sin señal se quedan en el teléfono hasta que vuelva.</p>' +
+    abrirSheet('<h3>✅ ' + hechos.length + ' informe' + (hechos.length === 1 ? '' : 's') + ' en «Informes»</h3><p class="pl-sub">' +
+      (actualizados ? (actualizados === 1 ? 'Uno ya estaba guardado de hoy y se actualizó' : actualizados + ' ya estaban guardados de hoy y se actualizaron') + (nuevos ? '; ' + nuevos + ' nuevo' + (nuevos === 1 ? '' : 's') : '') + '. ' : '') +
+      'Se envían con «Enviar todos», como cualquier informe. Sin señal se quedan en el teléfono hasta que vuelva.</p>' +
       (saltados.length ? '<div class="pl-faltan">No se guardaron: ' + esc(saltados.join(', ')) + '. Ya hay un informe sin enviar de ese apartamento con esta fecha.</div>' : '') +
       '<ul class="pl-nros">' + hechos.map(function(h){ return '<li>' + esc(h.nro) + '</li>'; }).join('') + '</ul>' +
       '<div class="pl-acc"><button type="button" class="pl-btn" id="pl-fseg">Seguir en la planilla</button><button type="button" class="pl-btn pri" id="pl-fenv" autofocus>Enviar ahora</button></div>');
